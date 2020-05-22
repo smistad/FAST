@@ -54,6 +54,7 @@ void ComputationThread::run() {
                 view->updateRenderers();
             }
         } catch(ThreadStopped &e) {
+            reportInfo() << "Thread stopped exception occured in ComputationThread, exiting.." << reportEnd();
             break;
         }
         ++executeToken;

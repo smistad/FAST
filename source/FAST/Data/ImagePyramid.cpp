@@ -135,7 +135,7 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
         //m_levels[i].patches = x*x*x + 10;
 		m_levels[i].patches = std::ceil(m_levels[i].width / 256);
     }
-    mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
+    mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
 	m_counter += 1;
 }
@@ -149,7 +149,7 @@ void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel
         //m_levels[i].patches = x*x*x + 10;
 		m_levels[i].patches = std::ceil(m_levels[i].width / 256);// x* x* x + 10;
     }
-    mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
+    mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
 	m_counter += 1;
 }

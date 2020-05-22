@@ -2,12 +2,12 @@ fast_add_subdirectories(Access)
 fast_add_sources(
     BoundingBox.cpp
     BoundingBox.hpp
+    DataBoundingBox.cpp
+    DataBoundingBox.hpp
     DataObject.cpp
     DataObject.hpp
     SpatialDataObject.cpp
     SpatialDataObject.hpp
-    #DynamicData.cpp
-    #DynamicData.hpp
     Image.cpp
     Image.hpp
     Segmentation.cpp
@@ -26,18 +26,18 @@ fast_add_sources(
     Tensor.hpp
     TensorShape.cpp
     TensorShape.hpp
-	Text.cpp
-	Text.hpp
+    Text.cpp
+    Text.hpp
 )
 fast_add_test_sources(
     Tests/DataObjectTests.cpp
     Tests/ImageTests.cpp
 )
 fast_add_python_interfaces(
-	Image.i
+    Image.i
     Mesh.i
 )
 
 if(FAST_MODULE_WholeSlideImaging)
-	fast_add_sources(ImagePyramid.cpp ImagePyramid.hpp)
+    fast_add_sources(ImagePyramid.cpp ImagePyramid.hpp)
 endif()

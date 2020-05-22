@@ -1,19 +1,39 @@
 #include "FAST/Testing.hpp"
 #include "BoundingBoxRenderer.hpp"
-#include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 using namespace fast;
 
 TEST_CASE("BoundingBox renderer", "[BoundingBoxRenderer][fast][visual]") {
-    CHECK_NOTHROW(
-        VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
-        importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
-        BoundingBoxRenderer::pointer renderer = BoundingBoxRenderer::New();
-        renderer->addInputConnection(importer->getOutputPort());
-        SimpleWindow::pointer window = SimpleWindow::New();
-        window->addRenderer(renderer);
-        window->setTimeout(1000);
-        window->start();
-    );
+	auto bbset = BoundingBoxSet::New();
+	bbset->create();
+	{
+		auto access = bbset->getAccess(ACCESS_READ_WRITE);
+		access->addBoundingBox({2.0f, 2.0f}, {10.f, 3.0f});
+		access->addBoundingBox({6.0f, 1.0f}, {3.f, 5.0f});
+	}
+
+	auto bbset2 = BoundingBoxSet::New();
+	bbset2->create();
+	{
+		auto access = bbset2->getAccess(ACCESS_READ_WRITE);
+		access->addBoundingBox({1.0f, 1.0f}, {3.0f, 3.0f});
+	}
+
+	auto accumulate = BoundingBoxSetAccumulator::New();
+	accumulate->setInputData(bbset);
+	auto result = accumulate->updateAndGetOutputData<BoundingBoxSet>();
+	accumulate->setInputData(bbset2);
+	accumulate->update();
+	std::cout << "Final: " << result->getNrOfLines() << " v: " << result->getNrOfVertices() << std::endl;
+
+	auto renderer = BoundingBoxRenderer::New();
+	renderer->addInputData(result);
+	//renderer->addInputConnection(accumulate->getOutputPort());
+
+	auto window = SimpleWindow::New();
+	window->addRenderer(renderer);
+	window->setTimeout(1000);
+	window->set2DMode();
+	window->start();
 }

@@ -12,59 +12,72 @@
 namespace fast {
 
 BoundingBoxRenderer::BoundingBoxRenderer() {
-    createInputPort<SpatialDataObject>(0, false);
+    createInputPort<BoundingBoxSet>(0, false);
+
+    createShaderProgram({
+        Config::getKernelSourcePath() + "Visualization/BoundingBoxRenderer/BoundingBoxRenderer.vert",
+        Config::getKernelSourcePath() + "Visualization/BoundingBoxRenderer/BoundingBoxRenderer.frag",
+    });
 }
 
-void BoundingBoxRenderer::execute() {
+void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
-    for(uint i = 0; i < getNrOfInputConnections(); ++i) {
-        SpatialDataObject::pointer data = getInputData<SpatialDataObject>(i);
-        mBoxesToRender[i] = data->getTransformedBoundingBox();
-    }
-}
+    if(!mode2D)
+        throw Exception("BoundingBoxRenderer has only been implemented for 2D so far");
 
-void
-BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
+	glDisable(GL_DEPTH_TEST);
+    activateShader();
+    setShaderUniform("perspectiveTransform", perspectiveMatrix);
+    setShaderUniform("viewTransform", viewingMatrix);
+    // For all input data
+    for(auto it : mDataToRender) {
+        auto boxes = std::static_pointer_cast<BoundingBoxSet>(it.second);
 
-    // Draw each bounding box
-    std::unordered_map<uint, BoundingBox>::iterator it;
-    glBegin(GL_LINES);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    for(it = mBoxesToRender.begin(); it != mBoxesToRender.end(); ++it) {
-        BoundingBox box = it->second;
-        MatrixXf corners = box.getCorners();
-        // Should be 12 lines in total
-        for(uint i = 0; i < 8; ++i) {
-            Vector3f A = corners.row(i);
-            for(uint j = 0; j < i; ++j) {
-                Vector3f B = corners.row(j);
-                // If only 1 coordinate is different, draw the line
-                if((A.x() != B.x() ? 1 : 0) +
-                    (A.y() != B.y() ? 1 : 0) +
-                    (A.z() != B.z() ? 1 : 0) == 1) {
-                    glVertex3f(A.x(), A.y(), A.z());
-                    glVertex3f(B.x(), B.y(), B.z());
-                }
+        // TODO if VAO already exists, and data has not changed...
 
-            }
+        // Delete old VAO
+        if(mVAO.count(it.first) > 0) {
+            glDeleteVertexArrays(1, &mVAO[it.first]);
         }
-    }
-    glEnd();
-}
+        // Create VAO
+        uint VAO_ID;
+        glGenVertexArrays(1, &VAO_ID);
+        mVAO[it.first] = VAO_ID;
+        glBindVertexArray(VAO_ID);
 
-BoundingBox BoundingBoxRenderer::getBoundingBox() {
-    std::vector<Vector3f> coordinates;
-    std::unordered_map<uint, BoundingBox>::iterator it;
-    for(it = mBoxesToRender.begin(); it != mBoxesToRender.end(); ++it) {
-        BoundingBox transformedBoundingBox = it->second;
-        MatrixXf corners = transformedBoundingBox.getCorners();
-        for(uint j = 0; j < 8; j++) {
-            coordinates.push_back((Vector3f)corners.row(j));
+        AffineTransformation::pointer transform;
+        if(mode2D) {
+            // If rendering is in 2D mode we skip any transformations
+            transform = AffineTransformation::New();
+        } else {
+            transform = SceneGraph::getAffineTransformationFromData(it.second);
         }
+        setShaderUniform("transform", transform->getTransform());
+
+        Color color = m_defaultColor;
+        
+        auto access = boxes->getOpenGLAccess(ACCESS_READ);
+
+        // Coordinates
+        GLuint coordinatesVBO = access->getCoordinateVBO();
+        glBindBuffer(GL_ARRAY_BUFFER, coordinatesVBO);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        // Color             
+        bool useGlobalColor = true;
+        //setShaderUniform("useGlobalColor", useGlobalColor);
+        setShaderUniform("globalColor", color.asVector());
+
+		GLuint EBO = access->getLinesEBO();
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glDrawElements(GL_LINES, boxes->getNrOfLines() * 2, GL_UNSIGNED_INT, NULL);
+        glBindVertexArray(0);
     }
-    return BoundingBox(coordinates);
+    deactivateShader();
+    glEnable(GL_DEPTH_TEST);
+    glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the text renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
 }

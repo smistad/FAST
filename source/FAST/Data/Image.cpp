@@ -507,7 +507,7 @@ void Image::create(
     mWidth = width;
     mHeight = height;
     mDepth = depth;
-    mBoundingBox = BoundingBox(Vector3f(width, height, depth));
+    mBoundingBox = DataBoundingBox(Vector3f(width, height, depth));
     mDimensions = 3;
     mType = type;
     mChannels = nrOfChannels;
@@ -552,7 +552,7 @@ void Image::create(
 
     mWidth = width;
     mHeight = height;
-    mBoundingBox = BoundingBox(Vector3f(width, height, 0));
+    mBoundingBox = DataBoundingBox(Vector3f(width, height, 0));
     mDepth = 1;
     mDimensions = 2;
     mType = type;
@@ -1212,7 +1212,7 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     return newImage;
 }
 
-BoundingBox Image::getTransformedBoundingBox() const {
+DataBoundingBox Image::getTransformedBoundingBox() const {
     AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromNode(getSceneGraphNode());
 
     // Add image spacing
@@ -1221,7 +1221,7 @@ BoundingBox Image::getTransformedBoundingBox() const {
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
-BoundingBox Image::getBoundingBox() const {
+DataBoundingBox Image::getBoundingBox() const {
     // Add image spacing
     AffineTransformation::pointer T = AffineTransformation::New();
     T->getTransform().scale(getSpacing());

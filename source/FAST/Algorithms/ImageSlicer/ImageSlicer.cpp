@@ -179,7 +179,7 @@ void inline getWidth(std::vector<Vector3f> intersectionPoints, Image::pointer in
 }
 
 void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) {
-    BoundingBox transformedBB = input->getTransformedBoundingBox();
+    DataBoundingBox transformedBB = input->getTransformedBoundingBox();
     MatrixXf transformedCorners = transformedBB.getCorners();
     if(!mArbitrarySlicePlane.hasPosition()) {
         // Set slice position to centroid of BB
@@ -193,7 +193,7 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
     }
 
     // Calculate x corner points of the compounded BB using plane line intersections
-    BoundingBox BB = input->getBoundingBox();
+    DataBoundingBox BB = input->getBoundingBox();
     MatrixXf untransformedCorners = BB.getCorners();
     std::vector<Vector3f> intersectionPoints;
     Vector3f intersectionCentroid(0,0,0);

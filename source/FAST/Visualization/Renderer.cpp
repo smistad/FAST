@@ -72,7 +72,7 @@ void Renderer::execute() {
     }
 }
 
-BoundingBox Renderer::getBoundingBox(bool transform) {
+DataBoundingBox Renderer::getBoundingBox(bool transform) {
     std::unique_lock<std::mutex> lock(mMutex);
     std::vector<Vector3f> coordinates;
 
@@ -80,7 +80,7 @@ BoundingBox Renderer::getBoundingBox(bool transform) {
         throw Exception("Renderer has no input data. Unable to create bounding box and thereby initialize GL scene.");
 
     for(auto it : mDataToRender) {
-        BoundingBox transformedBoundingBox;
+        DataBoundingBox transformedBoundingBox;
         if(transform) {
             transformedBoundingBox = it.second->getTransformedBoundingBox();
         } else {
@@ -96,7 +96,7 @@ BoundingBox Renderer::getBoundingBox(bool transform) {
     if(coordinates.size() == 0)
         throw Exception("Renderer did not get any data. Unable to create bounding box and thereby initialize GL scene.");
 
-    return BoundingBox(coordinates);
+    return DataBoundingBox(coordinates);
 }
 
 

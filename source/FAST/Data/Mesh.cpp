@@ -66,9 +66,9 @@ void Mesh::create(
     }
 
 	if(vertices.size() > 0) {
-		mBoundingBox = BoundingBox(positions);
+		mBoundingBox = DataBoundingBox(positions);
 	} else {
-		mBoundingBox = BoundingBox(Vector3f(0,0,0)); // TODO Fix
+		mBoundingBox = DataBoundingBox(Vector3f(0,0,0)); // TODO Fix
 	}
     mNrOfVertices = vertices.size();
     mNrOfLines = lines.size();
@@ -93,7 +93,7 @@ void Mesh::create(
         // Delete old data
         freeAll();
     }
-    mBoundingBox = BoundingBox(Vector3f(1,1,1));
+    mBoundingBox = DataBoundingBox(Vector3f(1,1,1));
     mIsInitialized = true;
     mNrOfVertices = nrOfVertices;
     mNrOfLines = nrOfLines;
@@ -567,7 +567,7 @@ int Mesh::getNrOfVertices() {
     return mNrOfVertices;
 }
 
-void Mesh::setBoundingBox(BoundingBox box) {
+void Mesh::setBoundingBox(DataBoundingBox box) {
     mBoundingBox = box;
 }
 

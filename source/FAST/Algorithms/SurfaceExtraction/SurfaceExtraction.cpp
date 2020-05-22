@@ -281,7 +281,7 @@ void SurfaceExtraction::execute() {
 
     Mesh::pointer output = getOutputData<Mesh>(0);
     SceneGraph::setParentNode(output, input);
-    BoundingBox box = input->getBoundingBox();
+    DataBoundingBox box = input->getBoundingBox();
     output->create(totalSum*3, 0, totalSum, false, true, false);
     output->setBoundingBox(box);
 

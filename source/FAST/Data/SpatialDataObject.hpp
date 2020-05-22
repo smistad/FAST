@@ -2,7 +2,7 @@
 #define SPATIAL_DATA_OBJECT_HPP_
 
 #include "FAST/Data/DataObject.hpp"
-#include "BoundingBox.hpp"
+#include "DataBoundingBox.hpp"
 #include "FAST/SceneGraph.hpp"
 
 namespace fast {
@@ -11,14 +11,14 @@ class FAST_EXPORT  SpatialDataObject : public DataObject {
     public:
         typedef SharedPointer<SpatialDataObject> pointer;
         SpatialDataObject();
-        virtual BoundingBox getBoundingBox() const;
-        virtual BoundingBox getTransformedBoundingBox() const;
+        virtual DataBoundingBox getBoundingBox() const;
+        virtual DataBoundingBox getTransformedBoundingBox() const;
         SceneGraphNode::pointer getSceneGraphNode() const;
         static std::string getStaticNameOfClass() {
             return "";
         };
     protected:
-        BoundingBox mBoundingBox;
+        DataBoundingBox mBoundingBox;
     private:
         SceneGraphNode::pointer mSceneGraphNode;
 

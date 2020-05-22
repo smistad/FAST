@@ -16,6 +16,8 @@ fast_add_sources(
     CameraAccess.hpp
     TensorAccess.cpp
     TensorAccess.hpp
+    BoundingBoxSetAccess.cpp
+    BoundingBoxSetAccess.hpp
 )
 if(FAST_MODULE_WholeSlideImaging)
 fast_add_sources(

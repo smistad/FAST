@@ -48,7 +48,7 @@ void TensorFlowTensor::create(TensorFlowTensorWrapper* wrapper) {
     if(m_shape.getDimensions() >= 3) {
         const int width = m_shape[m_shape.getDimensions() - 2];
         const int height = m_shape[m_shape.getDimensions() - 3];
-        mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+        mBoundingBox = DataBoundingBox(Vector3f(width, height, 1));
     }
     /*
     // Unnecessary copy..

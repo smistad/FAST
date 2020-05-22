@@ -12,7 +12,7 @@ class Text;
 class FAST_EXPORT  TextRenderer : public Renderer {
     FAST_OBJECT(TextRenderer)
     public:
-        BoundingBox getBoundingBox(bool transform) override;
+        DataBoundingBox getBoundingBox(bool transform) override;
         enum TextStyleType {
             STYLE_NORMAL,
             STYLE_BOLD,

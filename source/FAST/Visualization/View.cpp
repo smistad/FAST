@@ -253,7 +253,7 @@ void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f &min, Vector3f &m
         // Apply transformation to all b boxes
         // Get max and min of x and y coordinates of the transformed b boxes
         try {
-            BoundingBox box = renderers.at(i)->getBoundingBox(transform);
+            DataBoundingBox box = renderers.at(i)->getBoundingBox(transform);
             MatrixXf corners = box.getCorners();
             if(!initialized) {
                 Vector3f corner = box.getCorners().row(0);

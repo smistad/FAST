@@ -39,7 +39,7 @@ class FAST_EXPORT Mesh : public SpatialDataObject {
         int getNrOfTriangles();
         int getNrOfLines();
         int getNrOfVertices();
-        void setBoundingBox(BoundingBox box);
+        void setBoundingBox(DataBoundingBox box);
         ~Mesh();
     private:
         Mesh();

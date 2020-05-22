@@ -14,7 +14,7 @@ void Tensor::create(std::unique_ptr<float[]> data, TensorShape shape) {
     if(m_shape.getDimensions() >= 3) {
         const int width = m_shape[m_shape.getDimensions() - 2];
         const int height = m_shape[m_shape.getDimensions() - 3];
-        mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+        mBoundingBox = DataBoundingBox(Vector3f(width, height, 1));
     }
 }
 
@@ -29,7 +29,7 @@ void Tensor::create(TensorShape shape) {
     if(m_shape.getDimensions() >= 3) {
         const int width = m_shape[m_shape.getDimensions() - 2];
         const int height = m_shape[m_shape.getDimensions() - 3];
-        mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+        mBoundingBox = DataBoundingBox(Vector3f(width, height, 1));
     }
 }
 
@@ -49,7 +49,7 @@ void Tensor::create(std::initializer_list<float> data) {
     if(m_shape.getDimensions() >= 3) {
         const int width = m_shape[m_shape.getDimensions() - 2];
         const int height = m_shape[m_shape.getDimensions() - 3];
-        mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+        mBoundingBox = DataBoundingBox(Vector3f(width, height, 1));
     }
 }
 
@@ -260,7 +260,7 @@ void Tensor::deleteDimension(int i) {
     }
 }
 
-BoundingBox Tensor::getTransformedBoundingBox() const {
+DataBoundingBox Tensor::getTransformedBoundingBox() const {
     AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromNode(getSceneGraphNode());
 
     // Add image spacing
@@ -269,7 +269,7 @@ BoundingBox Tensor::getTransformedBoundingBox() const {
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
-BoundingBox Tensor::getBoundingBox() const {
+DataBoundingBox Tensor::getBoundingBox() const {
     // Add image spacing
     AffineTransformation::pointer T = AffineTransformation::New();
     T->getTransform().scale(Vector3f(getSpacing().x(), getSpacing().y(), getSpacing().z()));

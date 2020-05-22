@@ -1,7 +1,7 @@
 #pragma once
 
 #include "FAST/ProcessObject.hpp"
-#include "FAST/Data/BoundingBox.hpp"
+#include "FAST/Data/DataBoundingBox.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
 #include <mutex>
 #include <QOpenGLFunctions_3_3_Core>
@@ -9,7 +9,7 @@
 namespace fast {
 
 class View;
-class BoundingBox;
+class DataBoundingBox;
 
 class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     public:
@@ -28,7 +28,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          * @return the input nr of the new connection
          */
         virtual uint addInputData(DataObject::pointer data);
-        virtual BoundingBox getBoundingBox(bool transform = true);
+        virtual DataBoundingBox getBoundingBox(bool transform = true);
         virtual void stopPipeline();
         virtual void reset();
         /**

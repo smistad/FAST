@@ -13,12 +13,15 @@ fast_add_sources(
     InferenceEngineManager.hpp
     TensorToSegmentation.cpp
     TensorToSegmentation.hpp
+    BoundingBoxNetwork.cpp
+    BoundingBoxNetwork.hpp
 )
 fast_add_process_object(NeuralNetwork NeuralNetwork.hpp)
 fast_add_process_object(ImageClassificationNetwork ImageClassificationNetwork.hpp)
 fast_add_process_object(ClassificationToText ImageClassificationNetwork.hpp)
 fast_add_process_object(SegmentationNetwork SegmentationNetwork.hpp)
 fast_add_process_object(ImageToImageNetwork ImageToImageNetwork.hpp)
+fast_add_process_object(BoundingBoxNetwork BoundingBoxNetwork.hpp)
 if(FAST_MODULE_Visualization)
     fast_add_test_sources(
         Tests.cpp

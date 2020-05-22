@@ -244,8 +244,8 @@ class FAST_EXPORT  Image : public SpatialDataObject {
         void fill(float value);
 
         // Override
-        BoundingBox getTransformedBoundingBox() const override;
-        BoundingBox getBoundingBox() const override;
+        DataBoundingBox getTransformedBoundingBox() const override;
+        DataBoundingBox getBoundingBox() const override;
 
         void free(ExecutionDevice::pointer device) override;
         void freeAll() override;

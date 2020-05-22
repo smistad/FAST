@@ -8,8 +8,8 @@
 namespace fast {
 
 
-BoundingBox TextRenderer::getBoundingBox(bool transform) {
-    return BoundingBox(Vector3f(6,6,6));
+DataBoundingBox TextRenderer::getBoundingBox(bool transform) {
+    return DataBoundingBox(Vector3f(6,6,6));
 }
 
 TextRenderer::TextRenderer() {

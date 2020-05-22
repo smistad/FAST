@@ -15,11 +15,11 @@ SceneGraphNode::pointer SpatialDataObject::getSceneGraphNode() const {
     return mSceneGraphNode;
 }
 
-BoundingBox SpatialDataObject::getBoundingBox() const {
+DataBoundingBox SpatialDataObject::getBoundingBox() const {
     return mBoundingBox;
 }
 
-BoundingBox SpatialDataObject::getTransformedBoundingBox() const {
+DataBoundingBox SpatialDataObject::getTransformedBoundingBox() const {
     AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromNode(getSceneGraphNode());
 
     return getBoundingBox().getTransformedBoundingBox(T);

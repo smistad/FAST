@@ -42,8 +42,8 @@ class FAST_EXPORT Tensor : public SpatialDataObject {
         virtual VectorXf getSpacing() const;
         virtual void deleteDimension(int dimension);
 
-        virtual BoundingBox getTransformedBoundingBox() const override;
-        virtual BoundingBox getBoundingBox() const override;
+        virtual DataBoundingBox getTransformedBoundingBox() const override;
+        virtual DataBoundingBox getBoundingBox() const override;
 		virtual ~Tensor();
 
     protected:
