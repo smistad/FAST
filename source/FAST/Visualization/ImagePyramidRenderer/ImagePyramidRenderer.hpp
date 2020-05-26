@@ -29,7 +29,7 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         std::unordered_map<std::string, uint> mEBO;
 
         // Queue of tiles to be loaded
-        std::deque<std::string> m_tileQueue; // LIFO queue
+        std::list<std::string> m_tileQueue; // LIFO queue
         // Buffer to process queue
         std::unique_ptr<std::thread> m_bufferThread;
         // Condition variable to wait if queue is empty
@@ -38,7 +38,7 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         bool m_stop = false;
         std::unordered_set<std::string> m_loaded;
 
-        int m_currentLevel;
+        int m_currentLevel = -1;
 
         cl::Kernel mKernel;
 

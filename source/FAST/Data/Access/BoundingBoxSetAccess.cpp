@@ -100,6 +100,7 @@ GLuint BoundingBoxSetOpenGLAccess::getLinesEBO() const {
 }
 
 void BoundingBoxSetOpenGLAccess::release() {
+	m_bbset->accessFinished();
 	m_released = true;
 }
 

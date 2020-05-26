@@ -29,7 +29,8 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getFullHeight();
         int getNrOfChannels() const;
         ImagePyramidAccess::pointer getAccess(accessType type);
-        std::set<std::string> getDirtyPatches();
+        std::unordered_set<std::string> getDirtyPatches();
+        bool isDirtyPatch(const std::string& tileID);
         void setDirtyPatch(int level, int patchIdX, int patchIdY);
         void clearDirtyPatches(std::set<std::string> patches);
         void free(ExecutionDevice::pointer device) override;
@@ -44,7 +45,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int m_channels;
         bool m_initialized;
 
-        std::set<std::string> m_dirtyPatches;
+        std::unordered_set<std::string> m_dirtyPatches;
         static int m_counter;
         std::mutex m_dirtyPatchMutex;
 };

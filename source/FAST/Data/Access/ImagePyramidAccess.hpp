@@ -21,6 +21,8 @@ typedef struct ImagePyramidPatch {
 typedef struct ImagePyramidLevel {
 	int width;
 	int height;
+	int tileWidth = 256;
+	int tileHeight = 256;
 	int patches;
 	bool memoryMapped;
 	uint8_t* data;

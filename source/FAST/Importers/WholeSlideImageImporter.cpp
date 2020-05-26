@@ -54,6 +54,12 @@ void WholeSlideImageImporter::execute() {
             ImagePyramidLevel levelData;
             levelData.width = fullWidth;
             levelData.height = fullHeight;
+            try {
+                levelData.tileWidth = std::stoi(image->getMetadata("openslide.level[" + std::to_string(level) + "].tile-width"));
+                levelData.tileHeight = std::stoi(image->getMetadata("openslide.level[" + std::to_string(level) + "].tile-height"));
+                reportInfo() << "Setting tile width and height to " << levelData.tileWidth << " " << levelData.tileHeight << reportEnd();
+            } catch(...) {
+            }
             levelList.push_back(levelData);
         } else {
             reportInfo() << "WSI level was less than 4 MB, skipping.." << reportEnd();

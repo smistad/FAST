@@ -94,12 +94,10 @@ BoundingBoxSetAccess::pointer BoundingBoxSet::getAccess(accessType type) {
 
     if(type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
-    	{
-    		std::lock_guard<std::mutex> lock(mDataIsBeingWrittenToMutex);
-            mDataIsBeingWrittenTo = true;
-    	}
-        updateModifiedTimestamp();
+		std::lock_guard<std::mutex> lock(mDataIsBeingWrittenToMutex);
+		mDataIsBeingWrittenTo = true;
     }
+    // Update data:
     if(!mHostHasData) {
 #ifdef FAST_MODULE_VISUALIZATION
         // Host has not allocated data
@@ -138,7 +136,11 @@ BoundingBoxSetAccess::pointer BoundingBoxSet::getAccess(accessType type) {
             throw Exception("Not implemented yet!");
         }
     }
-
+	if(type == ACCESS_READ_WRITE) {
+        setAllDataToOutOfDate();
+        updateModifiedTimestamp();
+    }
+    mHostDataIsUpToDate = true;
     {
         std::lock_guard<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
@@ -157,12 +159,10 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
 
     if (type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
-    	{
-            std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
-            mDataIsBeingWrittenTo = true;
-    	}
-        updateModifiedTimestamp();
+		std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
+		mDataIsBeingWrittenTo = true;
     }
+    // Update data
     if(!mVBOHasData) {
         // VBO has not allocated data: Create VBO
 #ifdef FAST_MODULE_VISUALIZATION
@@ -203,15 +203,26 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
         //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Reporter::end();
 
         mVBOHasData = true;
-        mVBODataIsUpToDate = true;
 #else
         throw Exception("Creating bounding box set with VBO is disabled as FAST module visualization is disabled.");
 #endif
     } else {
         if(!mVBODataIsUpToDate) {
-            // TODO Update data
+			QGLFunctions *fun = Window::getMainGLContext()->functions();
+            // Update VBO/EBO data from host
+            // Coordinates
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mCoordinates.size()*sizeof(float), mCoordinates.data(), GL_STATIC_DRAW);
+            // Lines
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
+            fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mLines.size()*sizeof(uint), mLines.data(), GL_STATIC_DRAW);
         }
     }
+	if(type == ACCESS_READ_WRITE) {
+        setAllDataToOutOfDate();
+        updateModifiedTimestamp();
+    }
+	mVBODataIsUpToDate = true;
 
     {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
@@ -282,6 +293,9 @@ BoundingBoxSet::~BoundingBoxSet() {
 
 DataBoundingBox BoundingBoxSet::getBoundingBox() const {
     // Find min and max
+    if(mCoordinates.size() == 0)
+        throw Exception("No coordinates. Can't calculate DataBoundingBox");
+
     float minX = std::numeric_limits<float>::max();
     float maxX = std::numeric_limits<float>::min();
     float minY = std::numeric_limits<float>::max();
@@ -312,10 +326,17 @@ void BoundingBoxSetAccumulator::execute() {
     auto outputAccess = m_accumulatedBBset->getAccess(ACCESS_READ_WRITE);
     auto inputAccess = input->getAccess(ACCESS_READ);
 
-    std::cout << "accumulating " << input->getNrOfLines() << std::endl;
 
-    outputAccess->addBoundingBoxes(inputAccess->getCoordinates(), inputAccess->getLines());
-    std::cout << "result: " << m_accumulatedBBset->getNrOfLines() << std::endl;
+	const float offsetX = std::stoi(input->getFrameData("patchid-x")) * std::stoi(input->getFrameData("patch-width")) * std::stof(input->getFrameData("patch-spacing-x"));
+	const float offsetY = std::stoi(input->getFrameData("patchid-y")) * std::stoi(input->getFrameData("patch-height")) * std::stof(input->getFrameData("patch-spacing-y"));
+
+	auto coords = inputAccess->getCoordinates();
+    for(int i = 0; i < coords.size(); i += 3) {
+        coords[i + 0] += offsetX;
+        coords[i + 1] += offsetY;
+    }
+
+    outputAccess->addBoundingBoxes(coords, inputAccess->getLines());
     addOutputData(0, m_accumulatedBBset);
 }
 

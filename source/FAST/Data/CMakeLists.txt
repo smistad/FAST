@@ -37,6 +37,7 @@ fast_add_python_interfaces(
     Image.i
     Mesh.i
 )
+fast_add_process_object(BoundingBoxSetAccumulator BoundingBox.hpp)
 
 if(FAST_MODULE_WholeSlideImaging)
     fast_add_sources(ImagePyramid.cpp ImagePyramid.hpp)

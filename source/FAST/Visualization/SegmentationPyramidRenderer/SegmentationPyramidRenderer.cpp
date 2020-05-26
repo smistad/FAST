@@ -32,6 +32,13 @@ void SegmentationPyramidRenderer::clearPyramid() {
     mDataToRender.clear();
 }
 
+void SegmentationPyramidRenderer::stopPipeline() {
+    //m_stop = true;
+    //m_queueEmptyCondition.notify_one();
+    //m_bufferThread->join();
+    Renderer::stopPipeline();
+}
+
 SegmentationPyramidRenderer::~SegmentationPyramidRenderer() {
     m_stop = true;
     m_queueEmptyCondition.notify_one();
@@ -76,7 +83,6 @@ SegmentationPyramidRenderer::SegmentationPyramidRenderer() : Renderer() {
 void SegmentationPyramidRenderer::loadAttributes() {
     setOpacity(getFloatAttribute("opacity"));
 }
-
 void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     if(mDataToRender.empty())
         return;
@@ -320,28 +326,52 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     int fullWidth = m_input->getFullWidth();
     int fullHeight = m_input->getFullHeight();
     //std::cout << "scaling: " << fullWidth/width << std::endl;
-    int levelToUse = m_input->getNrOfLevels() - (int)round(std::log(fullWidth/width)) - 1;
-    if(width > fullWidth)
-        levelToUse = m_input->getNrOfLevels()-1;
-    if(levelToUse < 0)
-        levelToUse = 0;
-    if(m_currentLevel != levelToUse) {
+
+    // Determine which level to use
+    // If nr of pixels in viewport is larger than the current width and height of view, than increase the magnification
+	int levelToUse = 0;
+    int level = m_input->getNrOfLevels();
+    do {
+        level = level - 1;
+        int levelWidth = m_input->getLevelWidth(level);
+        int levelHeight = m_input->getLevelHeight(level);
+
+        // Percentage of full WSI shown currently
+        float percentageShownX = (float)width / fullWidth;
+        float percentageShownY = (float)height / fullHeight;
+        // With current level, do we have have enough pixels to fill the view?
+        if(percentageShownX * levelWidth > m_view->width() && percentageShownY * levelHeight > m_view->height()) {
+            // If yes, stop here
+            levelToUse = level;
+            break;
+        } else {
+            // If not, increase the magnification 
+            continue;
+        }
+    } while(level > 0);
+
+    if(m_currentLevel != levelToUse && m_currentLevel != -1) {
         // Level change, clear cache
-        //std::cout << "=========== CLEARING QUEUE with size " << m_tileQueue.size() << std::endl;
         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
         m_tileQueue.clear();
     }
     m_currentLevel = levelToUse;
-    //std::cout << "Level to use: " << levelToUse << std::endl;
-    //std::cout << "Levels total:" << m_input->getNrOfLevels() << std::endl;
 
+    /*
+    bool queueChanged = false;
     {
         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
         for(auto&& patch : m_input->getDirtyPatches()) {
+            if(patch.substr(0, patch.find("_")) != std::to_string(levelToUse))
+                continue;
             // Add dirty patches to queue
             m_tileQueue.push_back(patch); // Avoid duplicates somehow?
+            queueChanged = true;
         }
     }
+    if(queueChanged)
+		m_queueEmptyCondition.notify_one();
+        */
 
     activateShader();
 
@@ -359,7 +389,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
-    int level = levelToUse;
+    level = levelToUse;
     // TODO: since segmentations are transparent; this trick doesn't work:
     //for(int level = m_input->getNrOfLevels()-1; level >= levelToUse; level--) {
         const int levelWidth = m_input->getLevelWidth(level);
@@ -409,10 +439,12 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 
                 // Is patch in cache?
 				std::unique_lock<std::mutex> lock(m_texturesToRenderMutex);
-                if(mTexturesToRender.count(tileString) == 0) {
-                    // Add to queue if not in cache
+                if(mTexturesToRender.count(tileString) == 0 || m_input->isDirtyPatch(tileString)) {
+                    // Add to queue if not in cache or is dirty patch
                     {
                         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+                        // Remove any duplicates first
+                        m_tileQueue.remove(tileString); // O(n) time complexity..
                         m_tileQueue.push_back(tileString);
                     }
                     m_queueEmptyCondition.notify_one();
@@ -439,13 +471,13 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 //std::cout << "Tile position: " << tile_offset_y*mCurrentTileScale << " " << tile_offset_y*mCurrentTileScale + tile_height*mCurrentTileScale << std::endl;
                 float vertices[] = {
                         // vertex: x, y, z; tex coordinates: x, y
-                        tile_offset_x * mCurrentTileScale, (tile_offset_y + tile_height) * mCurrentTileScale, 0.0f,
+                        tile_offset_x * mCurrentTileScale, (tile_offset_y + tile_height) * mCurrentTileScale, 1.0f,
                         0.0f, 1.0f,
                         (tile_offset_x + tile_width) * mCurrentTileScale,
-                        (tile_offset_y + tile_height) * mCurrentTileScale, 0.0f, 1.0f, 1.0f,
-                        (tile_offset_x + tile_width) * mCurrentTileScale, tile_offset_y * mCurrentTileScale, 0.0f, 1.0f,
+                        (tile_offset_y + tile_height) * mCurrentTileScale, 1.0f, 1.0f, 1.0f,
+                        (tile_offset_x + tile_width) * mCurrentTileScale, tile_offset_y * mCurrentTileScale, 1.0f, 1.0f,
                         0.0f,
-                        tile_offset_x * mCurrentTileScale, tile_offset_y * mCurrentTileScale, 0.0f, 0.0f, 0.0f,
+                        tile_offset_x * mCurrentTileScale, tile_offset_y * mCurrentTileScale, 1.0f, 0.0f, 0.0f,
                 };
                 // Delete old VBO
                 if(mVBO.count(tileString) > 0)

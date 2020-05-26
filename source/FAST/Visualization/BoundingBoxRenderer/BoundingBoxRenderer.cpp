@@ -33,6 +33,8 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
     // For all input data
     for(auto it : mDataToRender) {
         auto boxes = std::static_pointer_cast<BoundingBoxSet>(it.second);
+        if(boxes->getNrOfLines() == 0)
+            continue;
 
         // TODO if VAO already exists, and data has not changed...
 
@@ -76,8 +78,8 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
         glBindVertexArray(0);
     }
     deactivateShader();
-    glEnable(GL_DEPTH_TEST);
     glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the text renderer. Suboptimal solution as glFinish is a blocking sync operation.
+    glEnable(GL_DEPTH_TEST);
 }
 
 }

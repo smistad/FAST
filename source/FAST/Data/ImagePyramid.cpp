@@ -146,8 +146,7 @@ void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel
     m_channels = 4;
     for(int i = 0; i < m_levels.size(); ++i) {
         int x = m_levels.size() - i - 1;
-        //m_levels[i].patches = x*x*x + 10;
-		m_levels[i].patches = std::ceil(m_levels[i].width / 256);// x* x* x + 10;
+		m_levels[i].patches = std::ceil(m_levels[i].width / m_levels[i].tileWidth); // TODO different patch size in X and Y
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
@@ -248,9 +247,14 @@ void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {
 	m_dirtyPatches.insert(tileString);
 }
 
-std::set<std::string> ImagePyramid::getDirtyPatches() {
+std::unordered_set<std::string> ImagePyramid::getDirtyPatches() {
 	std::lock_guard<std::mutex> lock(m_dirtyPatchMutex);
 	return m_dirtyPatches;
+}
+
+bool ImagePyramid::isDirtyPatch(const std::string& tileID) {
+	std::lock_guard<std::mutex> lock(m_dirtyPatchMutex);
+	return m_dirtyPatches.count(tileID);
 }
 
 void ImagePyramid::clearDirtyPatches(std::set<std::string> patches) {
