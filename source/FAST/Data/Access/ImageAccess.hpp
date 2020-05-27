@@ -74,22 +74,22 @@ void ImageAccess::setScalarFast(uint position, T value, uchar channel) noexcept 
 }
 
 template <class T>
-void setScalarFast(VectorXi position, T value, uchar channel) noexcept {
+void ImageAccess::setScalarFast(VectorXi position, T value, uchar channel) noexcept {
 	if(m_dimensions == 2) {
         ((T*)mData)[(position.x() + position.y() * m_width) * m_channels + channel] = value;
     } else {
-        ((T*)mData)[(position.x() + position.y() * m_width + position.z()*m_width*m_height) * m_channels + channel] = value
+        ((T*)mData)[(position.x() + position.y() * m_width + position.z()*m_width*m_height) * m_channels + channel] = value;
     }
 }
 
 template <class T>
-void setScalarFast2D(Vector2i position, T value, uchar channel) noexcept {
+void ImageAccess::setScalarFast2D(Vector2i position, T value, uchar channel) noexcept {
 	((T*)mData)[(position.x() + position.y() * m_width) * m_channels + channel] = value;
 }
 
 template <class T>
-void setScalarFast3D(Vector3i position, T value, uchar channel) noexcept {
-	((T*)mData)[(position.x() + position.y() * m_width + position.z()*m_width*m_height) * m_channels + channel] = value
+void ImageAccess::setScalarFast3D(Vector3i position, T value, uchar channel) noexcept {
+	((T*)mData)[(position.x() + position.y() * m_width + position.z()*m_width*m_height) * m_channels + channel] = value;
 }
 
 
