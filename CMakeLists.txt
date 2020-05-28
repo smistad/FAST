@@ -3,9 +3,9 @@
 project(FAST)
 
 set(VERSION_MAJOR 3)
-set(VERSION_MINOR 0)
+set(VERSION_MINOR 1)
 set(VERSION_PATCH 0)
-set(VERSION_SO 0)   # SO version, should be incremented by 1 every time the existing API changes
+set(VERSION_SO 1)   # SO version, should be incremented by 1 every time the existing API changes
 
 # set policies explicitly to avoid warnings.
 # Read more on CMP0022 here: https://cmake.org/cmake/help/v3.0/policy/CMP0022.html
@@ -27,7 +27,7 @@ option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5. W
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_MODULE_TensorFlow "Build TensorFlow inference engine" OFF)
 option(FAST_MODULE_TensorRT "Build NVIDIA TensorRT inference engine" OFF)
-option(FAST_MODULE_OpenVINO "Build Intel OpenVINO inference engine" OFF)
+option(FAST_MODULE_OpenVINO "Build Intel OpenVINO inference engine" ON)
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_MODULE_RealSense "Build real sense module" ON)
