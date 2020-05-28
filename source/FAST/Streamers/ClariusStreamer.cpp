@@ -7,6 +7,7 @@ namespace fast {
 
 
 ClariusStreamer::ClariusStreamer() {
+	Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     createOutputPort<Image>(0);
     mNrOfFrames = 0;
     mFirstFrameIsInserted = false;
