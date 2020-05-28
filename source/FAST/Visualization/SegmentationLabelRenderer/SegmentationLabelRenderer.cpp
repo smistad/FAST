@@ -8,6 +8,17 @@
 
 namespace fast {
 
+void SegmentationLabelRenderer::loadAttributes() {
+    auto classTitles = getStringListAttribute("label-text");
+    for(int i = 0; i < classTitles.size(); i += 2) {
+        setLabelName(std::stoi(classTitles[i]), classTitles[i+1]);
+    }
+    auto classColors = getStringListAttribute("label-color");
+    for(int i = 0; i < classColors.size(); i += 2) {
+        setLabelColor(std::stoi(classColors[i]), Color::fromString(classColors[i+1]));
+    }
+}
+
 SegmentationLabelRenderer::SegmentationLabelRenderer() {
     createInputPort<Image>(0);
     mFontSize = 28;
@@ -16,6 +27,9 @@ SegmentationLabelRenderer::SegmentationLabelRenderer() {
                                 Config::getKernelSourcePath() + "/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.vert",
                                 Config::getKernelSourcePath() + "/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.frag",
                         });
+
+    createStringAttribute("label-text", "Label Text", "Text title of each class label", "");
+    createStringAttribute("label-color", "Label Colors", "Color of each class label", "");
 }
 
 
@@ -82,6 +96,9 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
         mScales[inputNr] = scale;
         int height = scale*input->getHeight();
         Vector3f spacing = input->getSpacing();
+        // Compensate for anistropic spacing, (have to use isotropic spacing for text image)
+        float spacingScale = spacing.y() / spacing.x();
+        height = spacingScale*height;
 
         // create the QImage and draw txt into it
         QImage textimg(width, height, QImage::Format_RGBA8888);
@@ -90,7 +107,7 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
         float pixelArea = spacing.x()*spacing.y();
         for(auto& region : m_regions[inputNr]->getAccess(ACCESS_READ)->getData()) {
 
-            if(region.area*pixelArea < 1.0f)
+            if(region.area*pixelArea < 1.0f) // If object to small.. (area in mm^2)
                 continue;
 
             // If no label name has been set. Skip it
@@ -99,12 +116,12 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
 
             float size = 1.0f;
             if(m_dynamicSize) {
-                size = 1.0f + 0.01f*(region.area*pixelArea - 1.0f);
+                size = 1.0f + 0.01f*(region.area*(spacing.x()*spacing.x()) - 1.0f);
             } else {
                 size = m_textHeightInMM;
             }
 
-            const int textHeightInPixels = size / (spacing.y()/scale);
+            const int textHeightInPixels = size / (spacing.x()/scale);
 
             QFont font = QApplication::font();
             font.setPixelSize(textHeightInPixels);
@@ -127,10 +144,10 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
             Vector2f position;
             if(m_centerPosition) {
                 position.x() = region.centroid.x()*scale - textWidth * 0.5f;
-                position.y() = region.centroid.y()*scale + textHeight * 0.5f;
+                position.y() = region.centroid.y()*scale*spacingScale + textHeight * 0.5f;
             } else {
                 position.x() = region.centroid.x()*scale;
-                position.y() = region.centroid.y()*scale + textHeight;
+                position.y() = region.centroid.y()*scale*spacingScale + textHeight;
             }
 
             // Draw it
@@ -215,7 +232,8 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
             transform = SceneGraph::getAffineTransformationFromData(it.second);
         }
 
-        transform->getTransform().scale(it.second->getSpacing()/mScales[inputNr]);
+        auto spacing = it.second->getSpacing();
+        transform->getTransform().scale(Vector3f(spacing.x(), spacing.x(), 1.0f)/mScales[inputNr]);
 
         // Get width and height of texture
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[inputNr]);
@@ -245,6 +263,7 @@ void SegmentationLabelRenderer::setLabelName(int label, std::string name) {
 void SegmentationLabelRenderer::setLabelColor(int label, Color color) {
     m_labelColors[label] = color;
 }
+
 
 
 } // end namespace fast
