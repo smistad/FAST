@@ -15,6 +15,7 @@ class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
         void setChannelColor(uint channel, Color color);
         void setChannelHidden(uint channel, bool hide);
         void setInterpolation(bool useInterpolation);
+        void loadAttributes() override;
     protected:
         HeatmapRenderer();
         void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);
@@ -24,8 +25,8 @@ class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
         std::unordered_map<uint, bool> mHide;
         std::unordered_map<uint, SharedPointer<Tensor>> mTensorUsed;
 
-        float mMaxOpacity = 0.6;
-        float mMinConfidence = 0.0f;
+        float mMaxOpacity = 0.3;
+        float mMinConfidence = 0.5f;
         cl::Buffer mColorBuffer;
         bool mColorsModified;
         bool mUseInterpolation = true;

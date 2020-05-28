@@ -4,6 +4,18 @@
 
 namespace fast {
 
+void HeatmapRenderer::loadAttributes() {
+    auto classColors = getStringListAttribute("channel-colors");
+    for(int i = 0; i < classColors.size(); i += 2) {
+        setChannelColor(std::stoi(classColors[i]), Color::fromString(classColors[i+1]));
+    }
+    auto hiddenChannels = getStringListAttribute("hidden-channels");
+    for(auto&& item : hiddenChannels)
+        setChannelHidden(std::stoi(item), true);
+    setMaxOpacity(getFloatAttribute("max-opacity"));
+    setMinConfidence(getFloatAttribute("min-confidence"));
+}
+
 HeatmapRenderer::HeatmapRenderer() {
     createInputPort<Tensor>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/HeatmapRenderer/HeatmapRenderer.cl");
@@ -13,6 +25,10 @@ HeatmapRenderer::HeatmapRenderer() {
                         });
     mIsModified = false;
     mColorsModified = true;
+    createStringAttribute("channel-colors", "Channel Colors", "Color of each channel", "");
+    createStringAttribute("hidden-channels", "Hidden Channels", "List of channels to hide", "");
+    createFloatAttribute("max-opacity", "Max Opacity", "Max Opacity", mMaxOpacity);
+    createFloatAttribute("min-confidence", "Min Confidence", "Min Confidence", mMinConfidence);
 }
 
 void HeatmapRenderer::setChannelColor(uint channel, Color color) {
