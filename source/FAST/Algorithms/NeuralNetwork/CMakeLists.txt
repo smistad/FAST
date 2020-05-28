@@ -22,6 +22,7 @@ fast_add_process_object(ClassificationToText ImageClassificationNetwork.hpp)
 fast_add_process_object(SegmentationNetwork SegmentationNetwork.hpp)
 fast_add_process_object(ImageToImageNetwork ImageToImageNetwork.hpp)
 fast_add_process_object(BoundingBoxNetwork BoundingBoxNetwork.hpp)
+fast_add_process_object(TensorToSegmentation TensorToSegmentation.hpp)
 if(FAST_MODULE_Visualization)
     fast_add_test_sources(
         Tests.cpp
