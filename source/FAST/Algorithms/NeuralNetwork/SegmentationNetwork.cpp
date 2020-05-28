@@ -6,7 +6,7 @@
 namespace fast {
 
 void SegmentationNetwork::loadAttributes() {
-	if (getBooleanAttribute("heatmap_output")) {
+	if (getBooleanAttribute("heatmap-output")) {
 		setHeatmapOutput();
 	} else {
 		setSegmentationOutput();
@@ -23,7 +23,7 @@ SegmentationNetwork::SegmentationNetwork() {
     mResizeBackToOriginalSize = false;
     mThreshold = 0.5;
 
-    createBooleanAttribute("heatmap_output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
+    createBooleanAttribute("heatmap-output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
     createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", mThreshold);
 }
 
