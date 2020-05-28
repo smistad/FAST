@@ -25,6 +25,7 @@ class FAST_EXPORT  Color {
                 {"yellow", Color::Yellow()},
                 {"cyan", Color::Cyan()},
                 {"magenta", Color::Magenta()},
+                {"brown", Color::Brown()},
             };
 
             if(mapping.count(str) == 0)
@@ -68,6 +69,9 @@ class FAST_EXPORT  Color {
         }
         static Color Cyan() {
             return Color(0, 1, 1);
+        }
+        static Color Brown() {
+            return Color(1, 0.6, 0.2);
         }
 
 };
