@@ -21,6 +21,7 @@ class FAST_EXPORT  UltrasoundImageCropper : public ProcessObject {
          * @param staticCropping
          */
         void setStaticCropping(bool staticCropping);
+		void loadAttributes() override;
     private:
         UltrasoundImageCropper();
         void execute();

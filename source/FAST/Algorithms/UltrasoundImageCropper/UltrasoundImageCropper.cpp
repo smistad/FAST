@@ -5,6 +5,9 @@
 
 namespace fast {
 
+void UltrasoundImageCropper::loadAttributes() {
+
+}
 
 UltrasoundImageCropper::UltrasoundImageCropper() {
     createInputPort<Image>(0);
@@ -103,6 +106,8 @@ void UltrasoundImageCropper::execute() {
     outputImage->create(m_width, m_height, image->getDataType(), image->getNrOfChannels());
     outputImage->setSpacing(m_spacing);
     outputImage->setCreationTimestamp(image->getCreationTimestamp());
+	outputImage->setFrameData("original-width", std::to_string(outputImage->getWidth()));
+	outputImage->setFrameData("original-height", std::to_string(outputImage->getHeight()));
 
     OpenCLImageAccess::pointer outputAccess = outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
