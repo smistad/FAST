@@ -245,7 +245,7 @@ void TensorFlowEngine::load() {
 	}
     if(mOutputNodes.empty()) {
         tensorflow::NodeDef node = tensorflow_graph.node(tensorflow_graph.node_size()-1);
-        reportInfo() << "No output nodes were given to TensorFlow engine, FAST is guessing it is the last node with name " << node.name() << reportEnd();
+        reportWarning() << "No output nodes were given to TensorFlow engine, FAST is guessing it is the last node with name " << node.name() << reportEnd();
         addOutputNode(0, node.name());
     }
 
