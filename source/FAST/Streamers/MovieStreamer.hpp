@@ -23,6 +23,7 @@ class FAST_EXPORT MovieStreamer : public Streamer {
         void setFinished(bool finished);
         int getFramesAdded() const;
         ~MovieStreamer();
+        void loadAttributes() override;
     private:
         MovieStreamer();
         void execute();

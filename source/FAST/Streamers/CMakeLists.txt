@@ -33,6 +33,7 @@ if(FAST_MODULE_Visualization)
         MovieStreamer.hpp
     )
     fast_add_test_sources(Tests/MovieStreamerTests.cpp)
+    fast_add_process_object(MovieStreamer MovieStreamer.hpp)
 endif()
 if(FAST_MODULE_Kinect)
     fast_add_sources(

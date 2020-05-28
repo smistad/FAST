@@ -10,3 +10,4 @@ endif()
 fast_add_python_interfaces(
         ImageResampler.i
 )
+fast_add_process_object(ImageResampler ImageResampler.hpp)

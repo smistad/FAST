@@ -11,6 +11,7 @@ public:
     void setOutputSpacing(float spacingX, float spacingY);
     void setOutputSpacing(float spacingX, float spacingY, float spacingZ);
     void setInterpolation(bool useInterpolation);
+    void loadAttributes();
 private:
     ImageResampler();
     void execute();

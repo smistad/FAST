@@ -4,6 +4,11 @@
 
 namespace fast {
 
+void ImageResampler::loadAttributes() {
+    setOutputSpacing(getFloatAttribute("spacing-x"), getFloatAttribute("spacing-y"), getFloatAttribute("spacing-z"));
+    setInterpolation(getBooleanAttribute("interpolation"));
+}
+
 ImageResampler::ImageResampler() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
@@ -13,6 +18,12 @@ ImageResampler::ImageResampler() {
     mSpacing = Vector3f(-1, -1, -1);
     mInterpolationSet = false;
     mInterpolation = true;
+
+    createFloatAttribute("spacing-x", "Spacing X", "Spacing X", mSpacing.x());
+    createFloatAttribute("spacing-y", "Spacing Y", "Spacing Y", mSpacing.y());
+    createFloatAttribute("spacing-z", "Spacing Z", "Spacing Z", mSpacing.z());
+    createBooleanAttribute("interpolation", "Bilinear interpolation", "Bilinear interpolation", mInterpolation);
+
 }
 
 void ImageResampler::setOutputSpacing(float spacingX, float spacingY) {

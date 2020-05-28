@@ -89,8 +89,16 @@ void MovieStreamer::setFilename(std::string filename) {
     mIsModified = true;
 }
 
+void MovieStreamer::loadAttributes() {
+    setFilename(getStringAttribute("filename"));
+    setGrayscale(getBooleanAttribute("grayscale"));
+}
+
 MovieStreamer::MovieStreamer() {
     createOutputPort<Image>(0);
+
+    createStringAttribute("filename", "Filename", "Filepath to movie file", "");
+    createBooleanAttribute("grayscale", "Grayscale", "Convert movie to grayscale while streaming", mGrayscale);
 }
 
 Worker::Worker(MovieStreamer* streamer) {
@@ -105,6 +113,7 @@ void Worker::run() {
     //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     VideoSurface* myVideoSurface = new VideoSurface;
     myVideoSurface->streamer = mStreamer;
+    m_player->setMuted(true);
     m_player->setVideoOutput(myVideoSurface);
     QObject::connect(m_player.get(), &QMediaPlayer::stateChanged, std::bind(&VideoSurface::stateChanged, myVideoSurface, std::placeholders::_1));
     std::string prefix = "";
