@@ -82,7 +82,7 @@ namespace fast {
 			mPipelinePath = getPath() + "../../pipelines/";
 			mQtPluginsPath = getPath() + "../plugins/";
 
-			std::string writeablePath = getPath();
+			std::string writeablePath = getPath() + "/../";
 #ifdef WIN32
 			mLibraryPath = getPath();
 			if(getPath().find("Program Files") != std::string::npos) {
