@@ -125,6 +125,11 @@ BoundingBoxSetAccess::pointer BoundingBoxSet::getAccess(accessType type) {
 		fun->glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, mNrOfLines*sizeof(uint), mLines.data());
 		fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+        m_labels.resize(mNrOfLines / 4);
+		fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_labelVBO);
+		fun->glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, mNrOfLines/4*sizeof(uchar), m_labels.data());
+		fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 
         mHostHasData = true;
         mHostDataIsUpToDate = true;
@@ -146,7 +151,7 @@ BoundingBoxSetAccess::pointer BoundingBoxSet::getAccess(accessType type) {
         mDataIsBeingAccessed = true;
     }
 
-    BoundingBoxSetAccess::pointer accessObject(new BoundingBoxSetAccess(&mCoordinates, &mLines, std::static_pointer_cast<BoundingBoxSet>(mPtr.lock())));
+    BoundingBoxSetAccess::pointer accessObject(new BoundingBoxSetAccess(&mCoordinates, &mLines, &m_labels, std::static_pointer_cast<BoundingBoxSet>(mPtr.lock())));
 	return std::move(accessObject);
 }
 
@@ -177,6 +182,8 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
         fun->glGenBuffers(1, &mCoordinateVBO);
 		fun->glDeleteBuffers(1, &mLineEBO);
 		fun->glGenBuffers(1, &mLineEBO);
+		fun->glDeleteBuffers(1, &m_labelVBO);
+		fun->glGenBuffers(1, &m_labelVBO);
         if(mHostHasData) {
             // If host has data, transfer it.
             // Coordinates
@@ -185,6 +192,9 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
             // Line EBO
             fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
             fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mLines.size()*sizeof(uint), mLines.data(), GL_STATIC_DRAW);
+            // Labels
+            fun->glBindBuffer(GL_ARRAY_BUFFER, m_labelVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, m_labels.size()*sizeof(uchar), m_labels.data(), GL_STATIC_DRAW);
         } else {
             // Only allocate space
             // Coordinates
@@ -193,6 +203,9 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
 			// Line EBO
 			fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
 			fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNrOfLines*sizeof(uint), NULL, GL_STATIC_DRAW);
+            // Label VBO
+            fun->glBindBuffer(GL_ARRAY_BUFFER, m_labelVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfLines/4*sizeof(uchar), NULL, GL_STATIC_DRAW);
         }
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -216,6 +229,9 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
             // Lines
             fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
             fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mLines.size()*sizeof(uint), mLines.data(), GL_STATIC_DRAW);
+            // Labels
+            fun->glBindBuffer(GL_ARRAY_BUFFER, m_labelVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, m_labels.size()*sizeof(uchar), m_labels.data(), GL_STATIC_DRAW);
         }
     }
 	if(type == ACCESS_READ_WRITE) {
@@ -233,6 +249,7 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
             new BoundingBoxSetOpenGLAccess(
                     mCoordinateVBO,
                     mLineEBO,
+					m_labelVBO,
                     std::static_pointer_cast<BoundingBoxSet>(mPtr.lock())
             )
     );
@@ -266,6 +283,8 @@ void BoundingBoxSet::freeAll() {
             */
             fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
             fun->glDeleteBuffers(1, &mLineEBO);
+        fun->glDeleteBuffers(1, &m_labelVBO);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
 #endif
     }

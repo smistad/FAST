@@ -5,7 +5,24 @@ namespace fast {
 
 void BoundingBoxNetwork::loadAttributes() {
 	setThreshold(getFloatAttribute("threshold"));
+
+    std::vector<std::vector<Vector2f>> anchors;
+    const auto level = split(getStringAttribute("anchors"), ";");
+    for(auto&& part : level) {
+        const auto parts = split(part, ",");
+        std::vector<Vector2f> levelAnchors;
+        for(int i = 0; i < parts.size(); i += 2) {
+            levelAnchors.push_back(Vector2f(std::stof(parts[i]), std::stof(parts[i+1])));
+        }
+        anchors.push_back(levelAnchors);
+    }
+    setAnchors(anchors);
+
 	NeuralNetwork::loadAttributes();
+}
+
+void BoundingBoxNetwork::setAnchors(std::vector<std::vector<Vector2f>> anchors) {
+    m_anchors = anchors;
 }
 
 BoundingBoxNetwork::BoundingBoxNetwork() {
@@ -16,6 +33,7 @@ BoundingBoxNetwork::BoundingBoxNetwork() {
     m_threshold = 0.5;
 
     createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", m_threshold);
+    createStringAttribute("anchors", "Anchors", "Should be formatted like: x1,y1,x2,y2;x1,y1,x2,y2", "");
 }
 
 /**
@@ -28,7 +46,7 @@ BoundingBoxNetwork::BoundingBoxNetwork() {
  * @return
  */
 inline int getPosition(int x, int y, int nrOfClasses, int j, int width, int height, ImageOrdering ordering) {
-    return ordering == ImageOrdering::ChannelLast ? (y + x*height)*nrOfClasses + j : (x + y*width) + j*(width*height);
+    return ordering == ImageOrdering::ChannelLast ? j + y*nrOfClasses + x*nrOfClasses*height : x + y*width + j*width*height;
 }
 
 inline float sigmoid(float x) {
@@ -39,76 +57,93 @@ void BoundingBoxNetwork::execute() {
 
     run();
 
+    if(m_anchors.empty())
+        throw Exception("No anchors was given to the bouding box network");
+
     mRuntimeManager->startRegularTimer("output_processing");
-    Tensor::pointer tensor = m_engine->getOutputNodes().begin()->second.data;
-    //std::cout << "Nr of output nodes " << m_engine->getOutputNodes().size() << std::endl;
-    const auto shape = tensor->getShape();
-    if(shape[0] != 1)
-        throw Exception("BoundingBoxNetwork only support batch size 1 atm");
+    const auto outputNodes = m_engine->getOutputNodes();
+    for(auto node : outputNodes) {
+        //std::cout << node.first << ": " << node.second.shape.toString() << std::endl;
+    }
+    const auto ordering = m_engine->getPreferredImageOrdering();
 
-    auto access = tensor->getAccess(ACCESS_READ);
-    const int dims = shape.getDimensions();
-    if(dims != 4)
-        throw Exception("Expected nr of output dimensions to be 4");
-
-    int channels;
-	int outputHeight;
-    int outputWidth;
 	int inputHeight;
     int inputWidth;
     auto inputShape = m_engine->getInputNodes().begin()->second.shape;
-    if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelFirst) {
-        outputHeight = shape[2];
-        outputWidth = shape[3];
-        channels = shape[1];
+    if(ordering == ImageOrdering::ChannelFirst) {
         inputHeight = inputShape[2];
         inputWidth = inputShape[3];
     } else {
-        outputHeight = shape[1];
-        outputWidth = shape[2];
-        channels = shape[3];
         inputHeight = inputShape[1];
         inputWidth = inputShape[2];
     }
-    float* tensorData = access->getRawData();
-    auto ordering = m_engine->getPreferredImageOrdering();
-
-    const int size = outputWidth*outputHeight;
-    // TODO reuse some of the output processing in NN
-    tensor->deleteDimension(0); // TODO assuming batch size is 1, remove this dimension
 
     auto bbset = BoundingBoxSet::New();
     bbset->create();
     auto outputAccess = bbset->getAccess(ACCESS_READ_WRITE);
-    // Output tensor is 8x8x18, or 8x8x Anchors x (classes + 5)
-    //std::vector<Vector2f> anchors = {{10, 10}, {18, 17}, {19, 26}};
-    std::vector<Vector2f> anchors = {{28, 21}, {30, 31}, {39, 43}};
-	int classes = channels / anchors.size() - 5;
-    // Loop over grid
-	for(int y = 0; y < outputHeight; ++y) {
-        for(int x = 0; x < outputWidth; ++x) {
-            for(int a = 0; a < anchors.size(); ++a) {
-                //std::cout << "For anchor a: " << a << std::endl;
-                float t_x = tensorData[getPosition(x, y, channels, a * 6 + 0, outputWidth, outputHeight, ordering)];
-                float t_y = tensorData[getPosition(x, y, channels, a * 6 + 1, outputWidth, outputHeight, ordering)];
-                float t_w = tensorData[getPosition(x, y, channels, a * 6 + 2, outputWidth, outputHeight, ordering)];
-                float t_h = tensorData[getPosition(x, y, channels, a * 6 + 3, outputWidth, outputHeight, ordering)];
-                float objectness = tensorData[getPosition(x, y, channels, a * 6 + 4, outputWidth, outputHeight, ordering)];
-                float classPrediction = tensorData[getPosition(x, y, channels, a * 6 + 5, outputWidth, outputHeight, ordering)];
-                //std::cout << "Class prediction and objectness: " << classPrediction << " " << objectness << std::endl;
-                //std::cout << "bbox offsets: " << t_x << " " << t_y << " " << t_w << " " << t_h << std::endl;
-                float b_x = ((sigmoid(t_x) + x) / outputWidth) * inputWidth;
-                float b_y = ((sigmoid(t_y) + y) / outputHeight) * inputHeight;
-                float b_w = anchors[a].x() * std::exp(t_w);
-                float b_h = anchors[a].y() * std::exp(t_h);
-                float score = sigmoid(objectness) * sigmoid(classPrediction);
-                //std::cout << "bbox: " << b_x << " " << b_y << " " << b_w << " " << b_h << std::endl;
-                //std::cout << score << std::endl;
-                if(score >= m_threshold)
-					outputAccess->addBoundingBox(Vector2f(b_x, b_y), Vector2f(b_w, b_h));
+    int nodeIdx = 0;
+    for(auto node : outputNodes) {
+		auto tensor = node.second.data;
+		const auto shape = tensor->getShape();
+		if(shape[0] != 1)
+			throw Exception("BoundingBoxNetwork only support batch size 1 atm");
+
+		auto access = tensor->getAccess(ACCESS_READ);
+		const int dims = shape.getDimensions();
+		if(dims != 4)
+			throw Exception("Expected nr of output dimensions to be 4");
+
+		// TODO reuse some of the output processing in NN
+		tensor->deleteDimension(0); // TODO assuming batch size is 1, remove this dimension
+		int outputHeight;
+		int outputWidth;
+		int channels;
+		if(ordering == ImageOrdering::ChannelFirst) {
+			outputHeight = shape[2];
+			outputWidth = shape[3];
+			channels = shape[1];
+		} else {
+			outputHeight = shape[1];
+			outputWidth = shape[2];
+			channels = shape[3];
+		}
+		float* tensorData = access->getRawData();
+        // Output tensor is 8x8x18, or 8x8x Anchors x (classes + 5)
+		const int classes = channels / m_anchors[nodeIdx].size() - 5;
+
+        // Loop over grid
+        for(int y = 0; y < outputHeight; ++y) {
+            for(int x = 0; x < outputWidth; ++x) {
+				for(int a = 0; a < m_anchors.size(); ++a) {
+					float bestScore = 0.0f;
+					int bestClass = 0;
+					// Find best class
+					for(int classIdx = 0; classIdx < classes; ++classIdx) {
+						float objectness = tensorData[getPosition(x, y, channels, a * 6 + 4, outputWidth, outputHeight, ordering)];
+						float classPrediction = tensorData[getPosition(x, y, channels, a * 6 + 5, outputWidth, outputHeight, ordering)];
+						float score = sigmoid(objectness) * sigmoid(classPrediction);
+						if(score >= m_threshold && score > bestScore) {
+							bestClass = classIdx;
+							bestScore = score;
+						}
+					}
+
+					float t_x = tensorData[getPosition(x, y, channels, a * 6 + 0, outputWidth, outputHeight, ordering)];
+					float t_y = tensorData[getPosition(x, y, channels, a * 6 + 1, outputWidth, outputHeight, ordering)];
+					float t_w = tensorData[getPosition(x, y, channels, a * 6 + 2, outputWidth, outputHeight, ordering)];
+					float t_h = tensorData[getPosition(x, y, channels, a * 6 + 3, outputWidth, outputHeight, ordering)];
+					float b_w = m_anchors[nodeIdx][a].x() * std::exp(t_w);
+					float b_h = m_anchors[nodeIdx][a].y() * std::exp(t_h);
+					// Position is center
+					float b_x = ((sigmoid(t_x) + x) / outputWidth) * inputWidth - 0.5f * b_w;
+					float b_y = ((sigmoid(t_y) + y) / outputHeight) * inputHeight - 0.5f * b_h;
+					if(bestScore >= m_threshold)
+						outputAccess->addBoundingBox(Vector2f(b_x, b_y), Vector2f(b_w, b_h), bestClass);
+				}
             }
         }
-	}
+        ++nodeIdx;
+    }
 	addOutputData(0, bbset);
     mRuntimeManager->stopRegularTimer("output_processing");
 }

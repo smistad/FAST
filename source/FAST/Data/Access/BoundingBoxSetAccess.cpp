@@ -7,17 +7,18 @@ namespace fast {
 BoundingBoxSetAccess::BoundingBoxSetAccess(
 	std::vector<float>* coordinates,
 	std::vector<uint>* lines,
+	std::vector<uchar>* labels,
 	SharedPointer<BoundingBoxSet> bbset
-	) : m_coordinates(coordinates), m_lines(lines), m_bbset(bbset) {
+	) : m_coordinates(coordinates), m_lines(lines), m_labels(labels), m_bbset(bbset) {
 
 }
 
 
 void BoundingBoxSetAccess::addBoundingBox(BoundingBox::pointer box) {
-	addBoundingBox(box->getPosition(), box->getSize());
+	addBoundingBox(box->getPosition(), box->getSize(), box->getLabel());
 }
 
-void BoundingBoxSetAccess::addBoundingBox(Vector2f position, Vector2f size) {
+void BoundingBoxSetAccess::addBoundingBox(Vector2f position, Vector2f size, uchar label = 0) {
 	if(!m_released) {
 		int count = m_coordinates->size() / 3;
 
@@ -48,6 +49,7 @@ void BoundingBoxSetAccess::addBoundingBox(Vector2f position, Vector2f size) {
 		m_lines->push_back(count + 3);
 		m_lines->push_back(count);
 
+		m_labels->push_back(label);
 	} else {
 		Reporter::warning() << "Bounding box set access was released, but was accessed." << Reporter::end();
 	}
@@ -82,8 +84,8 @@ BoundingBoxSetAccess::~BoundingBoxSetAccess() {
 	release();
 }
 
-BoundingBoxSetOpenGLAccess::BoundingBoxSetOpenGLAccess(GLuint coordinatesVBO, GLuint linesEBO, SharedPointer<BoundingBoxSet> bbset) : 
-	m_coordinatesVBO(coordinatesVBO), m_linesEBO(linesEBO), m_bbset(bbset) {
+BoundingBoxSetOpenGLAccess::BoundingBoxSetOpenGLAccess(GLuint coordinatesVBO, GLuint linesEBO, GLuint labelVBO, SharedPointer<BoundingBoxSet> bbset) : 
+	m_coordinatesVBO(coordinatesVBO), m_linesEBO(linesEBO), m_labelVBO(labelVBO), m_bbset(bbset) {
 
 }
 
@@ -97,6 +99,12 @@ GLuint BoundingBoxSetOpenGLAccess::getLinesEBO() const {
 	if(m_released)
 		throw Exception("BoundingBoxSet OpenGL access was released.");
 	return m_linesEBO;
+}
+
+GLuint BoundingBoxSetOpenGLAccess::getLabelVBO() const {
+	if(m_released)
+		throw Exception("BoundingBoxSet OpenGL access was released.");
+	return m_labelVBO;
 }
 
 void BoundingBoxSetOpenGLAccess::release() {

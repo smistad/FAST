@@ -8,11 +8,13 @@ class FAST_EXPORT BoundingBoxNetwork : public NeuralNetwork {
     public:
         void setThreshold(float threshold);
         void loadAttributes() override;
+        void setAnchors(std::vector<std::vector<Vector2f>> anchors);
     private:
         BoundingBoxNetwork();
         void execute() override;
 
         float m_threshold;
+        std::vector<std::vector<Vector2f>> m_anchors;
 
 };
 

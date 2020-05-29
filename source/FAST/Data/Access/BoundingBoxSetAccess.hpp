@@ -22,10 +22,11 @@ class FAST_EXPORT BoundingBoxSetAccess {
 		BoundingBoxSetAccess(
 			std::vector<float>* coordinates,
 			std::vector<uint>* lines,
+			std::vector<uchar>* labels,
 			SharedPointer<BoundingBoxSet> bbset
 		);
 		void addBoundingBox(SharedPointer<BoundingBox> box);
-		void addBoundingBox(Vector2f position, Vector2f size);
+		void addBoundingBox(Vector2f position, Vector2f size, uchar label);
 		std::vector<float> getCoordinates() const;
 		std::vector<uint> getLines() const;
 		void addBoundingBoxes(std::vector<float> coordinates, std::vector<uint> lines);
@@ -36,21 +37,23 @@ class FAST_EXPORT BoundingBoxSetAccess {
 	protected:
 		std::vector<float>* m_coordinates;
 		std::vector<uint>* m_lines;
+		std::vector<uchar>* m_labels;
 		SharedPointer<BoundingBoxSet> m_bbset;
 		bool m_released = false;
 };
 
 class FAST_EXPORT BoundingBoxSetOpenGLAccess {
 	public:
-		BoundingBoxSetOpenGLAccess(GLuint m_coordinatesVBO, GLuint m_linesEBO, SharedPointer<BoundingBoxSet> bbset);
+		BoundingBoxSetOpenGLAccess(GLuint m_coordinatesVBO, GLuint m_linesEBO, GLuint m_labels, SharedPointer<BoundingBoxSet> bbset);
         GLuint getCoordinateVBO() const;
 		GLuint getLinesEBO() const;
+		GLuint getLabelVBO() const;
         void release();
         ~BoundingBoxSetOpenGLAccess();
 		typedef std::unique_ptr<BoundingBoxSetOpenGLAccess> pointer;
 		BoundingBoxSetOpenGLAccess(const BoundingBoxSetOpenGLAccess&) = delete;
 	protected:
-		GLuint m_coordinatesVBO, m_linesEBO;
+		GLuint m_coordinatesVBO, m_linesEBO, m_labelVBO;
         bool m_released = false;
 		SharedPointer<BoundingBoxSet> m_bbset;
 };

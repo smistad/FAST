@@ -62,12 +62,14 @@ class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
         bool mVBODataIsUpToDate;
         GLuint mCoordinateVBO = 0;
         GLuint mLineEBO = 0;
+        GLuint m_labelVBO = 0;
 
         // Host data
         bool mHostHasData;
         bool mHostDataIsUpToDate;
         std::vector<float> mCoordinates;
         std::vector<uint> mLines;
+        std::vector<uchar> m_labels;
 
         uint mNrOfVertices;
         uint mNrOfLines;
