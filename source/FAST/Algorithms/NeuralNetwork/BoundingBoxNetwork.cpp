@@ -116,12 +116,12 @@ void BoundingBoxNetwork::execute() {
             for(int x = 0; x < outputWidth; ++x) {
 				for(int a = 0; a < m_anchors.size(); ++a) {
 					float bestScore = 0.0f;
-					int bestClass = 0;
+					uchar bestClass = 0;
 					// Find best class
+					float objectness = sigmoid(tensorData[getPosition(x, y, channels, a * 6 + 4, outputWidth, outputHeight, ordering)]);
 					for(int classIdx = 0; classIdx < classes; ++classIdx) {
-						float objectness = tensorData[getPosition(x, y, channels, a * 6 + 4, outputWidth, outputHeight, ordering)];
-						float classPrediction = tensorData[getPosition(x, y, channels, a * 6 + 5, outputWidth, outputHeight, ordering)];
-						float score = sigmoid(objectness) * sigmoid(classPrediction);
+						float classPrediction = tensorData[getPosition(x, y, channels, a * 6 + 5 + classIdx, outputWidth, outputHeight, ordering)];
+						float score = objectness * sigmoid(classPrediction);
 						if(score >= m_threshold && score > bestScore) {
 							bestClass = classIdx;
 							bestScore = score;

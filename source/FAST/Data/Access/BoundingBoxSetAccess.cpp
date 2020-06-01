@@ -49,6 +49,10 @@ void BoundingBoxSetAccess::addBoundingBox(Vector2f position, Vector2f size, ucha
 		m_lines->push_back(count + 3);
 		m_lines->push_back(count);
 
+		// Add label four times, once for each vertex
+		m_labels->push_back(label);
+		m_labels->push_back(label);
+		m_labels->push_back(label);
 		m_labels->push_back(label);
 	} else {
 		Reporter::warning() << "Bounding box set access was released, but was accessed." << Reporter::end();
@@ -64,7 +68,11 @@ std::vector<uint> BoundingBoxSetAccess::getLines() const {
 	return *m_lines;
 }
 
-void BoundingBoxSetAccess::addBoundingBoxes(std::vector<float> coordinates, std::vector<uint> lines) {
+std::vector<uchar> BoundingBoxSetAccess::getLabels() const {
+	return *m_labels;
+}
+
+void BoundingBoxSetAccess::addBoundingBoxes(std::vector<float> coordinates, std::vector<uint> lines, std::vector<uchar> labels) {
 	const int size = m_coordinates->size() / 3;
 	m_coordinates->insert(m_coordinates->end(), coordinates.begin(), coordinates.end());
 	// Have to update indexes of new lines:
@@ -72,6 +80,7 @@ void BoundingBoxSetAccess::addBoundingBoxes(std::vector<float> coordinates, std:
 		return index + size;
 	});
 	m_lines->insert(m_lines->end(), lines.begin(), lines.end());
+	m_labels->insert(m_labels->end(), labels.begin(), labels.end());
 }
 
 

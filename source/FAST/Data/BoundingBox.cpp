@@ -125,10 +125,10 @@ BoundingBoxSetAccess::pointer BoundingBoxSet::getAccess(accessType type) {
 		fun->glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, mNrOfLines*sizeof(uint), mLines.data());
 		fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-        m_labels.resize(mNrOfLines / 4);
-		fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_labelVBO);
+        m_labels.resize(mNrOfVertices);
+		fun->glBindBuffer(GL_ARRAY_BUFFER, m_labelVBO);
 		fun->glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, mNrOfLines/4*sizeof(uchar), m_labels.data());
-		fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
         mHostHasData = true;
@@ -205,7 +205,7 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
 			fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNrOfLines*sizeof(uint), NULL, GL_STATIC_DRAW);
             // Label VBO
             fun->glBindBuffer(GL_ARRAY_BUFFER, m_labelVBO);
-            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfLines/4*sizeof(uchar), NULL, GL_STATIC_DRAW);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices*sizeof(uchar), NULL, GL_STATIC_DRAW);
         }
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -355,7 +355,7 @@ void BoundingBoxSetAccumulator::execute() {
         coords[i + 1] += offsetY;
     }
 
-    outputAccess->addBoundingBoxes(coords, inputAccess->getLines());
+    outputAccess->addBoundingBoxes(coords, inputAccess->getLines(), inputAccess->getLabels());
     addOutputData(0, m_accumulatedBBset);
 }
 

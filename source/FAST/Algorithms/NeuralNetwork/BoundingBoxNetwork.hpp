@@ -16,6 +16,7 @@ class FAST_EXPORT BoundingBoxNetwork : public NeuralNetwork {
         float m_threshold;
         std::vector<std::vector<Vector2f>> m_anchors;
 
+
 };
 
 }
