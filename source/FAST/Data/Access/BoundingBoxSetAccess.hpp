@@ -23,14 +23,16 @@ class FAST_EXPORT BoundingBoxSetAccess {
 			std::vector<float>* coordinates,
 			std::vector<uint>* lines,
 			std::vector<uchar>* labels,
+			std::vector<float>* scores,
 			SharedPointer<BoundingBoxSet> bbset
 		);
 		void addBoundingBox(SharedPointer<BoundingBox> box);
-		void addBoundingBox(Vector2f position, Vector2f size, uchar label);
+		void addBoundingBox(Vector2f position, Vector2f size, uchar label, float score);
 		std::vector<float> getCoordinates() const;
 		std::vector<uint> getLines() const;
 		std::vector<uchar> getLabels() const;
-		void addBoundingBoxes(std::vector<float> coordinates, std::vector<uint> lines, std::vector<uchar> labels);
+		std::vector<float> getScores() const;
+		void addBoundingBoxes(std::vector<float> coordinates, std::vector<uint> lines, std::vector<uchar> labels, std::vector<float> scores);
         void release();
         ~BoundingBoxSetAccess();
 		typedef std::unique_ptr<BoundingBoxSetAccess> pointer;
@@ -39,6 +41,7 @@ class FAST_EXPORT BoundingBoxSetAccess {
 		std::vector<float>* m_coordinates;
 		std::vector<uint>* m_lines;
 		std::vector<uchar>* m_labels;
+		std::vector<float>* m_scores;
 		SharedPointer<BoundingBoxSet> m_bbset;
 		bool m_released = false;
 };

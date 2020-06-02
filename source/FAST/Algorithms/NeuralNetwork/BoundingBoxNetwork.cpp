@@ -137,8 +137,10 @@ void BoundingBoxNetwork::execute() {
 					// Position is center
 					float b_x = ((sigmoid(t_x) + x) / outputWidth) * inputWidth - 0.5f * b_w;
 					float b_y = ((sigmoid(t_y) + y) / outputHeight) * inputHeight - 0.5f * b_h;
-					if(bestScore >= m_threshold)
-						outputAccess->addBoundingBox(Vector2f(b_x, b_y), Vector2f(b_w, b_h), bestClass);
+                    // Check if the bbox is properly inside the patch (at least 0.5 should be inside patch)
+					//float intersectionArea = (std::min(b_x + b_w, (float)inputWidth) - std::max(b_x, 0.0f)) * (std::min(b_y + b_h, (float)inputHeight) - std::max(b_y, 0.0f));
+					if(bestScore >= m_threshold/* && intersectionArea/(b_w*b_h) >= 0.5*/)
+						outputAccess->addBoundingBox(Vector2f(b_x, b_y), Vector2f(b_w, b_h), bestClass, bestScore);
 				}
             }
         }

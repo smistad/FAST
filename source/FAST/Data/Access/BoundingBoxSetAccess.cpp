@@ -8,17 +8,18 @@ BoundingBoxSetAccess::BoundingBoxSetAccess(
 	std::vector<float>* coordinates,
 	std::vector<uint>* lines,
 	std::vector<uchar>* labels,
+	std::vector<float>* scores,
 	SharedPointer<BoundingBoxSet> bbset
-	) : m_coordinates(coordinates), m_lines(lines), m_labels(labels), m_bbset(bbset) {
+	) : m_coordinates(coordinates), m_lines(lines), m_labels(labels), m_scores(scores), m_bbset(bbset) {
 
 }
 
 
 void BoundingBoxSetAccess::addBoundingBox(BoundingBox::pointer box) {
-	addBoundingBox(box->getPosition(), box->getSize(), box->getLabel());
+	addBoundingBox(box->getPosition(), box->getSize(), box->getLabel(), box->getScore());
 }
 
-void BoundingBoxSetAccess::addBoundingBox(Vector2f position, Vector2f size, uchar label = 0) {
+void BoundingBoxSetAccess::addBoundingBox(Vector2f position, Vector2f size, uchar label, float score) {
 	if(!m_released) {
 		int count = m_coordinates->size() / 3;
 
@@ -54,6 +55,8 @@ void BoundingBoxSetAccess::addBoundingBox(Vector2f position, Vector2f size, ucha
 		m_labels->push_back(label);
 		m_labels->push_back(label);
 		m_labels->push_back(label);
+
+		m_scores->push_back(score);
 	} else {
 		Reporter::warning() << "Bounding box set access was released, but was accessed." << Reporter::end();
 	}
@@ -72,7 +75,11 @@ std::vector<uchar> BoundingBoxSetAccess::getLabels() const {
 	return *m_labels;
 }
 
-void BoundingBoxSetAccess::addBoundingBoxes(std::vector<float> coordinates, std::vector<uint> lines, std::vector<uchar> labels) {
+std::vector<float> BoundingBoxSetAccess::getScores() const {
+	return *m_scores;
+}
+
+void BoundingBoxSetAccess::addBoundingBoxes(std::vector<float> coordinates, std::vector<uint> lines, std::vector<uchar> labels, std::vector<float> scores) {
 	const int size = m_coordinates->size() / 3;
 	m_coordinates->insert(m_coordinates->end(), coordinates.begin(), coordinates.end());
 	// Have to update indexes of new lines:
@@ -81,6 +88,7 @@ void BoundingBoxSetAccess::addBoundingBoxes(std::vector<float> coordinates, std:
 	});
 	m_lines->insert(m_lines->end(), lines.begin(), lines.end());
 	m_labels->insert(m_labels->end(), labels.begin(), labels.end());
+	m_scores->insert(m_scores->end(), scores.begin(), scores.end());
 }
 
 

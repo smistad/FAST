@@ -14,7 +14,7 @@ class FAST_EXPORT BoundingBox : public SpatialDataObject {
         /**
          * Create bounding box object with position and size set in millimeters
          */
-        void create(Vector2f position, Vector2f size, uchar label = 1);
+        void create(Vector2f position, Vector2f size, uchar label = 1, float score = 0.0f);
         void setLabel(uchar label);
         uchar getLabel();
         /**
@@ -28,8 +28,12 @@ class FAST_EXPORT BoundingBox : public SpatialDataObject {
         void setSize(Vector2f size);
         Vector2f getSize();
 
+        void setScore(float score);
+        float getScore();
+
         void free(ExecutionDevice::pointer device) override {};
         void freeAll() override {};
+        float intersectionOverUnion(BoundingBox::pointer bbox2) const;
     protected:
         BoundingBox();
 
@@ -37,6 +41,7 @@ class FAST_EXPORT BoundingBox : public SpatialDataObject {
         uchar m_label = 1;
         Vector2f m_position;
         Vector2f m_size;
+        float m_score;
 
         std::mutex m_mutex;
 };
@@ -70,6 +75,7 @@ class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
         std::vector<float> mCoordinates;
         std::vector<uint> mLines;
         std::vector<uchar> m_labels;
+        std::vector<float> m_scores;
 
         uint mNrOfVertices;
         uint mNrOfLines;

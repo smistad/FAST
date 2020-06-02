@@ -12,11 +12,14 @@ BoundingBox::BoundingBox() {
 	m_initialized = false;
 }
 
-void BoundingBox::create(Vector2f position, Vector2f size, uchar label) {
+void BoundingBox::create(Vector2f position, Vector2f size, uchar label, float score) {
+	if(size.x() <= 0 || size.y() <= 0)
+		throw Exception("Size must be > 0, got: " + std::to_string(size.x()) + " " + std::to_string(size.y()));
 	std::lock_guard<std::mutex> lock(m_mutex);
-	setPosition(position);
-	setSize(size);
-	setLabel(label);
+    m_position = position;
+	m_size = size;
+    m_label = label;
+    m_score = score;
 	m_initialized = true;
 }
 
@@ -52,6 +55,39 @@ Vector2f BoundingBox::getSize() {
 	return m_size;
 }
 
+void BoundingBox::setScore(float score) {
+	std::lock_guard<std::mutex> lock(m_mutex);
+    m_score = score;
+}
+
+float BoundingBox::getScore() {
+	std::lock_guard<std::mutex> lock(m_mutex);
+    return m_score;
+}
+
+float BoundingBox::intersectionOverUnion(BoundingBox::pointer bb2) const {
+    auto bb1 = std::dynamic_pointer_cast<BoundingBox>(mPtr.lock());
+	Vector2f bb1_1 = bb1->getPosition();
+	Vector2f bb1_2 = bb1->getPosition() + bb1->getSize();
+	Vector2f bb2_1 = bb2->getPosition();
+	Vector2f bb2_2 = bb2->getPosition() + bb2->getSize();
+	float x_left = std::max(bb1_1.x(), bb2_1.x());
+	float y_top = std::max(bb1_1.y(), bb2_1.y());
+	float x_right = std::min(bb1_2.x(), bb2_2.x());
+	float y_bottom = std::min(bb1_2.y(), bb2_2.y());
+
+    if(x_right < x_left || y_bottom < y_top) // There is no overlap
+        return 0.0f;
+
+	float intersection_area = (x_right - x_left) * (y_bottom - y_top);
+
+    float bb1_area = (bb1->getSize().x()) * (bb1->getSize().y());
+    float bb2_area = (bb2->getSize().x()) * (bb2->getSize().y());
+
+	float iou = intersection_area / (bb1_area + bb2_area - intersection_area);
+    return iou;
+}
+
 BoundingBoxSet::BoundingBoxSet() {
     mIsInitialized = false;
     mVBOHasData = false;
@@ -83,6 +119,7 @@ void BoundingBoxSet::setAllDataToOutOfDate() {
     mHostDataIsUpToDate = false;
     mVBODataIsUpToDate = false;
 }
+
 
 
 BoundingBoxSetAccess::pointer BoundingBoxSet::getAccess(accessType type) {
@@ -151,7 +188,7 @@ BoundingBoxSetAccess::pointer BoundingBoxSet::getAccess(accessType type) {
         mDataIsBeingAccessed = true;
     }
 
-    BoundingBoxSetAccess::pointer accessObject(new BoundingBoxSetAccess(&mCoordinates, &mLines, &m_labels, std::static_pointer_cast<BoundingBoxSet>(mPtr.lock())));
+    BoundingBoxSetAccess::pointer accessObject(new BoundingBoxSetAccess(&mCoordinates, &mLines, &m_labels, &m_scores, std::static_pointer_cast<BoundingBoxSet>(mPtr.lock())));
 	return std::move(accessObject);
 }
 
@@ -355,7 +392,7 @@ void BoundingBoxSetAccumulator::execute() {
         coords[i + 1] += offsetY;
     }
 
-    outputAccess->addBoundingBoxes(coords, inputAccess->getLines(), inputAccess->getLabels());
+    outputAccess->addBoundingBoxes(coords, inputAccess->getLines(), inputAccess->getLabels(), inputAccess->getScores());
     addOutputData(0, m_accumulatedBBset);
 }
 
