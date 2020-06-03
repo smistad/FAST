@@ -263,4 +263,12 @@ void ImagePyramid::clearDirtyPatches(std::set<std::string> patches) {
 		m_dirtyPatches.erase(patch);
 }
 
+void ImagePyramid::setSpacing(Vector3f spacing) {
+	m_spacing = spacing;
+}
+
+Vector3f ImagePyramid::getSpacing() const {
+	return m_spacing;
+}
+
 }

@@ -28,6 +28,8 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;
+        void setSpacing(Vector3f spacing);
+        Vector3f getSpacing() const;
         ImagePyramidAccess::pointer getAccess(accessType type);
         std::unordered_set<std::string> getDirtyPatches();
         bool isDirtyPatch(const std::string& tileID);
@@ -48,6 +50,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         std::unordered_set<std::string> m_dirtyPatches;
         static int m_counter;
         std::mutex m_dirtyPatchMutex;
+        Vector3f m_spacing = Vector3f::Ones();
 };
 
 }

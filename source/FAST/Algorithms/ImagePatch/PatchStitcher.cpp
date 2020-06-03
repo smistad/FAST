@@ -116,7 +116,7 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
 			m_outputImage = Image::New();
             m_outputImage->create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
         } else {
-            if(fullWidth < 16384 && fullHeight < 16384) {
+            if(fullWidth < 8192 && fullHeight < 8192) {
 				m_outputImage = Image::New();
                 m_outputImage->create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
             } else {
@@ -130,7 +130,7 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
             m_outputImage->setSpacing(Vector3f(patchSpacingX, patchSpacingY, patchSpacingZ));
         } else {
             //m_outputImagePyramid->fill(0);
-            //m_outputImagePyramid->setSpacing(Vector3f(patchSpacingX, patchSpacingY, patchSpacingZ));
+            m_outputImagePyramid->setSpacing(Vector3f(patchSpacingX, patchSpacingY, patchSpacingZ));
         }
         try {
             auto transformData = split(patch->getFrameData("original-transform"));
@@ -156,7 +156,7 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
 		const int startY = std::stoi(patch->getFrameData("patchid-y")) * std::stoi(patch->getFrameData("patch-height"));
 		const int endX = startX + patch->getWidth();
 		const int endY = startY + patch->getHeight();
-		reportInfo() << "Stitching " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y")
+		reportInfo() << "Stitching 2D data" << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y")
 			<< reportEnd();
         if(m_outputImage) {
             cl::Program program = getOpenCLProgram(device, "2D");

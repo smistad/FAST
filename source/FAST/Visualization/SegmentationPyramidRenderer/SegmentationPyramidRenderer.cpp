@@ -373,6 +373,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 		m_queueEmptyCondition.notify_one();
         */
 
+    Vector3f spacing = m_input->getSpacing();
     activateShader();
 
     // This is the actual rendering
@@ -380,7 +381,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     // If rendering is in 2D mode we skip any transformations
     transform = AffineTransformation::New();
 
-    //transform->getTransform().scale(it.second->getSpacing());
+    //transform->getTransform().scale(m_input->getSpacing());
 
     uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
@@ -411,6 +412,10 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 int tile_height = std::floor((float) levelHeight / mTiles);
                 if(tile_y == mTiles - 1)
                     tile_height = levelHeight - tile_offset_y;
+                tile_width *= spacing.x();
+                tile_height *= spacing.y();
+                tile_offset_x *= spacing.x();
+                tile_offset_y *= spacing.y();
 
                 // Only process visible patches
                 // Fully contained and partly

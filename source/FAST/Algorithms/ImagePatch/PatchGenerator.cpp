@@ -61,14 +61,20 @@ void PatchGenerator::generateStream() {
 
                 if(m_inputMask) {
                     // If a mask exist, check if this patch should be included or not
+                    // At least half of the patch should be clasified as foreground
                     auto access = m_inputMask->getImageAccess(ACCESS_READ);
-                    // Take center of patch
-                    Vector2i position(
-                            round(m_inputMask->getWidth() * ((float) patchX / patchesX + 0.5f / patchesX)),
-                            round(m_inputMask->getHeight() * ((float) patchY / patchesY + 0.5f / patchesY))
+                    auto croppedMask = m_inputMask->crop(
+                        Vector2i(
+                            round(m_inputMask->getWidth() * ((float)patchX / patchesX)),
+                            round(m_inputMask->getHeight() * ((float)patchY / patchesY))
+                        ),
+                        Vector2i(
+                            round(m_inputMask->getWidth() * (1.0f/patchesX)),
+                            round(m_inputMask->getHeight() * (1.0f/patchesY))
+                        )
                     );
-                    float value = access->getScalar(position);
-                    if(value != 1)
+                    float average = croppedMask->calculateAverageIntensity();
+                    if(average < 0.5) // At least half of the mask has to be foreground
                         continue;
                 }
                 reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
