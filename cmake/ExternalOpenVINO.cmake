@@ -52,7 +52,7 @@ else()
 ExternalProject_Add(OpenVINO
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO
         GIT_REPOSITORY "https://github.com/openvinotoolkit/openvino.git"
-        GIT_TAG "2020.3"
+        GIT_TAG "2020.3.0"
         UPDATE_COMMAND
             git submodule update --init --recursive
         CMAKE_ARGS
