@@ -8,7 +8,7 @@ using namespace fast;
 
 int main(int argc, char** argv) {
 	CommandLineParser parser("Stream UFF data");
-	parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "US/b_data_IQ022_A4C.uff");
+	parser.addPositionVariable(1, "filename", true, "Path to to UFF file, e.g. /path/to/data.uff");
 	parser.addOption("loop", "Loop playback");
 	parser.parse(argc, argv);
 
