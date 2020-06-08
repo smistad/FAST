@@ -17,7 +17,6 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    Reporter::setGlobalReportMethod(Reporter::COUT);
     CommandLineParser parser("Neural network WSI classification example");
     parser.addChoice("inference-engine",
             {"default", "OpenVINO", "TensorFlowCPU", "TensorFlowCUDA", "TensorRT", "TensorFlowROCm"},

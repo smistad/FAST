@@ -17,7 +17,6 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    Reporter::setGlobalReportMethod(Reporter::COUT);
     CommandLineParser parser("Neural network CT volume segmentation example");
     parser.addChoice("inference-engine",
             {"default", "TensorFlowCPU", "TensorFlowCUDA", "TensorFlowROCm"},
