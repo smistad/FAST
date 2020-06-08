@@ -43,26 +43,21 @@ std::vector<std::string> getPaths(std::string filename) {
 }
 
 int main(int argc, char** argv) {
-    bool visualize = false;
-    bool prerun = true;
-    if(argc > 1) {
-        if(std::string(argv[1]) == "--help") {
-            std::cout << "Usage: " << argv[0] << " [--visualize] [--no-prerun]" << std::endl;
-            return 0;
-        }
-        for(int i = 1; i < argc; i++) {
-            std::string token = argv[i];
-            if(token == "--visualize")
-                visualize = true;
-            if(token == "--no-prerun")
-                prerun = false;
-        }
-    }
+	    CommandLineParser parser("Left ventricle segmentation in 3D using Kalman filter model based approach");
+    parser.addPositionVariable(1, "filepath", true);
+    parser.addOption("visualize", "Visualize?");
+    parser.addOption("prerun", "Prerun?");
+
+    parser.parse(argc, argv);
+
+    const bool visualize = parser.getOption("visualize");
+    const bool prerun = parser.getOption("prerun");
 
     //Reporter::setGlobalReportMethod(Reporter::COUT);
-    std::vector<std::string> paths = getPaths("/media/extra/GRUE_MHD/left_ventricle_segmentation_list.txt");
+    auto paths = getDirectoryList(parser.get("filepath"), false, true);
 
     for(std::string path : paths) {
+        path = parser.get("filepath") + path + "/";
         // Control points for spline model
         std::vector<Vector2f> controlPoints = {
                 Vector2f(89, 22), // Apex
@@ -104,31 +99,30 @@ int main(int argc, char** argv) {
         segmentation->setStartIterations(20);
 
         // Get first frame to get size of image
-        ImageFileImporter::pointer importer = ImageFileImporter::New();
-        importer->setFilename(path + "US-2D_0.mhd");
-        importer->update();
-        Image::pointer image = importer->getOutputData<Image>();
+        auto importer = ImageFileImporter::New();
+        importer->setFilename(path + "frame_0.mhd");
+        auto image = importer->updateAndGetOutputData<Image>();
 
         // Run through recording once first,
         if(prerun) {
             ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-            streamer->setFilenameFormat(path + "US-2D_#.mhd");
-            streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+            streamer->setFilenameFormat(path + "frame_#.mhd");
             streamer->setSleepTime(100);
             segmentation->setInputConnection(streamer->getOutputPort());
             streamer->update();
-            DynamicData::pointer dynamicMeshData = segmentation->getOutputData<Mesh>();
+            auto port = segmentation->getOutputPort();
             int i = 0;
-            while (!dynamicMeshData->getStreamer()->hasReachedEnd() && i < 10) {
+            Mesh::pointer mesh;
+            do {
                 segmentation->update();
+                mesh = port->getNextFrame<Mesh>();
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 i++;
-            }
+            } while(!mesh->isLastFrame());
             std::cout << "Finished pre run" << std::endl;
         }
         ImageFileStreamer::pointer streamer2 = ImageFileStreamer::New();
-        streamer2->setFilenameFormat(path + "US-2D_#.mhd");
-        streamer2->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        streamer2->setFilenameFormat(path + "frame_#.mhd");
         streamer2->setSleepTime(100);
         segmentation->setInputConnection(streamer2->getOutputPort());
 
@@ -165,14 +159,15 @@ int main(int argc, char** argv) {
 //                streamExporter->update();
 //            }
             streamer2->update();
-            DynamicData::pointer dynamicMeshData = segmentation->getOutputData<Mesh>();
+            auto port = segmentation->getOutputPort();
             int i = 0;
             Mesh::pointer previous;
             VTKMeshFileExporter::pointer dummyExporter = VTKMeshFileExporter::New();
-            while(!dynamicMeshData->hasReachedEnd()) {
+            Mesh::pointer mesh;
+            do {
                 segmentation->update();
+                mesh = port->getNextFrame<Mesh>();
                 try {
-                    Mesh::pointer mesh = dynamicMeshData->getNextFrame(dummyExporter);
                     if(mesh == previous)
                         continue;
                     MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
@@ -190,7 +185,7 @@ int main(int argc, char** argv) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                     continue;
                 }
-            }
+            } while(!mesh->isLastFrame());
             std::cout << "Finished " << path << std::endl;
             std::cout << "---------------------------" << std::endl;
         }

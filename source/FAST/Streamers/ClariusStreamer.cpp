@@ -34,12 +34,23 @@ void ClariusStreamer::execute() {
         // TODO A hack here to get this to work. Fix later
         static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
         int success = clariusInitListener(argc, nullptr, keydir.c_str(),
-                // new image callback
-                [](const void* img, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos)
-              {
+            // new image callback
+            [](const void* img, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+            {
                 self->newImageFn(img, nfo, npos, pos);
-              },
-              nullptr, nullptr, nullptr, nullptr, 512, 512);
+            },
+            nullptr/*pre-scanconverted image*/, 
+		    nullptr/*freeze*/, 
+		    nullptr/*button*/, 
+		    nullptr/*progress*/, 
+			/*error call back*/
+			[](const char* msg) { 
+                self->getReporter().error() << msg << self->getReporter().end(); 
+            }, 
+			nullptr/*return callback*/, 
+			512, 
+			512
+		);
         if(success < 0)
             throw Exception("Unable to initialize clarius listener");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
@@ -58,7 +69,7 @@ void ClariusStreamer::execute() {
     }
 }
 
-void ClariusStreamer::newImageFn(const void *img, const _ClariusImageInfo *nfo, int npos,
+void ClariusStreamer::newImageFn(const void *img, const _ClariusProcessedImageInfo *nfo, int npos,
                                  const _ClariusPosInfo *pos) {
     if(nfo->bitsPerPixel != 32)
         throw Exception("Expected 32 bits per pixel (4 channels with 8 bits) each in ClariusStreamer, but got " + std::to_string(nfo->bitsPerPixel));

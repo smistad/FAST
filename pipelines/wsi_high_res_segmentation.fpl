@@ -1,0 +1,43 @@
+PipelineName "Neural network high-res WSI segmentation"
+PipelineDescription "asd"
+
+### Processing chain
+
+ProcessObject importer WholeSlideImageImporter
+Attribute filename $TEST_DATA_PATH$/WSI/A05.svs
+
+ProcessObject tissueSeg TissueSegmentation
+Input 0 importer 0
+
+ProcessObject patch PatchGenerator
+Attribute patch-size 256 256
+Attribute patch-level 0
+Input 0 importer 0
+Input 1 tissueSeg 0
+
+ProcessObject network SegmentationNetwork
+#Attribute model C:/fastPathology_models/high_res_nuclei_unet.pb
+#Attribute output-names "conv2d_26/truediv"
+#Attribute inference-engine TensorFlowCPU
+Attribute scale-factor 0.003921568627451
+Attribute inference-engine OpenVINO
+Attribute model "C:/fastPathology_models/high_res_nuclei_unet.xml"
+Input 0 patch 0
+
+ProcessObject stitcher PatchStitcher
+Input 0 network 0
+
+### Renderers
+
+Renderer imgRenderer ImagePyramidRenderer
+Input 0 importer 0
+
+Renderer segRenderer SegmentationPyramidRenderer
+Attribute opacity 0.5
+Input 0 stitcher 0
+
+### Views
+
+View view1 imgRenderer segRenderer
+Attribute 2Dmode true
+Attribute background-color white
