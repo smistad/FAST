@@ -363,6 +363,14 @@ if(FAST_MODULE_Plotting)
 		)
 endif()
 
+if(FAST_MODULE_Clarius)
+	install(FILES
+		${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius_headers/LICENSE
+		DESTINATION fast/licenses/clarius/
+		COMPONENT fast
+	)
+endif()
+
 if(FAST_BUILD_DOCS)
 	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
         DESTINATION fast/doc

@@ -3,7 +3,7 @@
 #include <FAST/Streamers/Streamer.hpp>
 #include <thread>
 
-struct _ClariusImageInfo;
+struct _ClariusProcessedImageInfo;
 struct _ClariusPosInfo;
 
 
@@ -17,7 +17,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         void stop();
         ~ClariusStreamer();
         uint getNrOfFrames();
-        void newImageFn(const void* newImage, const _ClariusImageInfo* nfo, int npos, const _ClariusPosInfo* pos);
+        void newImageFn(const void* newImage, const _ClariusProcessedImageInfo* nfo, int npos, const _ClariusPosInfo* pos);
 		void toggleFreeze();
 		void increaseDepth();
 		void decreaseDepth();
