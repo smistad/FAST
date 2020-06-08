@@ -1,0 +1,18 @@
+PipelineName "View WSI"
+PipelineDescription "asd"
+
+### Processing chain
+
+ProcessObject importer WholeSlideImageImporter
+Attribute filename $TEST_DATA_PATH$/WSI/A05.svs
+
+### Renderers
+
+Renderer imgRenderer ImagePyramidRenderer
+Input 0 importer 0
+
+### Views
+
+View view1 imgRenderer
+Attribute 2Dmode true
+Attribute background-color white
