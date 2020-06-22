@@ -43,9 +43,10 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         virtual bool isDisabled() const;
         void setView(View* view);
         void setSynchronizedRendering(bool synched);
+        bool getSynchronizedRendering() const;
     protected:
         Renderer();
-        void execute() override;
+        virtual void execute() override;
 
         /**
          * Creates an OpenGL shader program. Should be used in the renderer constructor.

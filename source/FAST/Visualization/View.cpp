@@ -519,10 +519,11 @@ void View::initializeGL() {
     renderers.insert(renderers.end(), mVolumeRenderers.begin(), mVolumeRenderers.end());
     // Disable synchronized rendering here to avoid blocking in renderer
     for(int i = 0; i < renderers.size(); i++) {
+        bool synchedRendering = renderers[i]->getSynchronizedRendering();
         renderers[i]->setSynchronizedRendering(false);
         if(!renderers[i]->isDisabled())
             renderers[i]->update();
-        renderers[i]->setSynchronizedRendering(true);
+        renderers[i]->setSynchronizedRendering(synchedRendering);
     }
     if(renderers.empty())
         return;

@@ -252,4 +252,8 @@ void Renderer::setSynchronizedRendering(bool synched) {
     m_synchedRendering = synched;
 }
 
+bool Renderer::getSynchronizedRendering() const {
+    return m_synchedRendering;
+}
+
 }
