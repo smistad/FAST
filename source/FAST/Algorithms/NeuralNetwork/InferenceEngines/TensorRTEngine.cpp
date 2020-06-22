@@ -288,8 +288,8 @@ ImageOrdering TensorRTEngine::getPreferredImageOrdering() const {
 TensorRTEngine::~TensorRTEngine() {
     if(m_engine != nullptr)
         m_engine->destroy();
-    if(m_context != nullptr)
-        m_context->destroy();
+    //if(m_context != nullptr)
+    //    m_context->destroy();
     //nvuffparser::shutdownProtobufLibrary(); // This cannot be called twice in the same program. Maybe use atexit instead?
 }
 
