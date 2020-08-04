@@ -111,7 +111,7 @@ Worker::~Worker() {
 void Worker::run() {
     m_player = std::make_unique<QMediaPlayer>();
     //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    VideoSurface* myVideoSurface = new VideoSurface;
+    auto myVideoSurface = new VideoSurface;
     myVideoSurface->streamer = mStreamer;
     m_player->setMuted(true);
     m_player->setVideoOutput(myVideoSurface);

@@ -1,0 +1,11 @@
+PipelineName "Camera streaming"
+PipelineDescription "Stream images from a camera connected to the system"
+
+ProcessObject camera CameraStreamer
+
+Renderer renderer ImageRenderer
+Input 0 camera 0
+
+View view renderer
+Attribute 2Dmode true
+Attribute background-color white
