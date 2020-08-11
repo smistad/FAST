@@ -231,7 +231,7 @@ void TensorFlowEngine::load() {
 					// and thus know its type (fast image or tensor)
 					// It is assumed to be an image if input shape has at least 4 dimensions
 					NodeType type = NodeType::TENSOR;
-					if(shape.getKnownDimensions() >= 2) {
+					if(shape.getDimensions() >= 4) {
 						reportInfo() << "Assuming node is an image" << reportEnd();
 						type = NodeType::IMAGE;
 					} else {

@@ -35,6 +35,23 @@ void NeuralNetwork::loadAttributes() {
     setScaleFactor(getFloatAttribute("scale-factor"));
     setSignedInputNormalization(getBooleanAttribute("signed-input-normalization"));
     setPreserveAspectRatio(getBooleanAttribute("preserve-aspect"));
+
+    auto sizes = getStringAttribute("input-size");
+    if(!sizes.empty()) {
+        auto nodes = split(sizes, " ");
+        int nodeCounter = 0;
+        for(auto node : nodes) {
+            auto parts = split(node, ",");
+			std::vector<int> size;
+            for(auto& part : parts)
+                size.push_back(std::stoi(part));
+            setInputSize("", size);
+        }
+    }
+}
+
+void NeuralNetwork::setInputSize(std::string name, std::vector<int> size) {
+    mInputSizes[name] = size;
 }
 
 NeuralNetwork::NeuralNetwork() {
@@ -47,6 +64,7 @@ NeuralNetwork::NeuralNetwork() {
 	createStringAttribute("model", "Model path", "Path to the neural network model", "");
     createStringAttribute("inference-engine", "Inference Engine", "Manually set the inference engine to be used to execute this neural network.", "");
 	createFloatAttribute("scale-factor", "Scale factor", "Scale factor", mScaleFactor);
+    createStringAttribute("input-size", "Size of inputs", "", "");
 	createStringAttribute("output-names", "Output names", "Name of output nodes", "");
 	createBooleanAttribute("signed-input-normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
     createBooleanAttribute("preserve-aspect", "Preserve aspect ratio of input images", "", mPreserveAspectRatio);
@@ -63,6 +81,20 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
         if(shape.getDimensions() == 0)
             throw Exception("Unable to deduce input shape from network file. "
                             "Either export the file with shape information or supply the input shape manually using setInputNode.");
+
+        if(mInputSizes.count("") > 0) {
+            auto sizes = mInputSizes[""];
+            for(int i = 0; i < sizes.size(); ++i) {
+                shape[1 + i] = sizes[i];
+            }
+            m_engine->setInputNodeShape(inputNode.first, shape);
+        } else if(mInputSizes.count(inputNode.first) > 0) {
+            auto sizes = mInputSizes[inputNode.first];
+            for(int i = 0; i < sizes.size(); ++i) {
+                shape[1 + i] = sizes[i];
+            }
+            m_engine->setInputNodeShape(inputNode.first, shape);
+        }
 
         SharedPointer<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
         mRuntimeManager->startRegularTimer("input_processing");

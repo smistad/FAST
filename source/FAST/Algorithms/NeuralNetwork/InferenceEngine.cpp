@@ -60,6 +60,14 @@ void InferenceEngine::setInputData(std::string nodeName, SharedPointer<Tensor> t
 	mInputNodes.at(nodeName).data = tensor;
 }
 
+void InferenceEngine::setInputNodeShape(std::string name, TensorShape shape) {
+    mInputNodes.at(name).shape = shape;
+}
+
+void InferenceEngine::setOutputNodeShape(std::string name, TensorShape shape) {
+    mOutputNodes.at(name).shape = shape;
+}
+
 SharedPointer<fast::Tensor> InferenceEngine::getOutputData(std::string nodeName) {
     return mOutputNodes.at(nodeName).data;
 }
