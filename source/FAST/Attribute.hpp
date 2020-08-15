@@ -1,7 +1,5 @@
-#ifndef FAST_ATTRIBUTE_HPP_
-#define FAST_ATTRIBUTE_HPP_
+#pragma once
 
-#include "SmartPointers.hpp"
 #include "FASTExport.hpp"
 #include <string>
 #include <memory>
@@ -87,4 +85,3 @@ class FAST_EXPORT  Attribute {
 
 } // end namespace fast
 
-#endif

@@ -33,7 +33,6 @@ fast_add_sources(
     Attribute.cpp
     Attribute.hpp
     ProcessObjectRegistry.hpp
-    SmartPointers.hpp
     PipelineSynchronizer.cpp
     PipelineSynchronizer.hpp
 )

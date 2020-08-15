@@ -5,8 +5,6 @@
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Mesh.hpp"
 
-#include "FAST/SmartPointers.hpp"
-
 namespace fast {
 
     class FAST_EXPORT  CoherentPointDrift: public ProcessObject {

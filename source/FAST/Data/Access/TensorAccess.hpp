@@ -2,7 +2,6 @@
 
 #include <eigen3/unsupported/Eigen/CXX11/Tensor>
 #include <FAST/Object.hpp>
-#include <FAST/SmartPointers.hpp>
 #include <FAST/Data/TensorShape.hpp>
 
 namespace fast {

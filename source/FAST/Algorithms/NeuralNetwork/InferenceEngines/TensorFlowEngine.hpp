@@ -1,7 +1,6 @@
 #pragma once
 
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngine.hpp>
-#include <FAST/SmartPointers.hpp>
 
 // Forward declare
 namespace tensorflow {
