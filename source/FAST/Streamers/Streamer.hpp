@@ -18,7 +18,7 @@ class FAST_EXPORT  NoMoreFramesException : public Exception {
  */
 class FAST_EXPORT Streamer : public ProcessObject {
     public:
-        typedef SharedPointer<Streamer> pointer;
+        typedef std::shared_ptr<Streamer> pointer;
         Streamer();
         virtual ~Streamer() {};
         static std::string getStaticNameOfClass() {

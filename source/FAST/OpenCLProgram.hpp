@@ -21,15 +21,15 @@ class FAST_EXPORT  OpenCLProgram : public Object {
         std::string getName() const;
         void setSourceFilename(std::string filename);
         std::string getSourceFilename() const;
-        cl::Program build(SharedPointer<OpenCLDevice>, std::string buildOptions = "");
+        cl::Program build(std::shared_ptr<OpenCLDevice>, std::string buildOptions = "");
     protected:
         OpenCLProgram();
 
-        bool buildExists(SharedPointer<OpenCLDevice>, std::string buildOptions = "") const;
+        bool buildExists(std::shared_ptr<OpenCLDevice>, std::string buildOptions = "") const;
 
         std::string mName;
         std::string mSourceFilename;
-        std::unordered_map<SharedPointer<OpenCLDevice>, std::map<std::string, cl::Program> > mOpenCLPrograms;
+        std::unordered_map<std::shared_ptr<OpenCLDevice>, std::map<std::string, cl::Program> > mOpenCLPrograms;
 };
 
 } // end namespace fast

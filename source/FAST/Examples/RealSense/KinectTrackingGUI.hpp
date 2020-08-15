@@ -26,8 +26,8 @@ class KinectTrackingGUI : public Window {
     private:
         KinectTrackingGUI();
 
-        SharedPointer<RealSenseStreamer> mStreamer;
-        SharedPointer<KinectTracking> mTracking;
+        std::shared_ptr<RealSenseStreamer> mStreamer;
+        std::shared_ptr<KinectTracking> mTracking;
         QPushButton* mRecordButton;
         QPushButton* mPlayButton;
         QLineEdit* mStorageDir;

@@ -16,21 +16,21 @@ class FAST_EXPORT  Pipeline : public Object {
     public:
         Pipeline(std::string filename, std::map<std::string, std::string> variables = {{}});
         std::vector<View*> getViews();
-        std::vector<SharedPointer<Renderer>> getRenderers();
-        std::unordered_map<std::string, SharedPointer<ProcessObject>> getProcessObjects();
+        std::vector<std::shared_ptr<Renderer>> getRenderers();
+        std::unordered_map<std::string, std::shared_ptr<ProcessObject>> getProcessObjects();
         std::string getName() const;
         std::string getDescription() const;
         std::string getFilename() const;
         /**
          * Parse the pipeline file
          */
-        void parsePipelineFile(std::unordered_map<std::string, SharedPointer<ProcessObject>> processObjects = {});
+        void parsePipelineFile(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects = {});
 
     private:
         std::string mName;
         std::string mDescription;
         std::string mFilename;
-        std::unordered_map<std::string, SharedPointer<ProcessObject>> mProcessObjects;
+        std::unordered_map<std::string, std::shared_ptr<ProcessObject>> mProcessObjects;
         std::unordered_map<std::string, View*> m_views;
         std::vector<std::string> mRenderers;
         std::vector<std::string> m_lines;
@@ -61,7 +61,7 @@ class FAST_EXPORT  PipelineWidget : public QToolBox {
 
 class FAST_EXPORT  ProcessObjectWidget : public QWidget {
     public:
-        ProcessObjectWidget(SharedPointer<ProcessObject> po, QWidget* parent = nullptr);
+        ProcessObjectWidget(std::shared_ptr<ProcessObject> po, QWidget* parent = nullptr);
 };
 
 } // end namespace fast

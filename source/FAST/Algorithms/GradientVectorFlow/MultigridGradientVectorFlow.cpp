@@ -603,8 +603,8 @@ void MultigridGradientVectorFlow::execute() {
     }
 }
 
-void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
-        SharedPointer<Image> output, uint iterations) {
+void MultigridGradientVectorFlow::execute3DGVF(std::shared_ptr<Image> input,
+        std::shared_ptr<Image> output, uint iterations) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
     const Vector3f inputSpacing = input->getSpacing();

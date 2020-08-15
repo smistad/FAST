@@ -15,22 +15,22 @@ class Tensor;
  */
 class FAST_EXPORT InferenceDataList {
     public:
-        explicit InferenceDataList(std::vector<SharedPointer<Image>> images) {
+        explicit InferenceDataList(std::vector<std::shared_ptr<Image>> images) {
             m_images = images;
         }
-        explicit InferenceDataList(std::vector<SharedPointer<Tensor>> tensors) {
+        explicit InferenceDataList(std::vector<std::shared_ptr<Tensor>> tensors) {
             m_tensors = tensors;
         }
         InferenceDataList() {
 
         }
-        std::vector<SharedPointer<Image>> getImages() const {
+        std::vector<std::shared_ptr<Image>> getImages() const {
             if(!isImages())
                 throw Exception("The inference that list contains tensors, not images");
 
             return m_images;
         }
-        std::vector<SharedPointer<Tensor>> getTensors() const {
+        std::vector<std::shared_ptr<Tensor>> getTensors() const {
             if(!isTensors())
                 throw Exception("The inference that list contains images, not tensors");
 
@@ -42,17 +42,17 @@ class FAST_EXPORT InferenceDataList {
             return isImages() ? m_images.size() : m_tensors.size();
         }
     private:
-        std::vector<SharedPointer<Image>> m_images;
-        std::vector<SharedPointer<Tensor>> m_tensors;
+        std::vector<std::shared_ptr<Image>> m_images;
+        std::vector<std::shared_ptr<Tensor>> m_tensors;
 };
 
 class Sequence : public SimpleDataObject<InferenceDataList> {
 	FAST_OBJECT(Sequence)
     public:
-        void create(std::vector<SharedPointer<Image>> images) {
+        void create(std::vector<std::shared_ptr<Image>> images) {
             mData = InferenceDataList(images);
         };
-        void create(std::vector<SharedPointer<Tensor>> tensors) {
+        void create(std::vector<std::shared_ptr<Tensor>> tensors) {
             mData = InferenceDataList(tensors);
         };
         typedef DataAccess<InferenceDataList>::pointer access;
@@ -63,10 +63,10 @@ class Sequence : public SimpleDataObject<InferenceDataList> {
 class Batch : public SimpleDataObject<InferenceDataList> {
 	FAST_OBJECT(Batch)
     public:
-        void create(std::vector<SharedPointer<Image>> images) {
+        void create(std::vector<std::shared_ptr<Image>> images) {
             mData = InferenceDataList(images);
         };
-        void create(std::vector<SharedPointer<Tensor>> tensors) {
+        void create(std::vector<std::shared_ptr<Tensor>> tensors) {
             mData = InferenceDataList(tensors);
         };
         typedef DataAccess<InferenceDataList>::pointer access;
@@ -161,13 +161,13 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
 
         virtual void run();
 
-        SharedPointer<InferenceEngine> m_engine;
+        std::shared_ptr<InferenceEngine> m_engine;
 
-        std::unordered_map<std::string, std::vector<SharedPointer<Image>>> mInputImages;
+        std::unordered_map<std::string, std::vector<std::shared_ptr<Image>>> mInputImages;
 
         std::unordered_map<std::string, Tensor::pointer> processInputData();
-        std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height, int depth);
-        Tensor::pointer convertImagesToTensor(std::vector<SharedPointer<Image>> image, const TensorShape& shape, bool temporal);
+        std::vector<std::shared_ptr<Image>> resizeImages(const std::vector<std::shared_ptr<Image>>& images, int width, int height, int depth);
+        Tensor::pointer convertImagesToTensor(std::vector<std::shared_ptr<Image>> image, const TensorShape& shape, bool temporal);
 
     private:
         void execute();

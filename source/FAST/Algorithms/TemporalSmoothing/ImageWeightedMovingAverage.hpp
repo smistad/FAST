@@ -20,8 +20,8 @@ class FAST_EXPORT ImageWeightedMovingAverage : public ProcessObject {
 
         int m_frameCount;
         bool m_keepDataType;
-        SharedPointer<Image> m_memory;
-        std::deque<SharedPointer<Image>> m_buffer;
+        std::shared_ptr<Image> m_memory;
+        std::deque<std::shared_ptr<Image>> m_buffer;
 };
 
 }

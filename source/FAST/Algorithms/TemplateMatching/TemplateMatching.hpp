@@ -47,7 +47,7 @@ class FAST_EXPORT TemplateMatching : public ProcessObject {
         Vector2i m_center = Vector2i(-1, -1);
         Vector2i m_offset;
         Vector2i m_bestFitPosition;
-        SharedPointer<Image> outputScores;
+        std::shared_ptr<Image> outputScores;
 
 };
 

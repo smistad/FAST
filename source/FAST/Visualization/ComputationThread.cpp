@@ -95,7 +95,7 @@ void ComputationThread::stop() {
     }
 }
 
-void ComputationThread::setProcessObjects(std::vector<SharedPointer<ProcessObject>> pos) {
+void ComputationThread::setProcessObjects(std::vector<std::shared_ptr<ProcessObject>> pos) {
     m_processObjects = pos;
 }
 

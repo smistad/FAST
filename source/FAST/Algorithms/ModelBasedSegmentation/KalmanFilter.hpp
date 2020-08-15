@@ -24,8 +24,8 @@ class FAST_EXPORT  KalmanFilter : public ProcessObject {
 		KalmanFilter();
 		void execute(); // runs a loop with predict, measure and update
 		void predict();
-		void estimate(SharedPointer<Image> image);
-		SharedPointer<Mesh> getDisplacementVectors(SharedPointer<Image> image);
+		void estimate(std::shared_ptr<Image> image);
+		std::shared_ptr<Mesh> getDisplacementVectors(std::shared_ptr<Image> image);
 
 		AppearanceModel::pointer mAppearanceModel;
 		ShapeModel::pointer mShapeModel;

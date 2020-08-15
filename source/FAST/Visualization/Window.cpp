@@ -339,7 +339,7 @@ QWidget* Window::getWidget() {
     return mWidget;
 }
 
-void Window::addProcessObject(SharedPointer<ProcessObject> po) {
+void Window::addProcessObject(std::shared_ptr<ProcessObject> po) {
     m_processObjects.push_back(po);
 }
 

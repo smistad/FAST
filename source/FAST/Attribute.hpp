@@ -39,7 +39,7 @@ class FAST_EXPORT  Attribute {
                 mID(id), mName(name), mDescription(description), mType(type) {
         }
 
-        void setValue(SharedPointer<AttributeValue> value) {
+        void setValue(std::shared_ptr<AttributeValue> value) {
             if(mValues.size() == 0) {
                 mValues.push_back(value);
             } else {
@@ -47,15 +47,15 @@ class FAST_EXPORT  Attribute {
             }
         }
 
-        SharedPointer<AttributeValue> getValue() const {
+        std::shared_ptr<AttributeValue> getValue() const {
             return mValues.at(0);
         }
 
-        void setValues(std::vector<SharedPointer<AttributeValue>> values) {
+        void setValues(std::vector<std::shared_ptr<AttributeValue>> values) {
             mValues = values;
         }
 
-        std::vector<SharedPointer<AttributeValue>> getValues() const {
+        std::vector<std::shared_ptr<AttributeValue>> getValues() const {
             return mValues;
         }
 
@@ -82,7 +82,7 @@ class FAST_EXPORT  Attribute {
         std::string mName;
         std::string mDescription;
         AttributeType mType;
-        std::vector<SharedPointer<AttributeValue> > mValues;
+        std::vector<std::shared_ptr<AttributeValue> > mValues;
 };
 
 } // end namespace fast

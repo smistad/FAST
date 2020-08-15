@@ -67,8 +67,8 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
         uint mNrOfFrames;
 
         rs2_intrinsics* intrinsics;
-        SharedPointer<Image> mDepthImage;
-        SharedPointer<Image> mColorImage;
+        std::shared_ptr<Image> mDepthImage;
+        std::shared_ptr<Image> mColorImage;
 };
 
 }

@@ -234,6 +234,7 @@ namespace fast {
 			mKernelBinaryPath = getPath() + "kernel_binaries/";
 			mDocumentationPath = getPath() + "../doc/";
 			mPipelinePath = getPath() + "../pipelines/";
+			mQtPluginsPath = getPath() + "../plugins/";
 #ifdef WIN32
             mLibraryPath = getPath() + "../bin/";
 #else

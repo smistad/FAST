@@ -7,7 +7,7 @@ class Image;
 
 class FAST_EXPORT  ImageAccess {
     public:
-        ImageAccess(void* data, SharedPointer<Image> image);
+        ImageAccess(void* data, std::shared_ptr<Image> image);
         void* get();
         template <class T>
         T getScalarFast(uint position, uchar channel = 0) const noexcept;
@@ -41,7 +41,7 @@ class FAST_EXPORT  ImageAccess {
         void* mData;
         const int m_width, m_height, m_depth, m_channels, m_dimensions;
 
-        SharedPointer<Image> mImage;
+        std::shared_ptr<Image> mImage;
 };
 
 template <class T>

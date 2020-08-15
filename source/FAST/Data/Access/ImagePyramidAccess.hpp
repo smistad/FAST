@@ -36,7 +36,7 @@ typedef struct ImagePyramidLevel {
 class FAST_EXPORT ImagePyramidAccess : Object {
 public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
-	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, SharedPointer<ImagePyramid> imagePyramid, bool writeAccess);
+	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess);
 	void setScalar(uint x, uint y, uint level, uint8_t value, uint channel = 0);
 	void setScalarFast(uint x, uint y, uint level, uint8_t value, uint channel = 0) noexcept;
 	uint8_t getScalar(uint x, uint y, uint level, uint channel = 0);
@@ -44,13 +44,13 @@ public:
 	std::unique_ptr<uchar[]> getPatchData(int level, int x, int y, int width, int height);
 	ImagePyramidPatch getPatch(std::string tile);
 	ImagePyramidPatch getPatch(int level, int patchX, int patchY);
-	SharedPointer<Image> getLevelAsImage(int level);
-	SharedPointer<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height);
-	SharedPointer<Image> getPatchAsImage(int level, int patchIdX, int patchIdY);
+	std::shared_ptr<Image> getLevelAsImage(int level);
+	std::shared_ptr<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height);
+	std::shared_ptr<Image> getPatchAsImage(int level, int patchIdX, int patchIdY);
 	void release();
 	~ImagePyramidAccess();
 private:
-	SharedPointer<ImagePyramid> m_image;
+	std::shared_ptr<ImagePyramid> m_image;
 	std::vector<ImagePyramidLevel> m_levels;
 	bool m_write;
 	openslide_t* m_fileHandle;

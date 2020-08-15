@@ -95,7 +95,7 @@ int RidgeEdgeModel::convertRidgeSizeToSamples() {
 	return ridgeSizeInSteps;
 }
 
-std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(SharedPointer<Image> image, SharedPointer<Shape> shape) {
+std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape) {
 	std::vector<Measurement> measurements;
 	Mesh::pointer predictedMesh = shape->getMesh();
 	MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);
@@ -214,7 +214,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(SharedPointer<Ima
 	return measurements;
 }
 
-std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<Image> image, SharedPointer<Shape> shape, OpenCLDevice::pointer device) {
+std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape, OpenCLDevice::pointer device) {
 	Mesh::pointer predictedMesh = shape->getMesh();
 	MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);
 	std::vector<MeshVertex> points = predictedMeshAccess->getVertices();
@@ -320,7 +320,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 	return measurements;
 }
 
-std::vector<Measurement> RidgeEdgeModel::getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape, ExecutionDevice::pointer device) {
+std::vector<Measurement> RidgeEdgeModel::getMeasurements(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape, ExecutionDevice::pointer device) {
 	if(mLineLength == 0 || mLineSampleSpacing == 0)
 		throw Exception("Line length and sample spacing must be given to the RidgeEdgeModel");
 

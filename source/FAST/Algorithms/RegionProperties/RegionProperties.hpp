@@ -10,7 +10,7 @@ struct FAST_EXPORT Region {
     int area;
     uchar label;
     Vector2f centroid;
-    SharedPointer<Mesh> contour;
+    std::shared_ptr<Mesh> contour;
     std::vector<Vector2i> pixels;
 };
 

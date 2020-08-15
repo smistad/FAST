@@ -96,7 +96,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
             m_engine->setInputNodeShape(inputNode.first, shape);
         }
 
-        SharedPointer<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
+        std::shared_ptr<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
         mRuntimeManager->startRegularTimer("input_processing");
 
         bool containsSequence = false;
@@ -404,7 +404,7 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
     return tensor;
 }
 
-std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<SharedPointer<Image>> &images, int width, int height, int depth) {
+std::vector<std::shared_ptr<Image>> NeuralNetwork::resizeImages(const std::vector<std::shared_ptr<Image>> &images, int width, int height, int depth) {
     mRuntimeManager->startRegularTimer("image input resize");
     std::vector<Image::pointer> resizedImages;
 	for(Image::pointer image : images) {

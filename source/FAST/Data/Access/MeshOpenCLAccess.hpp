@@ -12,7 +12,7 @@ class Mesh;
 class FAST_EXPORT  MeshOpenCLAccess {
 public:
     typedef std::unique_ptr<MeshOpenCLAccess> pointer;
-    MeshOpenCLAccess(cl::Buffer* coordinatesBuffer, cl::Buffer* lineBuffer, cl::Buffer* triangleBuffer, SharedPointer<Mesh> mesh);
+    MeshOpenCLAccess(cl::Buffer* coordinatesBuffer, cl::Buffer* lineBuffer, cl::Buffer* triangleBuffer, std::shared_ptr<Mesh> mesh);
     cl::Buffer* getCoordinatesBuffer() const;
     cl::Buffer* getLineBuffer() const;
     cl::Buffer* getTriangleBuffer() const;
@@ -24,7 +24,7 @@ private:
     cl::Buffer* mCoordinates;
     cl::Buffer* mLineBuffer;
     cl::Buffer* mTriangleBuffer;
-    SharedPointer<Mesh> mMesh;
+    std::shared_ptr<Mesh> mMesh;
     bool mIsDeleted;
 };
 

@@ -3,7 +3,7 @@
 
 namespace fast {
 
-TensorAccess::TensorAccess(float *data, TensorShape shape, SharedPointer<Tensor> tensor) {
+TensorAccess::TensorAccess(float *data, TensorShape shape, std::shared_ptr<Tensor> tensor) {
     m_data = data;
     m_shape = shape;
     m_tensor = tensor;

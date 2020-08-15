@@ -9,7 +9,7 @@ cl::Buffer* OpenCLBufferAccess::get() const {
     return mBuffer;
 }
 
-OpenCLBufferAccess::OpenCLBufferAccess(cl::Buffer* buffer,  SharedPointer<DataObject> dataObject) {
+OpenCLBufferAccess::OpenCLBufferAccess(cl::Buffer* buffer,  std::shared_ptr<DataObject> dataObject) {
     // Copy the image
     mBuffer = new cl::Buffer(*buffer);
     mIsDeleted = false;

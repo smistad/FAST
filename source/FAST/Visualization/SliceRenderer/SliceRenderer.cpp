@@ -63,7 +63,7 @@ uint SliceRenderer::addInputConnection(DataChannel::pointer port, Plane slicePla
     return portID;
 }
 
-uint SliceRenderer::addInputConnection(DataChannel::pointer port, SharedPointer<ImageSlicer> slicer) {
+uint SliceRenderer::addInputConnection(DataChannel::pointer port, std::shared_ptr<ImageSlicer> slicer) {
     uint portID = Renderer::addInputConnection(port);
     mSlicers[portID] = slicer;
     return portID;

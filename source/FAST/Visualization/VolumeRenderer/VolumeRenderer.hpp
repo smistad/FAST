@@ -6,7 +6,7 @@ namespace fast {
 
 class VolumeRenderer : public Renderer {
     public:
-        typedef SharedPointer<VolumeRenderer> pointer;
+        typedef std::shared_ptr<VolumeRenderer> pointer;
         ~VolumeRenderer();
     protected:
         virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) = 0;

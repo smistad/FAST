@@ -83,7 +83,7 @@ class FAST_EXPORT BlockMatching : public ProcessObject {
         bool m_forwardBackward = false;
         Vector2i m_offsetROI = Vector2i::Zero();
         Vector2i m_sizeROI = Vector2i::Zero();
-        std::deque<SharedPointer<Image>> m_frameBuffer;
+        std::deque<std::shared_ptr<Image>> m_frameBuffer;
 
 };
 

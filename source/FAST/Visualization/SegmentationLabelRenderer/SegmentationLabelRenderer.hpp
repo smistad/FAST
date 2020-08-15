@@ -23,8 +23,8 @@ class FAST_EXPORT SegmentationLabelRenderer : public Renderer {
         std::unordered_map<uint, uint> mVAO;
         std::unordered_map<uint, uint> mVBO;
         std::unordered_map<uint, uint> mEBO;
-        std::unordered_map<uint, SharedPointer<RegionList>> m_regions;
-        std::unordered_map<uint, SharedPointer<Image>> mImageUsed;
+        std::unordered_map<uint, std::shared_ptr<RegionList>> m_regions;
+        std::unordered_map<uint, std::shared_ptr<Image>> mImageUsed;
         /**
          * Timestamp used to generate texture
          */

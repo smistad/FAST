@@ -56,7 +56,7 @@ std::unordered_map<std::string, InferenceEngine::NetworkNode> InferenceEngine::g
 }
 
 
-void InferenceEngine::setInputData(std::string nodeName, SharedPointer<Tensor> tensor) {
+void InferenceEngine::setInputData(std::string nodeName, std::shared_ptr<Tensor> tensor) {
 	mInputNodes.at(nodeName).data = tensor;
 }
 
@@ -68,7 +68,7 @@ void InferenceEngine::setOutputNodeShape(std::string name, TensorShape shape) {
     mOutputNodes.at(name).shape = shape;
 }
 
-SharedPointer<fast::Tensor> InferenceEngine::getOutputData(std::string nodeName) {
+std::shared_ptr<fast::Tensor> InferenceEngine::getOutputData(std::string nodeName) {
     return mOutputNodes.at(nodeName).data;
 }
 

@@ -9,7 +9,7 @@ MeshAccess::MeshAccess(
         std::vector<float>* colors,
         std::vector<uint>* lines,
         std::vector<uint>* triangles,
-        SharedPointer<Mesh> mesh) {
+        std::shared_ptr<Mesh> mesh) {
 
     mCoordinates = coordinates;
     mNormals = normals;

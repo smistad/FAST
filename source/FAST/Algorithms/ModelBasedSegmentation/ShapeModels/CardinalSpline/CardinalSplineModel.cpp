@@ -120,7 +120,7 @@ void CardinalSplineModel::assertControlPointsGiven() {
 		throw Exception("No control points have been given to the CardinalSplineModel");
 }
 
-VectorXf CardinalSplineModel::getInitialState(SharedPointer<Image> image) {
+VectorXf CardinalSplineModel::getInitialState(std::shared_ptr<Image> image) {
 	assertControlPointsGiven();
 
 	if(mInitializeShapeToImageCenter) {

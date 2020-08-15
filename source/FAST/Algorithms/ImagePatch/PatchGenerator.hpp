@@ -19,9 +19,9 @@ class FAST_EXPORT PatchGenerator : public Streamer {
     protected:
         int m_width, m_height, m_depth;
 
-        SharedPointer<ImagePyramid> m_inputImagePyramid;
-        SharedPointer<Image> m_inputVolume;
-        SharedPointer<Image> m_inputMask;
+        std::shared_ptr<ImagePyramid> m_inputImagePyramid;
+        std::shared_ptr<Image> m_inputVolume;
+        std::shared_ptr<Image> m_inputMask;
         int m_level;
 
         void execute() override;

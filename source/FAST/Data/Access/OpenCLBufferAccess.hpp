@@ -13,7 +13,7 @@ class DataObject;
 class FAST_EXPORT OpenCLBufferAccess {
     public:
         cl::Buffer* get() const;
-        OpenCLBufferAccess(cl::Buffer* buffer,  SharedPointer<DataObject> dataObject);
+        OpenCLBufferAccess(cl::Buffer* buffer,  std::shared_ptr<DataObject> dataObject);
         void release();
         ~OpenCLBufferAccess();
 		typedef std::unique_ptr<OpenCLBufferAccess> pointer;
@@ -22,7 +22,7 @@ class FAST_EXPORT OpenCLBufferAccess {
 		OpenCLBufferAccess& operator=(const OpenCLBufferAccess& other);
         cl::Buffer* mBuffer;
         bool mIsDeleted;
-        SharedPointer<DataObject> mDataObject;
+        std::shared_ptr<DataObject> mDataObject;
 };
 
 } // end namespace fast

@@ -9,7 +9,7 @@ BoundingBoxSetAccess::BoundingBoxSetAccess(
 	std::vector<uint>* lines,
 	std::vector<uchar>* labels,
 	std::vector<float>* scores,
-	SharedPointer<BoundingBoxSet> bbset
+	std::shared_ptr<BoundingBoxSet> bbset
 	) : m_coordinates(coordinates), m_lines(lines), m_labels(labels), m_scores(scores), m_bbset(bbset) {
 
 }
@@ -101,7 +101,7 @@ BoundingBoxSetAccess::~BoundingBoxSetAccess() {
 	release();
 }
 
-BoundingBoxSetOpenGLAccess::BoundingBoxSetOpenGLAccess(GLuint coordinatesVBO, GLuint linesEBO, GLuint labelVBO, SharedPointer<BoundingBoxSet> bbset) : 
+BoundingBoxSetOpenGLAccess::BoundingBoxSetOpenGLAccess(GLuint coordinatesVBO, GLuint linesEBO, GLuint labelVBO, std::shared_ptr<BoundingBoxSet> bbset) : 
 	m_coordinatesVBO(coordinatesVBO), m_linesEBO(linesEBO), m_labelVBO(labelVBO), m_bbset(bbset) {
 
 }

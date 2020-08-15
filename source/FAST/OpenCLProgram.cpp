@@ -19,7 +19,7 @@ std::string OpenCLProgram::getSourceFilename() const {
     return mSourceFilename;
 }
 
-cl::Program OpenCLProgram::build(SharedPointer<OpenCLDevice> device,
+cl::Program OpenCLProgram::build(std::shared_ptr<OpenCLDevice> device,
         std::string buildOptions) {
     if(mSourceFilename == "")
         throw Exception("No source filename was given to OpenCLProgram. Therefore build operation is not possible.");
@@ -46,7 +46,7 @@ OpenCLProgram::OpenCLProgram() {
     mSourceFilename = "";
 }
 
-bool OpenCLProgram::buildExists(SharedPointer<OpenCLDevice> device,
+bool OpenCLProgram::buildExists(std::shared_ptr<OpenCLDevice> device,
         std::string buildOptions) const {
     bool hasBuild = true;
     if(mOpenCLPrograms.count(device) == 0) {

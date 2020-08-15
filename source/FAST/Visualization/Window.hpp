@@ -60,7 +60,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
         void saveScreenshotOnClose(std::string filename);
         void saveScreenshotOfViewsOnClose(std::string filename);
         QWidget* getWidget();
-        void addProcessObject(SharedPointer<ProcessObject> po);
+        void addProcessObject(std::shared_ptr<ProcessObject> po);
     protected:
         void startComputationThread();
         void stopComputationThread();
@@ -74,10 +74,10 @@ class FAST_EXPORT  Window : public QObject, public Object {
         float mGUIScalingFactor = 1.0f;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
-        std::vector<SharedPointer<ProcessObject>> m_processObjects;
+        std::vector<std::shared_ptr<ProcessObject>> m_processObjects;
     private:
         static QGLContext* mMainGLContext;
-    public slots:
+    public Q_SLOTS:
         void stop();
 
 

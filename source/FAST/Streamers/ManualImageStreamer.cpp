@@ -28,7 +28,7 @@ void ManualImageStreamer::addImage(Image::pointer image) {
     mImages[0].push_back(image);
 }
 
-void ManualImageStreamer::addSequence(std::vector<SharedPointer<Image>> images) {
+void ManualImageStreamer::addSequence(std::vector<std::shared_ptr<Image>> images) {
     mImages.push_back(images);
 }
 

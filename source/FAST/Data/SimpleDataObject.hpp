@@ -27,7 +27,7 @@ class SimpleDataObject;
 template <class DataType>
 class DataAccess {
 public:
-    DataAccess(DataType* data, SharedPointer<SimpleDataObject<DataType> > dataObject);
+    DataAccess(DataType* data, std::shared_ptr<SimpleDataObject<DataType> > dataObject);
     DataType getData();
     void setData(const DataType& data);
     void release();
@@ -36,12 +36,12 @@ public:
     typedef std::unique_ptr<DataAccess<DataType> > pointer;
 protected:
     DataType* mData;
-    SharedPointer<SimpleDataObject<DataType> > mDataObject;
+    std::shared_ptr<SimpleDataObject<DataType> > mDataObject;
 };
 
 
 template <class DataType>
-DataAccess<DataType>::DataAccess(DataType *data, SharedPointer<SimpleDataObject<DataType> > dataObject) {
+DataAccess<DataType>::DataAccess(DataType *data, std::shared_ptr<SimpleDataObject<DataType> > dataObject) {
     mData = data;
     mDataObject = dataObject;
 }

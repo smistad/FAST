@@ -21,7 +21,7 @@ class FAST_EXPORT PipelineSynchronizer : public ProcessObject {
     protected:
         void execute() override;
 
-        std::unordered_map<uint, SharedPointer<DataObject>> m_latestData;
+        std::unordered_map<uint, std::shared_ptr<DataObject>> m_latestData;
 };
 
 }

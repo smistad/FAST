@@ -7,8 +7,87 @@
 
 %module fast
 %{
-${PYFAST_HEADER_INCLUDES}
+
+#include <FAST/SmartPointers.hpp>
+#include <FAST/ProcessObject.hpp>
+#include <FAST/Importers/ImageFileImporter.hpp>
+#include <FAST/Reporter.hpp>
+#include <FAST/Visualization/SimpleWindow.hpp>
+#include <FAST/Visualization/View.hpp>
+#include <FAST/Visualization/Renderer.hpp>
+#include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
+#include <FAST/Data/DataTypes.hpp>
 
 %}
 
-${PYFAST_INTERFACE_INCLUDES}
+// Third party stuff
+%include <std_string.i>
+%include <std_shared_ptr.i>
+%include <FAST/eigen.i>
+
+// FAST CORE LIBRARY
+
+// Define FAST_EXPORT to nothing to avoid compile errors
+%define FAST_EXPORT
+%enddef
+%define Q_OBJECT
+%enddef
+%define Q_SLOTS
+%enddef
+
+%ignore Host;
+%ignore ExecutionDevice;
+%ignore OpenCLDevice;
+%ignore DataObject;
+%ignore RuntimeMeasurement;
+%ignore RuntimeMeasurementsManager;
+//%ignore Object;
+//%ignore ProcessObject;
+
+%shared_ptr(fast::Object)
+%shared_ptr(fast::DataChannel)
+%shared_ptr(fast::ProcessObject)
+%shared_ptr(fast::ImageFileImporter)
+
+// Ignore statements
+%ignore getDevice;
+%ignore ReporterEnd::~ReporterEnd();
+%ignore QObject;
+%ignore Renderer::draw;
+%ignore Renderer::postDraw;
+
+%rename(fast::Vector3f) Vector3f;
+
+
+%include <FAST/Reporter.hpp>
+%include <FAST/Object.hpp>
+%include <FAST/SmartPointers.hpp>
+%include <FAST/Data/DataObject.hpp>
+%include <FAST/DeviceCriteria.hpp>
+%include <FAST/DataChannels/DataChannel.hpp>
+%include <FAST/RuntimeMeasurement.hpp>
+%include <FAST/RuntimeMeasurementManager.hpp>
+%include <FAST/ExecutionDevice.hpp>
+%include <FAST/Attribute.hpp>
+%include <FAST/ProcessObject.hpp>
+%include <FAST/Config.hpp>
+%include <FAST/Data/DataTypes.hpp>
+%include <FAST/Data/Color.hpp>
+
+
+%include <FAST/Importers/ImageFileImporter.hpp>
+
+/*
+// Visualization
+%shared_ptr(Window)
+%shared_ptr(SimpleWindow);
+%shared_ptr(Renderer)
+%shared_ptr(ImageRenderer)
+
+//%include <FAST/Visualization/Window.hpp>
+//%include <FAST/Visualization/SimpleWindow.hpp>
+%include <FAST/Visualization/Renderer.hpp>
+%include <FAST/Visualization/View.hpp>
+
+//%include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
+*/

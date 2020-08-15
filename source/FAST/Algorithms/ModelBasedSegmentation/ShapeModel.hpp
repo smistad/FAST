@@ -15,13 +15,13 @@ class Image;
  */
 class FAST_EXPORT  ShapeModel : public Object {
 	public:
-		typedef SharedPointer<ShapeModel> pointer;
+		typedef std::shared_ptr<ShapeModel> pointer;
 		virtual Shape::pointer getShape(VectorXf state) = 0;
 		virtual MatrixXf getStateTransitionMatrix1() = 0;
 		virtual MatrixXf getStateTransitionMatrix2() = 0;
 		virtual MatrixXf getStateTransitionMatrix3() = 0;
 		virtual MatrixXf getProcessErrorMatrix() = 0;
-		virtual VectorXf getInitialState(SharedPointer<Image> image) = 0;
+		virtual VectorXf getInitialState(std::shared_ptr<Image> image) = 0;
 		virtual std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape) = 0;
 		virtual VectorXf restrictState(VectorXf state) { return state; };
 	private:

@@ -13,7 +13,7 @@ namespace fast {
 class FAST_EXPORT  DataObject : public Object {
     public:
         DataObject();
-        typedef SharedPointer<DataObject> pointer;
+        typedef std::shared_ptr<DataObject> pointer;
         void setMetadata(std::string name, std::string value);
         void setMetadata(std::unordered_map<std::string, std::string> metadata);
         std::string getMetadata(std::string name) const;

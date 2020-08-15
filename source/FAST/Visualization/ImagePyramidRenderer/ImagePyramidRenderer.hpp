@@ -23,7 +23,7 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
 
         std::unordered_map<std::string, uint> mTexturesToRender;
-        std::unordered_map<uint, SharedPointer<ImagePyramid>> mImageUsed;
+        std::unordered_map<uint, std::shared_ptr<ImagePyramid>> mImageUsed;
         std::unordered_map<std::string, uint> mVAO;
         std::unordered_map<std::string, uint> mVBO;
         std::unordered_map<std::string, uint> mEBO;
@@ -42,7 +42,7 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
 
         cl::Kernel mKernel;
 
-        SharedPointer<ImagePyramid> m_input;
+        std::shared_ptr<ImagePyramid> m_input;
 
         // Level and window intensities
         float mWindow;

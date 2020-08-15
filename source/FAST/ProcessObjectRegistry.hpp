@@ -17,10 +17,10 @@ namespace fast {
  */
 class FAST_EXPORT  ProcessObjectRegistry {
     public:
-        using ctor_t = std::function<SharedPointer<ProcessObject>()>;
+        using ctor_t = std::function<std::shared_ptr<ProcessObject>()>;
         using map_t = std::unordered_map<std::string, ctor_t>;
 
-        static SharedPointer<ProcessObject> create(const std::string& class_name) {
+        static std::shared_ptr<ProcessObject> create(const std::string& class_name) {
             if (ctors().count(class_name) == 1) {
                 return ctors()[class_name]();
             }
@@ -52,7 +52,7 @@ class FAST_EXPORT  ProcessObjectRegistry {
 };
 
 #define FAST_REGISTER_DERIVED(Derived) \
-[]() -> SharedPointer<ProcessObject> { return Derived::New(); }
+[]() -> std::shared_ptr<ProcessObject> { return Derived::New(); }
 
 #define FAST_REGISTER_PO(Derived)         \
 static bool _registered_##Derived = ProcessObjectRegistry::registerPO(#Derived, FAST_REGISTER_DERIVED(Derived));

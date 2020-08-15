@@ -14,12 +14,12 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
     protected:
         void execute() override;
 
-        SharedPointer<Image> m_outputImage;
-        SharedPointer<Tensor> m_outputTensor;
-        SharedPointer<ImagePyramid> m_outputImagePyramid;
+        std::shared_ptr<Image> m_outputImage;
+        std::shared_ptr<Tensor> m_outputTensor;
+        std::shared_ptr<ImagePyramid> m_outputImagePyramid;
 
-        void processTensor(SharedPointer<Tensor> tensor);
-        void processImage(SharedPointer<Image> tensor);
+        void processTensor(std::shared_ptr<Tensor> tensor);
+        void processImage(std::shared_ptr<Image> tensor);
     private:
         PatchStitcher();
 

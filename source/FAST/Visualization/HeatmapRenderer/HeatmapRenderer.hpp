@@ -23,7 +23,7 @@ class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
 
         std::unordered_map<uint, Color> mColors;
         std::unordered_map<uint, bool> mHide;
-        std::unordered_map<uint, SharedPointer<Tensor>> mTensorUsed;
+        std::unordered_map<uint, std::shared_ptr<Tensor>> mTensorUsed;
 
         float mMaxOpacity = 0.3;
         float mMinConfidence = 0.5f;

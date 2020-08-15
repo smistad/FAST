@@ -52,7 +52,7 @@ void PatchStitcher::execute() {
     }
 }
 
-void PatchStitcher::processTensor(SharedPointer<Tensor> patch) {
+void PatchStitcher::processTensor(std::shared_ptr<Tensor> patch) {
     const int fullWidth = std::stoi(patch->getFrameData("original-width"));
     const int fullHeight = std::stoi(patch->getFrameData("original-height"));
 
@@ -93,7 +93,7 @@ void PatchStitcher::processTensor(SharedPointer<Tensor> patch) {
     //outputTensorData(startY, startX, 1) = 1.0f; // TODO remove
 }
 
-void PatchStitcher::processImage(SharedPointer<Image> patch) {
+void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
     const int fullWidth = std::stoi(patch->getFrameData("original-width"));
     const int fullHeight = std::stoi(patch->getFrameData("original-height"));
     const float patchSpacingX = std::stof(patch->getFrameData("patch-spacing-x"));

@@ -37,7 +37,7 @@ class FAST_EXPORT VertexBufferObjectAccess {
 				bool useNormalVBO,
 				bool useColorVBO,
 				bool useEBO,
-				SharedPointer<Mesh> mesh
+				std::shared_ptr<Mesh> mesh
 		);
         void release();
         ~VertexBufferObjectAccess();
@@ -46,7 +46,7 @@ class FAST_EXPORT VertexBufferObjectAccess {
         GLuint* mCoordinateVBO, *mNormalVBO, *mColorVBO, *mLineEBO, *mTriangleEBO;
 		bool mUseNormalVBO, mUseColorVBO, mUseEBO;
         bool mIsDeleted;
-        SharedPointer<Mesh> mMesh;
+        std::shared_ptr<Mesh> mMesh;
 };
 
 } // end namespace fast

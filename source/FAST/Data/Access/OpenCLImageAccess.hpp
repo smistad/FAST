@@ -16,8 +16,8 @@ class FAST_EXPORT  OpenCLImageAccess {
         cl::Image* get() const;
         cl::Image2D* get2DImage() const;
         cl::Image3D* get3DImage() const;
-        OpenCLImageAccess(cl::Image2D* image, SharedPointer<Image> object);
-        OpenCLImageAccess(cl::Image3D* image, SharedPointer<Image> object);
+        OpenCLImageAccess(cl::Image2D* image, std::shared_ptr<Image> object);
+        OpenCLImageAccess(cl::Image3D* image, std::shared_ptr<Image> object);
         void release();
         ~OpenCLImageAccess();
 		typedef std::unique_ptr<OpenCLImageAccess> pointer;
@@ -26,7 +26,7 @@ class FAST_EXPORT  OpenCLImageAccess {
 		OpenCLImageAccess& operator=(const OpenCLImageAccess& other);
         cl::Image* mImage;
         bool mIsDeleted;
-        SharedPointer<Image> mImageObject;
+        std::shared_ptr<Image> mImageObject;
 
 };
 

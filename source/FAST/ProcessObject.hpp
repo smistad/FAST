@@ -31,7 +31,7 @@ class FAST_EXPORT  ProcessObject : public Object {
          * @param executeToken Negative value means that the execute token is disabled.
          */
         void update(int executeToken = -1);
-        typedef SharedPointer<ProcessObject> pointer;
+        typedef std::shared_ptr<ProcessObject> pointer;
 
         // Runtime stuff
         RuntimeMeasurement::pointer getRuntime();
@@ -62,9 +62,9 @@ class FAST_EXPORT  ProcessObject : public Object {
             return "ProcessObject";
         }
         virtual void loadAttributes();
-        SharedPointer<Attribute> getAttribute(std::string id);
-        std::unordered_map<std::string, SharedPointer<Attribute>> getAttributes();
-        void setAttributes(std::vector<SharedPointer<Attribute>> attributes);
+        std::shared_ptr<Attribute> getAttribute(std::string id);
+        std::unordered_map<std::string, std::shared_ptr<Attribute>> getAttributes();
+        void setAttributes(std::vector<std::shared_ptr<Attribute>> attributes);
 
         /**
          * Used to stop a pipeline.
@@ -74,7 +74,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         void setModified(bool modified);
 
         template <class DataType>
-        SharedPointer<DataType> updateAndGetOutputData(uint portID = 0);
+        std::shared_ptr<DataType> updateAndGetOutputData(uint portID = 0);
 
     protected:
         ProcessObject();
@@ -96,9 +96,9 @@ class FAST_EXPORT  ProcessObject : public Object {
         void createOutputPort(uint portID);
 
         template <class DataType>
-        SharedPointer<DataType> getInputData(uint portID = 0);
+        std::shared_ptr<DataType> getInputData(uint portID = 0);
         template <class DataType>
-        SharedPointer<DataType> getOutputData(uint portID = 0);
+        std::shared_ptr<DataType> getOutputData(uint portID = 0);
         void addOutputData(uint portID, DataObject::pointer data);
 
         bool hasNewInputData(uint portID);
@@ -110,7 +110,7 @@ class FAST_EXPORT  ProcessObject : public Object {
 
         void createOpenCLProgram(std::string sourceFilename, std::string name = "");
         cl::Program getOpenCLProgram(
-                SharedPointer<OpenCLDevice> device,
+                std::shared_ptr<OpenCLDevice> device,
                 std::string name = "",
                 std::string buildOptions = ""
         );
@@ -148,9 +148,9 @@ class FAST_EXPORT  ProcessObject : public Object {
 
 
 
-        std::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
+        std::unordered_map<std::string, std::shared_ptr<OpenCLProgram> > mOpenCLPrograms;
 
-        std::unordered_map<std::string, SharedPointer<Attribute>> mAttributes;
+        std::unordered_map<std::string, std::shared_ptr<Attribute>> mAttributes;
 
         // Frame data
         // Similar to metadata, only this is transferred from input to output
@@ -174,7 +174,7 @@ void ProcessObject::createOutputPort(uint portID) {
 }
 
 template<class DataType>
-SharedPointer<DataType> ProcessObject::getInputData(uint portID) {
+std::shared_ptr<DataType> ProcessObject::getInputData(uint portID) {
     validateInputPortExists(portID);
     DataChannel::pointer port = mInputConnections.at(portID);
     DataObject::pointer data = port->getNextFrame();
@@ -194,10 +194,10 @@ SharedPointer<DataType> ProcessObject::getInputData(uint portID) {
 }
 
 template<class DataType>
-SharedPointer<DataType> ProcessObject::getOutputData(uint portID) {
+std::shared_ptr<DataType> ProcessObject::getOutputData(uint portID) {
     validateOutputPortExists(portID);
     // Generate a new output data object
-    SharedPointer<DataType> returnData = DataType::New();
+    std::shared_ptr<DataType> returnData = DataType::New();
 
     addOutputData(portID, returnData);
 
@@ -207,7 +207,7 @@ SharedPointer<DataType> ProcessObject::getOutputData(uint portID) {
 
 
 template<class DataType>
-SharedPointer<DataType> ProcessObject::updateAndGetOutputData(uint portID) {
+std::shared_ptr<DataType> ProcessObject::updateAndGetOutputData(uint portID) {
     auto port = getOutputPort(portID);
     update();
     return port->getNextFrame<DataType>();

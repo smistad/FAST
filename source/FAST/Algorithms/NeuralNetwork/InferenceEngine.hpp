@@ -48,12 +48,12 @@ struct InferenceDeviceInfo {
  */
 class FAST_EXPORT InferenceEngine : public Object {
     public:
-        typedef SharedPointer<InferenceEngine> pointer;
+        typedef std::shared_ptr<InferenceEngine> pointer;
         struct NetworkNode {
             uint portID;
             NodeType type;
             TensorShape shape;
-            SharedPointer<Tensor> data;
+            std::shared_ptr<Tensor> data;
         };
         virtual void setFilename(std::string filename);
         virtual void setModelAndWeights(std::vector<uint8_t> model, std::vector<uint8_t> weights);
@@ -67,8 +67,8 @@ class FAST_EXPORT InferenceEngine : public Object {
         virtual NetworkNode getOutputNode(std::string name) const;
         virtual std::unordered_map<std::string, NetworkNode> getOutputNodes() const;
         virtual std::unordered_map<std::string, NetworkNode> getInputNodes() const;
-        virtual void setInputData(std::string inputNodeName, SharedPointer<Tensor> tensor);
-        virtual SharedPointer<Tensor> getOutputData(std::string inputNodeName);
+        virtual void setInputData(std::string inputNodeName, std::shared_ptr<Tensor> tensor);
+        virtual std::shared_ptr<Tensor> getOutputData(std::string inputNodeName);
         virtual void load() = 0;
         virtual bool isLoaded();
         virtual ImageOrdering getPreferredImageOrdering() const = 0;

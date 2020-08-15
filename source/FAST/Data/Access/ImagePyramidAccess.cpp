@@ -7,7 +7,7 @@
 
 namespace fast {
 
-ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, SharedPointer<ImagePyramid> imagePyramid, bool write) {
+ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool write) {
 	if(levels.size() == 0)
 		throw Exception("Image pyramid has no levels");
 	m_image = imagePyramid;
@@ -144,7 +144,7 @@ ImagePyramidPatch ImagePyramidAccess::getPatch(int level, int tile_x, int tile_y
     return tile;
 }
 
-SharedPointer<Image> ImagePyramidAccess::getLevelAsImage(int level) {
+std::shared_ptr<Image> ImagePyramidAccess::getLevelAsImage(int level) {
     if(level < 0 || level >= m_image->getNrOfLevels())
         throw Exception("Incorrect level given to getLevelAsImage" + std::to_string(level));
 
@@ -177,7 +177,7 @@ SharedPointer<Image> ImagePyramidAccess::getLevelAsImage(int level) {
     return channelConverter->updateAndGetOutputData<Image>();
 }
 
-SharedPointer<Image> ImagePyramidAccess::getPatchAsImage(int level, int offsetX, int offsetY, int width, int height) {
+std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offsetX, int offsetY, int width, int height) {
     if(width > 16384 || height > 16384)
         throw Exception("Image level is too large to convert into a FAST image");
 
@@ -208,7 +208,7 @@ SharedPointer<Image> ImagePyramidAccess::getPatchAsImage(int level, int offsetX,
     return channelConverter->updateAndGetOutputData<Image>();
 }
 
-SharedPointer<Image> ImagePyramidAccess::getPatchAsImage(int level, int patchIdX, int patchIdY) {
+std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int patchIdX, int patchIdY) {
     int levelWidth = m_image->getLevelWidth(level);
     int levelHeight = m_image->getLevelHeight(level);
     int tiles = m_image->getLevelPatches(level);

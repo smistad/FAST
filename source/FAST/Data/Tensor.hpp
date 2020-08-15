@@ -58,8 +58,8 @@ class FAST_EXPORT Tensor : public SpatialDataObject {
         virtual float* getHostDataPointer();
 
         std::unique_ptr<float[]> m_data;
-        std::unordered_map<SharedPointer<OpenCLDevice>, cl::Buffer*> mCLBuffers;
-        std::unordered_map<SharedPointer<OpenCLDevice>, bool> mCLBuffersIsUpToDate;
+        std::unordered_map<std::shared_ptr<OpenCLDevice>, cl::Buffer*> mCLBuffers;
+        std::unordered_map<std::shared_ptr<OpenCLDevice>, bool> mCLBuffersIsUpToDate;
         TensorShape m_shape;
         bool mHostDataIsUpToDate;
 

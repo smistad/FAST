@@ -9,7 +9,7 @@ namespace fast {
 
 class FAST_EXPORT  SpatialDataObject : public DataObject {
     public:
-        typedef SharedPointer<SpatialDataObject> pointer;
+        typedef std::shared_ptr<SpatialDataObject> pointer;
         SpatialDataObject();
         virtual DataBoundingBox getBoundingBox() const;
         virtual DataBoundingBox getTransformedBoundingBox() const;

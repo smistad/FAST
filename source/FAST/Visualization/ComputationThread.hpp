@@ -22,7 +22,7 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
         void stop();
         void addView(View* view);
         void clearViews();
-        void setProcessObjects(std::vector<SharedPointer<ProcessObject>> processObjects);
+        void setProcessObjects(std::vector<std::shared_ptr<ProcessObject>> processObjects);
     public slots:
         void run();
     signals:
@@ -36,7 +36,7 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
         QThread* mMainThread;
 
         std::vector<View*> mViews;
-        std::vector<SharedPointer<ProcessObject>> m_processObjects;
+        std::vector<std::shared_ptr<ProcessObject>> m_processObjects;
 
         bool mStop = false;
 };

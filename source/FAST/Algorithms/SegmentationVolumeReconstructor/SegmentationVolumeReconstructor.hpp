@@ -13,7 +13,7 @@ class FAST_EXPORT SegmentationVolumeReconstructor : public ProcessObject {
         SegmentationVolumeReconstructor();
         void execute() override;
 
-        SharedPointer<Segmentation> m_volume;
+        std::shared_ptr<Segmentation> m_volume;
 };
 
 }

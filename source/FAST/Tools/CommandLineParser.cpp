@@ -14,7 +14,7 @@ void CommandLineParser::parse(const int argc, char ** const argv) {
     // TODO make sure parse has been run before, calling get, gotValue etc.
     // TODO make sure there are no spaces. Add support for "asdasd asdasd"
     m_command = argv[0];
-    SharedPointer<Variable> currentVariable;
+    std::shared_ptr<Variable> currentVariable;
     uint currentPosition = 1;
     for(int i = 1; i < argc; ++i) {
         std::string token = argv[i];
@@ -53,7 +53,7 @@ void CommandLineParser::parse(const int argc, char ** const argv) {
     }
 }
 
-void CommandLineParser::processToken(SharedPointer<Variable>& currentVariable, uint currentPosition, const std::string &token) {
+void CommandLineParser::processToken(std::shared_ptr<Variable>& currentVariable, uint currentPosition, const std::string &token) {
 
     // If no current variable, then the first token has to start with --, or it is a position variable
     if(!currentVariable) {
@@ -100,12 +100,12 @@ std::map<std::string, std::string> CommandLineParser::getVariables() {
 }
 
 void CommandLineParser::addOption(std::string name, std::string helpText) {
-    SharedPointer<Option> option = std::make_shared<Option>(name, helpText, false);
+    std::shared_ptr<Option> option = std::make_shared<Option>(name, helpText, false);
     m_variables[name] = option;
 }
 
 void CommandLineParser::addVariable(const std::string& name, const std::string& defaultValue, const std::string& helpText) {
-    SharedPointer<StringVariable> var = std::make_shared<StringVariable>(name, helpText, false);
+    std::shared_ptr<StringVariable> var = std::make_shared<StringVariable>(name, helpText, false);
     var->defaultValue = defaultValue;
     var->value = defaultValue;
 
@@ -113,7 +113,7 @@ void CommandLineParser::addVariable(const std::string& name, const std::string& 
 }
 
 void CommandLineParser::addVariable(const std::string& name, bool required, const std::string& helpText) {
-    SharedPointer<StringVariable> var = std::make_shared<StringVariable>(name, helpText, required);
+    std::shared_ptr<StringVariable> var = std::make_shared<StringVariable>(name, helpText, required);
     // TODO check for space in name
     m_variables[name] = var;
 }
@@ -126,7 +126,7 @@ void CommandLineParser::addPositionVariable(uint position, const std::string &na
                                             const std::string &helpText) {
     if(position == 0)
         throw Exception("CommandLineParser: Position must be > 0");
-    SharedPointer<StringVariable> var = std::make_shared<StringVariable>(name, helpText, required);
+    std::shared_ptr<StringVariable> var = std::make_shared<StringVariable>(name, helpText, required);
     var->position = position;
     m_positionVariables[position] = var;
     m_variables[name] = var;
@@ -136,7 +136,7 @@ void CommandLineParser::addPositionVariable(uint position, const std::string &na
                                             const std::string &helpText) {
     if(position == 0)
         throw Exception("CommandLineParser: Position must be > 0");
-    SharedPointer<StringVariable> var = std::make_shared<StringVariable>(name, helpText, false);
+    std::shared_ptr<StringVariable> var = std::make_shared<StringVariable>(name, helpText, false);
     // TODO check for space in name
     var->defaultValue = defaultValue;
     var->value = defaultValue;
@@ -229,7 +229,7 @@ bool CommandLineParser::gotValue(const std::string &name) const {
 
 void CommandLineParser::addChoice(const std::string &name, bool required, std::vector<std::string> choices,
                                     const std::string &helpText) {
-    SharedPointer<Choice> var = std::make_shared<Choice>(name, helpText, required);
+    std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, required);
     var->choices = choices;
     var->value = "";
     m_variables[name] = var;
@@ -242,7 +242,7 @@ void CommandLineParser::addChoice(const std::string &name, std::vector<std::stri
 
 void CommandLineParser::addChoice(const std::string &name, std::vector<std::string> choices,
                                     const std::string &defaultValue, const std::string &helpText) {
-    SharedPointer<Choice> var = std::make_shared<Choice>(name, helpText, false);
+    std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, false);
     var->defaultValue = defaultValue;
     var->value = defaultValue;
     var->choices = choices;
@@ -254,7 +254,7 @@ void CommandLineParser::addPositionChoice(uint position, const std::string &name
                                             const std::string &defaultValue, const std::string &helpText) {
     if(position == 0)
         throw Exception("CommandLineParser: Position must be > 0");
-    SharedPointer<Choice> var = std::make_shared<Choice>(name, helpText, false);
+    std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, false);
     var->defaultValue = defaultValue;
     var->value = "";
     var->choices = choices;
@@ -272,7 +272,7 @@ void CommandLineParser::addPositionChoice(uint position, const std::string &name
                                             bool required, const std::string &helpText) {
     if(position == 0)
         throw Exception("CommandLineParser: Position must be > 0");
-    SharedPointer<Choice> var = std::make_shared<Choice>(name, helpText, required);
+    std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, required);
     var->choices = choices;
     m_positionVariables[position] = var;
 }

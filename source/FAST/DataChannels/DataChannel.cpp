@@ -12,16 +12,16 @@ DataChannel::DataChannel() {
     m_stop = false;
 }
 
-SharedPointer<ProcessObject> DataChannel::getProcessObject() const {
+std::shared_ptr<ProcessObject> DataChannel::getProcessObject() const {
     return m_processObject;
 }
 
-void DataChannel::setProcessObject(SharedPointer<ProcessObject> po) {
+void DataChannel::setProcessObject(std::shared_ptr<ProcessObject> po) {
     m_processObject = po;
 }
 
 template <>
-SharedPointer<DataObject> DataChannel::getNextFrame<DataObject>() {
+std::shared_ptr<DataObject> DataChannel::getNextFrame<DataObject>() {
     return getNextDataFrame();
 }
 

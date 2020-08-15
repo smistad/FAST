@@ -60,7 +60,7 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         TextRenderer();
 
         std::unordered_map<uint, uint> mTexturesToRender;
-        std::unordered_map<uint, SharedPointer<Text>> mTextUsed;
+        std::unordered_map<uint, std::shared_ptr<Text>> mTextUsed;
         std::unordered_map<uint, uint> mVAO;
         std::unordered_map<uint, uint> mVBO;
         std::unordered_map<uint, uint> mEBO;

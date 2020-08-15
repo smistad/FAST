@@ -43,7 +43,7 @@ class FAST_EXPORT QueuedDataChannel : public DataChannel {
          */
         DataObject::pointer getFrame() override;
     protected:
-        std::queue<SharedPointer<DataObject>> m_queue;
+        std::queue<std::shared_ptr<DataObject>> m_queue;
         uint mMaximumNumberOfFrames;
         std::unique_ptr<LightweightSemaphore> m_fillCount;
         std::unique_ptr<LightweightSemaphore> m_emptyCount;

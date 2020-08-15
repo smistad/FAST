@@ -11,7 +11,7 @@ namespace fast {
  */
 class FAST_EXPORT  RuntimeMeasurement : public Object {
 public:
-	typedef SharedPointer<RuntimeMeasurement> pointer;
+	typedef std::shared_ptr<RuntimeMeasurement> pointer;
 	RuntimeMeasurement(std::string name);
 	void addSample(double runtime);
 	double getSum() const;

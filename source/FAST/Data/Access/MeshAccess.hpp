@@ -18,7 +18,7 @@ class FAST_EXPORT  MeshAccess {
             std::vector<float>* mColors,
             std::vector<uint>* mLines,
             std::vector<uint>* mTriangles,
-            SharedPointer<Mesh> mesh
+            std::shared_ptr<Mesh> mesh
 		);
         MeshVertex getVertex(uint i);
         void setVertex(uint i, MeshVertex);
@@ -41,7 +41,7 @@ class FAST_EXPORT  MeshAccess {
 		std::vector<float>* mColors;
 		std::vector<uint>* mLines;
 		std::vector<uint>* mTriangles;
-        SharedPointer<Mesh> mMesh;
+        std::shared_ptr<Mesh> mMesh;
 };
 
 } // end namespace fast

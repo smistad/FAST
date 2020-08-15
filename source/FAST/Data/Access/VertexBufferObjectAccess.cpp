@@ -32,7 +32,7 @@ VertexBufferObjectAccess::VertexBufferObjectAccess(
         bool useNormalVBO,
         bool useColorVBO,
         bool useEBO,
-        SharedPointer<Mesh> mesh
+        std::shared_ptr<Mesh> mesh
         ) {
     mCoordinateVBO = new GLuint;
     *mCoordinateVBO = coordinateVBO;

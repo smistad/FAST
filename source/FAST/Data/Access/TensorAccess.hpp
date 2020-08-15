@@ -16,7 +16,7 @@ class Tensor;
 class FAST_EXPORT TensorAccess {
     public:
         typedef std::unique_ptr<TensorAccess> pointer;
-        TensorAccess(float* data, TensorShape shape, SharedPointer<Tensor> tensor);
+        TensorAccess(float* data, TensorShape shape, std::shared_ptr<Tensor> tensor);
         float * getRawData();
         TensorShape getShape() const;
         ~TensorAccess();
@@ -24,7 +24,7 @@ class FAST_EXPORT TensorAccess {
         template <int NumDimensions>
         TensorData<NumDimensions> getData() const;
     private:
-        SharedPointer<Tensor> m_tensor;
+        std::shared_ptr<Tensor> m_tensor;
         TensorShape m_shape;
         float* m_data;
 };

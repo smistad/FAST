@@ -73,7 +73,7 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
     } while (!file.eof());
 }
 
-inline SharedPointer<ProcessObject> getProcessObject(std::string name) {
+inline std::shared_ptr<ProcessObject> getProcessObject(std::string name) {
     return ProcessObjectRegistry::create(name);
 }
 
@@ -102,7 +102,7 @@ void Pipeline::parseView(
 
         std::string name = tokens[1];
 
-        SharedPointer<Attribute> attribute = view->getAttribute(name);
+        std::shared_ptr<Attribute> attribute = view->getAttribute(name);
         std::string attributeValues = line.substr(line.find(name) + name.size());
         trim(attributeValues);
         attribute->parseInput(attributeValues);
@@ -121,7 +121,7 @@ void Pipeline::parseProcessObject(
     ) {
 
     // Create object
-    SharedPointer<ProcessObject> object = getProcessObject(objectName);
+    std::shared_ptr<ProcessObject> object = getProcessObject(objectName);
 
     std::string line = "";
 
@@ -142,7 +142,7 @@ void Pipeline::parseProcessObject(
 
         std::string name = tokens[1];
 
-        SharedPointer<Attribute> attribute = object->getAttribute(name);
+        std::shared_ptr<Attribute> attribute = object->getAttribute(name);
         std::string attributeValues = line.substr(line.find(name) + name.size());
         trim(attributeValues);
         attribute->parseInput(attributeValues);
@@ -182,7 +182,7 @@ void Pipeline::parseProcessObject(
 
         if(isRenderer) {
             reportInfo() << "Connected process object " << inputID << " to renderer " << objectID << reportEnd();
-            SharedPointer<Renderer> renderer = std::static_pointer_cast<Renderer>(object);
+            std::shared_ptr<Renderer> renderer = std::static_pointer_cast<Renderer>(object);
             renderer->addInputConnection(mProcessObjects.at(inputID)->getOutputPort(outputPortID));
         } else {
             reportInfo() << "Connected process object " << inputID << " to " << objectID << reportEnd();
@@ -196,7 +196,7 @@ void Pipeline::parseProcessObject(
     }
 }
 
-void Pipeline::parsePipelineFile(std::unordered_map<std::string, SharedPointer<ProcessObject>> processObjects) {
+void Pipeline::parsePipelineFile(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects) {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
 
     mProcessObjects = processObjects;
@@ -269,8 +269,8 @@ std::vector<View*> Pipeline::getViews() {
     return views;
 }
 
-std::vector<SharedPointer<Renderer>> Pipeline::getRenderers() {
-    std::vector<SharedPointer<Renderer>> result;
+std::vector<std::shared_ptr<Renderer>> Pipeline::getRenderers() {
+    std::vector<std::shared_ptr<Renderer>> result;
     for(auto&& rendererName : mRenderers)
         result.push_back(std::dynamic_pointer_cast<Renderer>(mProcessObjects[rendererName]));
 
@@ -310,7 +310,7 @@ std::vector<Pipeline> getAvailablePipelines(std::string path) {
     return pipelines;
 }
 
-std::unordered_map<std::string, SharedPointer<ProcessObject>> Pipeline::getProcessObjects() {
+std::unordered_map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() {
     if(mProcessObjects.size() == 0)
         parsePipelineFile();
 
@@ -342,12 +342,12 @@ PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(pa
     );
 }
 
-ProcessObjectWidget::ProcessObjectWidget(SharedPointer<ProcessObject> po, QWidget *parent) : QWidget(parent) {
+ProcessObjectWidget::ProcessObjectWidget(std::shared_ptr<ProcessObject> po, QWidget *parent) : QWidget(parent) {
     QVBoxLayout* layout = new QVBoxLayout(this);
     auto attributes = po->getAttributes();
     for(auto attr : attributes) {
         std::string id = attr.first;
-        SharedPointer<Attribute> attribute = attr.second;
+        std::shared_ptr<Attribute> attribute = attr.second;
 
         QLabel* label = new QLabel(this);
         label->setText(attribute->getName().c_str());
@@ -355,25 +355,25 @@ ProcessObjectWidget::ProcessObjectWidget(SharedPointer<ProcessObject> po, QWidge
 
         if(attribute->getType() == ATTRIBUTE_TYPE_STRING) {
             QLineEdit *textBox = new QLineEdit(this);
-            SharedPointer<AttributeValueString> stringAttribute = std::dynamic_pointer_cast<AttributeValueString>(
+            std::shared_ptr<AttributeValueString> stringAttribute = std::dynamic_pointer_cast<AttributeValueString>(
                     attribute->getValue());
             textBox->setText(stringAttribute->get().c_str());
             layout->addWidget(textBox);
         } else if(attribute->getType() == ATTRIBUTE_TYPE_FLOAT) {
             QLineEdit *textBox = new QLineEdit(this);
-            SharedPointer<AttributeValueFloat> stringAttribute = std::dynamic_pointer_cast<AttributeValueFloat>(
+            std::shared_ptr<AttributeValueFloat> stringAttribute = std::dynamic_pointer_cast<AttributeValueFloat>(
                     attribute->getValue());
             textBox->setText(std::to_string(stringAttribute->get()).c_str());
             layout->addWidget(textBox);
         } else if(attribute->getType() == ATTRIBUTE_TYPE_INTEGER) {
             QLineEdit *textBox = new QLineEdit(this);
-            SharedPointer<AttributeValueInteger> stringAttribute = std::dynamic_pointer_cast<AttributeValueInteger>(
+            std::shared_ptr<AttributeValueInteger> stringAttribute = std::dynamic_pointer_cast<AttributeValueInteger>(
                     attribute->getValue());
             textBox->setText(std::to_string(stringAttribute->get()).c_str());
             layout->addWidget(textBox);
         } else if(attribute->getType() == ATTRIBUTE_TYPE_BOOLEAN) {
             QCheckBox *checkBox = new QCheckBox(this);
-            SharedPointer<AttributeValueBoolean> stringAttribute = std::dynamic_pointer_cast<AttributeValueBoolean>(
+            std::shared_ptr<AttributeValueBoolean> stringAttribute = std::dynamic_pointer_cast<AttributeValueBoolean>(
                     attribute->getValue());
             checkBox->setChecked(stringAttribute->get());
             layout->addWidget(checkBox);

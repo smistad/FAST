@@ -42,7 +42,7 @@ class FAST_EXPORT NewestFrameDataChannel : public DataChannel {
         DataObject::pointer getFrame() override;
     protected:
         std::condition_variable m_frameConditionVariable;
-        SharedPointer<DataObject> m_frame;
+        std::shared_ptr<DataObject> m_frame;
 
         DataObject::pointer getNextDataFrame() override;
 
