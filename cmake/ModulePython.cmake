@@ -43,12 +43,14 @@ if(FAST_MODULE_Python)
     set_source_files_properties(${PYFAST_FILE} PROPERTIES GENERATED TRUE)
     set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
     set_property(SOURCE ${PYFAST_FILE} PROPERTY SWIG_MODULE_NAME fast)
-    set(CMAKE_SWIG_OUTDIR ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fast/)
+    set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
     swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_FILE})
     swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
     set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../../lib")
-
+    if(WIN32)
+        add_custom_command(TARGET _fast POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    endif()
     configure_file(
             "${PROJECT_SOURCE_DIR}/source/__init__.py.in"
             ${CMAKE_SWIG_OUTDIR}__init__.py

@@ -5,10 +5,18 @@
 #endif
 %}
 
-%module fast
+%define MODULEIMPORT
+"
+print('Loading PyFAST ...')
+import $module
+print('Done')
+"
+%enddef
+
+
+%module(moduleimport=MODULEIMPORT) fast
 %{
 
-#include <FAST/SmartPointers.hpp>
 #include <FAST/ProcessObject.hpp>
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Reporter.hpp>
@@ -17,6 +25,8 @@
 #include <FAST/Visualization/Renderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Data/DataTypes.hpp>
+
+using namespace fast;
 
 %}
 
@@ -56,12 +66,8 @@
 %ignore Renderer::draw;
 %ignore Renderer::postDraw;
 
-%rename(fast::Vector3f) Vector3f;
-
-
 %include <FAST/Reporter.hpp>
 %include <FAST/Object.hpp>
-%include <FAST/SmartPointers.hpp>
 %include <FAST/Data/DataObject.hpp>
 %include <FAST/DeviceCriteria.hpp>
 %include <FAST/DataChannels/DataChannel.hpp>
@@ -77,17 +83,16 @@
 
 %include <FAST/Importers/ImageFileImporter.hpp>
 
-/*
 // Visualization
-%shared_ptr(Window)
-%shared_ptr(SimpleWindow);
-%shared_ptr(Renderer)
-%shared_ptr(ImageRenderer)
+%shared_ptr(fast::Window)
+%shared_ptr(fast::SimpleWindow);
+%shared_ptr(fast::Renderer)
+%shared_ptr(fast::ImageRenderer)
+%shared_ptr(fast::View) // Not sure why this is needed..
 
-//%include <FAST/Visualization/Window.hpp>
-//%include <FAST/Visualization/SimpleWindow.hpp>
 %include <FAST/Visualization/Renderer.hpp>
 %include <FAST/Visualization/View.hpp>
+%include <FAST/Visualization/Window.hpp>
+%include <FAST/Visualization/SimpleWindow.hpp>
 
-//%include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
-*/
+%include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>

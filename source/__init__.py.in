@@ -1,5 +1,13 @@
-from .fast import *
 import os
+import sys
+is_windows = sys.platform.startswith('win')
 # Set base path in config to be two directories up from where the python module is
-path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'bin'))
-fast.setBasePath(path)
+bin_path = path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'bin'))
+if is_windows:
+    path = bin_path
+else:
+    path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'lib'))
+sys.path.append(path)
+
+from .fast import *
+fast.setBasePath(bin_path)
