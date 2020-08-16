@@ -17,14 +17,15 @@ print('Done')
 %module(moduleimport=MODULEIMPORT) fast
 %{
 
+
 #include <FAST/ProcessObject.hpp>
-#include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Reporter.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Visualization/View.hpp>
 #include <FAST/Visualization/Renderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Data/DataTypes.hpp>
+@PYFAST_HEADER_INCLUDES@
 
 using namespace fast;
 
@@ -45,6 +46,12 @@ using namespace fast;
 %define Q_SLOTS
 %enddef
 
+// Ignore statements
+%ignore getDevice;
+%ignore ReporterEnd::~ReporterEnd();
+%ignore QObject;
+%ignore Renderer::draw;
+%ignore Renderer::postDraw;
 %ignore Host;
 %ignore ExecutionDevice;
 %ignore OpenCLDevice;
@@ -54,18 +61,18 @@ using namespace fast;
 //%ignore Object;
 //%ignore ProcessObject;
 
+// Shared_ptr declerations
 %shared_ptr(fast::Object)
 %shared_ptr(fast::DataChannel)
 %shared_ptr(fast::ProcessObject)
-%shared_ptr(fast::ImageFileImporter)
+%shared_ptr(fast::Window)
+%shared_ptr(fast::SimpleWindow);
+%shared_ptr(fast::Renderer)
+%shared_ptr(fast::ImageRenderer)
+%shared_ptr(fast::View) // Not sure why this is needed..
+@PYFAST_SHARED_PTR_DEFS@
 
-// Ignore statements
-%ignore getDevice;
-%ignore ReporterEnd::~ReporterEnd();
-%ignore QObject;
-%ignore Renderer::draw;
-%ignore Renderer::postDraw;
-
+// Interface includes
 %include <FAST/Reporter.hpp>
 %include <FAST/Object.hpp>
 %include <FAST/Data/DataObject.hpp>
@@ -80,19 +87,13 @@ using namespace fast;
 %include <FAST/Data/DataTypes.hpp>
 %include <FAST/Data/Color.hpp>
 
-
-%include <FAST/Importers/ImageFileImporter.hpp>
-
 // Visualization
-%shared_ptr(fast::Window)
-%shared_ptr(fast::SimpleWindow);
-%shared_ptr(fast::Renderer)
-%shared_ptr(fast::ImageRenderer)
-%shared_ptr(fast::View) // Not sure why this is needed..
-
 %include <FAST/Visualization/Renderer.hpp>
 %include <FAST/Visualization/View.hpp>
 %include <FAST/Visualization/Window.hpp>
 %include <FAST/Visualization/SimpleWindow.hpp>
 
 %include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
+
+
+@PYFAST_INTERFACE_INCLUDES@

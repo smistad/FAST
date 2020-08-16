@@ -5,6 +5,5 @@ fast_add_sources(
 fast_add_test_sources(
     GaussianSmoothingFilterTests.cpp
 )
-fast_add_python_interfaces(
-	GaussianSmoothingFilter.i
-)
+fast_add_python_interfaces(GaussianSmoothingFilter.hpp)
+fast_add_python_shared_pointers(GaussianSmoothingFilter)

@@ -5,6 +5,3 @@ fast_add_sources(
 fast_add_test_sources(
     TriangleRendererTests.cpp
 )
-fast_add_python_interfaces(
-	TriangleRenderer.i
-)

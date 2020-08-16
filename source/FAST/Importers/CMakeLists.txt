@@ -8,9 +8,8 @@ fast_add_sources(
     ImageFileImporter.hpp
 )
 fast_add_process_object(ImageFileImporter ImageFileImporter.hpp)
-fast_add_python_interfaces(
-	ImageFileImporter.i
-)
+fast_add_python_interfaces(ImageFileImporter.hpp)
+fast_add_python_shared_pointers(ImageFileImporter)
 fast_add_test_sources(
     Tests/MetaImageImporterTests.cpp
     Tests/VTKMeshFileImporterTests.cpp

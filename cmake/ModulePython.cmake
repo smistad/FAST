@@ -22,15 +22,20 @@ if(FAST_MODULE_Python)
 
     # Generate the PyFAST interface file
     # Include all header files
-    foreach(FILE ${FAST_SOURCE_FILES})
+    foreach(FILE ${FAST_PYTHON_HEADER_FILES})
         if(${FILE} MATCHES "^.*hpp$")
-            set(PYFAST_HEADER_INCLUDES "${PYFAST_HEADER_INCLUDES}#include \"${FILE}\"\n")
+            set(PYFAST_HEADER_INCLUDES "${PYFAST_HEADER_INCLUDES}#include <${FILE}>\n")
         endif()
     endforeach()
 
+    # Create shared_ptr defines
+    foreach(OBJECT ${FAST_PYTHON_SHARED_PTR_OBJECTS})
+        set(PYFAST_SHARED_PTR_DEFS "${PYFAST_SHARED_PTR_DEFS}%shared_ptr(fast::${OBJECT})\n")
+    endforeach()
+
     # Include all python interface files
-    foreach(FILE ${FAST_PYTHON_INTERFACE_FILES})
-        set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include \"${FILE}\"\n")
+    foreach(FILE ${FAST_PYTHON_HEADER_FILES})
+        set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include <${FILE}>\n")
     endforeach()
 
     set(PYFAST_FILE "${PROJECT_BINARY_DIR}/PyFAST.i")

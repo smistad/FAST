@@ -44,8 +44,3 @@ if(FAST_MODULE_Visualization)
         PipelineEditor.cpp
 	)
 endif()
-fast_add_python_interfaces(
-	ProcessObject.i
-	numpy.i
-    Config.i
-)

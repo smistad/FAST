@@ -69,6 +69,3 @@ endif()
 fast_add_test_sources(
     Tests/ImageFileStreamerTests.cpp
 )
-fast_add_python_interfaces(
-	ImageFileStreamer.i
-)

@@ -14,9 +14,6 @@ fast_add_sources(
     StreamToFileExporter.cpp
     StreamToFileExporter.hpp
 )
-fast_add_python_interfaces(
-	VTKMeshFileExporter.i
-)
 fast_add_test_sources(
     Tests/MetaImageExporterTests.cpp
     Tests/VTKMeshFileExporterTests.cpp

@@ -12,8 +12,5 @@ fast_add_test_sources(
 	Tests.cpp
 )
 endif()
-fast_add_python_interfaces(
-	KalmanFilter.i
-)
 #fast_add_example(exportLVmeshes exportLVmeshes.cpp)
 #fast_add_example(exportLVmeshes3D exportLVmeshes3D.cpp)

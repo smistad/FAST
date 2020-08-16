@@ -33,10 +33,6 @@ fast_add_test_sources(
     Tests/DataObjectTests.cpp
     Tests/ImageTests.cpp
 )
-fast_add_python_interfaces(
-    Image.i
-    Mesh.i
-)
 fast_add_process_object(BoundingBoxSetAccumulator BoundingBox.hpp)
 
 if(FAST_MODULE_WholeSlideImaging)
