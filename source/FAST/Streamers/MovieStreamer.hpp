@@ -44,9 +44,9 @@ class Worker : public QObject {
     public:
         Worker(MovieStreamer* streamer);
         ~Worker();
-    public slots:
+    public Q_SLOTS:
         void run();
-    signals:
+    Q_SIGNALS:
         void finished();
         void error(QString err);
     private:

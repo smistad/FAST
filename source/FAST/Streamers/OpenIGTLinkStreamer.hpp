@@ -25,7 +25,6 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
 		std::string getStreamDescription(std::string streamName);
         void setConnectionAddress(std::string address);
         void setConnectionPort(uint port);
-        bool hasReachedEnd();
         uint getNrOfFrames() const;
 
 		/**

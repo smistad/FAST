@@ -4,7 +4,7 @@
 
 namespace fast {
 
-class NonMaximumSuppression : public ProcessObject {
+class FAST_EXPORT NonMaximumSuppression : public ProcessObject {
 	FAST_OBJECT(NonMaximumSuppression)
 	public:
 		void setThreshold(float threshold);

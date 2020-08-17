@@ -104,7 +104,6 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          */
         InferenceEngine::pointer getInferenceEngine() const;
         void setInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
-        void setInputNodeSize(uint portID, int width, int height);
         void setOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
         /**
          * For each input value i: new_i = i*scale

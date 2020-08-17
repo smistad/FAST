@@ -1,3 +1,8 @@
+fast_add_sources(
+    Plane.cpp
+    Plane.hpp
+)
+fast_add_python_interfaces(Plane.hpp)
 if(FAST_MODULE_Visualization)
 fast_add_all_subdirectories()
 fast_add_sources(
@@ -20,7 +25,5 @@ fast_add_sources(
 )
 fast_add_test_sources()
 endif()
-fast_add_sources(
-    Plane.cpp
-    Plane.hpp
-)
+
+

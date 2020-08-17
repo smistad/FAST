@@ -22,6 +22,7 @@ if(FAST_MODULE_Python)
 
     # Generate the PyFAST interface file
     # Include all header files
+    list(REMOVE_DUPLICATES FAST_PYTHON_HEADER_FILES)
     foreach(FILE ${FAST_PYTHON_HEADER_FILES})
         if(${FILE} MATCHES "^.*hpp$")
             set(PYFAST_HEADER_INCLUDES "${PYFAST_HEADER_INCLUDES}#include <${FILE}>\n")
@@ -29,6 +30,7 @@ if(FAST_MODULE_Python)
     endforeach()
 
     # Create shared_ptr defines
+    list(REMOVE_DUPLICATES FAST_PYTHON_SHARED_PTR_OBJECTS)
     foreach(OBJECT ${FAST_PYTHON_SHARED_PTR_OBJECTS})
         set(PYFAST_SHARED_PTR_DEFS "${PYFAST_SHARED_PTR_DEFS}%shared_ptr(fast::${OBJECT})\n")
     endforeach()

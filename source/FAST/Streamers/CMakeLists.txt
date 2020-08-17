@@ -12,6 +12,12 @@ fast_add_sources(
     AffineTransformationFileStreamer.cpp
     AffineTransformationFileStreamer.hpp
 )
+fast_add_python_interfaces(
+    Streamer.hpp
+    FileStreamer.hpp
+    MeshFileStreamer.hpp
+)
+fast_add_python_shared_pointers(Streamer FileStreamer MeshFileStreamer)
 fast_add_process_object(ImageFileStreamer ImageFileStreamer.hpp)
 if(FAST_MODULE_OpenIGTLink)
     fast_add_sources(

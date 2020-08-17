@@ -40,9 +40,9 @@ class CameraWorker : public QObject {
     public:
         CameraWorker(CameraStreamer* streamer, const QCameraInfo camera);
         ~CameraWorker();
-    public slots:
+    public Q_SLOTS:
         void run();
-    signals:
+    Q_SIGNALS:
         void finished();
         void error(QString err);
     private:

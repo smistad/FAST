@@ -45,6 +45,9 @@ using namespace fast;
 %enddef
 %define Q_SLOTS
 %enddef
+%define Q_SIGNALS
+public
+%enddef
 
 // Ignore statements
 %ignore getDevice;
@@ -58,8 +61,10 @@ using namespace fast;
 %ignore DataObject;
 %ignore RuntimeMeasurement;
 %ignore RuntimeMeasurementsManager;
-//%ignore Object;
-//%ignore ProcessObject;
+%ignore BoundingBoxSet;
+%ignore Worker;
+%ignore CameraWorker;
+
 
 // Shared_ptr declerations
 %shared_ptr(fast::Object)
@@ -68,7 +73,6 @@ using namespace fast;
 %shared_ptr(fast::Window)
 %shared_ptr(fast::SimpleWindow);
 %shared_ptr(fast::Renderer)
-%shared_ptr(fast::ImageRenderer)
 %shared_ptr(fast::View) // Not sure why this is needed..
 @PYFAST_SHARED_PTR_DEFS@
 
@@ -86,14 +90,13 @@ using namespace fast;
 %include <FAST/Config.hpp>
 %include <FAST/Data/DataTypes.hpp>
 %include <FAST/Data/Color.hpp>
+%include <FAST/Data/SimpleDataObject.hpp>
 
 // Visualization
 %include <FAST/Visualization/Renderer.hpp>
 %include <FAST/Visualization/View.hpp>
 %include <FAST/Visualization/Window.hpp>
 %include <FAST/Visualization/SimpleWindow.hpp>
-
-%include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 
 
 @PYFAST_INTERFACE_INCLUDES@
