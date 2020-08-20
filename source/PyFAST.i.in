@@ -65,6 +65,8 @@ public
 %ignore Worker;
 %ignore CameraWorker;
 
+%nodefaultdtor Config;
+
 
 // Shared_ptr declerations
 %shared_ptr(fast::Object)

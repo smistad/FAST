@@ -13,7 +13,6 @@
 
 namespace fast {
 
-	namespace Config {
 		namespace {
 			// Initialize global variables, put in anonymous namespace to hide them
 			bool mConfigurationLoaded = false;
@@ -29,7 +28,7 @@ namespace fast {
 			StreamingMode m_streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
 		}
 
-		std::string getPath() {
+		std::string Config::getPath() {
 			if (mBasePath != "")
 				return mBasePath;
 			std::string path = "";
@@ -70,7 +69,7 @@ namespace fast {
 			return path;
 		}
 		
-		void loadConfiguration() {
+		void Config::loadConfiguration() {
 			if (mConfigurationLoaded)
 				return;
 
@@ -185,47 +184,47 @@ namespace fast {
 			mConfigurationLoaded = true;
 		}
 
-		std::string getTestDataPath() {
+		std::string Config::getTestDataPath() {
 			loadConfiguration();
 			return mTestDataPath;
 		}
 
-		std::string getKernelSourcePath() {
+		std::string Config::getKernelSourcePath() {
 			loadConfiguration();
 			return mKernelSourcePath;
 		}
 
-		std::string getKernelBinaryPath() {
+		std::string Config::getKernelBinaryPath() {
 			loadConfiguration();
 			return mKernelBinaryPath;
 		}
 
-		std::string getDocumentationPath() {
+		std::string Config::getDocumentationPath() {
 			loadConfiguration();
 			return mDocumentationPath;
 		}
 
-		std::string getPipelinePath() {
+		std::string Config::getPipelinePath() {
 			loadConfiguration();
 			return mPipelinePath;
 		}
 
-		std::string getLibraryPath() {
+		std::string Config::getLibraryPath() {
 		    loadConfiguration();
 		    return mLibraryPath;
 		}
 
-		std::string getQtPluginsPath() {
+		std::string Config::getQtPluginsPath() {
 			loadConfiguration();
 			return mQtPluginsPath;
 		}
 
-		void setConfigFilename(std::string filename) {
+		void Config::setConfigFilename(std::string filename) {
 			mConfigFilename = filename;
 			loadConfiguration();
 		}
 
-		void setBasePath(std::string path) {
+		void Config::setBasePath(std::string path) {
 			mBasePath = path;
 			if (mBasePath[mBasePath.size() - 1] != '/')
 				mBasePath += "/";
@@ -243,34 +242,32 @@ namespace fast {
 			loadConfiguration();
 		}
 
-		void setTestDataPath(std::string path) {
+		void Config::setTestDataPath(std::string path) {
 			mTestDataPath = path;
 		}
 
-		void setKernelSourcePath(std::string path) {
+		void Config::setKernelSourcePath(std::string path) {
 			mKernelSourcePath = path;
 		}
 
-		void setKernelBinaryPath(std::string path) {
+		void Config::setKernelBinaryPath(std::string path) {
 			mKernelBinaryPath = path;
 		}
 
-		void setDocumentationPath(std::string path) {
+		void Config::setDocumentationPath(std::string path) {
 			mDocumentationPath = path;
 		}
 
-		void setPipelinePath(std::string path) {
+		void Config::setPipelinePath(std::string path) {
 			mPipelinePath = path;
 		}
 
-		void setStreamingMode(StreamingMode mode) {
+		void Config::setStreamingMode(StreamingMode mode) {
 		    m_streamingMode = mode;
 		}
 
-		StreamingMode getStreamingMode() {
+		StreamingMode Config::getStreamingMode() {
 		    return m_streamingMode;
 		}
-
-	} // end namespace Config
 
 }; // end namespace fast

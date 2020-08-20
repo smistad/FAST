@@ -10,4 +10,4 @@ else:
 sys.path.append(path)
 
 from .fast import *
-fast.setBasePath(bin_path)
+fast.Config.setBasePath(bin_path)
