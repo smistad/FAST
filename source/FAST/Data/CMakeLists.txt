@@ -34,6 +34,8 @@ fast_add_test_sources(
     Tests/ImageTests.cpp
 )
 fast_add_process_object(BoundingBoxSetAccumulator BoundingBox.hpp)
+fast_add_python_interfaces(Image.hpp)
+fast_add_python_shared_pointers(Image BoundingBox)
 
 if(FAST_MODULE_WholeSlideImaging)
     fast_add_sources(ImagePyramid.cpp ImagePyramid.hpp)

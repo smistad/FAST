@@ -11,6 +11,7 @@
 
 namespace fast {
 
+#ifndef SWIG
 using pixel_deleter_t = std::function<void(void *)>;
 using unique_pixel_ptr = std::unique_ptr<void, pixel_deleter_t>;
 template<typename T>
@@ -26,6 +27,7 @@ auto make_unique_pixel(T * ptr) -> unique_pixel_ptr {
     return unique_pixel_ptr(ptr, &pixel_deleter<T>);
 }
 unique_pixel_ptr allocatePixelArray(std::size_t size, DataType type);
+#endif
 
 class FAST_EXPORT  Image : public SpatialDataObject {
     FAST_OBJECT(Image)

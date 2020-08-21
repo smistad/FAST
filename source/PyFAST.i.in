@@ -58,18 +58,23 @@ public
 %ignore Host;
 %ignore ExecutionDevice;
 %ignore OpenCLDevice;
-%ignore DataObject;
 %ignore RuntimeMeasurement;
 %ignore RuntimeMeasurementsManager;
 %ignore BoundingBoxSet;
 %ignore Worker;
 %ignore CameraWorker;
 
-%nodefaultdtor Config;
+// Ignore due to lack of support for std::unique_ptr
+%ignore fast::Image::getOpenCLImageAccess;
+%ignore fast::Image::getImageAccess;
+%ignore fast::Image::getOpenCLBufferAccess;
 
+%nodefaultdtor Config;
 
 // Shared_ptr declerations
 %shared_ptr(fast::Object)
+%shared_ptr(fast::DataObject)
+%shared_ptr(fast::SpatialDataObject)
 %shared_ptr(fast::DataChannel)
 %shared_ptr(fast::ProcessObject)
 %shared_ptr(fast::Window)
@@ -92,7 +97,12 @@ public
 %include <FAST/Config.hpp>
 %include <FAST/Data/DataTypes.hpp>
 %include <FAST/Data/Color.hpp>
+%include <FAST/Data/DataObject.hpp>
+%include <FAST/Data/SpatialDataObject.hpp>
 %include <FAST/Data/SimpleDataObject.hpp>
+
+
+%template(updateAndGetOutputImage) fast::ProcessObject::updateAndGetOutputData<fast::Image>;
 
 // Visualization
 %include <FAST/Visualization/Renderer.hpp>
