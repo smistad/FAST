@@ -1,0 +1,23 @@
+import fast
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Set up FAST pipeline
+importer = fast.ImageFileImporter.New()
+importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+
+filter = fast.NonLocalMeans.New()
+filter.setInputConnection(importer.getOutputPort())
+
+# Execute pipeline and convert images to numpy arrays
+input_image = importer.updateAndGetOutputImage()
+pixel_spacing = input_image.getSpacing()
+input_image = np.asarray(input_image)
+filtered_image = np.asarray(filter.updateAndGetOutputImage())
+
+# Display using matplotlib
+f, axes = plt.subplots(1,2)
+aspect = pixel_spacing[1] / pixel_spacing[0] # Compensate for anisotropic pixel spacing 
+axes[0].imshow(input_image[..., 0], cmap='gray', aspect=aspect)
+axes[1].imshow(filtered_image[..., 0], cmap='gray', aspect=aspect)
+plt.show()

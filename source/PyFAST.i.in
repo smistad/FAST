@@ -34,7 +34,18 @@ using namespace fast;
 // Third party stuff
 %include <std_string.i>
 %include <std_shared_ptr.i>
+
+// Enable eigen <-> numpy data conversion
 %include <FAST/eigen.i>
+%eigen_typemaps(Vector2f)
+%eigen_typemaps(Vector3f)
+%eigen_typemaps(Vector2i)
+%eigen_typemaps(Vector3i)
+%eigen_typemaps(Vector2ui)
+%eigen_typemaps(Vector3ui)
+%eigen_typemaps(Matrix3f)
+%eigen_typemaps(Matrix4f)
+
 
 // FAST CORE LIBRARY
 
@@ -153,6 +164,31 @@ void* _intToVoidPointer(std::size_t intPointer) {
       raise ValueError('Input to Image create() must have the array_interface property')
     array_interface = ndarray.__array_interface__
     shape = array_interface['shape']
-    self.create(shape[0], shape[1], self._str_to_data_type[array_interface['typestr'][1:]], 1, self._intToVoidPointer(array_interface['data'][0]))
+    is_2d = True
+    has_channels = False
+    if len(shape) > 2 and shape[-1] <= 4:
+        has_channels = True
+    elif len(shape) == 3 and shape[-1] > 4:
+        is_2d = False
+    elif len(shape) > 3:
+        is_2d = False
+        has_channels = True
+    if is_2d:
+        self.create(
+            shape[1],
+            shape[0],
+            self._str_to_data_type[array_interface['typestr'][1:]],
+            shape[-1] if has_channels else 1,
+                self._intToVoidPointer(array_interface['data'][0])
+        )
+    else:
+        self.create(
+            shape[2],
+            shape[1],
+            shape[0],
+            self._str_to_data_type[array_interface['typestr'][1:]],
+            shape[-1] if has_channels else 1,
+                self._intToVoidPointer(array_interface['data'][0])
+        )
 %}
 }
