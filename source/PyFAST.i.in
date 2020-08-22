@@ -112,3 +112,47 @@ public
 
 
 @PYFAST_INTERFACE_INCLUDES@
+
+// Test extend image for numpy support
+%extend fast::Image {
+std::size_t _getHostDataPointer() {
+    auto access = $self->getImageAccess(ACCESS_READ);
+    return (std::size_t)access->get();
+}
+void* _intToVoidPointer(std::size_t intPointer) {
+    return (void*)intPointer;
+}
+%pythoncode %{
+  _data_type_to_str = {
+    TYPE_UINT8: 'u1',
+    TYPE_INT8: 'i1',
+    TYPE_UINT16: 'u2',
+    TYPE_INT16: 'i2',
+    TYPE_FLOAT: 'f4',
+  }
+  _str_to_data_type = {value : key for (key, value) in _data_type_to_str.items()}
+  @property
+  def __array_interface__(self):
+    if self.getDimensions() == 2:
+        shape = (self.getHeight(), self.getWidth(), self.getNrOfChannels())
+    else:
+        shape = (self.getDepth(), self.getHeight(), self.getWidth(), self.getNrOfChannels())
+    return {
+      'shape': shape,
+      'data': (self._getHostDataPointer(), False),
+      'typestr': self._data_type_to_str[self.getDataType()],
+      'version': 3,
+      'strides': None,
+    }
+
+  """
+  Create a FAST image from a N-D array (e.g. numpy ndarray)
+  """
+  def createFromArray(self, ndarray):
+    if not hasattr(ndarray, '__array_interface__'):
+      raise ValueError('Input to Image create() must have the array_interface property')
+    array_interface = ndarray.__array_interface__
+    shape = array_interface['shape']
+    self.create(shape[0], shape[1], self._str_to_data_type[array_interface['typestr'][1:]], 1, self._intToVoidPointer(array_interface['data'][0]))
+%}
+}
