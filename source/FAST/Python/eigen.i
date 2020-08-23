@@ -36,7 +36,7 @@
  /*
  Changes:
  Erik Smistad:
-  * Added support for float and uint
+  * Added support for float and uint, removed double
  Robin Deits:
   * modified the typemaps to throw SWIG_fail when errors occur, which results in helpful Python errors being thrown when the type conversions fail
   * added typemaps for std::vector containers
@@ -49,7 +49,7 @@
   #include <vector>
 %}
 
-%include <FAST/numpy.i>
+%include <FAST/Python/numpy.i>
 
 %init
 %{
@@ -215,7 +215,6 @@
     return true;
   };
 
-  template<> int NumPyType<double>() {return NPY_DOUBLE;};
   template<> int NumPyType<float>() {return NPY_FLOAT;};
   template<> int NumPyType<int>() {return NPY_INT;};
   template<> int NumPyType<unsigned int>() {return NPY_UINT;};

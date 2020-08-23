@@ -34,9 +34,10 @@ using namespace fast;
 // Third party stuff
 %include <std_string.i>
 %include <std_shared_ptr.i>
+%include <FAST/Python/std_unique_ptr.i>
 
 // Enable eigen <-> numpy data conversion
-%include <FAST/eigen.i>
+%include <FAST/Python/eigen.i>
 %eigen_typemaps(Vector2f)
 %eigen_typemaps(Vector3f)
 %eigen_typemaps(Vector2i)
@@ -64,8 +65,6 @@ public
 %ignore getDevice;
 %ignore ReporterEnd::~ReporterEnd();
 %ignore QObject;
-%ignore Renderer::draw;
-%ignore Renderer::postDraw;
 %ignore Host;
 %ignore ExecutionDevice;
 %ignore OpenCLDevice;
@@ -75,12 +74,12 @@ public
 %ignore Worker;
 %ignore CameraWorker;
 
-// Ignore due to lack of support for std::unique_ptr
-%ignore fast::Image::getOpenCLImageAccess;
-%ignore fast::Image::getImageAccess;
-%ignore fast::Image::getOpenCLBufferAccess;
-
 %nodefaultdtor Config;
+
+// unique_ptr declerations
+%unique_ptr(fast::OpenCLImageAccess)
+%unique_ptr(fast::ImageAccess)
+%unique_ptr(fast::OpenCLBufferAccess)
 
 // Shared_ptr declerations
 %shared_ptr(fast::Object)
@@ -111,6 +110,9 @@ public
 %include <FAST/Data/DataObject.hpp>
 %include <FAST/Data/SpatialDataObject.hpp>
 %include <FAST/Data/SimpleDataObject.hpp>
+%include <FAST/Data/Access/OpenCLImageAccess.hpp>
+%include <FAST/Data/Access/OpenCLBufferAccess.hpp>
+%include <FAST/Data/Access/ImageAccess.hpp>
 
 
 %template(updateAndGetOutputImage) fast::ProcessObject::updateAndGetOutputData<fast::Image>;

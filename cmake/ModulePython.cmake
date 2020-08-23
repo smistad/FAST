@@ -10,12 +10,7 @@ if(FAST_MODULE_Python)
     else()
         find_package(PythonLibs REQUIRED)
     endif()
-    include_directories(${PYTHON_INCLUDE_DIRS})
-
     find_package(NumPy REQUIRED)
-    include_directories(${PYTHON_NUMPY_INCLUDE_DIR})
-
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
     set(CMAKE_SWIG_FLAGS "")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSWIG_PYTHON_INTERPRETER_NO_DEBUG") # Avoid a error on windows when compiling in debug mode
@@ -42,7 +37,7 @@ if(FAST_MODULE_Python)
 
     set(PYFAST_FILE "${PROJECT_BINARY_DIR}/PyFAST.i")
     configure_file(
-            "${PROJECT_SOURCE_DIR}/source/PyFAST.i.in"
+            "${PROJECT_SOURCE_DIR}/source/FAST/Python/PyFAST.i.in"
             ${PYFAST_FILE}
     )
 
@@ -55,11 +50,14 @@ if(FAST_MODULE_Python)
     swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_FILE})
     swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
     set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../../lib")
+    target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
+    target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
+    target_include_directories(_fast PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     if(WIN32)
         add_custom_command(TARGET _fast POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     endif()
     configure_file(
-            "${PROJECT_SOURCE_DIR}/source/__init__.py.in"
+            "${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py.in"
             ${CMAKE_SWIG_OUTDIR}__init__.py
     )
 else()
