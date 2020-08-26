@@ -8,7 +8,7 @@ if(FAST_MODULE_Python)
     if(FAST_Python_Version)
         find_package(PythonLibs ${FAST_Python_Version} EXACT REQUIRED)
     else()
-        find_package(PythonLibs REQUIRED)
+        find_package(PythonLibs 3 REQUIRED)
     endif()
     find_package(NumPy REQUIRED)
 

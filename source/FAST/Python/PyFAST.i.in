@@ -23,7 +23,6 @@ print('Done')
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Visualization/View.hpp>
 #include <FAST/Visualization/Renderer.hpp>
-#include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Data/DataTypes.hpp>
 @PYFAST_HEADER_INCLUDES@
 
@@ -34,6 +33,7 @@ using namespace fast;
 // Third party stuff
 %include <std_string.i>
 %include <std_shared_ptr.i>
+%include <std_vector.i>
 %include <FAST/Python/std_unique_ptr.i>
 
 // Enable eigen <-> numpy data conversion
@@ -65,12 +65,6 @@ public
 %ignore getDevice;
 %ignore ReporterEnd::~ReporterEnd();
 %ignore QObject;
-%ignore Host;
-%ignore ExecutionDevice;
-%ignore OpenCLDevice;
-%ignore RuntimeMeasurement;
-%ignore RuntimeMeasurementsManager;
-%ignore BoundingBoxSet;
 %ignore Worker;
 %ignore CameraWorker;
 
@@ -80,9 +74,20 @@ public
 %unique_ptr(fast::OpenCLImageAccess)
 %unique_ptr(fast::ImageAccess)
 %unique_ptr(fast::OpenCLBufferAccess)
+%unique_ptr(fast::BoundingBoxSetAccess)
+%unique_ptr(fast::BoundingBoxSetOpenGLAccess)
+%unique_ptr(fast::MeshAccess)
+%unique_ptr(fast::VertexBufferObjectAccess)
+%unique_ptr(fast::MeshOpenCLAccess)
 
 // Shared_ptr declerations
 %shared_ptr(fast::Object)
+%shared_ptr(fast::DataChannel)
+%shared_ptr(fast::ExecutionDevice)
+%shared_ptr(fast::Host)
+%shared_ptr(fast::OpenCLDevice)
+%shared_ptr(fast::RuntimeMeasurement)
+%shared_ptr(fast::RuntimeMeasurementsManager)
 %shared_ptr(fast::DataObject)
 %shared_ptr(fast::SpatialDataObject)
 %shared_ptr(fast::DataChannel)
@@ -97,6 +102,7 @@ public
 %include <FAST/Reporter.hpp>
 %include <FAST/Object.hpp>
 %include <FAST/Data/DataObject.hpp>
+%include <FAST/DataChannels/DataChannel.hpp>
 %include <FAST/DeviceCriteria.hpp>
 %include <FAST/DataChannels/DataChannel.hpp>
 %include <FAST/RuntimeMeasurement.hpp>
@@ -113,9 +119,14 @@ public
 %include <FAST/Data/Access/OpenCLImageAccess.hpp>
 %include <FAST/Data/Access/OpenCLBufferAccess.hpp>
 %include <FAST/Data/Access/ImageAccess.hpp>
+%include <FAST/Data/Access/BoundingBoxSetAccess.hpp>
 
 
 %template(updateAndGetOutputImage) fast::ProcessObject::updateAndGetOutputData<fast::Image>;
+%template(getNextImage) fast::DataChannel::getNextFrame<fast::Image>;
+
+%template(updateAndGetOutputMesh) fast::ProcessObject::updateAndGetOutputData<fast::Mesh>;
+%template(getNextMesh) fast::DataChannel::getNextFrame<fast::Mesh>;
 
 // Visualization
 %include <FAST/Visualization/Renderer.hpp>
@@ -126,7 +137,7 @@ public
 
 @PYFAST_INTERFACE_INCLUDES@
 
-// Test extend image for numpy support
+// Extend image for numpy support
 %extend fast::Image {
 std::size_t _getHostDataPointer() {
     auto access = $self->getImageAccess(ACCESS_READ);

@@ -19,6 +19,7 @@ fast_add_sources(
     BoundingBoxSetAccess.cpp
     BoundingBoxSetAccess.hpp
 )
+fast_add_python_interfaces(MeshAccess.hpp MeshOpenCLAccess.hpp VertexBufferObjectAccess.hpp)
 if(FAST_MODULE_WholeSlideImaging)
 fast_add_sources(
     ImagePyramidAccess.cpp 
