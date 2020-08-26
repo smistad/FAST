@@ -1,5 +1,5 @@
 #### Add all subdirs
-fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests Tools DataChannels)
+fast_add_subdirectories(Streamers Algorithms Data Importers Exporters Visualization Tests Tools DataChannels)
 fast_add_sources(
     Config.cpp
     Config.hpp
