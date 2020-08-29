@@ -1,0 +1,72 @@
+# coding=utf-8
+from setuptools import setup, Extension
+import glob
+import os.path
+
+
+_fast = Extension('fast.bin._fast',
+                include_dirs=[
+                    '.',
+                    '..',
+                    '@FAST_BINARY_DIR@/include/',
+                    '@FAST_BINARY_DIR@/include/eigen3/',
+                    '@FAST_BINARY_DIR@/include/QWidgets/',
+                    '@FAST_BINARY_DIR@/include/QtCore',
+                    '@FAST_BINARY_DIR@/include/QtWidgets',
+                    '@FAST_BINARY_DIR@/include/QtOpenGL',
+                    '@FAST_BINARY_DIR@/include/QtPrintSupport',
+                    '@FAST_BINARY_DIR@/include/QtGui',
+                    '@FAST_SOURCE_DIR@/source/',
+                    '@NUMPY_INCLUDE_DIR@',
+                ],
+                library_dirs=['@FAST_BINARY_DIR@/lib/', os.path.dirname('@OpenCL_LIBRARIES@')],
+                #runtime_library_dirs=['@FAST_BINARY_DIR@/bin/'],
+                sources=['fast/PyFASTPYTHON_wrap.cxx'],
+                libraries=[ # Libraries to link with
+                    'FAST',
+                    'Qt5Core',
+                	'Qt5Widgets',
+                	'Qt5Gui',
+                	'Qt5OpenGL',
+                	'Qt5Multimedia',
+                	'Qt5MultimediaWidgets',
+                    'Qt5PrintSupport',
+                	'OpenCL',
+                	'@OPENGL_LIBRARIES@',
+                ],
+                #undef_macros=['ERROR', 'min', 'max'],
+                #define_macros=[('NOMINMAX',), ('NOGDI',)],
+                extra_compile_args=['/bigobj', '/nologo', '/MD', '/EHsc', '-DNOMINMAX', '-DNOGDI'],
+            )
+
+def get_all_filenames(path):
+    files = []
+    for root, dirs, filenames in os.walk(path):
+       for name in filenames:
+          files.append(os.path.join(root[5:], name))
+          #print(os.path.join(root[5:],name))
+    return files
+
+setup(name='fast',
+      version='@FAST_VERSION@',
+      description='FAST Python bindings',
+      long_description='''FAST''',
+      author='Erik Smistad',
+      author_email='ersmistad@gmail.com',
+      url='https://fast.eriksmistad.no',
+      license='BSD 2-clause',
+      packages=['fast'],
+      setup_requires=['wheel'],
+      ext_modules=[_fast],
+      #data_files=[('bin', DLL_list)],
+      package_data={'': [
+        'bin/*.dll',
+        'bin/plugins.xml',
+        'bin/fast_configuration.txt',
+        'README.md',
+        'pipelines/**/*',
+        ] + get_all_filenames('fast/licenses/')
+        + get_all_filenames('fast/kernels/')
+        + get_all_filenames('fast/plugins/')
+      },
+)

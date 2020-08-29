@@ -210,19 +210,6 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/pipelines/
 	COMPONENT fast
 )
 
-# Install Python wrapper
-if(FAST_MODULE_Python)
-install(TARGETS _fast
-    DESTINATION fast/python/fast
-)
-install(FILES ${PROJECT_BINARY_DIR}/lib/fast/fast.py
-    DESTINATION fast/python/fast
-)
-install(FILES ${PROJECT_BINARY_DIR}/lib/fast/__init__.py
-		DESTINATION fast/python/fast
-		)
-endif()
-
 # Copy configuration file
 # Create new configuration file for install
 

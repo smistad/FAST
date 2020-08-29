@@ -1,3 +1,7 @@
+"""
+An example of loading a whole slide image (WSI) from disk and rendering it
+using an image pyramid renderer.
+"""
 import fast
 
 importer = fast.WholeSlideImageImporter.New()
