@@ -6,8 +6,10 @@ if(FAST_MODULE_Python)
     include(${SWIG_USE_FILE})
 
     if(FAST_Python_Version)
+        find_package(PythonInterp ${FAST_Python_Version} EXACT REQUIRED)
         find_package(PythonLibs ${FAST_Python_Version} EXACT REQUIRED)
     else()
+        find_package(PythonInterp 3 REQUIRED)
         find_package(PythonLibs 3 REQUIRED)
     endif()
     find_package(NumPy REQUIRED)
@@ -55,14 +57,6 @@ if(FAST_MODULE_Python)
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
     target_include_directories(_fast PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-    if(WIN32)
-        add_custom_command(TARGET _fast POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-    endif()
-    configure_file(
-            "${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py.in"
-            ${CMAKE_SWIG_OUTDIR}__init__.py
-    )
-
     # Trigger install operation
     add_custom_target(install_to_wheel
         COMMAND ${CMAKE_COMMAND}
@@ -72,10 +66,15 @@ if(FAST_MODULE_Python)
     add_dependencies(install_to_wheel _fast)
 
     add_custom_target(python-wheel
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/bin/
+    #COMMAND ${CMAKE_COMMAND} -E rename ${PROJECT_BINARY_DIR}/python/fast/bin/fast_configuration.txt ${PROJECT_BINARY_DIR}/python/fast/bin/fast_configuration_unused.txt
     COMMAND ${CMAKE_COMMAND}
         -D FAST_VERSION=${FAST_VERSION}
         -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
         -D FAST_BINARY_DIR:STRING=${PROJECT_BINARY_DIR}
+        -D PYTHON_VERSION:STRING=${PYTHONLIBS_VERSION_STRING}
+        -D PYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
         -D NUMPY_INCLUDE_DIR:STRING=${PYTHON_NUMPY_INCLUDE_DIR}
         -D OpenCL_LIBRARIES:STRING=${OpenCL_LIBRARIES}
         -D OPENGL_LIBRARIES:STRING=${OPENGL_LIBRARIES}

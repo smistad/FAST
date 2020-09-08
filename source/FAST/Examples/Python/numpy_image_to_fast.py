@@ -1,6 +1,12 @@
+"""
+This example demonstrates how a numpy ndarray image can be passed
+on to FAST and visualized using FAST.
+"""
 import fast
 import numpy as np
 from PIL import Image
+
+fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
 # Open image from file using pillow and convert to numpy ndarray
 numpy_image = np.asarray(Image.open(fast.Config.getTestDataPath() + 'US/US-2D.bmp'))

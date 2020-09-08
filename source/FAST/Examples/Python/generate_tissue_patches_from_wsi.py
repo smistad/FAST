@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 
 #fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT) # Uncomment to show debug info
 
+fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
+
 importer = fast.WholeSlideImageImporter.New()
 importer.setFilename(fast.Config.getTestDataPath() + 'WSI/A05.svs')
 

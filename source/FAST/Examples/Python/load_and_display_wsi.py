@@ -4,6 +4,8 @@ using an image pyramid renderer.
 """
 import fast
 
+fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
+
 importer = fast.WholeSlideImageImporter.New()
 importer.setFilename(fast.Config.getTestDataPath() + 'WSI/A05.svs')
 

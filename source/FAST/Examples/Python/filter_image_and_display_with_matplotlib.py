@@ -1,6 +1,12 @@
+"""
+This example show how a FAST image can be converted to a numpy ndarray
+and displayed using matplotlib in python.
+"""
 import fast
 import numpy as np
 import matplotlib.pyplot as plt
+
+fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
 # Set up FAST pipeline
 importer = fast.ImageFileImporter.New()
@@ -17,7 +23,7 @@ filtered_image = np.asarray(filter.updateAndGetOutputImage())
 
 # Display using matplotlib
 f, axes = plt.subplots(1,2)
-aspect = pixel_spacing[1] / pixel_spacing[0] # Compensate for anisotropic pixel spacing 
+aspect = pixel_spacing[1] / pixel_spacing[0] # Compensate for anisotropic pixel spacing
 axes[0].imshow(input_image[..., 0], cmap='gray', aspect=aspect)
 axes[1].imshow(filtered_image[..., 0], cmap='gray', aspect=aspect)
 plt.show()

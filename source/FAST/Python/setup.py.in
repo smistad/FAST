@@ -31,6 +31,7 @@ _fast = Extension('fast.bin._fast',
                 	'Qt5Multimedia',
                 	'Qt5MultimediaWidgets',
                     'Qt5PrintSupport',
+                    'Qt5Network',
                 	'OpenCL',
                 	'@OPENGL_LIBRARIES@',
                 ],
@@ -47,15 +48,20 @@ def get_all_filenames(path):
           #print(os.path.join(root[5:],name))
     return files
 
-setup(name='fast',
+# Get long description from README
+with open("@FAST_SOURCE_DIR@/README.md", "r", encoding='utf-8') as fh:
+    long_description = fh.read()
+
+setup(name='pyFAST',    # Distribution name
       version='@FAST_VERSION@',
-      description='FAST Python bindings',
-      long_description='''FAST''',
+      description='Python bindings of FAST - a framework for high performance medical image computing and visualization on heterogeneous systems utilizing multi-core CPUs and GPUs.',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       author='Erik Smistad',
       author_email='ersmistad@gmail.com',
-      url='https://fast.eriksmistad.no',
-      license='BSD 2-clause',
-      packages=['fast'],
+      url='https://github.com/smistad/FAST',
+      license='BSD 2-clause (package include binary dependencies with other licences, see README)',
+      packages=['fast'],    # Package name
       setup_requires=['wheel'],
       ext_modules=[_fast],
       #data_files=[('bin', DLL_list)],
@@ -68,5 +74,18 @@ setup(name='fast',
         ] + get_all_filenames('fast/licenses/')
         + get_all_filenames('fast/kernels/')
         + get_all_filenames('fast/plugins/')
+        + get_all_filenames('fast/doc/')
       },
+      classifiers=[
+        'Development Status :: 4 - Beta',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: C++',
+        'Programming Language :: Python :: 3 :: Only',
+        'Environment :: GPU',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        'Topic :: Scientific/Engineering :: Image Processing',
+        'Topic :: Scientific/Engineering :: Medical Science Apps.',
+        'Topic :: Scientific/Engineering :: Visualization',
+      ]
 )
