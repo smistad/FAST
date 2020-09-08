@@ -1,6 +1,6 @@
 ![](https://github.com/smistad/FAST/wiki/images/fast_logo.png)
 
-FAST (Framework for Heterogeneous Medical Image Computing and Visualization) is an open-source cross-platform framework with the main goal of making it easier to do processing and visualization of medical images on heterogeneous systems (CPU+GPU).
+FAST (Framework for Heterogeneous Medical Image Computing and Visualization) is an open-source cross-platform framework with the main goal of making it easier to do high performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST is constructed using modern C++, OpenCL and OpenGL.
 
 To start using the framework, please see the [project wiki](https://github.com/smistad/FAST/wiki/). To run the examples in this release download the [test data](https://github.com/smistad/FAST/wiki/Test-data) and put it in the same folder as this readme.
 

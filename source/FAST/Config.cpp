@@ -2,6 +2,16 @@
 #include "Exception.hpp"
 #include "Utility.hpp"
 #include <fstream>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QEventLoop>
+#include <QUrl>
+#include <FAST/Visualization/Window.hpp>
+#include <QElapsedTimer>
+#include <QStandardPaths>
+#include <QDir>
+#include <zip/zip.h>
 
 // Includes needed to get path of dynamic library
 #ifdef _WIN32
@@ -74,34 +84,43 @@ namespace fast {
 				return;
 
 			// Set default paths
-			mTestDataPath = getPath() + "../../data/";
-			mKernelSourcePath = getPath() + "../../source/FAST/";
-			mKernelBinaryPath = getPath() + "../kernel_binaries/";
-			mDocumentationPath = getPath() + "../../doc/";
-			mPipelinePath = getPath() + "../../pipelines/";
-			mQtPluginsPath = getPath() + "../plugins/";
-
-			std::string writeablePath = getPath() + "/../";
+			// Check if data is located in the FAST folder and if so use that
+			if(fileExists(getPath() + "../../data/LICENSE.md")) {
+				mTestDataPath = getPath() + "../../data/";
+			} else {
 #ifdef WIN32
-			mLibraryPath = getPath();
-			if(getPath().find("Program Files") != std::string::npos) {
-				// Special case for windows: default install dir: program files is not writeable.
-				// Use ProgramData folder instead.
-				writeablePath = "C:/ProgramData/FAST/";
-				// Copy pipelines (first time only)
-				for(auto&& pipeline : getDirectoryList(mPipelinePath)) {
-					if(!fileExists(writeablePath + "pipelines/" + pipeline)) {
-						// Copy file from source folder
-						std::ifstream  src(mPipelinePath + pipeline, std::ios::binary);
-						std::ofstream  dst(writeablePath + "pipelines/" + pipeline, std::ios::binary);
-
-						dst << src.rdbuf();
-					}
-				}
-			}
+				mTestDataPath = "C:/ProgramData/FAST/data/";
 #else
+				mTestDataPath = QDir::homePath().toStdString() + "/.FAST/data/";
+#endif
+			}
+#ifdef WIN32
+			mKernelBinaryPath = "C:/ProgramData/FAST/kernel_binaries/";
+			mPipelinePath = "C:/ProgramData/FAST/pipelines/";
+			std::string writeablePath = "C:/ProgramData/";
+			mLibraryPath = getPath();
+#else
+			mKernelBinaryPath = QDir::homePath().toStdString() + "/.FAST/kernel_binaries/";
+			mPipelinePath = QDir::homePath().toStdString() + "/.FAST/pipelines/";
+			std::string writeablePath = QDir::homePath().toStdString() + "/.FAST/";
 			mLibraryPath = getPath() + "/../lib/";
 #endif
+			mKernelSourcePath = getPath() + "../../source/FAST/";
+			mDocumentationPath = getPath() + "../../doc/";
+			mQtPluginsPath = getPath() + "../plugins/";
+
+			createDirectories(mTestDataPath);
+
+			// Copy pipelines (first time only)
+			for(auto&& pipeline : getDirectoryList(mPipelinePath)) {
+				if(!fileExists(mPipelinePath)) {
+					// Copy file from source folder
+					std::ifstream  src(mPipelinePath + pipeline, std::ios::binary);
+					std::ofstream  dst(writeablePath + "pipelines/" + pipeline, std::ios::binary);
+
+					dst << src.rdbuf();
+				}
+			}
 
 			// Read and parse configuration file
 			// It should reside in the build folder when compiling, and in the root folder when using release
@@ -119,7 +138,6 @@ namespace fast {
 				return;
 			}
 			Reporter::info() << "Loaded configuration file: " << filename << Reporter::end();
-
 
 			do {
 				std::string line;
@@ -268,6 +286,59 @@ namespace fast {
 
 		StreamingMode Config::getStreamingMode() {
 		    return m_streamingMode;
+		}
+
+		void downloadTestDataIfNotExists(std::string destination, bool force) {
+			if(destination.empty())
+				destination = Config::getTestDataPath();
+			if(!force && fileExists(destination + "/LICENSE.md"))
+				return;
+			std::cout << "Downloading test data (~2GB) to " << destination << std::endl;
+			createDirectories(destination);
+			std::cout << "Progress: " << std::endl;
+			Window::initializeQtApp();
+			QNetworkAccessManager manager;
+			QUrl url("http://fast.eriksmistad.no/download/FAST_Test_Data_install.zip");
+			QNetworkRequest request(url);
+			auto timer = new QElapsedTimer;
+			timer->start();
+			auto reply = manager.get(request);
+			int step = 5;
+			int progress = step;
+			QObject::connect(reply, &QNetworkReply::downloadProgress, [&progress, timer, step](quint64 current, quint64 max) {
+				int percent = ((float)current / max) * 100;
+				float speed = ((float)timer->elapsed() / 1000.0f)/percent;
+				uint64_t remaining = speed * (100 - percent);
+				if(percent >= progress) {
+					std::cout << percent << "% - ETA ~" << (int)std::ceil((float)remaining / 60) << " minutes. " << std::endl;;
+					progress += step;
+				}
+			});
+			auto tempLocation = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+			QFile file(tempLocation + "FAST_Test_Data.zip");
+			if(!file.open(QIODevice::WriteOnly)) {
+				throw Exception("Could not write to " + tempLocation.toStdString());
+			}
+			QObject::connect(reply, &QNetworkReply::readyRead, [&reply, &file]() {
+				file.write(reply->read(reply->bytesAvailable()));
+			});
+			QObject::connect(&manager, &QNetworkAccessManager::finished, [reply, &file, destination]() {
+				std::cout << "Finished downloading file. Processing.." << std::endl;
+				file.close();
+				std::cout << "Unzipping the data file.." << std::endl;
+				zip_extract(file.fileName().toStdString().c_str(), (destination + "/../../").c_str(), nullptr, nullptr);
+				file.remove();
+				std::cout << "Done." << std::endl;
+			});
+
+			auto eventLoop = new QEventLoop(&manager);
+
+			// Make sure to quit the event loop when download is finished
+			QObject::connect(&manager, &QNetworkAccessManager::finished, eventLoop, &QEventLoop::quit);
+
+			// Wait for it to finish
+			eventLoop->exec();
+
 		}
 
 }; // end namespace fast

@@ -58,7 +58,7 @@ if (NOT TARGET Qt5::Network)
         endforeach()
     endif()
 
-    set(Qt5Network_INCLUDE_DIRS ${_Qt5Network_OWN_INCLUDE_DIRS})
+    #set(Qt5Network_INCLUDE_DIRS ${_Qt5Network_OWN_INCLUDE_DIRS})
 
     set(Qt5Network_DEFINITIONS -DQT_NETWORK_LIB)
     set(Qt5Network_COMPILE_DEFINITIONS QT_NETWORK_LIB)

@@ -44,7 +44,8 @@ set(FAST_LIBRARIES
 	Qt5OpenGL
 	Qt5Multimedia
 	Qt5MultimediaWidgets
-  Qt5PrintSupport
+    Qt5PrintSupport
+    Qt5Network
 	${OpenCL_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${X11_LIBRARIES}

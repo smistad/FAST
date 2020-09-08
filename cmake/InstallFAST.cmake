@@ -266,6 +266,11 @@ install(FILES ${FAST_EXTERNAL_BUILD_DIR}/zlib/src/zlib/README
 		DESTINATION fast/licenses/zlib/
 		COMPONENT fast
 )
+# zip
+install(FILES ${FAST_EXTERNAL_BUILD_DIR}/zip/src/zip/UNLICENSE
+		DESTINATION fast/licenses/zip/
+		COMPONENT fast
+)
 # OpenIGTLink
 if(FAST_MODULE_OpenIGTLink)
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink/src/OpenIGTLink/LICENSE.txt

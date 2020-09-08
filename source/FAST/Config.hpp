@@ -6,6 +6,8 @@
 
 namespace fast {
 
+void FAST_EXPORT downloadTestDataIfNotExists(std::string overrideDestination = "", bool force = false);
+
 class FAST_EXPORT Config {
 public:
     static std::string getTestDataPath();
