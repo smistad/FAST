@@ -97,7 +97,7 @@ namespace fast {
 #ifdef WIN32
 			mKernelBinaryPath = "C:/ProgramData/FAST/kernel_binaries/";
 			mPipelinePath = "C:/ProgramData/FAST/pipelines/";
-			std::string writeablePath = "C:/ProgramData/";
+			std::string writeablePath = "C:/ProgramData/FAST/";
 			mLibraryPath = getPath();
 #else
 			mKernelBinaryPath = QDir::homePath().toStdString() + "/.FAST/kernel_binaries/";

@@ -23,6 +23,7 @@ This FAST release is bundled with the following third-party software:
 
 * [Qt5](https://www.qt.io)
 * [Eigen](http://eigen.tuxfamily.org)
+* [Eigen SWIG interface (BSD 3-clause)](https://github.com/Biomechanical-ToolKit/BTKCore/blob/master/Utilities/SWIG/eigen.i)
 * [zlib](http://www.zlib.net)
 * [OpenIGTLink](http://openigtlink.org)
 * [NumPy](http://www.numpy.org)
