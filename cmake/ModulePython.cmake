@@ -1,7 +1,7 @@
 # Build Python bindings (requires SWIG installed)
 
 if(FAST_MODULE_Python)
-    find_package(SWIG REQUIRED)
+    find_package(SWIG 4 REQUIRED)
     message("-- SWIG found, creating python bindings...")
     include(${SWIG_USE_FILE})
 
@@ -51,7 +51,7 @@ if(FAST_MODULE_Python)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
     swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_FILE})
     swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
-    set_target_properties(_fast PROPERTIES SWIG_COMPILE_OPTIONS -py3) # Enable Python 3 specific features in SWIG
+    set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen) # Enable Python 3 specific features and doxygen comment translation in SWIG
     set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../../lib")
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
