@@ -35,11 +35,13 @@ fast_add_test_sources(
     Tests/ImageTests.cpp
 )
 fast_add_process_object(BoundingBoxSetAccumulator BoundingBox.hpp)
-fast_add_python_interfaces(Image.hpp Mesh.hpp)
-fast_add_python_shared_pointers(Image BoundingBox BoundingBoxSet Mesh)
+fast_add_python_interfaces(Image.hpp Mesh.hpp TensorShape.hpp Tensor.hpp Segmentation.hpp Text.hpp MeshVertex.hpp)
+fast_add_python_shared_pointers(Image BoundingBox BoundingBoxSet Mesh Tensor Segmentation Text)
 
 if(FAST_MODULE_WholeSlideImaging)
     fast_add_sources(ImagePyramid.cpp ImagePyramid.hpp)
+    fast_add_python_interfaces(ImagePyramid.hpp)
+    fast_add_python_shared_pointers(ImagePyramid)
 endif()
 
 

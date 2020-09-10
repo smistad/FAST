@@ -10,15 +10,17 @@ namespace fast {
 class Image;
 class ImagePyramid;
 
-typedef struct ImagePyramidPatch {
+class FAST_EXPORT ImagePyramidPatch {
+public:
 	std::unique_ptr<uchar[]> data;
 	int width;
 	int height;
 	int offsetX;
 	int offsetY;
-} Patch;
+};
 
-typedef struct ImagePyramidLevel {
+class FAST_EXPORT ImagePyramidLevel {
+public:
 	int width;
 	int height;
 	int tileWidth = 256;
@@ -31,7 +33,7 @@ typedef struct ImagePyramidLevel {
 #else
 	int fileHandle;
 #endif
-} Level;
+};
 
 class FAST_EXPORT ImagePyramidAccess : Object {
 public:

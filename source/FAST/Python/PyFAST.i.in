@@ -67,6 +67,11 @@ public
 %ignore QObject;
 %ignore Worker;
 %ignore CameraWorker;
+%ignore ImagePyramidLevel;
+%ignore ImagePyramidPatch;
+%ignore fast::ImagePyramidAccess::getPatchData;
+%ignore fast::ImagePyramidAccess::getPatch;
+%ignore fast::Tensor::create(std::unique_ptr<float[]> data, TensorShape shape);
 
 %nodefaultdtor Config;
 
@@ -79,6 +84,8 @@ public
 %unique_ptr(fast::MeshAccess)
 %unique_ptr(fast::VertexBufferObjectAccess)
 %unique_ptr(fast::MeshOpenCLAccess)
+%unique_ptr(fast::TensorAccess)
+%unique_ptr(fast::ImagePyramidAccess)
 
 // Shared_ptr declerations
 %shared_ptr(fast::Object)
@@ -92,10 +99,6 @@ public
 %shared_ptr(fast::SpatialDataObject)
 %shared_ptr(fast::DataChannel)
 %shared_ptr(fast::ProcessObject)
-%shared_ptr(fast::Window)
-%shared_ptr(fast::SimpleWindow);
-%shared_ptr(fast::Renderer)
-%shared_ptr(fast::View) // Not sure why this is needed..
 @PYFAST_SHARED_PTR_DEFS@
 
 // Interface includes
@@ -128,13 +131,6 @@ public
 
 %template(updateAndGetOutputMesh) fast::ProcessObject::updateAndGetOutputData<fast::Mesh>;
 %template(getNextMesh) fast::DataChannel::getNextFrame<fast::Mesh>;
-
-// Visualization
-%include <FAST/Visualization/Renderer.hpp>
-%include <FAST/Visualization/View.hpp>
-%include <FAST/Visualization/Window.hpp>
-%include <FAST/Visualization/SimpleWindow.hpp>
-
 
 @PYFAST_INTERFACE_INCLUDES@
 

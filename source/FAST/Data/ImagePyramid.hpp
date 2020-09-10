@@ -20,7 +20,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     FAST_OBJECT(ImagePyramid)
     public:
         void create(int width, int height, int channels, int levels = -1);
-        void create(openslide_t* fileHandle, std::vector<Level> levels);
+        void create(openslide_t* fileHandle, std::vector<ImagePyramidLevel> levels);
         int getNrOfLevels();
         int getLevelWidth(int level);
         int getLevelHeight(int level);
@@ -40,7 +40,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         ~ImagePyramid();
     private:
         ImagePyramid();
-        std::vector<Level> m_levels;
+        std::vector<ImagePyramidLevel> m_levels;
 
         openslide_t* m_fileHandle = nullptr;
 
