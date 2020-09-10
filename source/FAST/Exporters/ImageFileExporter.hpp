@@ -1,5 +1,4 @@
-#ifndef IMAGE_FILE_IMPORTER_HPP_
-#define IMAGE_FILE_IMPORTER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 
@@ -20,4 +19,3 @@ class FAST_EXPORT ImageFileExporter : public ProcessObject {
 
 }
 
-#endif

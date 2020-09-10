@@ -8,8 +8,8 @@ fast_add_sources(
     ImageFileImporter.hpp
 )
 fast_add_process_object(ImageFileImporter ImageFileImporter.hpp)
-fast_add_python_interfaces(ImageFileImporter.hpp)
-fast_add_python_shared_pointers(ImageFileImporter)
+fast_add_process_object(MetaImageImporter MetaImageImporter.hpp)
+fast_add_process_object(VTKMeshFileImporter VTKMeshFileImporter.hpp)
 fast_add_test_sources(
     Tests/MetaImageImporterTests.cpp
     Tests/VTKMeshFileImporterTests.cpp
@@ -20,6 +20,7 @@ fast_add_sources(
     DICOMFileImporter.cpp
     DICOMFileImporter.hpp
 )
+fast_add_process_object(DICOMFileImporter DICOMFileImporter.hpp)
 fast_add_test_sources(
     Tests/DICOMFileImporterTests.cpp
 )

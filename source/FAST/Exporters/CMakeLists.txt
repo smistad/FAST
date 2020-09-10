@@ -14,6 +14,14 @@ fast_add_sources(
     StreamToFileExporter.cpp
     StreamToFileExporter.hpp
 )
+fast_add_python_interfaces(FileExporter.hpp)
+fast_add_python_shared_pointers(FileExporter)
+fast_add_process_object(ImageExporter ImageExporter.hpp)
+fast_add_process_object(MetaImageExporter MetaImageExporter.hpp)
+fast_add_process_object(StreamExporter StreamExporter.hpp)
+fast_add_process_object(ImageFileExporter ImageFileExporter.hpp)
+fast_add_process_object(StreamToFileExporter StreamToFileExporter.hpp)
+fast_add_process_object(VTKMeshFileExporter VTKMeshFileExporter.hpp)
 fast_add_test_sources(
     Tests/MetaImageExporterTests.cpp
     Tests/VTKMeshFileExporterTests.cpp
@@ -34,9 +42,6 @@ if(FAST_MODULE_VTK)
         Tests/VTKImageExporterTests.cpp
         Tests/VTKMeshExporterTests.cpp
     )
-    fast_add_python_interfaces(
-    	VTKMeshExporter.i
-	)
 endif()
 if(FAST_MODULE_ITK)
     fast_add_sources(

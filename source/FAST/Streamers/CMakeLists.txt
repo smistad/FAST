@@ -50,12 +50,14 @@ if(FAST_MODULE_Kinect)
         KinectStreamer.cpp
         KinectStreamer.hpp
     )
+    fast_add_process_object(KinectStreamer KinectStreamer.hpp)
 endif()
 if(FAST_MODULE_RealSense)
     fast_add_sources(
         RealSenseStreamer.cpp
         RealSenseStreamer.hpp
     )
+    fast_add_process_object(RealSenseStreamer RealSenseStreamer.hpp)
 endif()
 if(FAST_MODULE_Clarius)
     fast_add_sources(
