@@ -4,3 +4,5 @@ fast_add_sources(
     SetTransformation.cpp
     SetTransformation.hpp
 )
+fast_add_process_object(AddTransformation AddTransformation.hpp)
+fast_add_process_object(SetTransformation SetTransformation.hpp)

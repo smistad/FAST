@@ -2,3 +2,4 @@ fast_add_sources(
 	CenterlineExtraction.cpp
 	CenterlineExtraction.hpp
 )
+fast_add_process_object(CenterlineExtraction CenterlineExtraction.hpp)

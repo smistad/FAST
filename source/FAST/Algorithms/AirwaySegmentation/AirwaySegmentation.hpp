@@ -19,6 +19,7 @@ class FAST_EXPORT  AirwaySegmentation : public SegmentationAlgorithm {
 		 * @param sigma
 		 */
 		void setSmoothing(float sigma);
+		void loadAttributes() override;
 	private:
 		AirwaySegmentation();
 		void execute();

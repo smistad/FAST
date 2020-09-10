@@ -120,6 +120,7 @@ public
 %include <FAST/Data/Access/OpenCLBufferAccess.hpp>
 %include <FAST/Data/Access/ImageAccess.hpp>
 %include <FAST/Data/Access/BoundingBoxSetAccess.hpp>
+%include <FAST/Visualization/Plane.hpp>
 
 
 %template(updateAndGetOutputImage) fast::ProcessObject::updateAndGetOutputData<fast::Image>;

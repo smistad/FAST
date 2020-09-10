@@ -1,4 +1,3 @@
-fast_add_all_subdirectories()
 fast_add_sources(
 	KalmanFilter.cpp
 	KalmanFilter.hpp
@@ -7,6 +6,8 @@ fast_add_sources(
 	Shape.cpp
 	Shape.hpp
 )
+fast_add_python_interfaces(KalmanFilter.hpp AppearanceModel.hpp ShapeModel.hpp Shape.hpp)
+fast_add_python_shared_pointers(KalmanFilter AppearanceModel ShapeModel Shape)
 if(FAST_MODULE_Visualization)
 fast_add_test_sources(
 	Tests.cpp
@@ -14,3 +15,4 @@ fast_add_test_sources(
 endif()
 #fast_add_example(exportLVmeshes exportLVmeshes.cpp)
 #fast_add_example(exportLVmeshes3D exportLVmeshes3D.cpp)
+fast_add_all_subdirectories()

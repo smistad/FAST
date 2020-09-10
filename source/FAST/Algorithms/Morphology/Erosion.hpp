@@ -1,10 +1,9 @@
-#ifndef FAST_EROSION_HPP_
-#define FAST_EROSION_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 
 namespace fast {
-    class Erosion : public ProcessObject {
+    class FAST_EXPORT Erosion : public ProcessObject {
     FAST_OBJECT(Erosion)
     public:
         /**
@@ -20,5 +19,3 @@ namespace fast {
 
     };
 }
-
-#endif

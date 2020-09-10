@@ -12,4 +12,5 @@ fast_add_test_sources(
 )
 fast_add_process_object(PatchGenerator PatchGenerator.hpp)
 fast_add_process_object(PatchStitcher PatchStitcher.hpp)
+fast_add_process_object(ImageToBatchGenerator ImageToBatchGenerator.hpp)
 endif()

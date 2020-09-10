@@ -7,3 +7,5 @@ fast_add_sources(
 fast_add_test_sources(
     GradientVectorFlowTests.cpp
 )
+fast_add_process_object(EulerGradientVectorFlow EulerGradientVectorFlow.hpp)
+fast_add_process_object(MultigridGradientVectorFlow MultigridGradientVectorFlow.hpp)

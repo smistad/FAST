@@ -5,3 +5,4 @@ fast_add_sources(
 fast_add_test_sources(
     IterativeClosestPointTests.cpp
 )
+fast_add_process_object(IterativeClosestPoint IterativeClosestPoint.hpp)

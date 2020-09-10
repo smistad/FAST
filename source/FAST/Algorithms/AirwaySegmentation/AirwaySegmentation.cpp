@@ -11,6 +11,18 @@ AirwaySegmentation::AirwaySegmentation() {
 	createOutputPort<Segmentation>(0);
 
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/AirwaySegmentation/AirwaySegmentation.cl");
+	createFloatAttribute("smoothing", "Smoothing amount", "Gaussian smoothing standard deviation", mSmoothingSigma);
+	createIntegerAttribute("seed-x", "Seed position X", "Seed voxel position X", -1);
+	createIntegerAttribute("seed-y", "Seed position Y", "Seed voxel position Y", -1);
+	createIntegerAttribute("seed-z", "Seed position Z", "Seed voxel position Z", -1);
+}
+
+void AirwaySegmentation::loadAttributes() {
+	setSmoothing(getFloatAttribute("smoothing"));
+	auto seedX = getIntegerAttribute("seed-x");
+	if(seedX >= 0) {
+		setSeedPoint(seedX, getIntegerAttribute("seed-y"), getIntegerAttribute("seed-z"));
+	}
 }
 
 Vector3i AirwaySegmentation::findSeedVoxel(Image::pointer volume) {
