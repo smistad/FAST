@@ -1,8 +1,47 @@
 # coding=utf-8
 from setuptools import setup, Extension
-import glob
 import os.path
+import sys
 
+
+def get_all_filenames(path):
+    files = []
+    for root, dirs, filenames in os.walk(path):
+       for name in filenames:
+          files.append(os.path.join(root[5:], name))
+          #print(os.path.join(root[5:],name))
+    return files
+
+
+is_windows = sys.platform.startswith('win')
+if is_windows:
+    compile_args = ['/bigobj', '/nologo', '/MD', '/EHsc', '-DNOMINMAX', '-DNOGDI']
+    link_args = []
+    package_data = {'': [
+            'bin/*.dll',
+            'bin/plugins.xml',
+            'bin/fast_configuration.txt',
+            'README.md',
+            'pipelines/**/*',
+            ] + get_all_filenames('fast/licenses/')
+            + get_all_filenames('fast/kernels/')
+            + get_all_filenames('fast/plugins/')
+            + get_all_filenames('fast/doc/')
+          }
+else:
+    compile_args = []
+    link_args = ['-Wl,-rpath=$ORIGIN/../lib']
+    package_data = {'': [
+            'lib/*.so*',
+            'lib/plugins.xml',
+            'bin/fast_configuration.txt',
+            'README.md',
+            'pipelines/**/*',
+            ] + get_all_filenames('fast/licenses/')
+            + get_all_filenames('fast/kernels/')
+            + get_all_filenames('fast/plugins/')
+            + get_all_filenames('fast/doc/')
+          }
 
 _fast = Extension('fast.bin._fast',
                 include_dirs=[
@@ -20,33 +59,23 @@ _fast = Extension('fast.bin._fast',
                     '@NUMPY_INCLUDE_DIR@',
                 ],
                 library_dirs=['@FAST_BINARY_DIR@/lib/', os.path.dirname('@OpenCL_LIBRARIES@')],
-                #runtime_library_dirs=['@FAST_BINARY_DIR@/bin/'],
                 sources=['fast/PyFASTPYTHON_wrap.cxx'],
                 libraries=[ # Libraries to link with
-                    'FAST',
-                    'Qt5Core',
+                        'FAST',
+                        'Qt5Core',
                 	'Qt5Widgets',
                 	'Qt5Gui',
                 	'Qt5OpenGL',
                 	'Qt5Multimedia',
                 	'Qt5MultimediaWidgets',
-                    'Qt5PrintSupport',
-                    'Qt5Network',
+                        'Qt5PrintSupport',
+                        'Qt5Network',
                 	'OpenCL',
                 	'@OPENGL_LIBRARIES@',
                 ],
-                #undef_macros=['ERROR', 'min', 'max'],
-                #define_macros=[('NOMINMAX',), ('NOGDI',)],
-                extra_compile_args=['/bigobj', '/nologo', '/MD', '/EHsc', '-DNOMINMAX', '-DNOGDI'],
+                extra_compile_args=compile_args,
+                extra_link_args=link_args,
             )
-
-def get_all_filenames(path):
-    files = []
-    for root, dirs, filenames in os.walk(path):
-       for name in filenames:
-          files.append(os.path.join(root[5:], name))
-          #print(os.path.join(root[5:],name))
-    return files
 
 # Get long description from README
 with open("@FAST_SOURCE_DIR@/README.md", "r", encoding='utf-8') as fh:
@@ -64,18 +93,7 @@ setup(name='pyFAST',    # Distribution name
       packages=['fast'],    # Package name
       setup_requires=['wheel'],
       ext_modules=[_fast],
-      #data_files=[('bin', DLL_list)],
-      package_data={'': [
-        'bin/*.dll',
-        'bin/plugins.xml',
-        'bin/fast_configuration.txt',
-        'README.md',
-        'pipelines/**/*',
-        ] + get_all_filenames('fast/licenses/')
-        + get_all_filenames('fast/kernels/')
-        + get_all_filenames('fast/plugins/')
-        + get_all_filenames('fast/doc/')
-      },
+      package_data=package_data,
       classifiers=[
         'Development Status :: 4 - Beta',
         'Operating System :: Microsoft :: Windows',

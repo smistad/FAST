@@ -110,6 +110,7 @@ namespace fast {
 			mQtPluginsPath = getPath() + "../plugins/";
 
 			createDirectories(mTestDataPath);
+			createDirectories(mPipelinePath);
 
 			// Copy pipelines (first time only)
 			for(auto&& pipeline : getDirectoryList(mPipelinePath)) {
@@ -314,8 +315,8 @@ namespace fast {
 					progress += step;
 				}
 			});
-			auto tempLocation = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-			QFile file(tempLocation + "FAST_Test_Data.zip");
+			auto tempLocation = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/FAST_Test_Data.zip";
+			QFile file(tempLocation);
 			if(!file.open(QIODevice::WriteOnly)) {
 				throw Exception("Could not write to " + tempLocation.toStdString());
 			}

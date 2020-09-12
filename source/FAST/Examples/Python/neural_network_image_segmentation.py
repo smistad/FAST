@@ -14,6 +14,7 @@ streamer.enableLooping()
 
 segmentationNetwork = fast.SegmentationNetwork.New()
 segmentationNetwork.setInputConnection(streamer.getOutputPort())
+segmentationNetwork.setInferenceEngine("OpenVINO")
 segmentationNetwork.setScaleFactor(1/255)
 segmentationNetwork.load(fast.Config.getTestDataPath() +
     'NeuralNetworkModels/jugular_vein_segmentation.xml')
