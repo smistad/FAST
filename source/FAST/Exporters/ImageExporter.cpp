@@ -33,37 +33,41 @@ void ImageExporter::execute() {
 
     // TODO have to do some type conversion here, assuming float for now
     unsigned char * pixelData = image.bits();
-    ImageAccess::pointer access = input->getImageAccess(ACCESS_READ);
+    auto access = input->getImageAccess(ACCESS_READ);
     void * inputData = access->get();
-    uint nrOfComponents = input->getNrOfChannels();
+    const uint nrOfChannels = input->getNrOfChannels();
 
-    for(uint x = 0; x < input->getWidth(); x++) {
-    for(uint y = 0; y < input->getHeight(); y++) {
-        float data;
-        switch(input->getDataType()) {
-        case TYPE_FLOAT:
-            data = round(((float*)inputData)[(x+y*input->getWidth())*nrOfComponents]*255.0f);
-            break;
-        case TYPE_UINT8:
-            data = ((uchar*)inputData)[(x+y*input->getWidth())*nrOfComponents];
-            break;
-        case TYPE_INT8:
-            data = ((char*)inputData)[(x+y*input->getWidth())*nrOfComponents]+128;
-            break;
-        case TYPE_UINT16:
-            data = ((ushort*)inputData)[(x+y*input->getWidth())*nrOfComponents];
-            break;
-        case TYPE_INT16:
-            data = ((short*)inputData)[(x+y*input->getWidth())*nrOfComponents];
-            break;
-
+    for(uint y = 0; y < input->getHeight(); ++y) {
+        for(uint x = 0; x < input->getWidth(); ++x) {
+            std::vector<uchar> channelData;
+            for(uint channel = 0; channel < nrOfChannels; ++channel) {
+                uchar data = 0;
+                switch(input->getDataType()) {
+                case TYPE_FLOAT:
+                    data = round(((float*)inputData)[(x + y * input->getWidth()) * nrOfChannels + channel] * 255.0f);
+                    break;
+                case TYPE_UINT8:
+                    data = ((uchar*)inputData)[(x + y * input->getWidth()) * nrOfChannels + channel];
+                    break;
+                case TYPE_INT8:
+                    data = ((char*)inputData)[(x + y * input->getWidth()) * nrOfChannels + channel] + 128;
+                    break;
+                case TYPE_UINT16:
+                    data = ((ushort*)inputData)[(x + y * input->getWidth()) * nrOfChannels + channel];
+                    break;
+                case TYPE_INT16:
+                    data = ((short*)inputData)[(x + y * input->getWidth()) * nrOfChannels + channel];
+                    break;
+                }
+                channelData.push_back(data);
+            }
+			uint i = x + y * input->getWidth();
+			pixelData[i * 4 + 0] = channelData[0];
+			pixelData[i * 4 + 1] = channelData[1 % nrOfChannels];
+			pixelData[i * 4 + 2] = channelData[2 % nrOfChannels];
+			pixelData[i * 4 + 3] = 255; // Alpha
         }
-        uint i = x + y*input->getWidth();
-        pixelData[i*4] = data;
-        pixelData[i*4+1] = pixelData[i*4];
-        pixelData[i*4+2] = pixelData[i*4];
-        pixelData[i*4+3] = 255; // Alpha
-    }}
+    }
 
     image.save(QString(mFilename.c_str()));
 
