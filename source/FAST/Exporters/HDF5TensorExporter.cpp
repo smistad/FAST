@@ -7,10 +7,12 @@ namespace fast {
 
 void HDF5TensorExporter::setFilename(std::string filename) {
 	m_filename = filename;
+	setModified(true);
 }
 
 void HDF5TensorExporter::setDatasetName(std::string name) {
 	m_datasetName = name;
+	setModified(true);
 }
 
 HDF5TensorExporter::HDF5TensorExporter() {
@@ -28,7 +30,7 @@ void HDF5TensorExporter::execute() {
 		throw Exception("Tensor has unknown dimensions");
 
 	// Open file
-	H5::H5File file(m_filename.c_str(), H5F_ACC_CREAT | H5F_ACC_RDWR);
+	H5::H5File file(m_filename.c_str(), H5F_ACC_TRUNC);
 
 	std::vector<hsize_t> h5shape;
 	for(int i = 0; i < shape.getDimensions(); ++i)

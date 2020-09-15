@@ -62,3 +62,11 @@ if(FAST_MODULE_WholeSlideImaging)
     )
     fast_add_process_object(WholeSlideImageImporter WholeSlideImageImporter.hpp)
 endif()
+if(FAST_MODULE_HDF5)
+    fast_add_sources(
+        HDF5TensorImporter.cpp
+        HDF5TensorImporter.hpp
+    )
+    fast_add_process_object(HDF5TensorImporter HDF5TensorImporter.hpp)
+    fast_add_test_sources(Tests/HDF5TensorImporterTests.cpp)
+endif()
