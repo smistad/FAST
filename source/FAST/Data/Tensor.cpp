@@ -26,6 +26,7 @@ void Tensor::create(TensorShape shape) {
     m_data = make_uninitialized_unique<float[]>(shape.getTotalSize());
     m_spacing = VectorXf::Ones(shape.getDimensions());
     mHostDataIsUpToDate = true;
+    m_shape = shape;
     if(m_shape.getDimensions() >= 3) {
         const int width = m_shape[m_shape.getDimensions() - 2];
         const int height = m_shape[m_shape.getDimensions() - 3];
