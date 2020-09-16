@@ -12,6 +12,28 @@ def get_all_filenames(path):
           #print(os.path.join(root[5:],name))
     return files
 
+def get_all_linux_depedencies(path, libraries):
+    """
+    Because setup can't handle symlinks, we need to handle shared object (.so)
+    dependencies; only include one to avoid duplicates.
+    """
+    import pathlib
+    import lddwrap
+
+    result = []
+    libraries_in_path = os.listdir(path)
+    for library in libraries:
+        if not os.path.exists(os.path.join(path, library)): continue
+        if not library.startswith('libFAST.so'):
+            result.append(os.path.join(path[5:], library))
+        deps = lddwrap.list_dependencies(path=pathlib.Path(os.path.join(path, library)))
+        for dep in deps:
+            if dep.soname is None: continue
+            if dep.soname in libraries_in_path or dep.soname.startswith('libFAST.so'):
+                result.append(os.path.join(path[5:], dep.soname))
+    return result
+
+
 
 is_windows = sys.platform.startswith('win')
 if is_windows:
@@ -32,7 +54,6 @@ else:
     compile_args = []
     link_args = ['-Wl,-rpath=$ORIGIN/../lib']
     package_data = {'': [
-            'lib/*.so*',
             'lib/plugins.xml',
             'bin/fast_configuration.txt',
             'README.md',
@@ -41,6 +62,19 @@ else:
             + get_all_filenames('fast/kernels/')
             + get_all_filenames('fast/plugins/')
             + get_all_filenames('fast/doc/')
+            + get_all_linux_depedencies('fast/lib/', [
+                'libFAST.so', 
+                'libQt5XcbQpa.so.5', 
+                'libQt5MultimediaGstTools.so.5', 
+                'libInferenceEngineOpenVINO.so',
+                'libclDNNPlugin.so',
+                'libMKLDNNPlugin.so',
+                'libmyriadPlugin.so',
+                'libInferenceEngineTensorFlowCPU.so',
+                'libInferenceEngineTensorFlowCUDA.so',
+                'libInferenceEngineTensorFlowROCm.so',
+                'libInferenceEngineTensorRT.so',
+            ])
           }
 
 _fast = Extension('fast.bin._fast',

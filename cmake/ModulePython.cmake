@@ -67,8 +67,8 @@ if(FAST_MODULE_Python)
 
     add_custom_target(python-wheel
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
-    #COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${LIB_TARGET_PATH}
-    #COMMAND ${CMAKE_COMMAND} -E rename ${PROJECT_BINARY_DIR}/python/fast/bin/fast_configuration.txt ${PROJECT_BINARY_DIR}/python/fast/bin/fast_configuration_unused.txt
+    # Remove this lib file as we don't need it: the setup script will build a new one
+    COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/_unused_fast_python_lib
     COMMAND ${CMAKE_COMMAND}
         -D FAST_VERSION=${FAST_VERSION}
         -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
