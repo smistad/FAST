@@ -51,3 +51,10 @@ if(FAST_MODULE_ITK)
         Tests/ITKImageExporterTests.cpp
     )
 endif()
+if(FAST_MODULE_HDF5)
+    fast_add_sources(
+        HDF5TensorExporter.hpp
+        HDF5TensorExporter.cpp
+    )
+    fast_add_test_sources(Tests/HDF5TensorExporterTests.cpp)
+endif()
