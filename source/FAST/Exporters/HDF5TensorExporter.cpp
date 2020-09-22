@@ -15,8 +15,16 @@ void HDF5TensorExporter::setDatasetName(std::string name) {
 	setModified(true);
 }
 
+void HDF5TensorExporter::loadAttributes() {
+	setFilename(getStringAttribute("filename"));
+	setDatasetName(getStringAttribute("name"));
+}
+
 HDF5TensorExporter::HDF5TensorExporter() {
 	createInputPort<Tensor>(0);
+
+	createStringAttribute("filename", "Filename", "Path to file to export to", "");
+	createStringAttribute("name", "Dataset name", "Name of dataset tensor to write", m_datasetName);
 }
 
 void HDF5TensorExporter::execute() {

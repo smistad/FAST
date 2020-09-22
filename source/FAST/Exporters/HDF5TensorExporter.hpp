@@ -9,6 +9,7 @@ class FAST_EXPORT HDF5TensorExporter : public ProcessObject {
 	public:
 		void setFilename(std::string name);
 		void setDatasetName(std::string name);
+		void loadAttributes() override;
 	private:
 		HDF5TensorExporter();
 		void execute() override;

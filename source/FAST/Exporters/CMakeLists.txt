@@ -56,5 +56,6 @@ if(FAST_MODULE_HDF5)
         HDF5TensorExporter.hpp
         HDF5TensorExporter.cpp
     )
+    fast_add_process_object(HDF5TensorExporter HDF5TensorExporter.hpp)
     fast_add_test_sources(Tests/HDF5TensorExporterTests.cpp)
 endif()
