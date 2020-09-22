@@ -87,5 +87,7 @@ setup(name='pyFAST',    # Distribution name
         'Topic :: Scientific/Engineering :: Image Processing',
         'Topic :: Scientific/Engineering :: Medical Science Apps.',
         'Topic :: Scientific/Engineering :: Visualization',
-      ]
+      ],
+      install_requires=['numpy'],
+      python_requires='>=3'
 )
