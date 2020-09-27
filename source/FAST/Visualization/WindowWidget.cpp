@@ -1,5 +1,8 @@
 #include "WindowWidget.hpp"
 #include "SimpleWindow.hpp"
+#include <QMimeData>
+#include <QString>
+#include <QList>
 
 namespace fast {
 
@@ -15,6 +18,28 @@ void WindowWidget::keyPressEvent(QKeyEvent *event) {
     }
     for (View *view : mViews)
         view->keyPressEvent(event);
+}
+
+void WindowWidget::dragEnterEvent(QDragEnterEvent *event) {
+    Reporter::info() << "\nDrag event..." << Reporter::end();
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+    }
+}
+
+
+void WindowWidget::dropEvent(QDropEvent *event) {
+    std::cout << "\nDrop event..." << std::endl;
+    QList<QString> fileNames;
+    foreach (const QUrl &url, event->mimeData()->urls()) {
+        QString fileName = url.toLocalFile();
+        fileNames.push_back(fileName);
+        Reporter::info() << "Dropped file:" << fileName.toStdString() << Reporter::end();
+    }
+    foreach(QString curr, fileNames) {
+        Reporter::info() << "\nFile: " << curr.toStdString() << Reporter::end();
+    }
+    emit fileNamesSent(fileNames);
 }
 
 void WindowWidget::closeEvent(QCloseEvent *event) {

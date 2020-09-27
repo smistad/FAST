@@ -67,6 +67,7 @@ SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
     std::lock_guard<std::mutex> lock(mMutex);
     if(mDataToRender.empty())
         return;
+    GLuint filterMethod = mUseInterpolation ? GL_LINEAR : GL_NEAREST;
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
 
@@ -209,8 +210,8 @@ SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
         // Copy data from CPU to GL texture
         glGenTextures(1, &textureID);
         glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMethod);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMethod);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data.get());
         glBindTexture(GL_TEXTURE_2D, 0);
         glFinish();
@@ -246,6 +247,11 @@ void SegmentationRenderer::setOpacity(float opacity) {
 void SegmentationRenderer::setColor(int label, Color color) {
     mLabelColors[label] = color;
     mColorsModified = true;
+    deleteAllTextures();
+}
+
+void SegmentationRenderer::setInterpolation(bool useInterpolation) {
+    mUseInterpolation = useInterpolation;
     deleteAllTextures();
 }
 

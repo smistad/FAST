@@ -1,0 +1,14 @@
+## FAST Configuration file
+#TestDataPath = /path/to/data/
+#KernelSourcePath = /path/to/kernel/source/FAST/
+#KernelBinaryPath = /path/to/kernel/binary/
+#DocumentationPath = /path/to/doc/
+#PipelinePath = /path/to/pipeline/
+
+#TestDataPath = @ROOT@/data/
+KernelSourcePath = @ROOT@/kernels/
+KernelBinaryPath = @ROOT@/kernel_binaries/
+DocumentationPath = @ROOT@/doc/
+PipelinePath = @ROOT@/pipelines/
+LibraryPath = @ROOT@/lib/
+QtPluginsPath = @ROOT@/plugins/

@@ -1,0 +1,13 @@
+# Target labels
+ OpenVINO
+# Source files and their labels
+/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/CMakeFiles/OpenVINO
+/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/CMakeFiles/OpenVINO.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/CMakeFiles/OpenVINO-complete.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenVINO/src/OpenVINO-stamp/OpenVINO-install.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenVINO/src/OpenVINO-stamp/OpenVINO-mkdir.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenVINO/src/OpenVINO-stamp/OpenVINO-download.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenVINO/src/OpenVINO-stamp/OpenVINO-update.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenVINO/src/OpenVINO-stamp/OpenVINO-patch.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenVINO/src/OpenVINO-stamp/OpenVINO-configure.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenVINO/src/OpenVINO-stamp/OpenVINO-build.rule

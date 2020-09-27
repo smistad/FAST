@@ -1,0 +1,13 @@
+# Target labels
+ clarius
+# Source files and their labels
+/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/clarius
+/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/clarius.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/clarius-complete.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-install.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-mkdir.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-download.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-update.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-patch.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-configure.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-build.rule

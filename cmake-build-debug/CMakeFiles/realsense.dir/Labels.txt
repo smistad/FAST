@@ -1,0 +1,13 @@
+# Target labels
+ realsense
+# Source files and their labels
+/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/realsense
+/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/realsense.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/realsense-complete.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/realsense/src/realsense-stamp/realsense-install.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/realsense/src/realsense-stamp/realsense-mkdir.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/realsense/src/realsense-stamp/realsense-download.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/realsense/src/realsense-stamp/realsense-update.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/realsense/src/realsense-stamp/realsense-patch.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/realsense/src/realsense-stamp/realsense-configure.rule
+/home/andrep/workspace/forks/FAST/cmake-build-debug/external/realsense/src/realsense-stamp/realsense-build.rule

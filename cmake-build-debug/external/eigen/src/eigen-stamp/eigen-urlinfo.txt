@@ -1,0 +1,3 @@
+repository='external project URL'
+module='https://gitlab.com/libeigen/eigen/-/archive/master/b4890dc.tar.gz'
+tag=''

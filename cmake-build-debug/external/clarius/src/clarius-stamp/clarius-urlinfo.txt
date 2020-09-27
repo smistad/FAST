@@ -1,0 +1,3 @@
+repository='external project URL'
+module='https://github.com/clariusdev/listener/releases/download/v7.1.0/clarius-listen-v710-linux.zip'
+tag=''

@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/eigen"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/eigen.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/eigen-complete.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/eigen/src/eigen-stamp/eigen-install.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/eigen/src/eigen-stamp/eigen-mkdir.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/eigen/src/eigen-stamp/eigen-download.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/eigen/src/eigen-stamp/eigen-update.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/eigen/src/eigen-stamp/eigen-patch.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/eigen/src/eigen-stamp/eigen-configure.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/eigen/src/eigen-stamp/eigen-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"eigen"
+		],
+		"name" : "eigen"
+	}
+}

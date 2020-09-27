@@ -1,0 +1,94 @@
+{
+	"BUILD_DIR" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/InferenceEngineOpenVINO_autogen",
+	"CMAKE_BINARY_DIR" : "/home/andrep/workspace/forks/FAST/cmake-build-debug",
+	"CMAKE_CURRENT_BINARY_DIR" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngines",
+	"CMAKE_EXECUTABLE" : "/snap/clion/126/bin/cmake/linux/bin/cmake",
+	"CMAKE_SOURCE_DIR" : "/home/andrep/workspace/forks/FAST",
+	"DEP_FILE" : "",
+	"DEP_FILE_RULE_NAME" : "",
+	"HEADERS" : 
+	[
+		[
+			"/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/OpenVINOEngine.hpp",
+			"Mu",
+			"EWIEGA46WW/moc_OpenVINOEngine.cpp"
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/InferenceEngineOpenVINO_autogen/include",
+	"MOC_COMPILATION_FILE" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/InferenceEngineOpenVINO_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : 
+	[
+		"EIGEN_MPL2_ONLY",
+		"FAST_DEBUG",
+		"FAST_MODULE_DICOM",
+		"FAST_MODULE_VISUALIZATION",
+		"InferenceEngineOpenVINO_EXPORTS"
+	],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"/home/andrep/workspace/forks/FAST/source",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL",
+		"/home/andrep/workspace/forks/include",
+		"/home/andrep/workspace/forks/include/QtMultimedia",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork",
+		"/home/andrep/workspace/forks/include/QtMultimediaWidgets",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3",
+		"/usr/include/openslide",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include/openvino",
+		"/home/andrep/workspace/forks/FAST/cmake-build-debug/include/openvino/openvino",
+		"/usr/include",
+		"/usr/include/c++/7",
+		"/usr/include/x86_64-linux-gnu/c++/7",
+		"/usr/include/c++/7/backward",
+		"/usr/lib/gcc/x86_64-linux-gnu/7/include",
+		"/usr/local/include",
+		"/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed",
+		"/usr/include/x86_64-linux-gnu"
+	],
+	"MOC_MACRO_NAMES" : [ "Q_OBJECT", "Q_GADGET", "Q_NAMESPACE", "Q_NAMESPACE_EXPORT" ],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : true,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"/usr/bin/c++",
+		"-dM",
+		"-E",
+		"-c",
+		"/snap/clion/126/bin/cmake/linux/share/cmake-3.17/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/InferenceEngineOpenVINO_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 8,
+	"PARSE_CACHE_FILE" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/CMakeFiles/InferenceEngineOpenVINO_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/bin/moc",
+	"QT_UIC_EXECUTABLE" : "",
+	"QT_VERSION_MAJOR" : 5,
+	"QT_VERSION_MINOR" : 8,
+	"SETTINGS_FILE" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/CMakeFiles/InferenceEngineOpenVINO_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[
+			"/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/OpenVINOEngine.cpp",
+			"Mu"
+		]
+	],
+	"VERBOSITY" : 0
+}

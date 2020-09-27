@@ -11,6 +11,8 @@
 #include <QWidget>
 #include <QEventLoop>
 #include "View.hpp"
+#include <QDragEnterEvent>
+#include <QDropEvent>
 
 namespace fast {
 
@@ -32,11 +34,14 @@ class FAST_EXPORT  WindowWidget : public QWidget {
         std::string mScreenshotFilename;
         bool mSaveScreenshotOfViewsOnClose;
         std::string mScreenshotViewsFilename;
+        void dragEnterEvent(QDragEnterEvent *event) override;
+        void dropEvent(QDropEvent *event) override;
     private:
         std::vector<View*> mViews;
 
     signals:
         void widgetHasClosed();
+        void fileNamesSent(const QList<QString> &names);
 
 
 };

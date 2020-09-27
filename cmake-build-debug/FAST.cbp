@@ -1,0 +1,2528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="FAST"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\cmake\;CMake Files\cmake\Qt5\;CMake Files\cmake\Qt5Core\;CMake Files\cmake\Qt5Gui\;CMake Files\cmake\Qt5Widgets\;CMake Files\cmake\Qt5OpenGL\;CMake Files\cmake\Qt5Multimedia\;CMake Files\cmake\Qt5Network\;CMake Files\cmake\Qt5MultimediaWidgets\;CMake Files\cmake\Qt5PrintSupport\;CMake Files\cmake-build-debug\;CMake Files\cmake-build-debug\external\;CMake Files\cmake-build-debug\external\qt5\;CMake Files\cmake-build-debug\external\qt5\tmp\;CMake Files\cmake-build-debug\external\eigen\;CMake Files\cmake-build-debug\external\eigen\tmp\;CMake Files\cmake-build-debug\external\zlib\;CMake Files\cmake-build-debug\external\zlib\tmp\;CMake Files\cmake-build-debug\external\zip\;CMake Files\cmake-build-debug\external\zip\tmp\;CMake Files\cmake-build-debug\external\OpenIGTLink\;CMake Files\cmake-build-debug\external\OpenIGTLink\tmp\;CMake Files\cmake-build-debug\external\realsense\;CMake Files\cmake-build-debug\external\realsense\tmp\;CMake Files\cmake-build-debug\external\clarius\;CMake Files\cmake-build-debug\external\clarius\tmp\;CMake Files\cmake-build-debug\external\dcmtk\;CMake Files\cmake-build-debug\external\dcmtk\tmp\;CMake Files\cmake-build-debug\external\OpenVINO\;CMake Files\cmake-build-debug\external\OpenVINO\tmp\;CMake Files\source\;CMake Files\source\FAST\;CMake Files\source\FAST\Streamers\;CMake Files\source\FAST\Algorithms\;CMake Files\source\FAST\Algorithms\AddTransformation\;CMake Files\source\FAST\Algorithms\AirwaySegmentation\;CMake Files\source\FAST\Algorithms\BinaryThresholding\;CMake Files\source\FAST\Algorithms\BlockMatching\;CMake Files\source\FAST\Algorithms\CenterlineExtraction\;CMake Files\source\FAST\Algorithms\CoherentPointDrift\;CMake Files\source\FAST\Algorithms\GaussianSmoothingFilter\;CMake Files\source\FAST\Algorithms\GradientVectorFlow\;CMake Files\source\FAST\Algorithms\HounsefieldConverter\;CMake Files\source\FAST\Algorithms\ImageChannelConverter\;CMake Files\source\FAST\Algorithms\ImageCropper\;CMake Files\source\FAST\Algorithms\ImageGradient\;CMake Files\source\FAST\Algorithms\ImageInverter\;CMake Files\source\FAST\Algorithms\ImageMultiply\;CMake Files\source\FAST\Algorithms\ImagePatch\;CMake Files\source\FAST\Algorithms\ImageResampler\;CMake Files\source\FAST\Algorithms\ImageResizer\;CMake Files\source\FAST\Algorithms\ImageSlicer\;CMake Files\source\FAST\Algorithms\IterativeClosestPoint\;CMake Files\source\FAST\Algorithms\Lambda\;CMake Files\source\FAST\Algorithms\LaplacianOfGaussian\;CMake Files\source\FAST\Algorithms\LevelSet\;CMake Files\source\FAST\Algorithms\LungSegmentation\;CMake Files\source\FAST\Algorithms\MeshToSegmentation\;CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\;CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\AppearanceModels\;CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\AppearanceModels\RidgeEdge\;CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\AppearanceModels\StepEdge\;CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\ShapeModels\;CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\ShapeModels\CardinalSpline\;CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\ShapeModels\Ellipse\;CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\ShapeModels\MeanValueCoordinates\;CMake Files\source\FAST\Algorithms\Morphology\;CMake Files\source\FAST\Algorithms\NeuralNetwork\;CMake Files\source\FAST\Algorithms\NeuralNetwork\InferenceEngines\;CMake Files\source\FAST\Algorithms\NonLocalMeans\;CMake Files\source\FAST\Algorithms\NonMaximumSuppression\;CMake Files\source\FAST\Algorithms\RegionProperties\;CMake Files\source\FAST\Algorithms\ScaleImage\;CMake Files\source\FAST\Algorithms\SeededRegionGrowing\;CMake Files\source\FAST\Algorithms\SegmentationVolumeReconstructor\;CMake Files\source\FAST\Algorithms\Skeletonization\;CMake Files\source\FAST\Algorithms\SurfaceExtraction\;CMake Files\source\FAST\Algorithms\TemplateMatching\;CMake Files\source\FAST\Algorithms\TemporalSmoothing\;CMake Files\source\FAST\Algorithms\TissueSegmentation\;CMake Files\source\FAST\Algorithms\TubeSegmentationAndCenterlineExtraction\;CMake Files\source\FAST\Algorithms\UltrasoundImageCropper\;CMake Files\source\FAST\Algorithms\UltrasoundImageEnhancement\;CMake Files\source\FAST\Algorithms\UltrasoundVesselDetection\;CMake Files\source\FAST\Algorithms\VectorMedianFilter\;CMake Files\source\FAST\Data\;CMake Files\source\FAST\Data\Access\;CMake Files\source\FAST\Importers\;CMake Files\source\FAST\Exporters\;CMake Files\source\FAST\Visualization\;CMake Files\source\FAST\Visualization\BoundingBoxRenderer\;CMake Files\source\FAST\Visualization\HeatmapRenderer\;CMake Files\source\FAST\Visualization\ImagePyramidRenderer\;CMake Files\source\FAST\Visualization\ImageRenderer\;CMake Files\source\FAST\Visualization\LineRenderer\;CMake Files\source\FAST\Visualization\Plotting\;CMake Files\source\FAST\Visualization\SegmentationLabelRenderer\;CMake Files\source\FAST\Visualization\SegmentationPyramidRenderer\;CMake Files\source\FAST\Visualization\SegmentationRenderer\;CMake Files\source\FAST\Visualization\SliceRenderer\;CMake Files\source\FAST\Visualization\Tests\;CMake Files\source\FAST\Visualization\TextRenderer\;CMake Files\source\FAST\Visualization\TriangleRenderer\;CMake Files\source\FAST\Visualization\VectorFieldRenderer\;CMake Files\source\FAST\Visualization\VertexRenderer\;CMake Files\source\FAST\Visualization\VolumeRenderer\;CMake Files\source\FAST\Tests\;CMake Files\source\FAST\Tools\;CMake Files\source\FAST\Tools\OpenIGTLinkServer\;CMake Files\source\FAST\Tools\Pipeline\;CMake Files\source\FAST\DataChannels\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="package_source">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 package_source"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="zip">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 zip"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="testFAST">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin/testFAST" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/testFAST_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 testFAST"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="testFAST/fast">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin/testFAST" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/testFAST_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 testFAST/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="zlib">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 zlib"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="qt5">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 qt5"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="clarius">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clarius"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="FAST">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/lib/libFAST.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/FAST_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 FAST"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="FAST/fast">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/lib/libFAST.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/FAST_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 FAST/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="eigen">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 eigen"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="package">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 package"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="OpenIGTLink">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 OpenIGTLink"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="clarius_headers">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clarius_headers"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="realsense">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 realsense"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="dcmtk">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 dcmtk"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="testFAST_autogen">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 testFAST_autogen"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="FAST_autogen">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 FAST_autogen"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="InferenceEngineOpenVINO">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/lib/libInferenceEngineOpenVINO.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/InferenceEngineOpenVINO_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/openvino"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/openvino/openvino"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 InferenceEngineOpenVINO"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="InferenceEngineOpenVINO/fast">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/lib/libInferenceEngineOpenVINO.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/InferenceEngineOpenVINO_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/openvino"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/openvino/openvino"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 InferenceEngineOpenVINO/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="OpenVINO">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 OpenVINO"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="InferenceEngineOpenVINO_autogen">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 InferenceEngineOpenVINO_autogen"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="downloadTestData">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin/downloadTestData" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/downloadTestData_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 downloadTestData"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="downloadTestData/fast">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin/downloadTestData" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/downloadTestData_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 downloadTestData/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="downloadTestData_autogen">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 downloadTestData_autogen"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="OpenIGTLinkServer">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin/OpenIGTLinkServer" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/OpenIGTLinkServer_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 OpenIGTLinkServer"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="OpenIGTLinkServer/fast">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin/OpenIGTLinkServer" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/OpenIGTLinkServer_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 OpenIGTLinkServer/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="OpenIGTLinkServer_autogen">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 OpenIGTLinkServer_autogen"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="runPipeline">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin/runPipeline" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/runPipeline_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 runPipeline"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="runPipeline/fast">
+				<Option output="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin/runPipeline" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DFAST_DEBUG"/>
+					<Add option="-DFAST_MODULE_VISUALIZATION"/>
+					<Add option="-DEIGEN_MPL2_ONLY"/>
+					<Add option="-DFAST_MODULE_DICOM"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/runPipeline_autogen/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/source"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtGui"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtCore"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/src/qt5/qtbase/mkspecs/linux-g++"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtOpenGL"/>
+					<Add directory="/home/andrep/workspace/forks/include"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimedia"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtNetwork"/>
+					<Add directory="/home/andrep/workspace/forks/include/QtMultimediaWidgets"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/QtPrintSupport"/>
+					<Add directory="/home/andrep/workspace/forks/FAST/cmake-build-debug/include/eigen3"/>
+					<Add directory="/usr/include/openslide"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 runPipeline/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="runPipeline_autogen">
+				<Option working_dir="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 runPipeline_autogen"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/FAST_autogen/mocs_compilation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/InferenceEngineOpenVINO_autogen/mocs_compilation.cpp">
+			<Option target="InferenceEngineOpenVINO"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/OpenIGTLinkServer/OpenIGTLinkServer_autogen/mocs_compilation.cpp">
+			<Option target="OpenIGTLinkServer"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/Pipeline/runPipeline_autogen/mocs_compilation.cpp">
+			<Option target="runPipeline"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/source/FAST/Tools/downloadTestData_autogen/mocs_compilation.cpp">
+			<Option target="downloadTestData"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/testFAST_autogen/mocs_compilation.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/AffineTransformation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/AffineTransformation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/AddTransformation/AddTransformation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/AddTransformation/AddTransformation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/AddTransformation/SetTransformation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/AddTransformation/SetTransformation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/AirwaySegmentation/AirwaySegmentation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/AirwaySegmentation/AirwaySegmentation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/AirwaySegmentation/airwaySegmentationTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/BinaryThresholding/BinaryThresholding.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/BlockMatching/BlockMatching.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/BlockMatching/BlockMatching.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/BlockMatching/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CenterlineExtraction/CenterlineExtraction.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CenterlineExtraction/CenterlineExtraction.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CoherentPointDrift/Affine.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CoherentPointDrift/Affine.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CoherentPointDrift/CoherentPointDrift.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CoherentPointDrift/CoherentPointDrift.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CoherentPointDrift/Rigid.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CoherentPointDrift/Rigid.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CoherentPointDrift/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GradientVectorFlow/EulerGradientVectorFlow.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GradientVectorFlow/GradientVectorFlowTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/HounsefieldConverter/HounsefieldConverter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/HounsefieldConverter/HounsefieldConverter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageCropper/ImageCropper.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageCropper/ImageCropper.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageGradient/ImageGradient.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageGradient/ImageGradient.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageGradient/ImageGradientTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageInverter/ImageInverter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageInverter/ImageInverter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageMultiply/ImageMultiply.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageMultiply/ImageMultiply.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImagePatch/ImageToBatchGenerator.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImagePatch/ImageToBatchGenerator.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImagePatch/PatchGenerator.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImagePatch/PatchGenerator.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImagePatch/PatchStitcher.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImagePatch/PatchStitcher.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImagePatch/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageResampler/ImageResampler.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageResampler/ImageResampler.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageResampler/ImageResamplerTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageResizer/ImageResizer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageResizer/ImageResizer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageResizer/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageSlicer/ImageSlicer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageSlicer/ImageSlicer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageSlicer/ImageSlicerTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/IterativeClosestPoint/IterativeClosestPointTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Lambda/RunLambda.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Lambda/RunLambda.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Lambda/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LaplacianOfGaussian/LaplacianOfGaussian.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LaplacianOfGaussian/LaplacianOfGaussian.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LaplacianOfGaussian/LaplacianOfGaussianTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LevelSet/LevelSetSegmentation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LevelSet/LevelSetSegmentation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LevelSet/LevelSetTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LungSegmentation/LungSegmentation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LungSegmentation/LungSegmentation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/MeshToSegmentation/MeshToSegmentation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/MeshToSegmentation/MeshToSegmentation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/MeshToSegmentation/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/AppearanceModel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/AppearanceModels/RidgeEdge/RidgeEdgeModel.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/AppearanceModels/RidgeEdge/RidgeEdgeModel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/AppearanceModels/StepEdge/StepEdgeModel.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/AppearanceModels/StepEdge/StepEdgeModel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/KalmanFilter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/KalmanFilter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/Shape.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/Shape.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/CardinalSpline/CardinalSplineModel.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/CardinalSpline/CardinalSplineModel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/Ellipse/EllipseModel.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/Ellipse/EllipseModel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/MeanValueCoordinates/MeanValueCoordinatesModel.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/MeanValueCoordinates/MeanValueCoordinatesModel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Morphology/Dilation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Morphology/Dilation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Morphology/Erosion.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Morphology/Erosion.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/BoundingBoxNetwork.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/BoundingBoxNetwork.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/ImageClassificationNetwork.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/ImageClassificationNetwork.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/ImageClassifierTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/ImageToImageNetwork.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/ImageToImageNetwork.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngine.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngine.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngineManager.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngineManager.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/OpenVINOEngine.cpp">
+			<Option target="InferenceEngineOpenVINO"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/OpenVINOEngine.hpp">
+			<Option target="InferenceEngineOpenVINO"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/NeuralNetwork.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/SegmentationNetwork.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/SegmentationNetwork.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/TensorToSegmentation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/TensorToSegmentation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/VolumeTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/WSITests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NonLocalMeans/NonLocalMeans.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NonLocalMeans/NonLocalMeans.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NonLocalMeans/NonLocalMeansTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NonMaximumSuppression/NonMaximumSuppression.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NonMaximumSuppression/NonMaximumSuppression.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/RegionProperties/RegionProperties.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/RegionProperties/RegionProperties.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/RegionProperties/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ScaleImage/ScaleImage.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ScaleImage/ScaleImage.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ScaleImage/ScaleImageTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SeededRegionGrowing/SeededRegionGrowing.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SeededRegionGrowing/SeededRegionGrowing.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SeededRegionGrowing/SeededRegionGrowingTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SegmentationAlgorithm.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SegmentationAlgorithm.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SegmentationVolumeReconstructor/SegmentationVolumeReconstructor.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SegmentationVolumeReconstructor/SegmentationVolumeReconstructor.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SegmentationVolumeReconstructor/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Skeletonization/Skeletonization.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Skeletonization/Skeletonization.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Skeletonization/SkeletonizationTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemplateMatching/TemplateMatching.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemplateMatching/TemplateMatching.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemplateMatching/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemporalSmoothing/ImageMovingAverage.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemporalSmoothing/ImageMovingAverage.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemporalSmoothing/ImageWeightedMovingAverage.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemporalSmoothing/ImageWeightedMovingAverage.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemporalSmoothing/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TissueSegmentation/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TissueSegmentation/TissueSegmentation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TubeSegmentationAndCenterlineExtraction/InverseGradientSegmentation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TubeSegmentationAndCenterlineExtraction/InverseGradientSegmentation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TubeSegmentationAndCenterlineExtraction/RidgeTraversalCenterlineExtraction.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TubeSegmentationAndCenterlineExtraction/RidgeTraversalCenterlineExtraction.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtractionTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/UltrasoundImageEnhancement/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/UltrasoundImageEnhancement/UltrasoundImageEnhancement.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/UltrasoundImageEnhancement/UltrasoundImageEnhancement.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/VectorMedianFilter/VectorMedianFilter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/VectorMedianFilter/VectorMedianFilter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Attribute.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Attribute.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Config.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Config.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/Access.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/BoundingBoxSetAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/BoundingBoxSetAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/CameraAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/CameraAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/ImageAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/ImageAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/ImagePyramidAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/ImagePyramidAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/MeshAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/MeshAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/MeshOpenCLAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/MeshOpenCLAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/OpenCLBufferAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/OpenCLBufferAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/OpenCLImageAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/OpenCLImageAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/TensorAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/TensorAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/VertexBufferObjectAccess.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/VertexBufferObjectAccess.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/BoundingBox.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/BoundingBox.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Camera.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Camera.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Color.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/DataBoundingBox.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/DataBoundingBox.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/DataObject.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/DataObject.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/DataTypes.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/DataTypes.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Image.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Image.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/ImagePyramid.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/ImagePyramid.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Mesh.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Mesh.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/MeshVertex.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/MeshVertex.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Segmentation.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Segmentation.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/SimpleDataObject.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/SpatialDataObject.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/SpatialDataObject.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Tensor.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Tensor.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/TensorShape.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/TensorShape.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Tests/DataObjectTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Tests/ImageTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Text.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Text.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DataChannels/DataChannel.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DataChannels/DataChannel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DataChannels/NewestFrameDataChannel.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DataChannels/NewestFrameDataChannel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DataChannels/QueuedDataChannel.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DataChannels/QueuedDataChannel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DataChannels/StaticDataChannel.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DataChannels/StaticDataChannel.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DeviceCriteria.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DeviceCriteria.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DeviceManager.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DeviceManager.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exception.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exception.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/ExecutionDevice.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/ExecutionDevice.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/FileExporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/FileExporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/ImageExporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/ImageExporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/ImageFileExporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/ImageFileExporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/MetaImageExporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/MetaImageExporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/StreamExporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/StreamExporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/StreamToFileExporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/StreamToFileExporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/Tests/ImageExporterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/Tests/MetaImageExporterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/Tests/VTKMeshFileExporterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/VTKMeshFileExporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/VTKMeshFileExporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/DICOMFileImporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/DICOMFileImporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/ImageFileImporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/ImageFileImporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/ImageImporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/ImageImporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/Importer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/MetaImageImporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/MetaImageImporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/Tests/DICOMFileImporterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/Tests/ImageFileImporterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/Tests/ImageImporterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/Tests/MetaImageImporterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/Tests/VTKMeshFileImporterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/Tests/WholeSlideImageImporterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/VTKMeshFileImporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/VTKMeshFileImporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/WholeSlideImageImporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/WholeSlideImageImporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Object.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Object.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/OpenCLProgram.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/OpenCLProgram.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Pipeline.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Pipeline.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/PipelineEditor.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/PipelineEditor.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/PipelineSynchronizer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/PipelineSynchronizer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/ProcessObject.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/ProcessObject.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/ProcessObjectRegistry.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Reporter.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Reporter.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/RuntimeMeasurement.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/RuntimeMeasurement.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/RuntimeMeasurementManager.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/RuntimeMeasurementManager.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/SceneGraph.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/SceneGraph.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Semaphore.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/AffineTransformationFileStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/AffineTransformationFileStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/CameraStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/CameraStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/ClariusStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/ClariusStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/FileStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/FileStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/ImageFileStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/ImageFileStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/ManualImageStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/ManualImageStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/MeshFileStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/MeshFileStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/MovieStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/MovieStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/OpenIGTLinkStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/OpenIGTLinkStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/RealSenseStreamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/RealSenseStreamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/Streamer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/Streamer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/Tests/CameraStreamerTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/Tests/DummyIGTLServer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/Tests/DummyIGTLServer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/Tests/ImageFileStreamerTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/Tests/MovieStreamerTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/Tests/OpenIGTLinkStreamerTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/Algorithms/DoubleFilter.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/Algorithms/DoubleFilter.hpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/Algorithms/DoubleFilterTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/Benchmarks.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/CatchMain.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/DataComparison.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/DataComparison.hpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/DummyObjects.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/DummyObjects.hpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/PipelineSynchronizerTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/ProcessObjectTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/SceneGraphTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/SystemTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/UtilityTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/catch.hpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/CommandLineParser.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/CommandLineParser.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/OpenIGTLinkServer/GUI.cpp">
+			<Option target="OpenIGTLinkServer"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/OpenIGTLinkServer/GUI.hpp">
+			<Option target="OpenIGTLinkServer"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/OpenIGTLinkServer/main.cpp">
+			<Option target="OpenIGTLinkServer"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/Pipeline/main.cpp">
+			<Option target="runPipeline"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/downloadTestData.cpp">
+			<Option target="downloadTestData"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Utility.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Utility.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/BoundingBoxRenderer/BoundingBoxRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/BoundingBoxRenderer/BoundingBoxRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/BoundingBoxRenderer/BoundingBoxRendererTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/ComputationThread.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/ComputationThread.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/DualViewWindow.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/DualViewWindow.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/HeatmapRenderer/HeatmapRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/ImageRenderer/ImageRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/ImageRenderer/ImageRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/ImageRenderer/ImageRendererTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/LineRenderer/LineRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/LineRenderer/LineRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/LineRenderer/LineRendererTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/MultiViewWindow.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/MultiViewWindow.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/Plane.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/Plane.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/Renderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/Renderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationLabelRenderer/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationPyramidRenderer/SegmentationPyramidRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationPyramidRenderer/SegmentationPyramidRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationRenderer/SegmentationRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationRenderer/SegmentationRendererTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SimpleWindow.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SimpleWindow.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SliceRenderer/SliceRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SliceRenderer/SliceRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SliceRenderer/SliceRendererTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/Tests/DualViewWindowTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/TextRenderer/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/TextRenderer/TextRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/TextRenderer/TextRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/TriangleRenderer/TriangleRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/TriangleRenderer/TriangleRendererTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VectorFieldRenderer/VectorFieldColorRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VectorFieldRenderer/VectorFieldColorRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VectorFieldRenderer/VectorFieldRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VectorFieldRenderer/VectorFieldRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VertexRenderer/VertexRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VertexRenderer/VertexRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VertexRenderer/VertexRendererTests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/View.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/View.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/MaximumIntensityProjection.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/MaximumIntensityProjection.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/Tests.cpp">
+			<Option target="testFAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/ThresholdVolumeRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/ThresholdVolumeRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/TransferFunction.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/TransferFunction.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/VolumeRenderer.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/Window.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/Window.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/WindowWidget.cpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/WindowWidget.hpp">
+			<Option target="FAST"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Depdendencies.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/DownloadTestData.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalClarius.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalDCMTK.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalEigen.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalOpenIGTLink.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalOpenSlide.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalOpenVINO.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalQt5.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalRealSense.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalZip.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ExternalZlib.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Externals.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/FASTConfig.cmake.in">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/FASTUse.cmake.in">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/FindOpenCL.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/FindOpenSlide.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/InstallFAST.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Macros.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleClarius.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleDicom.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleHDF5.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleITK.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleKinect.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleOpenIGTLink.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleOpenVINO.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModulePlotting.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModulePython.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleRealSense.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleVTK.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/ModuleWholeSlideImaging.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/OpenMP.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Package.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5/Qt5Config.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5/Qt5ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5/Qt5ModuleLocation.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Core/Qt5CoreConfig.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Core/Qt5CoreConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Core/Qt5CoreConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Core/Qt5CoreMacros.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Gui/Qt5GuiConfig.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Gui/Qt5GuiConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Gui/Qt5GuiConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Widgets/Qt5WidgetsConfig.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Widgets/Qt5WidgetsConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Widgets/Qt5WidgetsConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Widgets/Qt5WidgetsMacros.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5OpenGL/Qt5OpenGLConfig.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5OpenGL\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5OpenGL/Qt5OpenGLConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5OpenGL\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Multimedia/Qt5MultimediaConfig.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Multimedia/Qt5MultimediaConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Multimedia/Qt5Multimedia_AudioCaptureServicePlugin.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Multimedia/Qt5Multimedia_QM3uPlaylistPlugin.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Network/Qt5NetworkConfig.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Network/Qt5NetworkConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Network/Qt5Network_QConnmanEnginePlugin.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Network/Qt5Network_QGenericEnginePlugin.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5Network/Qt5Network_QNetworkManagerEnginePlugin.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5MultimediaWidgets/Qt5MultimediaWidgetsConfig.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5MultimediaWidgets\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5MultimediaWidgets/Qt5MultimediaWidgetsConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5MultimediaWidgets\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5PrintSupport/Qt5PrintSupportConfig.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5PrintSupport\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5PrintSupport/Qt5PrintSupportConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5PrintSupport\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake/Qt5PrintSupport/Qt5PrintSupport_QWindowsPrinterSupportPlugin.cmake">
+			<Option virtualFolder="CMake Files\cmake\Qt5PrintSupport\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/qt5/tmp/qt5-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\qt5\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/eigen/tmp/eigen-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\eigen\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/zlib/tmp/zlib-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\zlib\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/zip/tmp/zip-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\zip\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenIGTLink/tmp/OpenIGTLink-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\OpenIGTLink\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/realsense/tmp/realsense-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\realsense\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/tmp/clarius-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\clarius\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/tmp/clarius_headers-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\clarius\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/dcmtk/tmp/dcmtk-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\dcmtk\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenVINO/tmp/OpenVINO-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\external\OpenVINO\tmp\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/ProcessObjectList.hpp.in">
+			<Option virtualFolder="CMake Files\source\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/fast_configuration.txt.in">
+			<Option virtualFolder="CMake Files\source\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Streamers/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Streamers\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/AddTransformation/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\AddTransformation\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/AirwaySegmentation/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\AirwaySegmentation\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/BinaryThresholding/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\BinaryThresholding\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/BlockMatching/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\BlockMatching\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CenterlineExtraction/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\CenterlineExtraction\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/CoherentPointDrift/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\CoherentPointDrift\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GaussianSmoothingFilter/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\GaussianSmoothingFilter\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/GradientVectorFlow/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\GradientVectorFlow\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/HounsefieldConverter/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\HounsefieldConverter\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageChannelConverter/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ImageChannelConverter\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageCropper/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ImageCropper\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageGradient/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ImageGradient\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageInverter/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ImageInverter\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageMultiply/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ImageMultiply\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImagePatch/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ImagePatch\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageResampler/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ImageResampler\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageResizer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ImageResizer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ImageSlicer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ImageSlicer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/IterativeClosestPoint/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\IterativeClosestPoint\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Lambda/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\Lambda\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LaplacianOfGaussian/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\LaplacianOfGaussian\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LevelSet/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\LevelSet\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/LungSegmentation/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\LungSegmentation\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/MeshToSegmentation/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\MeshToSegmentation\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/AppearanceModels/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\AppearanceModels\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/AppearanceModels/RidgeEdge/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\AppearanceModels\RidgeEdge\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/AppearanceModels/StepEdge/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\AppearanceModels\StepEdge\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\ShapeModels\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/CardinalSpline/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\ShapeModels\CardinalSpline\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/Ellipse/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\ShapeModels\Ellipse\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ModelBasedSegmentation/ShapeModels/MeanValueCoordinates/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ModelBasedSegmentation\ShapeModels\MeanValueCoordinates\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Morphology/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\Morphology\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\NeuralNetwork\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NeuralNetwork/InferenceEngines/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\NeuralNetwork\InferenceEngines\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NonLocalMeans/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\NonLocalMeans\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/NonMaximumSuppression/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\NonMaximumSuppression\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/RegionProperties/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\RegionProperties\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/ScaleImage/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\ScaleImage\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SeededRegionGrowing/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\SeededRegionGrowing\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SegmentationVolumeReconstructor/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\SegmentationVolumeReconstructor\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/Skeletonization/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\Skeletonization\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/SurfaceExtraction/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\SurfaceExtraction\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemplateMatching/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\TemplateMatching\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TemporalSmoothing/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\TemporalSmoothing\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TissueSegmentation/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\TissueSegmentation\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/TubeSegmentationAndCenterlineExtraction/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\TubeSegmentationAndCenterlineExtraction\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/UltrasoundImageCropper/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\UltrasoundImageCropper\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/UltrasoundImageEnhancement/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\UltrasoundImageEnhancement\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/UltrasoundVesselDetection/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\UltrasoundVesselDetection\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Algorithms/VectorMedianFilter/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Algorithms\VectorMedianFilter\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Data\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Data/Access/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Data\Access\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Importers/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Importers\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Exporters/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Exporters\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/BoundingBoxRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\BoundingBoxRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/HeatmapRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\HeatmapRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/ImagePyramidRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\ImagePyramidRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/ImageRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\ImageRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/LineRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\LineRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/Plotting/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\Plotting\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationLabelRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\SegmentationLabelRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationPyramidRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\SegmentationPyramidRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SegmentationRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\SegmentationRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/SliceRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\SliceRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/Tests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\Tests\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/TextRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\TextRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/TriangleRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\TriangleRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VectorFieldRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\VectorFieldRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VertexRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\VertexRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Visualization/VolumeRenderer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Visualization\VolumeRenderer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Tests\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Tools\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/OpenIGTLinkServer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Tools\OpenIGTLinkServer\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/Tools/Pipeline/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\Tools\Pipeline\"/>
+		</Unit>
+		<Unit filename="/home/andrep/workspace/forks/FAST/source/FAST/DataChannels/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\source\FAST\DataChannels\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

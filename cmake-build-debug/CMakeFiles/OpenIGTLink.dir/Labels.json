@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/OpenIGTLink"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/OpenIGTLink.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/OpenIGTLink-complete.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenIGTLink/src/OpenIGTLink-stamp/OpenIGTLink-install.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenIGTLink/src/OpenIGTLink-stamp/OpenIGTLink-mkdir.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenIGTLink/src/OpenIGTLink-stamp/OpenIGTLink-download.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenIGTLink/src/OpenIGTLink-stamp/OpenIGTLink-update.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenIGTLink/src/OpenIGTLink-stamp/OpenIGTLink-patch.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenIGTLink/src/OpenIGTLink-stamp/OpenIGTLink-configure.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/OpenIGTLink/src/OpenIGTLink-stamp/OpenIGTLink-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"OpenIGTLink"
+		],
+		"name" : "OpenIGTLink"
+	}
+}

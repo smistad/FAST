@@ -1,0 +1,65 @@
+# Find the FAST library and dependencies
+#
+# FAST_INCLUDE_DIRS - where to find include files.
+# FAST_LIBRARY_DIRS - where to find library files.
+# FAST_LIBRARY - FAST library file.
+# FAST_USE_FILE - Path to use file.
+# FAST_FOUND - set to 1 if found.
+#
+# Usage:
+# FAST
+#----------
+# find_package(FAST REQUIRED)
+# include(${FAST_USE_FILE})
+#
+
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
+
+find_package(OpenCL REQUIRED)
+find_package(OpenGL REQUIRED)
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    find_package(X11 REQUIRED)
+endif()
+
+set(FAST_FOUND 1)
+
+set(FAST_INCLUDE_DIRS
+    "${CMAKE_CURRENT_LIST_DIR}/../include/"
+    "${CMAKE_CURRENT_LIST_DIR}/../include/QtCore"
+    "${CMAKE_CURRENT_LIST_DIR}/../include/QtWidgets"
+    "${CMAKE_CURRENT_LIST_DIR}/../include/QtOpenGL"
+    "${CMAKE_CURRENT_LIST_DIR}/../include/QtPrintSupport"
+    "${CMAKE_CURRENT_LIST_DIR}/../include/QtGui"
+    "${CMAKE_CURRENT_LIST_DIR}/../include/eigen3"
+    ${OPENGL_INCLUDE_DIR}
+    ${X11_INCLUDE_DIR}
+)
+set(FAST_BINARY_DIR "${CMAKE_CURRENT_LIST_DIR}/../bin/")
+set(FAST_LIBRARY_DIRS "${CMAKE_CURRENT_LIST_DIR}/../lib/")
+set(FAST_LIBRARIES
+	FAST
+	Qt5Core
+	Qt5Widgets
+	Qt5Gui
+	Qt5OpenGL
+	Qt5Multimedia
+	Qt5MultimediaWidgets
+    Qt5PrintSupport
+    Qt5Network
+	${OpenCL_LIBRARIES}
+	${OPENGL_LIBRARIES}
+	${X11_LIBRARIES}
+)
+if(OFF)
+    list(APPEND FAST_LIBRARIES
+      JKQTCommonSharedLib_Release
+      JKQTPlotterSharedLib_Release
+      JKQTFastPlotterSharedLib_Release
+    )
+endif()
+set(FAST_USE_FILE "${CMAKE_CURRENT_LIST_DIR}/FASTUse.cmake")
+
+message(STATUS "-- FAST package and dependencies found: ")
+message(STATUS "-- FAST libraries: ${FAST_LIBRARIES}")
+message(STATUS "-- FAST library dirs: ${FAST_LIBRARY_DIRS}")
+message(STATUS "-- FAST include dirs: ${FAST_INCLUDE_DIRS}")

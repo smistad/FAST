@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/clarius"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/clarius.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/CMakeFiles/clarius-complete.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-install.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-mkdir.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-download.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-update.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-patch.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-configure.rule"
+		},
+		{
+			"file" : "/home/andrep/workspace/forks/FAST/cmake-build-debug/external/clarius/src/clarius-stamp/clarius-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"clarius"
+		],
+		"name" : "clarius"
+	}
+}
