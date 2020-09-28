@@ -1,3 +1,0 @@
-repository='https://github.com/IntelRealSense/librealsense.git'
-module=''
-tag='origin'

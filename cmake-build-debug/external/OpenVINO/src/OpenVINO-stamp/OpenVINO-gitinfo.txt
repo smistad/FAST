@@ -1,3 +1,0 @@
-repository='https://github.com/openvinotoolkit/openvino.git'
-module=''
-tag='origin'

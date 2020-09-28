@@ -1,1 +1,0 @@
-cmd='/snap/clion/126/bin/cmake/linux/bin/cmake;-DCMAKE_MACOSX_RPATH=ON;-GCodeBlocks - Unix Makefiles;-C<TMP_DIR>/zlib-cache-$<CONFIG>.cmake;<SOURCE_DIR><SOURCE_SUBDIR>'

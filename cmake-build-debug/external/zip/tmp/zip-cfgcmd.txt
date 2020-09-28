@@ -1,1 +1,0 @@
-cmd='/snap/clion/126/bin/cmake/linux/bin/cmake;-DBUILD_SHARED_LIBS=OFF;-DCMAKE_DISABLE_TESTING=ON;-GCodeBlocks - Unix Makefiles;-C<TMP_DIR>/zip-cache-$<CONFIG>.cmake;<SOURCE_DIR><SOURCE_SUBDIR>'

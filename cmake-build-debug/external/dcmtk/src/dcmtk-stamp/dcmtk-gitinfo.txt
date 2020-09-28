@@ -1,3 +1,0 @@
-repository='https://github.com/DCMTK/dcmtk.git'
-module=''
-tag='origin'

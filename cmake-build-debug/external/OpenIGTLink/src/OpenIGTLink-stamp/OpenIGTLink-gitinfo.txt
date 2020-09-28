@@ -1,3 +1,0 @@
-repository='https://github.com/openigtlink/OpenIGTLink.git'
-module=''
-tag='origin'

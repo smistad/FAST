@@ -1,3 +1,0 @@
-repository='https://github.com/kuba--/zip.git'
-module=''
-tag='origin'
