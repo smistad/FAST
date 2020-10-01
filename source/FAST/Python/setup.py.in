@@ -2,7 +2,7 @@
 from setuptools import setup, Extension
 import glob
 import os.path
-
+import sys
 
 _fast = Extension('fast.bin._fast',
                 include_dirs=[
@@ -52,8 +52,15 @@ def get_all_filenames(path):
 with open("@FAST_SOURCE_DIR@/README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
+version = '@FAST_VERSION@'
+for v in sys.argv: # override version if present
+    if v.startswith('version='):
+        version = v[len('version='):]
+        sys.argv.remove(v) # Remove or setup will be cranky
+        break
+
 setup(name='pyFAST',    # Distribution name
-      version='@FAST_VERSION@',
+      version=version,
       description='Python bindings of FAST - a framework for high performance medical image computing and visualization on heterogeneous systems utilizing multi-core CPUs and GPUs.',
       long_description=long_description,
       long_description_content_type="text/markdown",
