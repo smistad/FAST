@@ -70,10 +70,11 @@ else:
                 'libclDNNPlugin.so',
                 'libMKLDNNPlugin.so',
                 'libmyriadPlugin.so',
-                'libInferenceEngineTensorFlowCPU.so',
-                'libInferenceEngineTensorFlowCUDA.so',
-                'libInferenceEngineTensorFlowROCm.so',
-                'libInferenceEngineTensorRT.so',
+                # Removed to reduce pip package size
+                #'libInferenceEngineTensorFlowCPU.so',
+                #'libInferenceEngineTensorFlowCUDA.so',
+                #'libInferenceEngineTensorFlowROCm.so',
+                #'libInferenceEngineTensorRT.so',
             ])
           }
 
