@@ -39,7 +39,7 @@ void WindowWidget::dropEvent(QDropEvent *event) {
     foreach(QString curr, fileNames) {
         Reporter::info() << "\nFile: " << curr.toStdString() << Reporter::end();
     }
-    emit fileNamesSent(fileNames);
+    emit filesDropped(fileNames);
 }
 
 void WindowWidget::closeEvent(QCloseEvent *event) {
