@@ -21,7 +21,7 @@ void WindowWidget::keyPressEvent(QKeyEvent *event) {
 }
 
 void WindowWidget::dragEnterEvent(QDragEnterEvent *event) {
-    Reporter::info() << "\nDrag event..." << Reporter::end();
+    Reporter::info() << "Drag event received in window widget" << Reporter::end();
     if (event->mimeData()->hasUrls()) {
         event->acceptProposedAction();
     }
@@ -35,9 +35,6 @@ void WindowWidget::dropEvent(QDropEvent *event) {
         QString fileName = url.toLocalFile();
         fileNames.push_back(fileName);
         Reporter::info() << "Dropped file:" << fileName.toStdString() << Reporter::end();
-    }
-    foreach(QString curr, fileNames) {
-        Reporter::info() << "\nFile: " << curr.toStdString() << Reporter::end();
     }
     emit filesDropped(fileNames);
 }
