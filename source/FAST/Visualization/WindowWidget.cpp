@@ -29,7 +29,7 @@ void WindowWidget::dragEnterEvent(QDragEnterEvent *event) {
 
 
 void WindowWidget::dropEvent(QDropEvent *event) {
-    std::cout << "\nDrop event..." << std::endl;
+    Reporter::info() << "Drop event received in window widget" << Reporter::end();
     QList<QString> fileNames;
     foreach (const QUrl &url, event->mimeData()->urls()) {
         QString fileName = url.toLocalFile();
