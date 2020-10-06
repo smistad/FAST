@@ -41,7 +41,7 @@ class FAST_EXPORT  WindowWidget : public QWidget {
 
     signals:
         void widgetHasClosed();
-        void fileNamesSent(const QList<QString> &names);
+        void filesDropped(const QList<QString> &filenames);
 
 
 };
