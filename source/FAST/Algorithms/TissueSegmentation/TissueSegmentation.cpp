@@ -13,6 +13,30 @@ TissueSegmentation::TissueSegmentation() {
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/TissueSegmentation/TissueSegmentation.cl");
 }
 
+void TissueSegmentation::setThreshold(int thresh) {
+    m_thresh = thresh;
+}
+
+void TissueSegmentation::setDilate(int radius) {
+    m_dilate = radius;
+}
+
+void TissueSegmentation::setErode(int radius) {
+    m_erode = radius;
+}
+
+int TissueSegmentation::getThreshold() const {
+    return m_thresh;
+}
+
+int TissueSegmentation::getErode() const {
+    return m_erode;
+}
+
+int TissueSegmentation::getDilate() const {
+    return m_dilate;
+}
+
 void TissueSegmentation::execute() {
     auto wsi = getInputData<ImagePyramid>();
     auto access = wsi->getAccess(ACCESS_READ);
@@ -30,6 +54,7 @@ void TissueSegmentation::execute() {
         auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         kernel.setArg(0, *inputAccess->get2DImage());
         kernel.setArg(1, *outputAccess->get2DImage());
+        kernel.setArg(2, m_thresh);
 
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
@@ -40,16 +65,37 @@ void TissueSegmentation::execute() {
         device->getCommandQueue().finish();
     }
 
-    auto erosion = Erosion::New();
-    erosion->setInputData(output);
-    erosion->setStructuringElementSize(9);
+    if ((m_dilate == 0) && (m_erode == 0)) {
+        addOutputData(0, output);  // no morphological post-processing
 
-    auto dilation = Dilation::New();
-    dilation->setInputConnection(erosion->getOutputPort());
-    dilation->setStructuringElementSize(17);
+    } else if ((m_dilate > 0) && (m_erode == 0)){
+        auto dilation = Dilation::New();
+        dilation->setInputData(output);
+        dilation->setStructuringElementSize(m_dilate);
 
-    auto newOutput = dilation->updateAndGetOutputData<Image>();
-    addOutputData(0, newOutput);
+        auto newOutput = dilation->updateAndGetOutputData<Image>();
+        addOutputData(0, newOutput);
+
+    } else if ((m_dilate == 0) && (m_erode > 0)){
+        auto erosion = Erosion::New();
+        erosion->setInputData(output);
+        erosion->setStructuringElementSize(m_erode);
+
+        auto newOutput = erosion->updateAndGetOutputData<Image>();
+        addOutputData(0, newOutput);
+
+    } else {
+        auto dilation = Dilation::New();
+        dilation->setInputData(output);
+        dilation->setStructuringElementSize(m_dilate);
+
+        auto erosion = Erosion::New();
+        erosion->setInputConnection(dilation->getOutputPort());
+        erosion->setStructuringElementSize(m_erode);
+
+        auto newOutput = erosion->updateAndGetOutputData<Image>();
+        addOutputData(0, newOutput);  // closing (instead of opening) to increase sensitivity in detection
+    }
 
 }
 
