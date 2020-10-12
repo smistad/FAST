@@ -18,6 +18,7 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer {
         void setFillArea(bool fillArea);
         void setBorderRadius(int radius);
         void setOpacity(float opacity);
+        void setInterpolation(bool useInterpolation);
         void loadAttributes() override;
     private:
         SegmentationRenderer();
@@ -29,6 +30,7 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer {
         std::unordered_map<int, Color> mLabelColors;
         std::unordered_map<int, bool> mLabelFillArea;
         bool mFillArea;
+        bool mUseInterpolation = true;
         int mBorderRadius = 1;
         float mOpacity = 1;
         cl::Buffer mColorBuffer, mFillAreaBuffer;
