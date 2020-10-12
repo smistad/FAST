@@ -112,6 +112,7 @@ namespace fast {
 			createDirectories(mTestDataPath);
 			createDirectories(mPipelinePath);
 
+			/*
 			// Copy pipelines (first time only)
 			for(auto&& pipeline : getDirectoryList(mPipelinePath)) {
 				if(!fileExists(mPipelinePath)) {
@@ -122,6 +123,7 @@ namespace fast {
 					dst << src.rdbuf();
 				}
 			}
+			*/
 
 			// Read and parse configuration file
 			// It should reside in the build folder when compiling, and in the root folder when using release
@@ -299,7 +301,7 @@ namespace fast {
 			std::cout << "Progress: " << std::endl;
 			Window::initializeQtApp();
 			QNetworkAccessManager manager;
-			QUrl url("http://fast.eriksmistad.no/download/FAST_Test_Data_install.zip");
+			QUrl url("http://fast.eriksmistad.no/download/FAST_Test_Data.zip");
 			QNetworkRequest request(url);
 			auto timer = new QElapsedTimer;
 			timer->start();
@@ -326,8 +328,8 @@ namespace fast {
 			QObject::connect(&manager, &QNetworkAccessManager::finished, [reply, &file, destination]() {
 				std::cout << "Finished downloading file. Processing.." << std::endl;
 				file.close();
-				std::cout << "Unzipping the data file.." << std::endl;
-				zip_extract(file.fileName().toStdString().c_str(), (destination + "/../../").c_str(), nullptr, nullptr);
+				std::cout << "Unzipping the data file ..." << std::endl;
+				zip_extract(file.fileName().toStdString().c_str(), (destination + "/../").c_str(), nullptr, nullptr);
 				file.remove();
 				std::cout << "Done." << std::endl;
 			});

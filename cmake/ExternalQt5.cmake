@@ -118,6 +118,7 @@ else()
             -qt-xcb;
             -no-directfb;
             -no-linuxfb;
+            -no-icu;
             ${MODULES_TO_EXCLUDE}
         )
     endif()

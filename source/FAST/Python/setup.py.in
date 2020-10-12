@@ -3,7 +3,6 @@ from setuptools import setup, Extension
 import os.path
 import sys
 
-
 def get_all_filenames(path):
     files = []
     for root, dirs, filenames in os.walk(path):
@@ -70,11 +69,11 @@ else:
                 'libclDNNPlugin.so',
                 'libMKLDNNPlugin.so',
                 'libmyriadPlugin.so',
+                'libInferenceEngineTensorRT.so',
                 # Removed to reduce pip package size
                 #'libInferenceEngineTensorFlowCPU.so',
                 #'libInferenceEngineTensorFlowCUDA.so',
                 #'libInferenceEngineTensorFlowROCm.so',
-                #'libInferenceEngineTensorRT.so',
             ])
           }
 
@@ -116,8 +115,15 @@ _fast = Extension('fast.bin._fast',
 with open("@FAST_SOURCE_DIR@/README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
+version = '@FAST_VERSION@'
+for v in sys.argv: # override version if present
+    if v.startswith('version='):
+        version = v[len('version='):]
+        sys.argv.remove(v) # Remove or setup will be cranky
+        break
+
 setup(name='pyFAST',    # Distribution name
-      version='@FAST_VERSION@',
+      version=version,
       description='Python bindings of FAST - a framework for high performance medical image computing and visualization on heterogeneous systems utilizing multi-core CPUs and GPUs.',
       long_description=long_description,
       long_description_content_type="text/markdown",
@@ -140,5 +146,7 @@ setup(name='pyFAST',    # Distribution name
         'Topic :: Scientific/Engineering :: Image Processing',
         'Topic :: Scientific/Engineering :: Medical Science Apps.',
         'Topic :: Scientific/Engineering :: Visualization',
-      ]
+      ],
+      install_requires=['numpy'],
+      python_requires='>=3'
 )

@@ -136,6 +136,8 @@ else(WIN32)
                 cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.1.14.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CUDA.so &&
                 chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so &&
                 chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CUDA.so &&
+                strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so &&
+                strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CUDA.so &&
                 patchelf --set-soname libtensorflow_cc_CUDA.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so &&
                 patchelf --set-soname libtensorflow_framework_CUDA.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CUDA.so &&
                 patchelf --replace-needed libtensorflow_framework.so.1 libtensorflow_framework_CUDA.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so &&
@@ -168,7 +170,7 @@ else(WIN32)
                 cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/ && sh ${PROJECT_SOURCE_DIR}/cmake/TensorflowConfigureCPU.sh
             # Build using bazel
             BUILD_COMMAND
-                echo "Building tensorflow with bazel for CPU" &&
+                echo "Building tensorflow with bazel for CPU (this will take a long time..)" &&
                 cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/ && bazel build --config=opt --copt=-mfpmath=both --copt=-march=core-avx2 //tensorflow:libtensorflow_cc.so
             INSTALL_COMMAND
                 echo "Installing tensorflow binary" &&
@@ -176,6 +178,8 @@ else(WIN32)
                 cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.1.14.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CPU.so &&
                 chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CPU.so &&
                 chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CPU.so &&
+                strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CPU.so &&
+                strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CPU.so &&
                 patchelf --set-soname libtensorflow_cc_CPU.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CPU.so &&
                 patchelf --set-soname libtensorflow_framework_CPU.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CPU.so &&
                 patchelf --replace-needed libtensorflow_framework.so.1 libtensorflow_framework_CPU.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CPU.so &&
