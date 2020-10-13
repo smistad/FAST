@@ -52,7 +52,7 @@ if(FAST_MODULE_Python)
     swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_FILE})
     swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
     set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen) # Enable Python 3 specific features and doxygen comment translation in SWIG
-    set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../../lib")
+    set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
     target_include_directories(_fast PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -67,8 +67,8 @@ if(FAST_MODULE_Python)
 
     add_custom_target(python-wheel
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/bin/
-    #COMMAND ${CMAKE_COMMAND} -E rename ${PROJECT_BINARY_DIR}/python/fast/bin/fast_configuration.txt ${PROJECT_BINARY_DIR}/python/fast/bin/fast_configuration_unused.txt
+    # Remove this lib file as we don't need it: the setup script will build a new one
+    COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/_unused_fast_python_lib
     COMMAND ${CMAKE_COMMAND}
         -D FAST_VERSION=${FAST_VERSION}
         -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
