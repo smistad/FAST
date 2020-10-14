@@ -47,18 +47,18 @@ void ImageSharpening::execute() {
 
 	auto clDevice = std::static_pointer_cast<OpenCLDevice>(getMainDevice());
 
-    cl::Kernel kernel(getOpenCLProgram(clDevice), "sharpen");
+    const auto halfSize = (maskSize-1)/2;
+    cl::Kernel kernel(getOpenCLProgram(clDevice, "", "-DHALF_SIZE=" + std::to_string(halfSize)), "sharpen");
 
 	auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, clDevice);
-	createMask(input, maskSize, false);
-	kernel.setArg(1, mCLMask);
-	kernel.setArg(3, maskSize);
-    kernel.setArg(4, m_gain);
+	//createMask(input, maskSize, false);
+	kernel.setArg(2, mStdDev);
+    kernel.setArg(3, m_gain);
 	auto globalSize = cl::NDRange(input->getWidth(),input->getHeight());
 
 	auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
 	kernel.setArg(0, *inputAccess->get2DImage());
-	kernel.setArg(2, *outputAccess->get2DImage());
+	kernel.setArg(1, *outputAccess->get2DImage());
     clDevice->getCommandQueue().enqueueNDRangeKernel(
         kernel,
         cl::NullRange,
