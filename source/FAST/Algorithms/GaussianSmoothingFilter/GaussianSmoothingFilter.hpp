@@ -1,5 +1,4 @@
-#ifndef GAUSSIANSMOOTHINGFILTER_HPP_
-#define GAUSSIANSMOOTHINGFILTER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/ExecutionDevice.hpp"
@@ -14,7 +13,7 @@ class FAST_EXPORT  GaussianSmoothingFilter : public ProcessObject {
         void setStandardDeviation(float stdDev);
         void setOutputType(DataType type);
         ~GaussianSmoothingFilter();
-    private:
+    protected:
         GaussianSmoothingFilter();
         void execute();
         void waitToFinish();
@@ -38,7 +37,3 @@ class FAST_EXPORT  GaussianSmoothingFilter : public ProcessObject {
 
 } // end namespace fast
 
-
-
-
-#endif /* GAUSSIANSMOOTHINGFILTER_HPP_ */
