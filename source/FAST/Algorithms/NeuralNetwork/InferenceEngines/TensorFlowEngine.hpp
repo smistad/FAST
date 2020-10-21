@@ -5,6 +5,7 @@
 // Forward declare
 namespace tensorflow {
 class Session;
+class SavedModelBundle;
 }
 
 namespace fast {
@@ -20,6 +21,7 @@ class TensorFlowEngine : public InferenceEngine {
         TensorFlowEngine();
     protected:
         std::unique_ptr<tensorflow::Session> mSession;
+        std::unique_ptr<tensorflow::SavedModelBundle> mSavedModelBundle;
         std::vector<std::string> mLearningPhaseTensors;
 
 };

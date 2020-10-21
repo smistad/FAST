@@ -25,6 +25,11 @@
 //#include <tensorflow/core/platform/logging.h>
 #include <FAST/Utility.hpp>
 
+#include <tensorflow/cc/saved_model/loader.h>
+#include <tensorflow/cc/saved_model/loader_util.h>
+#include <tensorflow/cc/saved_model/tag_constants.h>
+#include <tensorflow/cc/saved_model/reader.h>
+
 
 namespace fast {
 
@@ -188,19 +193,38 @@ void TensorFlowEngine::load() {
 	gpuOptions->set_allow_growth(true); 
 	//gpuOptions->set_per_process_gpu_memory_fraction(0.5);
     */
-	mSession.reset(tensorflow::NewSession(options));
+
 	tensorflow::GraphDef tensorflow_graph;
 
-	{
+	if(networkFilename.substr(networkFilename.size()-3) == ".pb" || tensorflow::MaybeSavedModelDirectory(networkFilename) == false) {
+	    // Load a frozen protobuf file (.pb)
         if(!fileExists(networkFilename))
             throw Exception(networkFilename + " does not exist");
-		reportInfo() << "Loading network file: " << networkFilename << reportEnd();
-		tensorflow::Status s = ReadBinaryProto(tensorflow::Env::Default(), networkFilename, &tensorflow_graph);
-		if (!s.ok()) {
-			throw Exception("Could not read TensorFlow graph file " + networkFilename);
-		}
+        reportInfo() << "Loading network file: " << networkFilename << reportEnd();
+        tensorflow::Status s = ReadBinaryProto(tensorflow::Env::Default(), networkFilename, &tensorflow_graph);
+        if (!s.ok()) {
+            throw Exception("Could not read TensorFlow graph file " + networkFilename);
+        }
+        reportInfo() << "Creating session." << reportEnd();
+        mSession.reset(tensorflow::NewSession(options));
+        s = mSession->Create(tensorflow_graph);
+        if (!s.ok()) {
+            throw Exception("Could not create TensorFlow Graph: " + s.error_message());
+        }
+	} else {
+	    // Load a model stored in the SavedModel format
+        mSavedModelBundle = std::make_unique<tensorflow::SavedModelBundle>();
+        tensorflow::RunOptions runOptions;
+        auto s = tensorflow::LoadSavedModel(options, runOptions, networkFilename, {tensorflow::kSavedModelTagServe}, mSavedModelBundle.get());
+        if(!s.ok()) {
+            throw Exception("Could not read TensorFlow SavedModel from " + networkFilename);
+        }
+        tensorflow::MetaGraphDef metaGraphDef = mSavedModelBundle->meta_graph_def;
+        mSession.reset(mSavedModelBundle->GetSession());
+        tensorflow_graph = metaGraphDef.graph_def();
 	}
 
+	// Analyze nodes to find input node
 	bool nodesSpecified = true;
     int inputCounter = 0;
 	if(mInputNodes.size() == 0) {
@@ -234,31 +258,29 @@ void TensorFlowEngine::load() {
 					if(shape.getDimensions() >= 4) {
 						reportInfo() << "Assuming node is an image" << reportEnd();
 						type = NodeType::IMAGE;
-					} else {
+					} else if(shape.getDimensions() > 0) {
 						reportInfo() << "Assuming node is a tensor" << reportEnd();
+					} else {
+						reportInfo() << "Node has dimension 0, skipping.." << reportEnd();
+						continue;
 					}
-					addInputNode(inputCounter, tensorflow_graph.node(0).name(), type, shape);
+					addInputNode(inputCounter, node.name(), type, shape);
 					++inputCounter;
 				} 
 			}
 		}
 	}
+
+    // If no output nodes, guess that last node is the output node
     if(mOutputNodes.empty()) {
         tensorflow::NodeDef node = tensorflow_graph.node(tensorflow_graph.node_size()-1);
         reportWarning() << "No output nodes were given to TensorFlow engine, FAST is guessing it is the last node with name " << node.name() << reportEnd();
         addOutputNode(0, node.name());
     }
 
-	reportInfo() << "Creating session." << reportEnd();
-	tensorflow::Status s = mSession->Create(tensorflow_graph);
-	if (!s.ok()) {
-		throw Exception("Could not create TensorFlow Graph: " + s.error_message());
-	}
-
-	//tensorflow::graph::SetDefaultDevice("/gpu:0", &tensorflow_graph);
-
 	// Clear the proto to save memory space.
 	tensorflow_graph.Clear();
+
 	reportInfo() << "TensorFlow graph loaded from: " << networkFilename << reportEnd();
 
 	setIsLoaded(true);
