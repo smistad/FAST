@@ -15,6 +15,8 @@ fast_add_sources(
     TensorToSegmentation.hpp
     BoundingBoxNetwork.cpp
     BoundingBoxNetwork.hpp
+    DisplacementNetwork.cpp
+    DisplacementNetwork.hpp
 )
 fast_add_python_interfaces(InferenceEngine.hpp InferenceEngineManager.hpp)
 fast_add_python_shared_pointers(InferenceEngine)
@@ -24,6 +26,8 @@ fast_add_process_object(ClassificationToText ImageClassificationNetwork.hpp)
 fast_add_process_object(SegmentationNetwork SegmentationNetwork.hpp)
 fast_add_process_object(ImageToImageNetwork ImageToImageNetwork.hpp)
 fast_add_process_object(BoundingBoxNetwork BoundingBoxNetwork.hpp)
+fast_add_process_object(DisplacementNetwork DisplacementNetwork.hpp)
+fast_add_process_object(ImagesToSequence DisplacementNetwork.hpp)
 fast_add_process_object(TensorToSegmentation TensorToSegmentation.hpp)
 
 if(FAST_MODULE_Visualization)
