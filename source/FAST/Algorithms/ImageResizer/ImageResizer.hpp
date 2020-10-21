@@ -14,6 +14,7 @@ class FAST_EXPORT  ImageResizer : public ProcessObject {
 		void setSize(VectorXi size);
 		void setPreserveAspectRatio(bool preserve);
         void setInterpolation(bool useInterpolation);
+        void loadAttributes() override;
 	private:
 		ImageResizer();
 		void execute();
