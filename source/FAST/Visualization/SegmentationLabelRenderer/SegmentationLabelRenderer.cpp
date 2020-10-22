@@ -17,11 +17,17 @@ void SegmentationLabelRenderer::loadAttributes() {
     for(int i = 0; i < classColors.size(); i += 2) {
         setLabelColor(std::stoi(classColors[i]), Color::fromString(classColors[i+1]));
     }
+    setAreaThreshold(getFloatAttribute("area-threshold"));
+}
+
+void SegmentationLabelRenderer::setAreaThreshold(float threshold) {
+    m_areaThreshold = threshold;
 }
 
 SegmentationLabelRenderer::SegmentationLabelRenderer() {
     createInputPort<Image>(0);
     mFontSize = 28;
+    m_areaThreshold = 1.0f;
 
     createShaderProgram({
                                 Config::getKernelSourcePath() + "/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.vert",
@@ -30,6 +36,7 @@ SegmentationLabelRenderer::SegmentationLabelRenderer() {
 
     createStringAttribute("label-text", "Label Text", "Text title of each class label", "");
     createStringAttribute("label-color", "Label Colors", "Color of each class label", "");
+    createFloatAttribute("area-threshold", "Area threshold", "Only show labels for objects larger than this threshold. Area is in mm^2", m_areaThreshold);
 }
 
 
@@ -107,7 +114,7 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
         float pixelArea = spacing.x()*spacing.y();
         for(auto& region : m_regions[inputNr]->getAccess(ACCESS_READ)->getData()) {
 
-            if(region.area*pixelArea < 1.0f) // If object to small.. (area in mm^2)
+            if(region.area*pixelArea < m_areaThreshold) // If object to small.. (area in mm^2)
                 continue;
 
             // If no label name has been set. Skip it
