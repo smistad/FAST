@@ -14,10 +14,13 @@ public:
 	// Set name of which HDF5 group to stream
 	void setName(std::string name);
 	void loadAttributes() override;
+	void setFramerate(int framerate);
+	~UFFStreamer();
 protected:
 	void generateStream() override;
 	std::string m_filename;
 	std::string m_name;
 	bool m_loop;
+	int m_framerate = 30;
 };
 }
