@@ -148,6 +148,7 @@ namespace fast {
                 scanconverted = true;
             }
 
+            auto previousTime = std::chrono::high_resolution_clock::now();
             // TODO refactor duplication of code
             if(!scanconverted) {
                 auto dataset = group.openDataSet("imag");
@@ -205,6 +206,11 @@ namespace fast {
                         //image->setSpacing(spacing);
                         //std::cout << image->calculateMaximumIntensity() << " " << image->calculateMinimumIntensity() << std::endl;
 
+						std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
+                        std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
+                        if(sleepFor.count() > 0)
+                            std::this_thread::sleep_for(sleepFor);
+                        previousTime = std::chrono::high_resolution_clock::now();
                         try {
                             addOutputData(0, image);
                             frameAdded();
@@ -262,6 +268,11 @@ namespace fast {
                         image->create(width, height, DataType::TYPE_UINT8, 1, std::move(image_data));
                         image->setSpacing(spacing);
 
+						std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
+                        std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
+                        if(sleepFor.count() > 0)
+                            std::this_thread::sleep_for(sleepFor);
+                        previousTime = std::chrono::high_resolution_clock::now();
                         try {
                             addOutputData(0, image);
                             frameAdded();

@@ -18,6 +18,7 @@ UFFViewerWindow::UFFViewerWindow() {
 	mWidget->setLayout(mainLayout);
 
 	auto menuLayout = new QVBoxLayout;
+	menuLayout->setAlignment(Qt::AlignTop);
 	mainLayout->addLayout(menuLayout);
 
 	m_viewLayout = new QHBoxLayout;
@@ -30,6 +31,10 @@ UFFViewerWindow::UFFViewerWindow() {
 
 	auto logo = new QLabel;
 	logo->setText("Ultrasound File Format Viewer");
+	QFont font;
+	font.setBold(true);
+	//font.setPointSize(14);
+	logo->setFont(font);
 	menuLayout->addWidget(logo);
 
 	auto selectFileButton = new QPushButton;
