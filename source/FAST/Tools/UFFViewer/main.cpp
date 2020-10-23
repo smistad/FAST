@@ -9,7 +9,8 @@ int main(int argc, char** argv) {
 	parser.parse(argc, argv);
 
 	auto window = UFFViewerWindow::New();
-	if(parser.gotValue("filename"))
+	if(parser.gotValue("filename")) {
 		window->setFilename(parser.get("filename"));
+	}
 	window->start();
 }

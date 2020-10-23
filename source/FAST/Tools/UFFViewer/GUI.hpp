@@ -4,6 +4,8 @@
 
 class QHBoxLayout;
 class QComboBox;
+class QSlider;
+class QPushButton;
 
 namespace fast {
 
@@ -22,6 +24,8 @@ class UFFViewerWindow : public Window {
 
 		QHBoxLayout* m_viewLayout;
 		QComboBox* m_framerateInput;
+		QSlider* m_slider;
+		QPushButton* m_playButton;
 		std::shared_ptr<UFFStreamer> m_streamer;
 	public Q_SLOTS:
 		void selectFile();
