@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     auto pipeline = Pipeline(parser.get("pipeline-filename"), parser.getVariables());
-    pipeline.parsePipelineFile();
+    pipeline.parse();
 
     auto window = MultiViewWindow::New();
     for(auto view : pipeline.getViews()) {

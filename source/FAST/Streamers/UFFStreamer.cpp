@@ -79,6 +79,7 @@ void UFFStreamer::openFile() {
 	if(m_uffData->opened)
 		return;
 
+
 	try {
 		// Open file
 		auto& file = m_uffData->file;
@@ -187,8 +188,11 @@ void UFFStreamer::generateStream() {
 		H5::DataSpace memspace(4, blockSize);
 
 		auto previousTime = std::chrono::high_resolution_clock::now();
+		{
+			std::lock_guard<std::mutex> lock(m_playbackMutex);
+			m_currentFrameIndex = 0;
+		}
 		// TODO refactor duplication of code
-		setCurrentFrameIndex(0);
 		if(!m_uffData->scanconverted) {
 			auto& group = m_uffData->group;
 			auto imagDataset = group.openDataSet("imag");
@@ -197,58 +201,59 @@ void UFFStreamer::generateStream() {
 			auto realDataspace = realDataset.getSpace();
 
 			while(true) {
+				bool pause = getPause();				
+				if(pause)
+					waitForUnpause();
+				pause = getPause();
+
 				{
 					std::lock_guard<std::mutex> lock(m_stopMutex);
 					if(m_stop) break;
 				}
-				int frameNr = getCurrentFrameIndex();
+				int frameNr = getCurrentFrameIndexAndUpdate();
 
-					reportInfo() << "Extracting frame " << frameNr << " in UFF file" << reportEnd();
-					// Extract 1 frame
-					auto imaginary = std::make_unique<float[]>(width * height);
-					auto real = std::make_unique<float[]>(width * height);
-					offset[0] = frameNr;
-					imagDataspace.selectHyperslab(H5S_SELECT_SET, count, offset, NULL, blockSize);
-					imagDataset.read(imaginary.get(), H5::PredType::NATIVE_FLOAT, memspace, imagDataspace);
-					realDataspace.selectHyperslab(H5S_SELECT_SET, count, offset, NULL, blockSize);
-					realDataset.read(real.get(), H5::PredType::NATIVE_FLOAT, memspace, realDataspace);
+				{
+					std::lock_guard<std::mutex> lock(m_stopMutex);
+					if(m_stop) break;
+				}
 
-					// TODO start env
-					auto image_data = std::make_unique<float[]>(width * height);
-					for(int y = 0; y < height; ++y) {
-						for(int x = 0; x < width; ++x) {
+				reportInfo() << "Extracting frame " << frameNr << " in UFF file" << reportEnd();
+				// Extract 1 frame
+				auto imaginary = std::make_unique<float[]>(width * height);
+				auto real = std::make_unique<float[]>(width * height);
+				offset[0] = frameNr;
+				imagDataspace.selectHyperslab(H5S_SELECT_SET, count, offset, NULL, blockSize);
+				imagDataset.read(imaginary.get(), H5::PredType::NATIVE_FLOAT, memspace, imagDataspace);
+				realDataspace.selectHyperslab(H5S_SELECT_SET, count, offset, NULL, blockSize);
+				realDataset.read(real.get(), H5::PredType::NATIVE_FLOAT, memspace, realDataspace);
 
-							int pos = y + x * height;
-							image_data[x + y * width] = std::sqrt(imaginary[pos] * imaginary[pos] + real[pos] * real[pos]);
-						}
+				// TODO start env
+				auto image_data = std::make_unique<float[]>(width * height);
+				for(int y = 0; y < height; ++y) {
+					for(int x = 0; x < width; ++x) {
+
+						int pos = y + x * height;
+						image_data[x + y * width] = std::sqrt(imaginary[pos] * imaginary[pos] + real[pos] * real[pos]);
 					}
-					// TODO end env
-					auto image = Image::New();
-					image->create(width, height, DataType::TYPE_FLOAT, 1, std::move(image_data));
-					//image->setSpacing(spacing);
-					//std::cout << image->calculateMaximumIntensity() << " " << image->calculateMinimumIntensity() << std::endl;
+				}
+				// TODO end env
+				auto image = Image::New();
+				image->create(width, height, DataType::TYPE_FLOAT, 1, std::move(image_data));
+				//image->setSpacing(spacing);
+				//std::cout << image->calculateMaximumIntensity() << " " << image->calculateMinimumIntensity() << std::endl;
 
+				if(!pause) {
 					std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
 					std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
 					if(sleepFor.count() > 0)
 						std::this_thread::sleep_for(sleepFor);
 					previousTime = std::chrono::high_resolution_clock::now();
-					try {
-						addOutputData(0, image);
-						frameAdded();
-					} catch(ThreadStopped & e) {
-						break;
-					}
-
-				if(frameNr + 1 >= m_uffData->frameCount) {
-					if(!m_loop) {
-						break;
-					} else {
-						setCurrentFrameIndex(0);
-						frameNr = 0;
-					}
-				} else {
-					setCurrentFrameIndex(frameNr + 1);
+				}
+				try {
+					addOutputData(0, image);
+					frameAdded();
+				} catch(ThreadStopped & e) {
+					break;
 				}
 			}
 		} else {
@@ -256,59 +261,49 @@ void UFFStreamer::generateStream() {
 			auto dataspace = dataset.getSpace();
 
 			while(true) {
-				bool pause = false;
-				{
-					std::lock_guard<std::mutex> lock(m_stopMutex);
-					pause = m_pause;
-				}
+				bool pause = getPause();				
 				if(pause)
 					waitForUnpause();
+				pause = getPause();
+
 				{
 					std::lock_guard<std::mutex> lock(m_stopMutex);
 					if(m_stop) break;
 				}
-				int frameNr = getCurrentFrameIndex();
+				int frameNr = getCurrentFrameIndexAndUpdate();
 
-					reportInfo() << "Extracting frame " << frameNr << " in UFF file" << reportEnd();
-					// Extract 1 frame
-					auto data = std::make_unique<uchar[]>(width * height);
-					offset[0] = frameNr;
-					dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, NULL, blockSize);
-					dataset.read(data.get(), H5::PredType::NATIVE_UCHAR, memspace, dataspace);
+				reportInfo() << "Extracting frame " << frameNr << " in UFF file" << reportEnd();
+				// Extract 1 frame
+				auto data = std::make_unique<uchar[]>(width * height);
+				offset[0] = frameNr;
+				dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, NULL, blockSize);
+				dataset.read(data.get(), H5::PredType::NATIVE_UCHAR, memspace, dataspace);
 
-					auto image_data = std::make_unique<uchar[]>(width * height);
-					for(int y = 0; y < height; ++y) {
-						for(int x = 0; x < width; ++x) {
+				auto image_data = std::make_unique<uchar[]>(width * height);
+				for(int y = 0; y < height; ++y) {
+					for(int x = 0; x < width; ++x) {
 
-							int pos = y + x * height;
-							image_data[x + y * width] = data[pos];
-						}
+						int pos = y + x * height;
+						image_data[x + y * width] = data[pos];
 					}
+				}
 
-					auto image = Image::New();
-					image->create(width, height, DataType::TYPE_UINT8, 1, std::move(image_data));
-					image->setSpacing(m_uffData->spacing);
+				auto image = Image::New();
+				image->create(width, height, DataType::TYPE_UINT8, 1, std::move(image_data));
+				image->setSpacing(m_uffData->spacing);
 
+				if(!pause) {
 					std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
 					std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
 					if(sleepFor.count() > 0)
 						std::this_thread::sleep_for(sleepFor);
 					previousTime = std::chrono::high_resolution_clock::now();
-					try {
-						addOutputData(0, image);
-						frameAdded();
-					} catch(ThreadStopped & e) {
-						break;
-					}
-				if(frameNr + 1 >= m_uffData->frameCount) {
-					if(!m_loop) {
-						break;
-					} else {
-						setCurrentFrameIndex(0);
-						frameNr = 0;
-					}
-				} else {
-					setCurrentFrameIndex(frameNr + 1);
+				}
+				try {
+					addOutputData(0, image);
+					frameAdded();
+				} catch(ThreadStopped & e) {
+					break;
 				}
 			}
 		}

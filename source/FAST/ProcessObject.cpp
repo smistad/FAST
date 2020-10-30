@@ -125,6 +125,8 @@ DataChannel::pointer ProcessObject::getOutputPort(uint portID) {
         auto streamingMode = Config::getStreamingMode();
         if(streamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
             dataChannel = QueuedDataChannel::New();
+            if(m_maximumNrOfFrames > 0)
+                dataChannel->setMaximumNumberOfFrames(m_maximumNrOfFrames);
         } else if(streamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
             dataChannel = NewestFrameDataChannel::New();
         } else {

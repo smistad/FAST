@@ -3,6 +3,7 @@
 #include <FAST/Visualization/Window.hpp>
 
 class QHBoxLayout;
+class QVBoxLayout;
 class QComboBox;
 class QSlider;
 class QPushButton;
@@ -15,21 +16,22 @@ class UFFViewerWindow : public Window {
 	FAST_OBJECT(UFFViewerWindow)
 	public:
 		void setFilename(std::string filename);
+		//void start() override;
 	protected:
 		UFFViewerWindow();
 		void loadView();
+		//void createLayout();
 
 		std::string m_filename;
 		int m_framerate = 30;
+		std::string m_pipelineFile = "default.fpl";
 
 		QHBoxLayout* m_viewLayout;
+		QVBoxLayout* m_rightSideLayout;
 		QComboBox* m_framerateInput;
 		QSlider* m_slider;
 		QPushButton* m_playButton;
 		std::shared_ptr<UFFStreamer> m_streamer;
-	public Q_SLOTS:
-		void selectFile();
-		void selectFramerate(int index);
 };
 
 }

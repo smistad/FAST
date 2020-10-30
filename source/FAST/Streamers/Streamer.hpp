@@ -30,6 +30,8 @@ class FAST_EXPORT Streamer : public ProcessObject {
          * Stop the stream
          */
         virtual void stop();
+
+        virtual void setMaximumNrOfFrames(int maximumNrOfFrames);
     protected:
         /**
          * Block until the first data frame has been sent using a condition variable
