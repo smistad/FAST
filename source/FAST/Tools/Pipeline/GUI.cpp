@@ -128,6 +128,9 @@ GUI::GUI() {
 		}
 	});
 	menuLayout->addWidget(newButton);
+
+	// Add some stretch to keep GUI minialized
+	menuLayout->addStretch();
 }
 
 void GUI::loadPipeline() {
