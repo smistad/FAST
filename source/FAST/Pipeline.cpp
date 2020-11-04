@@ -304,6 +304,7 @@ std::vector<Pipeline> getAvailablePipelines(std::string path) {
             Pipeline pipeline(filepath);
             pipelines.push_back(pipeline);
         } catch(Exception & e) {
+            Reporter::warning() << "Error reading pipeline " << filepath << ": " << e.what() << Reporter::end();
             continue;
         }
     }
