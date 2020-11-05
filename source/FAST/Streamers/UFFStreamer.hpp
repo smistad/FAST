@@ -1,23 +1,31 @@
 #pragma once
 
-#include <FAST/Streamers/Streamer.hpp>
+#include <FAST/Streamers/RandomAccessStreamer.hpp>
 
 namespace fast {
 
-class FAST_EXPORT UFFStreamer : public Streamer {
+class UFFData;
+
+/**
+* A streamer for reading data stored in the ultrasound file format (UFF)
+* which is essentially and HDF5 file with ultrasound image/beam data.
+*/
+class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
 	FAST_OBJECT(UFFStreamer)
 public:
 	UFFStreamer();
 	void setFilename(std::string filename);
 	void execute() override;
-	void setLooping(bool loop);
+	int getNrOfFrames() override;
 	// Set name of which HDF5 group to stream
 	void setName(std::string name);
 	void loadAttributes() override;
+	~UFFStreamer();
 protected:
 	void generateStream() override;
+	void openFile();
 	std::string m_filename;
 	std::string m_name;
-	bool m_loop;
+	std::unique_ptr<UFFData> m_uffData;
 };
 }

@@ -9,6 +9,7 @@
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
+#include <FAST/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.hpp>
 #include <FAST/Streamers/ClariusStreamer.hpp>
 #include <FAST/Streamers/OpenIGTLinkStreamer.hpp>
 #include <FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp>
@@ -79,12 +80,21 @@ int main(int argc, char** argv) {
     segmentationRenderer->setColor(Segmentation::LABEL_FOREGROUND, Color::Red());
     segmentationRenderer->setColor(Segmentation::LABEL_BLOOD, Color::Blue());
 
+    auto labelRenderer = SegmentationLabelRenderer::New();
+    labelRenderer->addInputConnection(segmentation->getOutputPort());
+    labelRenderer->setAreaThreshold(10);
+    labelRenderer->setLabelName(1, "Artery");
+    labelRenderer->setLabelColor(1, Color::Red());
+    labelRenderer->setLabelName(2, "Vein");
+    labelRenderer->setLabelColor(2, Color::Blue());
+
     auto imageRenderer = ImageRenderer::New();
     imageRenderer->setInputConnection(inputStream->getOutputPort());
 
     auto window = SimpleWindow::New();
     window->addRenderer(imageRenderer);
     window->addRenderer(segmentationRenderer);
+    window->addRenderer(labelRenderer);
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());
     window->start();

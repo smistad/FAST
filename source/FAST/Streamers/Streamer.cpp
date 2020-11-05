@@ -43,4 +43,8 @@ void Streamer::stop() {
     }
 }
 
+void Streamer::setMaximumNrOfFrames(int frames) {
+    m_maximumNrOfFrames = frames;
+}
+
 }

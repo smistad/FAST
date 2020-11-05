@@ -689,7 +689,8 @@ bool isFile(const std::string& path) {
 
 bool isDir(const std::string& path) {
 #ifdef _WIN32
-    throw Exception("Not implemented");
+    auto attr = GetFileAttributesA(path.c_str());
+    return attr & FILE_ATTRIBUTE_DIRECTORY;
 #else
     struct stat buf;
     stat(path.c_str(), &buf);

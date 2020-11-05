@@ -24,7 +24,7 @@ class FAST_EXPORT  Pipeline : public Object {
         /**
          * Parse the pipeline file
          */
-        void parsePipelineFile(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects = {});
+        void parse(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects = {});
 
     private:
         std::string mName;

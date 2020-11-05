@@ -38,6 +38,24 @@ namespace fast {
 			StreamingMode m_streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
 		}
 
+		static void copyPipelineFilesRecursivly(std::string pipelineSourcePath, std::string pipelineDestinationPath) {
+			for(auto&& pipeline : getDirectoryList(pipelineSourcePath, true, true)) {
+				if(isDir(pipelineSourcePath + pipeline)) {
+					copyPipelineFilesRecursivly(join(pipelineSourcePath, pipeline), join(mPipelinePath, pipeline));
+				} else {
+					if(!fileExists(join(pipelineDestinationPath, pipeline))) {
+						// Copy file from source folder to writable destination folder
+						std::ifstream  src(join(pipelineSourcePath, pipeline), std::ios::binary);
+						std::ofstream  dst(join(pipelineDestinationPath, pipeline), std::ios::binary);
+
+						dst << src.rdbuf();
+					}
+				}
+			}
+		}
+
+
+
 		std::string Config::getPath() {
 			if (mBasePath != "")
 				return mBasePath;
@@ -112,18 +130,12 @@ namespace fast {
 			createDirectories(mTestDataPath);
 			createDirectories(mPipelinePath);
 
-			/*
 			// Copy pipelines (first time only)
-			for(auto&& pipeline : getDirectoryList(mPipelinePath)) {
-				if(!fileExists(mPipelinePath)) {
-					// Copy file from source folder
-					std::ifstream  src(mPipelinePath + pipeline, std::ios::binary);
-					std::ofstream  dst(writeablePath + "pipelines/" + pipeline, std::ios::binary);
-
-					dst << src.rdbuf();
-				}
+			if(isDir(getPath() + "../../pipelines/")) {
+				copyPipelineFilesRecursivly(getPath() + "../../pipelines/", mPipelinePath);
+			} else {
+				copyPipelineFilesRecursivly(getPath() + "../pipelines/", mPipelinePath);
 			}
-			*/
 
 			// Read and parse configuration file
 			// It should reside in the build folder when compiling, and in the root folder when using release
