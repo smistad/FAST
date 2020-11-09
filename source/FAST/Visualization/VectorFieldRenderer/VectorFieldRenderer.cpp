@@ -10,12 +10,14 @@ VectorFieldRenderer::VectorFieldRenderer() {
 
 void VectorFieldRenderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
+    if(m_disabled)
+        return;
     if(mStop) {
         return;
     }
 
     // Check if current images has not been rendered, if not wait
-    while(!mHasRendered) {
+    while(!mHasRendered && m_synchedRendering) {
         mRenderedCV.wait(lock);
     }
     std::unordered_map<uint, SpatialDataObject::pointer> vectorImages;
