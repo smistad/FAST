@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <FAST/Object.hpp>
+#include <FAST/Data/DataTypes.hpp>
 
 namespace fast {
 
@@ -12,6 +13,11 @@ class FAST_EXPORT TensorShape {
          * @param dimensions
          */
         TensorShape(std::initializer_list<int> dimensions);
+        /**
+         * Construct tensor shape
+         * @param dimensions
+         */
+        TensorShape(VectorXi dimensions);
         /**
          * Construct tensor shape
          * @param dimensions
