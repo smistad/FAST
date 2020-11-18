@@ -108,7 +108,7 @@ namespace fast {
 #ifdef WIN32
 				mTestDataPath = "C:/ProgramData/FAST/data/";
 #else
-				mTestDataPath = QDir::homePath().toStdString() + "/.FAST/data/";
+				mTestDataPath = QDir::homePath().toStdString() + "/FAST/data/";
 #endif
 			}
 #ifdef WIN32
@@ -117,9 +117,9 @@ namespace fast {
 			std::string writeablePath = "C:/ProgramData/FAST/";
 			mLibraryPath = getPath();
 #else
-			mKernelBinaryPath = QDir::homePath().toStdString() + "/.FAST/kernel_binaries/";
-			mPipelinePath = QDir::homePath().toStdString() + "/.FAST/pipelines/";
-			std::string writeablePath = QDir::homePath().toStdString() + "/.FAST/";
+			mKernelBinaryPath = QDir::homePath().toStdString() + "/FAST/kernel_binaries/";
+			mPipelinePath = QDir::homePath().toStdString() + "/FAST/pipelines/";
+			std::string writeablePath = QDir::homePath().toStdString() + "/FAST/";
 			mLibraryPath = getPath() + "/../lib/";
 #endif
 			mKernelSourcePath = getPath() + "../../source/FAST/";
@@ -130,10 +130,14 @@ namespace fast {
 			createDirectories(mPipelinePath);
 
 			// Copy pipelines (first time only)
-			if(isDir(getPath() + "../../pipelines/")) {
-				copyPipelineFilesRecursivly(getPath() + "../../pipelines/", mPipelinePath);
-			} else {
-				copyPipelineFilesRecursivly(getPath() + "../pipelines/", mPipelinePath);
+			try {
+				if(isDir(getPath() + "../../pipelines/")) {
+					copyPipelineFilesRecursivly(getPath() + "../../pipelines/", mPipelinePath);
+				} else {
+					copyPipelineFilesRecursivly(getPath() + "../pipelines/", mPipelinePath);
+				}
+			} catch(Exception & e) {
+				Reporter::warning() << e.what() << Reporter::end();
 			}
 
 			// Read and parse configuration file
