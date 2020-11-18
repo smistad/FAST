@@ -11,7 +11,6 @@
 #include <QElapsedTimer>
 #include <QStandardPaths>
 #include <QDir>
-#include <zip/zip.h>
 
 // Includes needed to get path of dynamic library
 #ifdef _WIN32
@@ -341,7 +340,12 @@ namespace fast {
 				std::cout << "Finished downloading file. Processing.." << std::endl;
 				file.close();
 				std::cout << "Unzipping the data file ..." << std::endl;
-				zip_extract(file.fileName().toStdString().c_str(), (destination + "/../").c_str(), nullptr, nullptr);
+				try {
+					extractZipFile(file.fileName().toStdString(), destination + "/../");
+				} catch(Exception & e) {
+					std::cout << "ERROR: Zip extraction failed." << std::endl;
+				}
+				
 				file.remove();
 				std::cout << "Done." << std::endl;
 			});
