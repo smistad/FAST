@@ -48,6 +48,8 @@ void NeuralNetwork::loadAttributes() {
             setInputSize("", size);
         }
     }
+    // Load network here so that input and output nodes are readily defined after loadAttributes()
+	m_engine->load();
 }
 
 void NeuralNetwork::setInputSize(std::string name, std::vector<int> size) {
