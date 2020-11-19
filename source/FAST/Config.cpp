@@ -11,7 +11,6 @@
 #include <QElapsedTimer>
 #include <QStandardPaths>
 #include <QDir>
-#include <zip/zip.h>
 
 // Includes needed to get path of dynamic library
 #ifdef _WIN32
@@ -109,7 +108,7 @@ namespace fast {
 #ifdef WIN32
 				mTestDataPath = "C:/ProgramData/FAST/data/";
 #else
-				mTestDataPath = QDir::homePath().toStdString() + "/.FAST/data/";
+				mTestDataPath = QDir::homePath().toStdString() + "/FAST/data/";
 #endif
 			}
 #ifdef WIN32
@@ -118,9 +117,9 @@ namespace fast {
 			std::string writeablePath = "C:/ProgramData/FAST/";
 			mLibraryPath = getPath();
 #else
-			mKernelBinaryPath = QDir::homePath().toStdString() + "/.FAST/kernel_binaries/";
-			mPipelinePath = QDir::homePath().toStdString() + "/.FAST/pipelines/";
-			std::string writeablePath = QDir::homePath().toStdString() + "/.FAST/";
+			mKernelBinaryPath = QDir::homePath().toStdString() + "/FAST/kernel_binaries/";
+			mPipelinePath = QDir::homePath().toStdString() + "/FAST/pipelines/";
+			std::string writeablePath = QDir::homePath().toStdString() + "/FAST/";
 			mLibraryPath = getPath() + "/../lib/";
 #endif
 			mKernelSourcePath = getPath() + "../../source/FAST/";
@@ -131,10 +130,14 @@ namespace fast {
 			createDirectories(mPipelinePath);
 
 			// Copy pipelines (first time only)
-			if(isDir(getPath() + "../../pipelines/")) {
-				copyPipelineFilesRecursivly(getPath() + "../../pipelines/", mPipelinePath);
-			} else {
-				copyPipelineFilesRecursivly(getPath() + "../pipelines/", mPipelinePath);
+			try {
+				if(isDir(getPath() + "../../pipelines/")) {
+					copyPipelineFilesRecursivly(getPath() + "../../pipelines/", mPipelinePath);
+				} else {
+					copyPipelineFilesRecursivly(getPath() + "../pipelines/", mPipelinePath);
+				}
+			} catch(Exception & e) {
+				Reporter::warning() << e.what() << Reporter::end();
 			}
 
 			// Read and parse configuration file
@@ -341,7 +344,12 @@ namespace fast {
 				std::cout << "Finished downloading file. Processing.." << std::endl;
 				file.close();
 				std::cout << "Unzipping the data file ..." << std::endl;
-				zip_extract(file.fileName().toStdString().c_str(), (destination + "/../").c_str(), nullptr, nullptr);
+				try {
+					extractZipFile(file.fileName().toStdString(), destination + "/../");
+				} catch(Exception & e) {
+					std::cout << "ERROR: Zip extraction failed." << std::endl;
+				}
+				
 				file.remove();
 				std::cout << "Done." << std::endl;
 			});

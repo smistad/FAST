@@ -248,7 +248,12 @@ std::unique_ptr<T> make_uninitialized_unique(std::size_t size) {
     return std::unique_ptr<T>(new typename std::remove_extent<T>::type[size]);
 }
 
-
+/**
+ * Extract the contents of a zip file to a given destination.
+ * @param zipFilepath path to zip file to extract
+ * @param destination path to where to extract the conents of the zip file
+ */
+FAST_EXPORT void extractZipFile(std::string zipFilepath, std::string destination);
 
 } // end namespace fast
 

@@ -9,6 +9,11 @@ TensorShape::TensorShape(std::vector<int> dimensions) : m_data(dimensions) {
 TensorShape::TensorShape(std::initializer_list<int> dimensions) : m_data(dimensions) {
 }
 
+TensorShape::TensorShape(VectorXi dimensions) {
+    for(int i = 0; i < dimensions.size(); ++i)
+        m_data.push_back(dimensions[i]);
+}
+
 TensorShape::TensorShape() = default;
 
 bool TensorShape::empty() const {

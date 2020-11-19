@@ -1,0 +1,12 @@
+PipelineName "Movie Streaming"
+PipelineDescription "Stream a movie from file and render it"
+
+ProcessObject streamer MovieStreamer
+Attribute filename @@file=$TEST_DATA_PATH$/US/sagittal_spine.avi@@
+
+Renderer renderer ImageRenderer
+Input 0 streamer 0
+
+View view renderer
+Attribute 2Dmode true
+Attribute background-color black
