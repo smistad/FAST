@@ -24,7 +24,6 @@ void NeuralNetwork::loadAttributes() {
     auto preferredEngine = getStringAttribute("inference-engine");
     if(!preferredEngine.empty())
         setInferenceEngine(preferredEngine);
-    m_engine->setFilename(getStringAttribute("model"));
     
     // TODO input nodes, shapes, and tensor/images type
     auto outputNames = getStringListAttribute("output-names");
@@ -50,7 +49,7 @@ void NeuralNetwork::loadAttributes() {
         }
     }
     // Load network here so that input and output nodes are readily defined after loadAttributes()
-	m_engine->load();
+	load(getStringAttribute("model"));
 }
 
 void NeuralNetwork::setInputSize(std::string name, std::vector<int> size) {
