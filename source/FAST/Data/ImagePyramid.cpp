@@ -112,28 +112,25 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
 			data = (uint8_t*)mmap64(0, bytes-1, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 			if (data == MAP_FAILED) {
 				close(fd);
-				perror("Error mmapping the file");
-				exit(EXIT_FAILURE);
+				throw Exception("Erro mmapinng the file for image pyramid creation.");
 			}
 			levelData.fileHandle = fd;
 #endif
-			// Initialize data to all zeros
-			std::memset(data, 0, bytes);
 
 			levelData.data = data;
 			levelData.memoryMapped = true;
 		}
+        // Initialize data to all zeros
+        std::memset(levelData.data, 0, bytes);
 		m_levels.push_back(levelData);
 
-		// TODO Initialize data to zeros?
 		reportInfo() << "Done creating level " << currentLevel << reportEnd();
 		++currentLevel;
     }
 
     for(int i = 0; i < m_levels.size(); ++i) {
-        int x = m_levels.size() - i - 1;
-        //m_levels[i].patches = x*x*x + 10;
-		m_levels[i].patches = std::ceil(m_levels[i].width / 256);
+		m_levels[i].tilesX = std::ceil(m_levels[i].width / m_levels[i].tileWidth);
+        m_levels[i].tilesY = std::ceil(m_levels[i].height / m_levels[i].tileHeight);
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
@@ -145,8 +142,8 @@ void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel
     m_levels = levels;
     m_channels = 4;
     for(int i = 0; i < m_levels.size(); ++i) {
-        int x = m_levels.size() - i - 1;
-		m_levels[i].patches = std::ceil(m_levels[i].width / m_levels[i].tileWidth); // TODO different patch size in X and Y
+		m_levels[i].tilesX = std::ceil(m_levels[i].width / m_levels[i].tileWidth);
+        m_levels[i].tilesY = std::ceil(m_levels[i].height / m_levels[i].tileHeight);
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
@@ -169,8 +166,20 @@ int ImagePyramid::getLevelHeight(int level) {
     return m_levels.at(level).height;
 }
 
-int ImagePyramid::getLevelPatches(int level) {
-    return m_levels.at(level).patches;
+int ImagePyramid::getLevelTileWidth(int level) {
+    return m_levels.at(level).tileWidth;
+}
+
+int ImagePyramid::getLevelTileHeight(int level) {
+    return m_levels.at(level).tileHeight;
+}
+
+int ImagePyramid::getLevelTilesX(int level) {
+    return m_levels.at(level).tilesX;
+}
+
+int ImagePyramid::getLevelTilesY(int level) {
+    return m_levels.at(level).tilesY;
 }
 
 int ImagePyramid::getFullWidth() {

@@ -24,8 +24,11 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getNrOfLevels();
         int getLevelWidth(int level);
         int getLevelHeight(int level);
-        int getLevelPatches(int level);
-        int getFullWidth();
+        int getLevelTileWidth(int level);
+        int getLevelTileHeight(int level);
+        int getLevelTilesX(int level);
+        int getLevelTilesY(int level);
+    int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;
         void setSpacing(Vector3f spacing);

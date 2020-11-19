@@ -25,7 +25,8 @@ public:
 	int height;
 	int tileWidth = 256;
 	int tileHeight = 256;
-	int patches;
+	int tilesX;
+    int tilesY;
 	bool memoryMapped;
 	uint8_t* data;
 #ifdef WIN32
