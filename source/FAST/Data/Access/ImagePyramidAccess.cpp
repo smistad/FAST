@@ -34,10 +34,10 @@ void ImagePyramidAccess::setScalarFast(uint x, uint y, uint level, uint8_t value
     // add patch to list of dirty patches
     int levelWidth = m_image->getLevelWidth(level);
     int levelHeight = m_image->getLevelHeight(level);
-    int patches = m_image->getLevelPatches(level);
-
-    int patchIdX = std::floor(((float)x / levelWidth)* patches);
-    int patchIdY = std::floor(((float)y / levelHeight)* patches);
+    const int tilesX = m_image->getLevelTilesX(level);
+    const int tilesY = m_image->getLevelTilesX(level);
+    int patchIdX = std::floor(((float)x / levelWidth)* tilesX);
+    int patchIdY = std::floor(((float)y / levelHeight)* tilesY);
     m_image->setDirtyPatch(level, patchIdX, patchIdY);
 
     // Propagate change upwards recursively
@@ -104,9 +104,17 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
     const int levelWidth = m_image->getLevelWidth(level);
     const int levelHeight = m_image->getLevelHeight(level);
     const int channels = m_image->getNrOfChannels();
-    auto data = make_uninitialized_unique<uchar[]>(width*height*channels);
+    auto data = std::make_unique<uchar[]>(width*height*channels);
     if(m_fileHandle != nullptr) {
-		float scale = (float)m_image->getFullWidth()/levelWidth;
+		int scale = (float)m_image->getFullWidth()/levelWidth;
+#ifndef WIN32
+        // HACK for black edge frames on ubuntu linux 20.04. This seems to be an issue with openslide or underlying libraries
+		if(level != 0) { // only occurs on levels != 0
+		    // Reading scale pixels further in eliminates the problem for some reason...
+		    x = x == 0 ? x+1 : x;
+            y = y == 0 ? y+1 : y;
+		}
+#endif
         openslide_read_region(m_fileHandle, (uint32_t*)data.get(), x * scale, y * scale, level, width, height);
     } else {
         auto levelData = m_levels[level];
@@ -126,16 +134,19 @@ ImagePyramidPatch ImagePyramidAccess::getPatch(int level, int tile_x, int tile_y
     // Create patch
     int levelWidth = m_image->getLevelWidth(level);
     int levelHeight = m_image->getLevelHeight(level);
-    int tiles = m_image->getLevelPatches(level);
+    int levelTileWidth = m_image->getLevelTileWidth(level);
+    int levelTileHeight = m_image->getLevelTileHeight(level);
+    int tilesX = m_image->getLevelTilesX(level);
+    int tilesY = m_image->getLevelTilesY(level);
     ImagePyramidPatch tile;
-    tile.offsetX = tile_x * (int) std::floor((float) levelWidth / tiles);
-    tile.offsetY = tile_y * (int) std::floor((float) levelHeight / tiles);
+    tile.offsetX = tile_x * levelTileWidth;
+    tile.offsetY = tile_y * levelTileHeight;
 
-    tile.width = std::floor(((float) levelWidth / tiles));
-    if(tile_x == tiles - 1)
+    tile.width = levelTileWidth;
+    if(tile_x == tilesX - 1)
         tile.width = levelWidth - tile.offsetX;
-    tile.height = std::floor((float) levelHeight / tiles);
-    if(tile_y == tiles - 1)
+    tile.height = levelTileHeight;
+    if(tile_y == tilesY - 1)
         tile.height = levelHeight - tile.offsetY;
 
     // Read the actual data
@@ -208,19 +219,22 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     return channelConverter->updateAndGetOutputData<Image>();
 }
 
-std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int patchIdX, int patchIdY) {
+std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX, int tileY) {
     int levelWidth = m_image->getLevelWidth(level);
     int levelHeight = m_image->getLevelHeight(level);
-    int tiles = m_image->getLevelPatches(level);
+    int tilesX = m_image->getLevelTilesX(level);
+    int tilesY = m_image->getLevelTilesY(level);
+    int levelTileWidth = m_image->getLevelTileWidth(level);
+    int levelTileHeight = m_image->getLevelTileHeight(level);
     ImagePyramidPatch tile;
-    tile.offsetX = patchIdX * (int) std::floor((float) levelWidth / tiles);
-    tile.offsetY = patchIdY * (int) std::floor((float) levelHeight / tiles);
+    tile.offsetX = tileX * levelTileWidth;
+    tile.offsetY = tileY * levelTileHeight;
 
-    tile.width = std::floor(((float) levelWidth / tiles));
-    if(patchIdX == tiles - 1)
+    tile.width = levelTileWidth;
+    if(tileX == tilesX - 1)
         tile.width = levelWidth - tile.offsetX;
-    tile.height = std::floor((float) levelHeight / tiles);
-    if(patchIdY == tiles - 1)
+    tile.height = levelTileHeight;
+    if(tileY == tilesY - 1)
         tile.height = levelHeight - tile.offsetY;
 
     // Read the actual data
