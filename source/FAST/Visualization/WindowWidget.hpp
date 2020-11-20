@@ -1,12 +1,4 @@
-/*
- * WindowWidget.hpp
- *
- *  Created on: May 14, 2014
- *      Author: smistad
- */
-
-#ifndef WINDOWWIDGET_HPP_
-#define WINDOWWIDGET_HPP_
+#pragma once
 
 #include <QWidget>
 #include <QEventLoop>
@@ -41,11 +33,7 @@ class FAST_EXPORT  WindowWidget : public QWidget {
 
     signals:
         void widgetHasClosed();
-        void fileNamesSent(const QList<QString> &names);
-
+        void filesDropped(const QList<QString> &filenames);
 
 };
-}; // end namespace fast
-
-
-#endif /* WINDOWWIDGET_HPP_ */
+} // end namespace fast

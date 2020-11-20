@@ -1,0 +1,9 @@
+PipelineName "Default"
+PipelineDescription "Only render UFF data"
+
+Renderer renderer ImageRenderer
+Input 0 UFFstream 0
+
+View view renderer
+Attribute 2Dmode true
+Attribute background-color black

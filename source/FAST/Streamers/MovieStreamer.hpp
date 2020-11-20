@@ -9,7 +9,9 @@ class QThread;
 
 namespace fast {
 
-class Worker;
+class Image;
+
+class MovieStreamerWorker;
 
 class FAST_EXPORT MovieStreamer : public Streamer {
     FAST_OBJECT(MovieStreamer)
@@ -24,6 +26,7 @@ class FAST_EXPORT MovieStreamer : public Streamer {
         int getFramesAdded() const;
         ~MovieStreamer();
         void loadAttributes() override;
+        void addLastFrame();
     private:
         MovieStreamer();
         void execute();
@@ -35,15 +38,18 @@ class FAST_EXPORT MovieStreamer : public Streamer {
         int64_t m_framesAdded = 0;
         std::chrono::high_resolution_clock::time_point m_startTime;
         QThread* thread;
-        Worker* worker;
+        MovieStreamerWorker* worker;
+        std::shared_ptr<Image> m_currentImage;
 
 };
 
-class Worker : public QObject {
+class VideoSurface;
+
+class MovieStreamerWorker : public QObject {
     Q_OBJECT
     public:
-        Worker(MovieStreamer* streamer);
-        ~Worker();
+        MovieStreamerWorker(MovieStreamer* streamer);
+        ~MovieStreamerWorker();
     public Q_SLOTS:
         void run();
     Q_SIGNALS:
@@ -52,6 +58,7 @@ class Worker : public QObject {
     private:
         MovieStreamer* mStreamer;
         std::unique_ptr<QMediaPlayer> m_player;
+        std::unique_ptr<VideoSurface> m_myVideoSurface;
 };
 
 }

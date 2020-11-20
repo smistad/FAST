@@ -11,7 +11,6 @@
 #include <QElapsedTimer>
 #include <QStandardPaths>
 #include <QDir>
-#include <zip/zip.h>
 
 // Includes needed to get path of dynamic library
 #ifdef _WIN32
@@ -37,6 +36,24 @@ namespace fast {
 			std::string mQtPluginsPath;
 			StreamingMode m_streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
 		}
+
+		static void copyPipelineFilesRecursivly(std::string pipelineSourcePath, std::string pipelineDestinationPath) {
+			for(auto&& pipeline : getDirectoryList(pipelineSourcePath, true, true)) {
+				if(isDir(pipelineSourcePath + pipeline)) {
+					copyPipelineFilesRecursivly(join(pipelineSourcePath, pipeline), join(mPipelinePath, pipeline));
+				} else {
+					if(!fileExists(join(pipelineDestinationPath, pipeline))) {
+						// Copy file from source folder to writable destination folder
+						std::ifstream  src(join(pipelineSourcePath, pipeline), std::ios::binary);
+						std::ofstream  dst(join(pipelineDestinationPath, pipeline), std::ios::binary);
+
+						dst << src.rdbuf();
+					}
+				}
+			}
+		}
+
+
 
 		std::string Config::getPath() {
 			if (mBasePath != "")
@@ -91,7 +108,7 @@ namespace fast {
 #ifdef WIN32
 				mTestDataPath = "C:/ProgramData/FAST/data/";
 #else
-				mTestDataPath = QDir::homePath().toStdString() + "/.FAST/data/";
+				mTestDataPath = QDir::homePath().toStdString() + "/FAST/data/";
 #endif
 			}
 #ifdef WIN32
@@ -100,9 +117,9 @@ namespace fast {
 			std::string writeablePath = "C:/ProgramData/FAST/";
 			mLibraryPath = getPath();
 #else
-			mKernelBinaryPath = QDir::homePath().toStdString() + "/.FAST/kernel_binaries/";
-			mPipelinePath = QDir::homePath().toStdString() + "/.FAST/pipelines/";
-			std::string writeablePath = QDir::homePath().toStdString() + "/.FAST/";
+			mKernelBinaryPath = QDir::homePath().toStdString() + "/FAST/kernel_binaries/";
+			mPipelinePath = QDir::homePath().toStdString() + "/FAST/pipelines/";
+			std::string writeablePath = QDir::homePath().toStdString() + "/FAST/";
 			mLibraryPath = getPath() + "/../lib/";
 #endif
 			mKernelSourcePath = getPath() + "../../source/FAST/";
@@ -110,16 +127,17 @@ namespace fast {
 			mQtPluginsPath = getPath() + "../plugins/";
 
 			createDirectories(mTestDataPath);
+			createDirectories(mPipelinePath);
 
 			// Copy pipelines (first time only)
-			for(auto&& pipeline : getDirectoryList(mPipelinePath)) {
-				if(!fileExists(mPipelinePath)) {
-					// Copy file from source folder
-					std::ifstream  src(mPipelinePath + pipeline, std::ios::binary);
-					std::ofstream  dst(writeablePath + "pipelines/" + pipeline, std::ios::binary);
-
-					dst << src.rdbuf();
+			try {
+				if(isDir(getPath() + "../../pipelines/")) {
+					copyPipelineFilesRecursivly(getPath() + "../../pipelines/", mPipelinePath);
+				} else {
+					copyPipelineFilesRecursivly(getPath() + "../pipelines/", mPipelinePath);
 				}
+			} catch(Exception & e) {
+				Reporter::warning() << e.what() << Reporter::end();
 			}
 
 			// Read and parse configuration file
@@ -298,7 +316,7 @@ namespace fast {
 			std::cout << "Progress: " << std::endl;
 			Window::initializeQtApp();
 			QNetworkAccessManager manager;
-			QUrl url("http://fast.eriksmistad.no/download/FAST_Test_Data_install.zip");
+			QUrl url("http://fast.eriksmistad.no/download/FAST_Test_Data.zip");
 			QNetworkRequest request(url);
 			auto timer = new QElapsedTimer;
 			timer->start();
@@ -314,8 +332,8 @@ namespace fast {
 					progress += step;
 				}
 			});
-			auto tempLocation = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-			QFile file(tempLocation + "FAST_Test_Data.zip");
+			auto tempLocation = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/FAST_Test_Data.zip";
+			QFile file(tempLocation);
 			if(!file.open(QIODevice::WriteOnly)) {
 				throw Exception("Could not write to " + tempLocation.toStdString());
 			}
@@ -325,8 +343,13 @@ namespace fast {
 			QObject::connect(&manager, &QNetworkAccessManager::finished, [reply, &file, destination]() {
 				std::cout << "Finished downloading file. Processing.." << std::endl;
 				file.close();
-				std::cout << "Unzipping the data file.." << std::endl;
-				zip_extract(file.fileName().toStdString().c_str(), (destination + "/../../").c_str(), nullptr, nullptr);
+				std::cout << "Unzipping the data file ..." << std::endl;
+				try {
+					extractZipFile(file.fileName().toStdString(), destination + "/../");
+				} catch(Exception & e) {
+					std::cout << "ERROR: Zip extraction failed." << std::endl;
+				}
+				
 				file.remove();
 				std::cout << "Done." << std::endl;
 			});

@@ -11,7 +11,7 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    Reporter::setGlobalReportMethod(Reporter::COUT);
+    //Reporter::setGlobalReportMethod(Reporter::COUT);
     CommandLineParser parser("Import image from file example");
     parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "/WSI/A05.svs");
     parser.parse(argc, argv);

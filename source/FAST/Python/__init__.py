@@ -7,8 +7,8 @@ if is_windows:
     path = bin_path
 else:
     path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'lib'))
-sys.path.append(path) # This is needed to find _fast binary python extension
-os.environ['PATH'] += os.pathsep + bin_path # This is needed in order for C++ to dynamically load DLLs
+sys.path.append(bin_path) # This is needed to find _fast binary python extension
+os.environ['PATH'] = path + os.pathsep + os.environ['PATH'] # This is needed in order for C++ to dynamically load DLLs
 
 from .fast import *
 fast.Config.setBasePath(bin_path)

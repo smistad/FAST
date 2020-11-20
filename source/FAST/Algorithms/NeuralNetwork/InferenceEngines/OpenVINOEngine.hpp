@@ -30,6 +30,9 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
         std::shared_ptr<::InferenceEngine::InferRequest> m_inferRequest;
 		
         void loadPlugin(std::string deviceType);
+
+        // This mutex is used to ensure only one thread is using this OpenVINO instance at the same time
+        std::mutex m_mutex;
 };
 
 DEFINE_INFERENCE_ENGINE(OpenVINOEngine, INFERENCEENGINEOPENVINO_EXPORT)

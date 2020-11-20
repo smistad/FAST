@@ -13,6 +13,7 @@ class FAST_EXPORT SegmentationLabelRenderer : public Renderer {
     public:
         void setLabelName(int label, std::string name);
         void setLabelColor(int label, Color color);
+        void setAreaThreshold(float threshold);
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
         void loadAttributes() override;
     protected:
@@ -39,6 +40,7 @@ class FAST_EXPORT SegmentationLabelRenderer : public Renderer {
         float m_textHeightInMM = 1.0f;
         bool m_centerPosition = true;
         bool m_dynamicSize = true;
+        float m_areaThreshold;
 };
 
 }

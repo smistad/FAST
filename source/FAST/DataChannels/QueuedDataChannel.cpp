@@ -7,7 +7,7 @@ void QueuedDataChannel::addFrame(DataObject::pointer data) {
     //if(!mGetCalled && mFillCount->getCount() == mMaximumNumberOfFrames)
     //    Reporter::error() << "EXECUTION BLOCKED by DataChannel from " << mProcessObject->getNameOfClass() << ". Do you have a DataChannel object that is not used?" << Reporter::end();
 
-    // Increment semaphore by one, wait if queue is full
+    // Decrement semaphore by one, wait if queue is full
     m_emptyCount->wait();
 
     {
@@ -20,7 +20,7 @@ void QueuedDataChannel::addFrame(DataObject::pointer data) {
         m_queue.push(data);
     }
 
-    // Decrement semaphore by one, signal any waiting due to empty queue
+    // Increment semaphore by one, signal any waiting due to empty queue
     m_fillCount->signal();
 }
 

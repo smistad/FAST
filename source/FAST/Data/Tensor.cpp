@@ -7,6 +7,8 @@ namespace fast {
 void Tensor::create(std::unique_ptr<float[]> data, TensorShape shape) {
     if(shape.empty())
         throw Exception("Shape can't be empty");
+    if(shape.getUnknownDimensions() > 0)
+        throw Exception("Shape can't have unknown dimensions");
     m_data = std::move(data);
     m_shape = shape;
     m_spacing = VectorXf::Ones(shape.getDimensions());
@@ -18,40 +20,38 @@ void Tensor::create(std::unique_ptr<float[]> data, TensorShape shape) {
     }
 }
 
+void Tensor::create(const float* const data, TensorShape shape) {
+    if(shape.empty())
+        throw Exception("Shape can't be empty");
+    if(shape.getUnknownDimensions() > 0)
+        throw Exception("When creating a tensor, shape must be fully defined");
+    auto newData = make_uninitialized_unique<float[]>(shape.getTotalSize());
+    std::memcpy(newData.get(), data, shape.getTotalSize()*sizeof(float));
+    create(std::move(newData), shape);
+}
+
+
 void Tensor::create(TensorShape shape) {
     if(shape.empty())
         throw Exception("Shape can't be empty");
     if(shape.getUnknownDimensions() > 0)
         throw Exception("When creating a tensor, shape must be fully defined");
-    m_data = make_uninitialized_unique<float[]>(shape.getTotalSize());
-    m_spacing = VectorXf::Ones(shape.getDimensions());
-    mHostDataIsUpToDate = true;
-    m_shape = shape;
-    if(m_shape.getDimensions() >= 3) {
-        const int width = m_shape[m_shape.getDimensions() - 2];
-        const int height = m_shape[m_shape.getDimensions() - 3];
-        mBoundingBox = DataBoundingBox(Vector3f(width, height, 1));
-    }
+    auto newData = make_uninitialized_unique<float[]>(shape.getTotalSize());
+    create(std::move(newData), shape);
 }
 
 void Tensor::create(std::initializer_list<float> data) {
-	if(data.size() == 0)
-		throw Exception("Shape can't be empty");
+    if(data.size() == 0)
+        throw Exception("Shape can't be empty");
 
-	m_data = std::make_unique<float[]>(data.size());
+    auto newData = make_uninitialized_unique<float[]>(data.size());
 	int i = 0;
 	for(auto item : data) {
-		m_data[i] = item;
+		newData[i] = item;
 		++i;
 	}
-	m_shape = TensorShape({ (int)data.size() });
-    m_spacing = VectorXf::Ones(m_shape.getDimensions());
-    mHostDataIsUpToDate = true;
-    if(m_shape.getDimensions() >= 3) {
-        const int width = m_shape[m_shape.getDimensions() - 2];
-        const int height = m_shape[m_shape.getDimensions() - 3];
-        mBoundingBox = DataBoundingBox(Vector3f(width, height, 1));
-    }
+    auto shape = TensorShape({(int)data.size()});
+    create(std::move(newData), shape);
 }
 
 void Tensor::expandDims(int position) {

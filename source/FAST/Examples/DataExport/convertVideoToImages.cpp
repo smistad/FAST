@@ -9,13 +9,12 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    Reporter::setGlobalReportMethod(Reporter::COUT);
     CommandLineParser parser("Convert video to images",
         "This example will convert all movies in the given path to a set of images."
         "If --export-to is not set, the images will be displayed. If it is set the images will be exported to this path."
     );
-    parser.addPositionVariable(1, "path", true, "Will convert all movies in this path. Example /some/path/");
-    parser.addPositionVariable(2, "extension", true, "Will convert all movies with this extension. Example: mp4");
+    parser.addPositionVariable(1, "path", true, "Either path to directory or movie file. If directiory it will convert all movies in this path. Example /some/path/");
+    parser.addPositionVariable(2, "extension", false, "If path is dir, will convert all movies with this extension. Example: mp4");
     parser.addVariable("export-to", false, "If this is set, each frame of the video is stored as an image on disk in this directory.");
     parser.addOption("ultrasound-cropping", "Enable ultrasound cropping. Useful for videos exported from ultrasound scanners.");
     parser.addVariable("physical-width", false, "Set the physical with (in mm) of the image to calculate the pixel spacing.");
@@ -26,16 +25,27 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     std::string path = parser.get("path");
-    std::string extension = parser.get("extension");
-    for(auto file : getDirectoryList(parser.get("path"))) {
-        if(file.size() < extension.size())
-            continue;
-        if(file.substr(file.size() - extension.size()) != extension)
-            continue;
+    std::vector<std::string> files;
+    if(isDir(path)) {
+		std::string extension = parser.get("extension");
+        for(auto file : getDirectoryList(parser.get("path"))) {
+            if(file.size() < extension.size())
+                continue;
+            if(file.substr(file.size() - extension.size()) != extension)
+                continue;
+            files.push_back(join(path, file));
+        }
+    } else {
+        files.push_back(path);
+    }
+
+    for(auto file : files) {
+        file = replace(file, "\\", "/");
+        const std::string extension = file.substr(file.rfind('.'));
         Reporter::info() << "Processing file " << file << Reporter::end();
         auto streamer = MovieStreamer::New();
         streamer->setGrayscale(!parser.getOption("color"));
-        streamer->setFilename(join(path, file));
+        streamer->setFilename(file);
 
         auto port = streamer->getOutputPort();
         if(parser.getOption("ultrasound-cropping")) {
@@ -49,31 +59,22 @@ int main(int argc, char** argv) {
 
         if(parser.gotValue("export-to")) {
             std::string exportPath = parser.get("export-to");
-            exportPath += file.substr(0, file.size() - extension.size() - 1) + "/";
+            exportPath += file.substr(file.rfind('/') + 1, file.size() - extension.size() - 1 - file.rfind('/')) + "/";
             createDirectories(exportPath);
             int timestep = 0;
-            ImageFileExporter::pointer exporter = ImageFileExporter::New();
+            auto exporter = ImageFileExporter::New();
             exporter->setCompression(!parser.getOption("disable-compression"));
-            exporter->setInputConnection(port);
             bool stop = false;
-            while(true) {
+            while(!stop) {
+                streamer->update();
+                auto image = port->getNextFrame<Image>();
+				exporter->setInputData(image);
+                stop = image->isLastFrame();
                 std::cout << "Processing frame: " << timestep << std::endl;
                 const std::string path = exportPath + "frame_" + std::to_string(timestep) + "." + parser.get("export-format");
                 exporter->setFilename(path);
                 exporter->update();
                 ++timestep;
-
-                // TODO fix overcomplicated stop process
-                while(streamer->getFramesAdded() - 1 < timestep) {
-                    std::cout << "Waiting for frames" << std::endl;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                    if(streamer->hasReachedEnd()) {
-                        stop = true;
-                        break;
-                    }
-                }
-                if(stop)
-                    break;
             }
         } else {
             auto renderer = ImageRenderer::New();

@@ -7,6 +7,7 @@ namespace fast {
 using namespace InferenceEngine;
 
 void OpenVINOEngine::run() {
+    std::lock_guard<std::mutex> lock(m_mutex);
 	try {
 		// Copy input data
 		reportInfo() << "OpenVINO: Processing input nodes.." << reportEnd();

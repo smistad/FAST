@@ -21,7 +21,7 @@ void WindowWidget::keyPressEvent(QKeyEvent *event) {
 }
 
 void WindowWidget::dragEnterEvent(QDragEnterEvent *event) {
-    Reporter::info() << "\nDrag event..." << Reporter::end();
+    Reporter::info() << "Drag event received in window widget" << Reporter::end();
     if (event->mimeData()->hasUrls()) {
         event->acceptProposedAction();
     }
@@ -29,17 +29,14 @@ void WindowWidget::dragEnterEvent(QDragEnterEvent *event) {
 
 
 void WindowWidget::dropEvent(QDropEvent *event) {
-    std::cout << "\nDrop event..." << std::endl;
+    Reporter::info() << "Drop event received in window widget" << Reporter::end();
     QList<QString> fileNames;
     foreach (const QUrl &url, event->mimeData()->urls()) {
         QString fileName = url.toLocalFile();
         fileNames.push_back(fileName);
         Reporter::info() << "Dropped file:" << fileName.toStdString() << Reporter::end();
     }
-    foreach(QString curr, fileNames) {
-        Reporter::info() << "\nFile: " << curr.toStdString() << Reporter::end();
-    }
-    emit fileNamesSent(fileNames);
+    emit filesDropped(fileNames);
 }
 
 void WindowWidget::closeEvent(QCloseEvent *event) {

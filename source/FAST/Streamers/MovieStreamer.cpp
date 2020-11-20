@@ -31,6 +31,7 @@ class VideoSurface : public QAbstractVideoSurface {
         if(frame.pixelFormat() == QVideoFrame::PixelFormat::Format_Invalid) {
             // Movie is finished
             Reporter::info() << "Movie finished." << Reporter::end();
+            streamer->addLastFrame();
             streamer->setFinished(true);
             return false;
         }
@@ -59,14 +60,30 @@ class VideoSurface : public QAbstractVideoSurface {
 
     void stateChanged(QMediaPlayer::State state) {
         if(state == QMediaPlayer::StoppedState) {
+            streamer->addLastFrame();
             Reporter::info() << "QMediaPlayer state changed to stopped - stopping stream" << Reporter::end();
             streamer->setFinished(true);
         }
     }
+
+    ~VideoSurface() {
+        Reporter::info() << "Video surface of movie streamer was destroyed" << Reporter::end();
+    }
 };
 
+void MovieStreamer::addLastFrame() {
+    if(m_currentImage) {
+        m_currentImage->setLastFrame("MovieStreamer");
+		addOutputData(0, m_currentImage);
+        ++m_framesAdded;
+        Reporter::info() << "Added last frame with a total of: " << m_framesAdded << Reporter::end();
+        // Make sure we end the waiting thread if first frame has not been inserted
+        frameAdded();
+    }
+}
+
 void MovieStreamer::addNewImageFrame(const uchar* data, int width, int height) {
-    Image::pointer output = Image::New();
+    auto output = Image::New();
     output->create(
             width,
             height,
@@ -77,11 +94,15 @@ void MovieStreamer::addNewImageFrame(const uchar* data, int width, int height) {
     );
     std::chrono::duration<double, std::milli> elapsed = std::chrono::high_resolution_clock::now() - m_startTime;
     output->setCreationTimestamp((uint64_t)elapsed.count());
-    addOutputData(0, output);
-    ++m_framesAdded;
-    Reporter::info() << "Added frames: " << m_framesAdded << Reporter::end();
-    // Make sure we end the waiting thread if first frame has not been inserted
-    frameAdded();
+
+    if(m_currentImage) {
+        addOutputData(0, m_currentImage);
+        ++m_framesAdded;
+        Reporter::info() << "Added frames: " << m_framesAdded << Reporter::end();
+        // Make sure we end the waiting thread if first frame has not been inserted
+        frameAdded();
+    }
+    m_currentImage = output;
 }
 
 void MovieStreamer::setFilename(std::string filename) {
@@ -101,28 +122,28 @@ MovieStreamer::MovieStreamer() {
     createBooleanAttribute("grayscale", "Grayscale", "Convert movie to grayscale while streaming", mGrayscale);
 }
 
-Worker::Worker(MovieStreamer* streamer) {
+MovieStreamerWorker::MovieStreamerWorker(MovieStreamer* streamer) {
     mStreamer = streamer;
 }
 
-Worker::~Worker() {
+MovieStreamerWorker::~MovieStreamerWorker() {
+    Reporter::info() << "Movie streamer worker destroyed" << Reporter::end();
 }
 
-void Worker::run() {
+void MovieStreamerWorker::run() {
     m_player = std::make_unique<QMediaPlayer>();
     //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    auto myVideoSurface = new VideoSurface;
-    myVideoSurface->streamer = mStreamer;
+    m_myVideoSurface = std::make_unique<VideoSurface>();
+    m_myVideoSurface->streamer = mStreamer;
     m_player->setMuted(true);
-    m_player->setVideoOutput(myVideoSurface);
-    QObject::connect(m_player.get(), &QMediaPlayer::stateChanged, std::bind(&VideoSurface::stateChanged, myVideoSurface, std::placeholders::_1));
+    m_player->setVideoOutput(m_myVideoSurface.get());
+    QObject::connect(m_player.get(), &QMediaPlayer::stateChanged, std::bind(&VideoSurface::stateChanged, m_myVideoSurface.get(), std::placeholders::_1));
     std::string prefix = "";
     if(mStreamer->getFilename()[0] != '/' && mStreamer->getFilename()[1] == ':') // On windows w want file:///C:/asd/asd..
         prefix = "/";
     m_player->setMedia(QUrl(("file://" + prefix + mStreamer->getFilename()).c_str()));
-    m_player->play();
+    m_player->play(); // This does not block
     Reporter::info() << "Play returned" << Reporter::end();
-    //emit finished();
 }
 
 
@@ -131,7 +152,7 @@ void MovieStreamer::execute() {
         if(!fileExists(mFilename))
             throw FileNotFoundException(mFilename);
         thread = new QThread;
-        Worker* worker = new Worker(this);
+        MovieStreamerWorker* worker = new MovieStreamerWorker(this);
         worker->moveToThread(thread);
         //QObject::connect(worker, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
         QObject::connect(thread, SIGNAL(started()), worker, SLOT(run()));
@@ -171,6 +192,8 @@ void MovieStreamer::setFinished(bool finished) {
 
 MovieStreamer::~MovieStreamer() {
     reportInfo() << "Destroying movie streamer" << reportEnd();
+    if(thread != nullptr)
+		thread->quit();
     stop();
 }
 

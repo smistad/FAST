@@ -13,11 +13,18 @@ class FAST_EXPORT Tensor : public SpatialDataObject {
     FAST_OBJECT(Tensor)
     public:
         /**
-         * Create a tensor using the provided data and shape
+         * Create a tensor using the provided data and shape.
          * @param data
          * @param shape
          */
         virtual void create(std::unique_ptr<float[]> data, TensorShape shape);
+		/**
+         * Create a tensor using the provided data and shape. This method will COPY the data.
+         * @param data
+         * @param shape
+         */
+        virtual void create(const float* const data, TensorShape shape);
+
         /**
          * Create an unitialized tensor with the provided shape
          * @param shape

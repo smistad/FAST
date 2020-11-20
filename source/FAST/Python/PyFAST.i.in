@@ -44,9 +44,17 @@ using namespace fast;
 %eigen_typemaps(Vector3i)
 %eigen_typemaps(Vector2ui)
 %eigen_typemaps(Vector3ui)
+%eigen_typemaps(VectorXf)
+%eigen_typemaps(VectorXi)
+%eigen_typemaps(VectorXui)
 %eigen_typemaps(Matrix3f)
 %eigen_typemaps(Matrix4f)
 
+// Enable std::vector <-> python conversion
+%template(vectori) std::vector<int>;
+%template(vectorf) std::vector<float>;
+%template(vectorui) std::vector<uint>;
+%template(vectorc) std::vector<char>;
 
 // FAST CORE LIBRARY
 
@@ -132,6 +140,9 @@ public
 %template(updateAndGetOutputMesh) fast::ProcessObject::updateAndGetOutputData<fast::Mesh>;
 %template(getNextMesh) fast::DataChannel::getNextFrame<fast::Mesh>;
 
+%template(updateAndGetOutputTensor) fast::ProcessObject::updateAndGetOutputData<fast::Tensor>;
+%template(getNextTensor) fast::DataChannel::getNextFrame<fast::Tensor>;
+
 @PYFAST_INTERFACE_INCLUDES@
 
 // Extend image for numpy support
@@ -166,12 +177,11 @@ void* _intToVoidPointer(std::size_t intPointer) {
       'strides': None,
     }
 
-  """
-  Create a FAST image from a N-D array (e.g. numpy ndarray)
-  """
+
   def createFromArray(self, ndarray):
+    """Create a FAST image from a N-D array (e.g. numpy ndarray)"""
     if not hasattr(ndarray, '__array_interface__'):
-      raise ValueError('Input to Image create() must have the array_interface property')
+      raise ValueError('Input to Image createFromArray() must have the array_interface property')
     array_interface = ndarray.__array_interface__
     shape = array_interface['shape']
     is_2d = True
@@ -200,5 +210,50 @@ void* _intToVoidPointer(std::size_t intPointer) {
             shape[-1] if has_channels else 1,
                 self._intToVoidPointer(array_interface['data'][0])
         )
+%}
+}
+
+// Extend Tensor for numpy support
+%extend fast::Tensor {
+std::size_t _getHostDataPointer() {
+    auto access = $self->getAccess(ACCESS_READ);
+    return (std::size_t)access->getRawData();
+}
+float* _intToFloatPointer(std::size_t intPointer) {
+    return (float*)intPointer;
+}
+%pythoncode %{
+  @property
+  def __array_interface__(self):
+    return {
+      'shape': self.getShape().getAll(),
+      'data': (self._getHostDataPointer(), False),
+      'typestr': 'f4',
+      'version': 3,
+      'strides': None,
+    }
+
+
+  def createFromArray(self, ndarray):
+    """Create a FAST Tensor from a N-D array (e.g. numpy ndarray)"""
+    if not hasattr(ndarray, '__array_interface__'):
+      raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
+    array_interface = ndarray.__array_interface__
+    # Check data type if it is correct
+    if array_interface['typestr'] != 'f4':
+      import numpy as np
+      # Convert if numpy, else raise error
+      if isinstance(ndarray, np.ndarray):
+        print('WARNING: ndarray given to fast::Tensor::createFromArray was not 32 bit float and will now be converted.')
+        ndarray = ndarray.astype(np.float32)
+        array_interface = ndarray.__array_interface__
+      else:
+        raise ValueError('Array given to Tensor::createFromArray must be 32 bit float, but you sent ' + array_interface['typestr'])
+    shape = array_interface['shape']
+    fast_shape = TensorShape()
+    for i in shape:
+        fast_shape.addDimension(i)
+
+    self.create(self._intToFloatPointer(array_interface['data'][0]), fast_shape)
 %}
 }
