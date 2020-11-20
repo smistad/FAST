@@ -30,6 +30,7 @@ void NeuralNetwork::loadAttributes() {
     int i = 0;
     for (auto&& name : outputNames) {
         setOutputNode(i, name);
+        ++i;
     }
     setScaleFactor(getFloatAttribute("scale-factor"));
     setSignedInputNormalization(getBooleanAttribute("signed-input-normalization"));
