@@ -21,7 +21,7 @@ if(FAST_MODULE_TensorFlow)
             ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_ROCm.lib
     )
     set(TensorFlow_CPU_LIBRARIES
-        ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_CPU.lib
+        ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_cc.lib
     )
     else()
     set(TensorFlow_CUDA_LIBRARIES
