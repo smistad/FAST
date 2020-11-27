@@ -2,21 +2,24 @@
 
 include(${PROJECT_SOURCE_DIR}/cmake/Externals.cmake)
 
+if(FAST_BUILD_TensorFlow_CPU OR FAST_BUILD_TensorFlow_CUDA)
+    ExternalProject_Add(tensorflow_download
+        PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
+        BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
+        GIT_REPOSITORY "https://github.com/smistad/tensorflow.git"
+        GIT_TAG "066a509e6a14687cf1e59a1fd0e1b346071271ce"
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+endif()
+
 if(WIN32)
     set(GIT_EXECUTABLE "git.exe")
     # Use CMake to build tensorflow on windows
-    if(FAST_BUILD_TensorFlow_CPU OR FAST_BUILD_TensorFlow_CUDA)
-        ExternalProject_Add(tensorflow_download
-            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
-            BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
-            GIT_REPOSITORY "https://github.com/smistad/tensorflow.git"
-            GIT_TAG "fast-updated"
-            UPDATE_COMMAND ""
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            INSTALL_COMMAND ""
-        )
-    endif()
+    file(TO_NATIVE_PATH ${FAST_EXTERNAL_BUILD_DIR} FAST_EXTERNAL_BUILD_DIR_WIN)
+    file(TO_NATIVE_PATH ${FAST_EXTERNAL_INSTALL_DIR} FAST_EXTERNAL_INSTALL_DIR_WIN)
     if(FAST_BUILD_TensorFlow_CPU)
 
     ExternalProject_Add(tensorflow_CPU
@@ -33,41 +36,27 @@ if(WIN32)
             BUILD_COMMAND
                 echo "Building tensorflow with bazel for CPU.." COMMAND
                 cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/ COMMAND
-                bazel build --config=opt //tensorflow:tensorflow_cc.dll
+                bazel build --config=opt --jobs=4 //tensorflow:tensorflow_cc.dll
             INSTALL_COMMAND
                 echo "Installing tensorflow binary"  COMMAND
-                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll.if.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_CPU.lib COMMAND
-                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/external/protobuf_archive/protobuf.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/protobuf.lib COMMAND
+                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll.if.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_cc.lib COMMAND
+                #${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/external/protobuf_archive/protobuf.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/protobuf.lib COMMAND
                 ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/tensorflow_cc.dll COMMAND
                 echo "Installing tensorflow headers"  COMMAND
-                ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/tensorflow ${FAST_EXTERNAL_INSTALL_DIR}/include/tensorflow/ COMMAND
+                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\tensorflow\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\tensorflow\\" /syi COMMAND
                 echo "Installing tensorflow generated headers" COMMAND
-                ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-genfiles/tensorflow ${FAST_EXTERNAL_INSTALL_DIR}/include/tensorflow/  COMMAND
+                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\bazel-bin\\tensorflow\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\tensorflow\\" /syi COMMAND
                 echo "Installing tensorflow third party headers"  COMMAND
-                ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/third_party/ ${FAST_EXTERNAL_INSTALL_DIR}/include/third_party/  COMMAND
+                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\third_party\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\third_party\\" /syi  COMMAND
                 echo "Installing protobuf headers"  COMMAND
-                ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-tensorflow_download/external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/google/ COMMAND
-                #echo "Installing nsync headers"  COMMAND
-                #xcopy ${src} ${dest} /y COMMAND
+                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\bazel-tensorflow_download\\external\\com_google_protobuf\\src\\google\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\google\\" /syi COMMAND
                 echo "Installing absl headers"  COMMAND
-                ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-tensorflow_download/external/com_google_absl/absl/ ${FAST_EXTERNAL_INSTALL_DIR}/include/absl/
+                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\bazel-tensorflow_download\\external\\com_google_absl\\absl\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\absl\\" /syi
     )
     endif()
 else(WIN32)
     # Use bazel to build tensorflow on linux
     set(GIT_EXECUTABLE "git")
-    if(FAST_BUILD_TensorFlow_CPU OR FAST_BUILD_TensorFlow_CUDA)
-        ExternalProject_Add(tensorflow_download
-            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
-            BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
-            GIT_REPOSITORY "https://github.com/tensorflow/tensorflow.git"
-            GIT_TAG "v2.3.0"
-            UPDATE_COMMAND ""
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            INSTALL_COMMAND ""
-        )
-    endif()
     if(FAST_BUILD_TensorFlow_ROCm)
         # Need a seperate repo for rocm atm
         ExternalProject_Add(tensorflow_download_rocm
