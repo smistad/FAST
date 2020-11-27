@@ -226,6 +226,62 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
 	return tensors;
 }
 
+/**
+ * Calculate array position based on image ordering
+ * @param x
+ * @param nrOfClasses
+ * @param j
+ * @param size
+ * @param ordering
+ * @return
+ */
+inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering ordering) {
+    return ordering == ImageOrdering::ChannelLast ? x*nrOfClasses + j : x + j*size;
+}
+
+Tensor::pointer NeuralNetwork::standardizeOutputTensorData(Tensor::pointer tensor, int sample) {
+    // Transform tensor to channel last if necessary
+    if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelFirst) {
+        // Convert to channel last
+        const int nrOfClasses = tensor->getShape()[0];
+        const int size = tensor->getShape().getTotalSize()/nrOfClasses;
+        auto newTensorData = make_uninitialized_unique<float[]>(size*nrOfClasses);
+        auto tensorAccess = tensor->getAccess(ACCESS_READ);
+        const float* tensorData = tensorAccess->getRawData();
+        // TODO move to GPU (if tensor is large)
+        for(int x = 0; x < size; ++x) {
+            for(uchar j = 0; j < nrOfClasses; ++j) {
+                newTensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::ChannelLast)] = tensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::ChannelFirst)];
+            }
+        }
+        auto newTensor = Tensor::New();
+        auto oldShape = tensor->getShape();
+        TensorShape newShape;
+        for(int i = 1; i < oldShape.getDimensions(); ++i)
+            newShape.addDimension(oldShape[i]);
+        newShape.addDimension(oldShape[0]);
+        newTensor->create(std::move(newTensorData), newShape);
+        newTensor->setSpacing(tensor->getSpacing());
+        tensor = newTensor;
+    }
+
+    // Transfer frame data and spacing information from input to output data
+    for(auto& inputNode : m_engine->getInputNodes()) {
+        if(inputNode.second.type == NodeType::IMAGE) {
+            for(auto &&frameData : mInputImages[inputNode.first][sample]->getFrameData())
+                tensor->setFrameData(frameData.first, frameData.second);
+            for(auto &&lastFrame : mInputImages[inputNode.first][sample]->getLastFrame())
+                tensor->setLastFrame(lastFrame);
+            // TODO will cause issue if multiple input images:
+            tensor->setSpacing(mNewInputSpacing);
+            SceneGraph::setParentNode(tensor, mInputImages[inputNode.first][sample]);
+        } else {
+            // TODO do the same for tensors
+        }
+    }
+    return tensor;
+}
+
 void NeuralNetwork::run() {
     // TODO move load and input processing to execute? or a separate function?
     // Check if network is loaded, if not do it
@@ -243,14 +299,9 @@ void NeuralNetwork::run() {
     mRuntimeManager->startRegularTimer("inference");
 	m_engine->run();
     mRuntimeManager->stopRegularTimer("inference");
-}
-
-void NeuralNetwork::execute() {
-    // Load, prepare input and run network
-    run();
 
     mRuntimeManager->startRegularTimer("output_processing");
-	// Collect output data of network and add to output ports
+    // Collect output data of network and add to output ports
     for(const auto &node : m_engine->getOutputNodes()) {
         // TODO if input was a batch, the output should be converted to a batch as well
         // TODO and any frame data (such as patch info should be transferred)
@@ -275,34 +326,30 @@ void NeuralNetwork::execute() {
                 auto newData = make_uninitialized_unique<float[]>(size);
                 std::memcpy(newData.get(), &(rawTensorData[i*size]), size*sizeof(float));
                 newTensor->create(std::move(newData), newShape);
+                newTensor = standardizeOutputTensorData(newTensor, i);
                 tensorList.push_back(newTensor);
-                for(auto& inputNode : m_engine->getInputNodes()) {
-                    // TODO assuming input are images here:
-                    for(auto &&frameData : mInputImages[inputNode.first][i]->getFrameData()) {
-                        newTensor->setFrameData(frameData.first, frameData.second);
-                    }
-                    for(auto &&lastFrame : mInputImages[inputNode.first][i]->getLastFrame())
-                        newTensor->setLastFrame(lastFrame);
-                }
             }
             auto outputBatch = Batch::New();
             outputBatch->create(tensorList);
-            addOutputData(node.second.portID, outputBatch);
+            m_processedOutputData[node.second.portID] = outputBatch;
         } else {
             // Remove first dimension as it is 1, due to batch size 1
             tensor->deleteDimension(0);
-            for(auto& inputNode : m_engine->getInputNodes()) {
-                // TODO assuming input are images here: Should also be able to handle tensors
-                for(auto &&frameData : mInputImages[inputNode.first][0]->getFrameData()) {
-                    tensor->setFrameData(frameData.first, frameData.second);
-                }
-                for(auto &&lastFrame : mInputImages[inputNode.first][0]->getLastFrame())
-                    tensor->setLastFrame(lastFrame);
-            }
-            addOutputData(node.second.portID, tensor);
+            tensor = standardizeOutputTensorData(tensor);
+            m_processedOutputData[node.second.portID] = tensor;
         }
     }
     mRuntimeManager->stopRegularTimer("output_processing");
+}
+
+void NeuralNetwork::execute() {
+    // Load, prepare input and run network
+    run();
+
+    // Add output data to output ports
+    for(const auto &node : m_engine->getOutputNodes()) {
+        addOutputData(node.second.portID, m_processedOutputData[node.second.portID]);
+    }
 }
 
 Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer> images, const TensorShape& shape, bool temporal) {
@@ -419,9 +466,7 @@ std::vector<std::shared_ptr<Image>> NeuralNetwork::resizeImages(const std::vecto
             resizer->setDepth(depth);
             resizer->setInputData(image);
 			resizer->setPreserveAspectRatio(mPreserveAspectRatio);
-			DataChannel::pointer port = resizer->getOutputPort();
-            resizer->update();
-            Image::pointer resizedImage = port->getNextFrame<Image>();
+            auto resizedImage = resizer->updateAndGetOutputData<Image>();
             mNewInputSpacing = resizedImage->getSpacing();
             resizedImages.push_back(resizedImage);
 		} else {

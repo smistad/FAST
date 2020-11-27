@@ -8,29 +8,17 @@ DisplacementNetwork::DisplacementNetwork() {
     createOutputPort<Image>(0);
 }
 
-
-/**
- * Calculate array position based on image ordering
- * @param x
- * @param nrOfClasses
- * @param j
- * @param size
- * @param ordering
- * @return
- */
-inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering ordering) {
-    return ordering == ImageOrdering::ChannelLast ? x*nrOfClasses + j : x + j*size;
-}
-
 void DisplacementNetwork::execute() {
     // Prepare input node: Should be two images in a sequence
     run();
 
-    Tensor::pointer tensor = m_engine->getOutputNodes().begin()->second.data;
+    // TODO: Move to a TensorToDisplacementImage/FlowImage PO?
+    auto tensor = std::dynamic_pointer_cast<Tensor>(m_processedOutputData[0]);
+    if(!tensor)
+        throw Exception("Unable to cast processed output data to Tensor");
+
     const auto shape = tensor->getShape();
-    if(shape[0] != 1)
-        throw Exception("Displacement network only support batch size 1 atm");
-    TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
+    auto access = tensor->getAccess(ACCESS_READ);
     const int dims = shape.getDimensions();
     int outputHeight = shape[dims-3];
     int outputWidth = shape[dims-2];
@@ -43,26 +31,9 @@ void DisplacementNetwork::execute() {
     if(dims == 5) {
         outputDepth = shape[dims - 4];
     }
-    auto ordering = m_engine->getPreferredImageOrdering();
 
-    const int size = outputWidth*outputHeight*outputDepth;
-    // TODO reuse some of the output processing in NN
-    tensor->deleteDimension(0); // TODO assuming batch size is 1, remove this dimension
     auto image = Image::New();
-    if(ordering == ImageOrdering::ChannelFirst) {
-        // Convert to channel last
-        const int nrOfClasses = tensor->getShape()[0];
-        auto newTensorData = make_uninitialized_unique<float[]>(size*nrOfClasses);
-        for(int x = 0; x < size; ++x) {
-            for(uchar j = 0; j < nrOfClasses; ++j) {
-                newTensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::ChannelLast)] = tensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::ChannelFirst)];
-            }
-        }
-        auto oldShape = tensor->getShape();
-        image->create(outputWidth, outputHeight, TYPE_FLOAT, 2, std::move(newTensorData));
-    } else {
-        image->create(outputWidth, outputHeight, TYPE_FLOAT, 2, std::move(tensorData));
-    }
+    image->create(outputWidth, outputHeight, TYPE_FLOAT, 2, std::move(tensorData));
     image->setSpacing(mNewInputSpacing);
     SceneGraph::setParentNode(image, mInputImages.begin()->second[0]);
     addOutputData(0, image);
@@ -71,6 +42,12 @@ void DisplacementNetwork::execute() {
 ImagesToSequence::ImagesToSequence() {
     createInputPort<Image>(0);
     createOutputPort<Sequence>(0);
+
+    createIntegerAttribute("size", "Size", "Size of sequence", m_sequenceSize);
+}
+
+void ImagesToSequence::loadAttributes() {
+    setSequenceSize(getIntegerAttribute("size"));
 }
 
 void ImagesToSequence::execute() {

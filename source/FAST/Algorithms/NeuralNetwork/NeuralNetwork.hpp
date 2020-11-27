@@ -157,6 +157,7 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         bool mMinAndMaxIntensitySet = false;
         Vector3f mNewInputSpacing;
         std::unordered_map<std::string, std::vector<int>> mInputSizes;
+        std::unordered_map<int, DataObject::pointer> m_processedOutputData;
 
         virtual void run();
 
@@ -167,6 +168,13 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         std::unordered_map<std::string, Tensor::pointer> processInputData();
         std::vector<std::shared_ptr<Image>> resizeImages(const std::vector<std::shared_ptr<Image>>& images, int width, int height, int depth);
         Tensor::pointer convertImagesToTensor(std::vector<std::shared_ptr<Image>> image, const TensorShape& shape, bool temporal);
+
+        /**
+         * Converts a tensor to channel last image ordering and takes care of frame data and spacing
+         * @param tensor
+         * @return
+         */
+        Tensor::pointer standardizeOutputTensorData(Tensor::pointer tensor, int sample = 0);
 
     private:
         void execute();

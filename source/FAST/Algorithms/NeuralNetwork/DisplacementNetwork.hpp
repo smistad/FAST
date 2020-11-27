@@ -11,6 +11,7 @@ class FAST_EXPORT ImagesToSequence : public ProcessObject {
     FAST_OBJECT(ImagesToSequence)
     public:
         void setSequenceSize(int size);
+	void loadAttributes();
     protected:
         ImagesToSequence();
         void execute() override;

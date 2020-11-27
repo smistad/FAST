@@ -5,8 +5,6 @@ fast_add_sources(
     ImageClassificationNetwork.hpp
     SegmentationNetwork.cpp
     SegmentationNetwork.hpp
-    ImageToImageNetwork.cpp
-    ImageToImageNetwork.hpp
     InferenceEngine.cpp
     InferenceEngine.hpp
     InferenceEngineManager.cpp
@@ -24,7 +22,6 @@ fast_add_process_object(NeuralNetwork NeuralNetwork.hpp)
 fast_add_process_object(ImageClassificationNetwork ImageClassificationNetwork.hpp)
 fast_add_process_object(ClassificationToText ImageClassificationNetwork.hpp)
 fast_add_process_object(SegmentationNetwork SegmentationNetwork.hpp)
-fast_add_process_object(ImageToImageNetwork ImageToImageNetwork.hpp)
 fast_add_process_object(BoundingBoxNetwork BoundingBoxNetwork.hpp)
 fast_add_process_object(DisplacementNetwork DisplacementNetwork.hpp)
 fast_add_process_object(ImagesToSequence DisplacementNetwork.hpp)

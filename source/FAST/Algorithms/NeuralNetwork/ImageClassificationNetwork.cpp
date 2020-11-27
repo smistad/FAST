@@ -17,11 +17,11 @@ void ImageClassificationNetwork::execute() {
 
     run();
 
-    Tensor::pointer tensor = m_engine->getOutputNodes().begin()->second.data;
-    TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
+    auto tensor = std::dynamic_pointer_cast<Tensor>(m_processedOutputData[0]);
+    auto access = tensor->getAccess(ACCESS_READ);
 
     auto data = access->getData<2>();
-    ImageClassification::pointer output = getOutputData<ImageClassification>(0);
+    auto output = getOutputData<ImageClassification>(0);
     for(int i = 0; i < data.dimension(0); ++i) { // for each input image
         std::map<std::string, float> mapResult;
         for(int j = 0; j < data.dimension(1); ++j) { // for each class
