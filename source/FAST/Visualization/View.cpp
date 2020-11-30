@@ -7,6 +7,7 @@
 #include "SimpleWindow.hpp"
 #include "FAST/Utility.hpp"
 #include <QGLFunctions>
+#include <algorithm>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -45,8 +46,8 @@ void View::addRenderer(Renderer::pointer renderer) {
 
 void View::removeRenderer(Renderer::pointer rendererToRemove) {
     std::lock_guard<std::mutex> lock(m_mutex);
-    mVolumeRenderers.erase(std::find(mVolumeRenderers.begin(), mVolumeRenderers.end(), rendererToRemove));
-    mNonVolumeRenderers.erase(std::find(mNonVolumeRenderers.begin(), mNonVolumeRenderers.end(), rendererToRemove));
+	mVolumeRenderers.erase(std::remove(mVolumeRenderers.begin(), mVolumeRenderers.end(), rendererToRemove), mVolumeRenderers.end());
+    mNonVolumeRenderers.erase(std::remove(mNonVolumeRenderers.begin(), mNonVolumeRenderers.end(), rendererToRemove), mNonVolumeRenderers.end());
 }
 
 void View::removeAllRenderers() {
