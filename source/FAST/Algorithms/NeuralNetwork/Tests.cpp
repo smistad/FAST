@@ -42,7 +42,7 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual][ultras
             auto segmentation = SegmentationNetwork::New();
             segmentation->setInferenceEngine(engine);
             segmentation->getInferenceEngine()->setDeviceType(deviceType.second);
-            if(engine.substr(0, 10) == "TensorFlow") {
+            if(engine == "TensorFlow") {
                 segmentation->setOutputNode(0, "conv2d_23/truediv");
             } else if(engine == "TensorRT") {
                 segmentation->setInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
@@ -139,7 +139,7 @@ TEST_CASE("Multi input single output network", "[fast][neuralnetwork]") {
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
-        if(engine.substr(0, 10) == "TensorFlow") {
+        if(engine == "TensorFlow") {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output.pb");
             network->setOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
         } else if(engine == "TensorRT") {
@@ -168,7 +168,7 @@ TEST_CASE("Single input multi output network", "[fast][neuralnetwork]") {
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
-        if(engine.substr(0, 10) == "TensorFlow") {
+        if(engine == "TensorFlow") {
             network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
             network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
@@ -197,7 +197,7 @@ TEST_CASE("Single input multi output network", "[fast][neuralnetwork]") {
 }
 
 TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
-    for(const std::string& engine : {"TensorFlowCPU", "TensorFlowCUDA"}) {
+    for(const std::string& engine : {"TensorFlow"}) {
         if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
@@ -207,7 +207,7 @@ TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
-        if(engine.substr(0, 10) == "TensorFlow") {
+        if(engine== "TensorFlow") {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_volume_input.pb");
             network->setOutputNode(0, "dense/BiasAdd");
         } else {
@@ -249,7 +249,7 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
         network->getInferenceEngine()->setMaxBatchSize(2);
-        if(engine.substr(0, 10) == "TensorFlow") {
+        if(engine == "TensorFlow") {
             network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
             network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
@@ -292,7 +292,7 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
 }
 
 TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]") {
-    for(const std::string& engine : {"TensorFlowCPU", "TensorFlowCUDA"}) {
+    for(const std::string& engine : {"TensorFlow"}) {
         if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
@@ -315,7 +315,7 @@ TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]")
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
-        if(engine.substr(0, 10) == "TensorFlow") {
+        if(engine == "TensorFlow") {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_static_output.pb");
             network->setOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
         } else {
@@ -334,7 +334,7 @@ TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]")
 }
 
 TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]") {
-    for(const std::string& engine : {"TensorFlowCPU", "TensorFlowCUDA"}) {
+    for(const std::string& engine : {"TensorFlow"}) {
         if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
@@ -357,7 +357,7 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
-        if(engine.substr(0, 10) == "TensorFlow") {
+        if(engine == "TensorFlow") {
             network->setOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output.pb");
         } else {
@@ -377,7 +377,7 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
 }
 
 TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralnetwork][sequence]") {
-    for(const std::string& engine : {"TensorFlowCPU", "TensorFlowCUDA"}) {
+    for(const std::string& engine : {"TensorFlow"}) {
         if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
@@ -399,7 +399,7 @@ TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralne
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
         network->setTemporalWindow(3);
-        if(engine.substr(0, 10) == "TensorFlow") {
+        if(engine == "TensorFlow") {
             network->setOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output.pb");
         } else {

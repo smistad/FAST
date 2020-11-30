@@ -1,6 +1,7 @@
 #pragma once
 
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngine.hpp>
+#include <TensorFlowExport.hpp>
 
 // Forward declare
 namespace tensorflow {
@@ -12,19 +13,27 @@ namespace fast {
 
 class TensorFlowEngine : public InferenceEngine {
     public:
-        virtual void load() override;
-        virtual void run() override;
-        virtual std::string getName() const = 0;
+        void load() override;
+        void run() override;
+        std::string getName() const override;
         ~TensorFlowEngine() override;
-        virtual ImageOrdering getPreferredImageOrdering() const override;
-        virtual std::string getDefaultFileExtension() const override;
+        ImageOrdering getPreferredImageOrdering() const override;
+        std::string getDefaultFileExtension() const override;
         TensorFlowEngine();
+        /**
+         * Get a list of devices available for this inference engine.
+         *
+         * @return vector with info on each device
+         */
+        std::vector<InferenceDeviceInfo> getDeviceList();
     protected:
         std::unique_ptr<tensorflow::Session> mSession;
         std::unique_ptr<tensorflow::SavedModelBundle> mSavedModelBundle;
         std::vector<std::string> mLearningPhaseTensors;
 
 };
+
+DEFINE_INFERENCE_ENGINE(TensorFlowEngine, INFERENCEENGINETENSORFLOW_EXPORT)
 
 
 // Forward declare

@@ -31,7 +31,7 @@ using namespace fast;
 
 TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][volume][visual]") {
     for(auto& engine : InferenceEngineManager::getEngineList()) {
-        if(engine.substr(0, 10) != "TensorFlow") // Only TensorFlow can run this example atm
+        if(engine != "TensorFlow") // Only TensorFlow can run this example atm
             continue;
         auto importer = ImageFileImporter::New();
         //importer->setFilename(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
@@ -54,7 +54,7 @@ TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visu
         generator->enableRuntimeMeasurements();
 
         auto network = SegmentationNetwork::New();
-        network->setInferenceEngine("engine");
+        network->setInferenceEngine(engine);
         network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation.pb");
         network->setMinAndMaxIntensity(-1200.0f, 400.0f);
         network->setScaleFactor(1.0f / (400 + 1200));

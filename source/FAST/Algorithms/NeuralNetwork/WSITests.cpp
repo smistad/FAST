@@ -40,7 +40,7 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
-        if(engine.substr(0, 10) == "TensorFlow") {
+        if(engine == "TensorFlow") {
             network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR);
         } else if(engine == "TensorRT") {
             network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape{-1, 3, 512, 512});
@@ -92,7 +92,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
-        if(engine.substr(0, 10) == "TensorFlow") {
+        if(engine == "TensorFlow") {
             network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR);
         } else if(engine == "TensorRT") {
             network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape{-1, 3, 512, 512});

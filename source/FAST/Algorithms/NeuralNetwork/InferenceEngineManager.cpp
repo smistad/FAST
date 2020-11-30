@@ -91,8 +91,15 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
     if(m_engines.empty())
         throw Exception("No inference engines available on the system");
 
-    if(isEngineAvailable("TensorFlowCUDA"))
-        return loadEngine("TensorFlowCUDA");
+    if(isEngineAvailable("TensorFlow")) {
+        // Default is tensorflow if GPU support is enabled
+        auto engine = loadEngine("TensorFlow");
+        auto devices = engine->getDeviceList();
+        for (auto &&device : devices) {
+            if (device.type == InferenceDeviceType::GPU)
+                return engine;
+        }
+    }
 
     if(isEngineAvailable("TensorRT"))
         return loadEngine("TensorRT");

@@ -179,14 +179,17 @@ void TensorFlowEngine::run() {
 
 
 void TensorFlowEngine::load() {
-	const auto networkFilename = getFilename();
-	tensorflow::SessionOptions options;
-	tensorflow::ConfigProto &config = options.config;
+    const auto networkFilename = getFilename();
+    tensorflow::SessionOptions options;
+    tensorflow::ConfigProto &config = options.config;
 #ifndef WIN32
     // These lines cause linking issues on windows
     config.mutable_gpu_options()->set_allow_growth(true); // Set this so that tensorflow will not use up all GPU memory
-    if(m_deviceIndex >= 0)
+    if (m_deviceType == InferenceDeviceType::CPU) {
+        config.mutable_gpu_options()->set_visible_device_list("");
+    } else if (m_deviceIndex >= 0) {
         config.mutable_gpu_options()->set_visible_device_list(std::to_string(m_deviceIndex));
+    }
 #endif
     /*
 	tensorflow::GPUOptions* gpuOptions = config.mutable_gpu_options();
@@ -306,6 +309,33 @@ std::string TensorFlowEngine::getName() const {
 
 std::string TensorFlowEngine::getDefaultFileExtension() const {
     return "pb";
+}
+
+std::vector<InferenceDeviceInfo> TensorFlowEngine::getDeviceList() {
+    std::vector<InferenceDeviceInfo> result;
+    InferenceDeviceInfo cpu;
+    cpu.type = InferenceDeviceType::CPU;
+    cpu.index = 0;
+    result.push_back(cpu);
+#ifdef FAST_TENSORFLOW_BUILD_CUDA
+    {
+        // TODO how to query number of devices?
+        InferenceDeviceInfo device;
+        device.type = InferenceDeviceType::GPU;
+        device.index = 0;
+        result.push_back(device);
+    }
+#endif
+#ifdef FAST_TENSORFLOW_BUILD_ROCM
+    {
+        // TODO ROCm how?
+        InferenceDeviceInfo device;
+        device.type = InferenceDeviceType::GPU;
+        device.index = 0;
+        result.push_back(device);
+    }
+#endif
+    return result;
 }
 
 }

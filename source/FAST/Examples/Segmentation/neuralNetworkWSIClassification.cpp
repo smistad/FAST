@@ -19,7 +19,7 @@ using namespace fast;
 int main(int argc, char** argv) {
     CommandLineParser parser("Neural network WSI classification example");
     parser.addChoice("inference-engine",
-            {"default", "OpenVINO", "TensorFlowCPU", "TensorFlowCUDA", "TensorRT", "TensorFlowROCm"},
+            {"default", "OpenVINO", "TensorFlow", "TensorRT"},
             "default",
             "Which neural network inference engine to use");
     parser.addPositionVariable(1,
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     }
     const auto engine = network->getInferenceEngine()->getName();
     network->setInferenceEngine(engine);
-    if(engine.substr(0, 10) == "TensorFlow") {
+    if(engine == "TensorFlow") {
         network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR);
     } else if(engine == "TensorRT") {
         network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape{-1, 3, 512, 512});

@@ -23,6 +23,13 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
 
 		std::string getDefaultFileExtension() const override;
 
+        /**
+         * Get a list of devices available for this inference engine.
+         *
+         * @return vector with info on each device
+         */
+        std::vector<InferenceDeviceInfo> getDeviceList();
+
         ~OpenVINOEngine();
     private:
         std::shared_ptr<::InferenceEngine::Core> m_inferenceCore;
