@@ -122,7 +122,8 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
 }
 
 void OpenVINOEngine::load() {
-    m_inferenceCore = std::make_shared<Core>();
+    if(!m_inferenceCore)
+        m_inferenceCore = std::make_shared<Core>();
     auto devices = m_inferenceCore->GetAvailableDevices();
     reportInfo() << "Available OpenVINO devices:" << reportEnd();
     for(auto&& device : devices)
@@ -160,6 +161,32 @@ void OpenVINOEngine::load() {
             throw Exception(std::string("Failed to load device ") + deviceMapping[m_deviceType] + " in OpenVINO inference engine");
         }
     }
+}
+
+
+
+std::vector<InferenceDeviceInfo> OpenVINOEngine::getDeviceList() {
+    if(!m_inferenceCore)
+        m_inferenceCore = std::make_shared<Core>();
+    auto devices = m_inferenceCore->GetAvailableDevices();
+    std::vector<InferenceDeviceInfo> result;
+    for(auto&& device : devices) {
+        InferenceDeviceInfo fastDeviceInfo;
+        if(device.substr(0, 3) == "CPU") {
+            fastDeviceInfo.type = InferenceDeviceType::CPU;
+        } else if(device.substr(0,3) == "GPU"){
+            fastDeviceInfo.type = InferenceDeviceType::GPU;
+        } else if(device.substr(0,6) == "MYRIAD") {
+            fastDeviceInfo.type = InferenceDeviceType::VPU;
+        }
+        fastDeviceInfo.index = 0;
+        if(device.find('.') != std::string::npos) {
+            fastDeviceInfo.index = std::stoi(device.substr(device.find('.')+1));
+        }
+        result.push_back(fastDeviceInfo);
+    }
+
+    return result;
 }
 
 ImageOrdering OpenVINOEngine::getPreferredImageOrdering() const {

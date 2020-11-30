@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
                     segmentation->setInferenceEngine(engine);
                     segmentation->getInferenceEngine()->setDeviceType(deviceType.second);
                     std::string postfix = "";
-                    if(engine.substr(0, 10) == "TensorFlow") {
+                    if(engine == "TensorFlow") {
                         segmentation->setOutputNode(0, "conv2d_23/truediv");
                     } else if(engine == "TensorRT") {
                         segmentation->setInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
@@ -132,16 +132,8 @@ int main(int argc, char** argv) {
         file << "Engine;Device Type;Iteration;Patch generator AVG;Patch generator STD;NN input AVG;NN input STD;NN inference AVG;NN inference STD;NN output AVG;NN output STD;Patch stitcher AVG;Patch stitcher STD;Total\n";
 
         //Reporter::setGlobalReportMethod(Reporter::NONE);
-        for(std::string engine : {"TensorFlowCUDA", "TensorFlowCPU"}) {
+        for(std::string engine : {"TensorFlow"}) {
             std::map<std::string, InferenceDeviceType> deviceTypes = {{"ANY", InferenceDeviceType::ANY}};
-            if(engine == "OpenVINO") {
-                // On OpenVINO, try all device types
-                deviceTypes = std::map<std::string, InferenceDeviceType>{
-                        {"CPU", InferenceDeviceType::CPU},
-                        {"GPU", InferenceDeviceType::GPU},
-                        {"VPU", InferenceDeviceType::VPU},
-                };
-            }
             for(auto &&deviceType : deviceTypes) {
                 std::cout << engine << " for device type " << deviceType.first << std::endl;
                 std::cout << "====================================" << std::endl;
@@ -251,7 +243,7 @@ int main(int argc, char** argv) {
                     auto network = NeuralNetwork::New();
                     network->setInferenceEngine(engine);
                     std::string postfix;
-                    if(engine.substr(0, 10) == "TensorFlow") {
+                    if(engine == "TensorFlow") {
                         network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR);
                     } else if(engine == "TensorRT") {
                         network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape{-1, 3, 512, 512});
@@ -319,7 +311,7 @@ int main(int argc, char** argv) {
         // Write header
         file << "Engine;Device Type;Iteration;Patch generator AVG;Patch generator STD;NN input AVG;NN input STD;NN inference AVG;NN inference STD;NN output AVG;NN output STD;Patch stitcher AVG;Patch stitcher STD;Total\n";
 
-        for(std::string engine : {"TensorRT", "TensorFlowCUDA", "TensorFlowROCm", "OpenVINO"}) {
+        for(std::string engine : {"TensorRT", "TensorFlow", "OpenVINO"}) {
             if(!InferenceEngineManager::isEngineAvailable(engine))
                 continue;
             std::map<std::string, InferenceDeviceType> deviceTypes = {{"ANY", InferenceDeviceType::ANY}};
@@ -356,7 +348,7 @@ int main(int argc, char** argv) {
                     network->setInferenceEngine(engine);
                     network->getInferenceEngine()->setMaxBatchSize(batchSize);
                     std::string postfix;
-                    if(engine.substr(0, 10) == "TensorFlow") {
+                    if(engine == "TensorFlow") {
                         network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR);
                     } else if(engine == "TensorRT") {
                         network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape{-1, 3, 512, 512});

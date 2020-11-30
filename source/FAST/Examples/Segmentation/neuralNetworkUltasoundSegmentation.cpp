@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     //Reporter::setGlobalReportMethod(Reporter::COUT);
     CommandLineParser parser("Neural network segmentation example");
     parser.addChoice("inference-engine",
-            {"default", "OpenVINO", "TensorFlowCPU", "TensorFlowCUDA", "TensorRT", "TensorFlowROCm"},
+            {"default", "OpenVINO", "TensorFlow", "TensorRT"},
             "default",
             "Which neural network inference engine to use");
     parser.addVariable("filename", Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd", "Path to files to stream from disk");
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
         segmentation->setInferenceEngine(parser.get("inference-engine"));
     }
     const auto engine = segmentation->getInferenceEngine()->getName();
-    if(engine.substr(0,10) == "TensorFlow") {
+    if(engine == "TensorFlow") {
         // TensorFlow needs to know what the output node is called
         segmentation->setOutputNode(0, "conv2d_23/truediv");
     } else if(engine == "TensorRT") {

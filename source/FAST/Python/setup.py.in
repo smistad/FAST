@@ -71,9 +71,7 @@ else:
                 'libmyriadPlugin.so',
                 'libInferenceEngineTensorRT.so',
                 # Removed to reduce pip package size
-                #'libInferenceEngineTensorFlowCPU.so',
-                #'libInferenceEngineTensorFlowCUDA.so',
-                #'libInferenceEngineTensorFlowROCm.so',
+                #'libInferenceEngineTensorFlow.so',
             ])
           }
 
@@ -95,15 +93,15 @@ _fast = Extension('fast.bin._fast',
                 library_dirs=['@FAST_BINARY_DIR@/lib/', os.path.dirname('@OpenCL_LIBRARIES@')],
                 sources=['fast/PyFASTPYTHON_wrap.cxx'],
                 libraries=[ # Libraries to link with
-                        'FAST',
-                        'Qt5Core',
+                    'FAST',
+                    'Qt5Core',
                 	'Qt5Widgets',
                 	'Qt5Gui',
                 	'Qt5OpenGL',
                 	'Qt5Multimedia',
                 	'Qt5MultimediaWidgets',
-                        'Qt5PrintSupport',
-                        'Qt5Network',
+                    'Qt5PrintSupport',
+                    'Qt5Network',
                 	'OpenCL',
                 	'@OPENGL_LIBRARIES@',
                 ],
