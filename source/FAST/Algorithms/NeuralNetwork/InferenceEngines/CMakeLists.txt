@@ -21,7 +21,7 @@ if(FAST_MODULE_TensorRT)
 
     add_library(InferenceEngineTensorRT SHARED TensorRTEngine.hpp TensorRTEngine.cpp)
     target_include_directories(InferenceEngineTensorRT PRIVATE ${FAST_INCLUDE_DIRS} ${TensorRT_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS})
-    target_link_libraries(InferenceEngineTensorRT FAST ${TensorRT_LIBRARIES})
+    target_link_libraries(InferenceEngineTensorRT FAST ${TensorRT_LIBRARIES} ${CUDA_LIBRARIES})
     generate_export_header(InferenceEngineTensorRT EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/TensorRTExport.hpp)
 
     fast_add_inference_engine(TensorRT)
