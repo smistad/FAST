@@ -142,8 +142,8 @@ void TensorRTEngine::run() {
     }
 
     // Execute network
-    //bool success = m_context->executeV2(&buffers[0]);
-    bool success = m_context->execute(batchSize, &buffers[0]);
+    bool success = m_context->executeV2(buffers.data());
+    //bool success = m_context->execute(batchSize, &buffers[0]);
     if(!success)
         throw Exception("TensorRT execute inference failed!");
     reportInfo() << "Finished execute TensorRT" << reportEnd();
