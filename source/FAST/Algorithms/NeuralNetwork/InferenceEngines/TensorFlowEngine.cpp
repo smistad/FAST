@@ -179,26 +179,19 @@ void TensorFlowEngine::run() {
 
 
 void TensorFlowEngine::load() {
-    const auto networkFilename = getFilename();
+    // Setup tensorflow session options
     tensorflow::SessionOptions options;
     tensorflow::ConfigProto &config = options.config;
-#ifndef WIN32
-    // These lines cause linking issues on windows
     config.mutable_gpu_options()->set_allow_growth(true); // Set this so that tensorflow will not use up all GPU memory
     if (m_deviceType == InferenceDeviceType::CPU) {
-        config.mutable_gpu_options()->set_visible_device_list("");
+        config.mutable_gpu_options()->set_visible_device_list(""); // Hide devices to force CPU execution
     } else if (m_deviceIndex >= 0) {
-        config.mutable_gpu_options()->set_visible_device_list(std::to_string(m_deviceIndex));
+        config.mutable_gpu_options()->set_visible_device_list(std::to_string(m_deviceIndex)); // Use specific GPU
     }
-#endif
-    /*
-	tensorflow::GPUOptions* gpuOptions = config.mutable_gpu_options();
-	gpuOptions->set_allow_growth(true); 
-	//gpuOptions->set_per_process_gpu_memory_fraction(0.5);
-    */
 
 	tensorflow::GraphDef tensorflow_graph;
 
+    const auto networkFilename = getFilename();
 	if(networkFilename.substr(networkFilename.size()-3) == ".pb" || tensorflow::MaybeSavedModelDirectory(networkFilename) == false) {
 	    // Load a frozen protobuf file (.pb)
         if(!fileExists(networkFilename))
