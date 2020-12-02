@@ -33,25 +33,25 @@ class FAST_EXPORT PipelineEditor : public QWidget {
 };
 
 
-class PipelineHighlighter : public QSyntaxHighlighter {
+class FAST_EXPORT PipelineHighlighter : public QSyntaxHighlighter {
     Q_OBJECT
 
-public:
-    PipelineHighlighter(QTextDocument* parent = 0);
+	public:
+		PipelineHighlighter(QTextDocument* parent = 0);
 
-protected:
-    void highlightBlock(const QString& text) override;
+	protected:
+		void highlightBlock(const QString& text) override;
 
-private:
-    struct HighlightingRule {
-        QRegularExpression pattern;
-        QTextCharFormat format;
-    };
-    QVector<HighlightingRule> highlightingRules;
+	private:
+		struct HighlightingRule {
+			QRegularExpression pattern;
+			QTextCharFormat format;
+		};
+		QVector<HighlightingRule> highlightingRules;
 
-    QTextCharFormat keywordFormat;
-    QTextCharFormat singleLineCommentFormat;
-    QTextCharFormat quotationFormat;
+		QTextCharFormat keywordFormat;
+		QTextCharFormat singleLineCommentFormat;
+		QTextCharFormat quotationFormat;
 };
 
 }
