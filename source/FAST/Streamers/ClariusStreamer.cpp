@@ -1,6 +1,6 @@
 #include "ClariusStreamer.hpp"
 #include "FAST/Data/Image.hpp"
-#include <listen/listen.h>
+#include <cast.h>
 #include <functional>
 
 namespace fast {
@@ -33,7 +33,7 @@ void ClariusStreamer::execute() {
         std::string keydir = Config::getKernelBinaryPath();
         // TODO A hack here to get this to work. Fix later
         static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
-        int success = clariusInitListener(argc, nullptr, keydir.c_str(),
+        int success = clariusInitCast(argc, nullptr, keydir.c_str(),
             // new image callback
             [](const void* img, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
             {
@@ -52,7 +52,7 @@ void ClariusStreamer::execute() {
 			512
 		);
         if(success < 0)
-            throw Exception("Unable to initialize clarius listener");
+            throw Exception("Unable to initialize clarius cast");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
         success = clariusConnect(mIPAddress.c_str(), mPort, nullptr);
@@ -115,9 +115,9 @@ void ClariusStreamer::stop() {
     int success = clariusDisconnect(nullptr);
     if(success < 0)
         throw Exception("Unable to disconnect from clarius scanner");
-    success = clariusDestroyListener();
+    success = clariusDestroyCast();
     if(success < 0)
-        throw Exception("Unable to destroy clarius listener");
+        throw Exception("Unable to destroy clarius cast");
 
     reportInfo() << "Clarius streamer stopped" << Reporter::end();
 }

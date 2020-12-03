@@ -1,9 +1,9 @@
-# Download clarius listen API
+# Download clarius cast API
 include(cmake/Externals.cmake)
 
 ExternalProject_Add(clarius_headers
     PREFIX ${FAST_EXTERNAL_BUILD_DIR}/clarius
-    URL https://github.com/clariusdev/listener/archive/v7.1.0.zip
+    URL https://github.com/clariusdev/cast/archive/v7.3.0.zip
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -11,9 +11,9 @@ ExternalProject_Add(clarius_headers
 )
 
 if(WIN32)
-    set(URL "https://github.com/clariusdev/listener/releases/download/v7.1.0/clarius-listen-v710-windows.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/v7.3.0/clarius-cast-v730-windows.zip")
 else()
-    set(URL "https://github.com/clariusdev/listener/releases/download/v7.1.0/clarius-listen-v710-linux.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/v7.3.0/clarius-cast-v730-linux.zip")
 endif()
 
 if(WIN32)
@@ -23,8 +23,8 @@ ExternalProject_Add(clarius
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/listen.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
-          ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/listen.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/cast.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+          ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/cast.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/
         DEPENDS clarius_headers
 
 )
@@ -35,7 +35,7 @@ ExternalProject_Add(clarius
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/liblisten.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/libcast.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/
         DEPENDS clarius_headers
 )
 endif()
