@@ -1,14 +1,14 @@
-#include "DisplacementNetwork.hpp"
+#include "FlowNetwork.hpp"
 #include <FAST/Data/Image.hpp>
 
 namespace fast {
 
-DisplacementNetwork::DisplacementNetwork() {
+FlowNetwork::FlowNetwork() {
     createInputPort<Sequence>(0);
     createOutputPort<Image>(0);
 }
 
-void DisplacementNetwork::execute() {
+void FlowNetwork::execute() {
     // Prepare input node: Should be two images in a sequence
     run();
 
