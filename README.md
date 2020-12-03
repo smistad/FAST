@@ -8,7 +8,7 @@ FAST is an open-source cross-platform framework with the main goal of making it 
 
 ### Get started
 First, make sure you have the [requirements installed](https://github.com/smistad/FAST/wiki/Requirements).   
-Stable binary releases/installers can be [downloaded for Windows and Ubuntu Linux on GitHub](https://github.com/smistad/FAST/releases/).
+Stable binary releases/installers can be [downloaded for Windows and Ubuntu Linux](https://github.com/smistad/FAST/releases/).
 
 To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide and [examples](https://github.com/smistad/FAST/wiki/Examples).
 
