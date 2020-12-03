@@ -4,13 +4,13 @@
 [![GitHub Downloads](https://img.shields.io/github/downloads/smistad/FAST/total?label=GitHub%20downloads&logo=github)](https://github.com/smistad/FAST/releases)
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://pypi.org/project/pyFAST/)
 
-FAST is an open-source cross-platform framework with the main goal of making it easier to do high performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
+FAST is an open-source cross-platform framework with the main goal of making it easier to do high-performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
 
 ### Get started
 First, make sure you have the [requirements installed](https://github.com/smistad/FAST/wiki/Requirements).   
-Stable binary releases/installers can be [downloaded for Windows and Ubuntu Linux on GitHub](https://github.com/smistad/FAST/releases/).
+Stable binary releases/installers can be [downloaded for Windows and Ubuntu Linux](https://github.com/smistad/FAST/releases/).
 
-To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide or the [examples page](https://github.com/smistad/FAST/wiki/Examples).
+To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide and [examples](https://github.com/smistad/FAST/wiki/Examples).
 
 FAST is also available for Python 3 through [pip](https://pypi.org/project/pyFAST/): ```pip install pyfast```   
 Python examples can be found [here](https://github.com/smistad/FAST/wiki/Examples#Python).
