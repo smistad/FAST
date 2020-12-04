@@ -1,6 +1,6 @@
 #include "ClariusStreamer.hpp"
 #include "FAST/Data/Image.hpp"
-#include <listen/listen.h>
+#include <cast/cast.h>
 #include <functional>
 
 namespace fast {
@@ -33,7 +33,7 @@ void ClariusStreamer::execute() {
         std::string keydir = Config::getKernelBinaryPath();
         // TODO A hack here to get this to work. Fix later
         static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
-        int success = clariusInitListener(argc, nullptr, keydir.c_str(),
+        int success = clariusInitCast(argc, nullptr, keydir.c_str(),
             // new image callback
             [](const void* img, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
             {
@@ -52,7 +52,7 @@ void ClariusStreamer::execute() {
 			512
 		);
         if(success < 0)
-            throw Exception("Unable to initialize clarius listener");
+            throw Exception("Unable to initialize clarius cast");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
         success = clariusConnect(mIPAddress.c_str(), mPort, nullptr);
@@ -115,9 +115,9 @@ void ClariusStreamer::stop() {
     int success = clariusDisconnect(nullptr);
     if(success < 0)
         throw Exception("Unable to disconnect from clarius scanner");
-    success = clariusDestroyListener();
+    success = clariusDestroyCast();
     if(success < 0)
-        throw Exception("Unable to destroy clarius listener");
+        throw Exception("Unable to destroy clarius cast");
 
     reportInfo() << "Clarius streamer stopped" << Reporter::end();
 }
@@ -133,16 +133,28 @@ void ClariusStreamer::setConnectionPort(int port) {
 }
 
 void ClariusStreamer::toggleFreeze() {
-	clariusUserFunction(USER_FN_TOGGLE_FREEZE, nullptr);
+    if(clariusUserFunction(USER_FN_TOGGLE_FREEZE, 0.0, nullptr) < 0)
+        reportError() << "Error toggling freeze" << reportEnd();
 }
 
 void ClariusStreamer::increaseDepth() {
-	clariusUserFunction(USER_FN_DEPTH_INC, nullptr);
+	if(clariusUserFunction(USER_FN_DEPTH_INC, 0.0, nullptr) < 0)
+        reportError() << "Error increasing depth" << reportEnd();
 }
 
 void ClariusStreamer::decreaseDepth() {
-	clariusUserFunction(USER_FN_DEPTH_DEC, nullptr);
+	if(clariusUserFunction(USER_FN_DEPTH_DEC, 0.0, nullptr) < 0)
+        reportError() << "Error decreasing depth" << reportEnd();
 }
 
+void ClariusStreamer::setDepth(float depth) {
+	if(clariusUserFunction(USER_FN_SET_DEPTH, depth, nullptr) < 0)
+        reportError() << "Error setting depth to " << depth << reportEnd();
+}
+
+void ClariusStreamer::setGain(float gain) {
+	if(clariusUserFunction(USER_FN_SET_GAIN, gain, nullptr) < 0)
+        reportError() << "Error setting gain to " << gain << reportEnd();
+}
 
 }
