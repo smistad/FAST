@@ -224,9 +224,10 @@ void TensorRTEngine::load() {
         std::unique_ptr<nvinfer1::IBuilder, decltype(Destroy())> builder(nvinfer1::createInferBuilder(gLogger),
                                                                          Destroy());
         const auto flags = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
-        std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network(builder->createNetworkV2(flags), Destroy());
+        std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network;
 
         if(filename.substr(filename.size()-4) == ".uff") {
+            network = {builder->createNetwork(), Destroy()}; // createNetworkV2 not working with UFF for some reason..
             // Check that input and output nodes are set
             if(mInputNodes.empty() || mOutputNodes.empty())
                 throw Exception("Input and output nodes must be defined before loading Uff files using the TensorRT engine");
@@ -246,8 +247,7 @@ void TensorRTEngine::load() {
                     parser->registerInput(node.first.c_str(), nvinfer1::Dims3(shape[1], shape[2], shape[3]),
                                           nvuffparser::UffInputOrder::kNCHW);
                 if (shape.getDimensions() == 5)
-                    parser->registerInput(node.first.c_str(), nvinfer1::Dims4(shape[1], shape[2], shape[3], shape[4]),
-                                          nvuffparser::UffInputOrder::kNCHW);
+                    throw Exception("More than 4 dimensions input is not supported");
             }
             reportInfo() << "Input nodes finished" << reportEnd();
 
@@ -262,6 +262,7 @@ void TensorRTEngine::load() {
 
             reportInfo() << "Finished parsing UFF file" << reportEnd();
         } else {
+            network = {builder->createNetworkV2(flags), Destroy()};
             // Assuming file is ONNX format
             reportInfo() << "Assuming file is in ONNX format, parsing..." << reportEnd();
             std::unique_ptr<nvonnxparser::IParser, decltype(Destroy())> parser(nvonnxparser::createParser(*network, gLogger),
@@ -303,22 +304,24 @@ void TensorRTEngine::load() {
     }
 
     // Get input and output nodes from the CUDA engine
-    int inputCount = 0;
-    int outputCount = 0;
-    for(int i = 0; i < m_engine->getNbBindings(); ++i) {
-        auto name = m_engine->getBindingName(i);
-        auto shape = getTensorShape(m_engine->getBindingDimensions(i));
-        NodeType type = NodeType::IMAGE;
-        if(shape.getDimensions() < 4)
-            type = NodeType::TENSOR;
-        if (m_engine->bindingIsInput(i)) {
-            reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
-            addInputNode(inputCount, name, type, shape);
-            ++inputCount;
-        } else {
-            reportInfo() << "Found output node " << name << " with shape " << shape.toString() << reportEnd();
-            addOutputNode(outputCount, name, type, shape);
-            ++outputCount;
+    if(filename.substr(filename.size()-4) != ".uff") {
+        int inputCount = 0;
+        int outputCount = 0;
+        for (int i = 0; i < m_engine->getNbBindings(); ++i) {
+            auto name = m_engine->getBindingName(i);
+            auto shape = getTensorShape(m_engine->getBindingDimensions(i));
+            NodeType type = NodeType::IMAGE;
+            if (shape.getDimensions() < 4)
+                type = NodeType::TENSOR;
+            if (m_engine->bindingIsInput(i)) {
+                reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
+                addInputNode(inputCount, name, type, shape);
+                ++inputCount;
+            } else {
+                reportInfo() << "Found output node " << name << " with shape " << shape.toString() << reportEnd();
+                addOutputNode(outputCount, name, type, shape);
+                ++outputCount;
+            }
         }
     }
 
