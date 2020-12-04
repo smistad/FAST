@@ -3,7 +3,7 @@ include(cmake/Externals.cmake)
 
 ExternalProject_Add(clarius_headers
     PREFIX ${FAST_EXTERNAL_BUILD_DIR}/clarius
-    URL https://github.com/clariusdev/cast/archive/v7.3.0.zip
+    URL https://github.com/clariusdev/cast/archive/f21f9de7ae7740e61eb1ca0c73c43592e5b2f766.zip #v7.30 with export header fix
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""

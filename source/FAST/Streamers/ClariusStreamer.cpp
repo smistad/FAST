@@ -1,6 +1,6 @@
 #include "ClariusStreamer.hpp"
 #include "FAST/Data/Image.hpp"
-#include <cast.h>
+#include <cast/cast.h>
 #include <functional>
 
 namespace fast {
@@ -133,16 +133,28 @@ void ClariusStreamer::setConnectionPort(int port) {
 }
 
 void ClariusStreamer::toggleFreeze() {
-	clariusUserFunction(USER_FN_TOGGLE_FREEZE, nullptr);
+    if(clariusUserFunction(USER_FN_TOGGLE_FREEZE, 0.0, nullptr) < 0)
+        reportError() << "Error toggling freeze" << reportEnd();
 }
 
 void ClariusStreamer::increaseDepth() {
-	clariusUserFunction(USER_FN_DEPTH_INC, nullptr);
+	if(clariusUserFunction(USER_FN_DEPTH_INC, 0.0, nullptr) < 0)
+        reportError() << "Error increasing depth" << reportEnd();
 }
 
 void ClariusStreamer::decreaseDepth() {
-	clariusUserFunction(USER_FN_DEPTH_DEC, nullptr);
+	if(clariusUserFunction(USER_FN_DEPTH_DEC, 0.0, nullptr) < 0)
+        reportError() << "Error decreasing depth" << reportEnd();
 }
 
+void ClariusStreamer::setDepth(float depth) {
+	if(clariusUserFunction(USER_FN_SET_DEPTH, depth, nullptr) < 0)
+        reportError() << "Error setting depth to " << depth << reportEnd();
+}
+
+void ClariusStreamer::setGain(float gain) {
+	if(clariusUserFunction(USER_FN_SET_GAIN, gain, nullptr) < 0)
+        reportError() << "Error setting gain to " << gain << reportEnd();
+}
 
 }
