@@ -142,8 +142,8 @@ void TensorRTEngine::run() {
     }
 
     // Execute network
-    bool success = m_context->executeV2(buffers.data());
-    //bool success = m_context->execute(batchSize, &buffers[0]);
+    //bool success = m_context->executeV2(buffers.data()); // IMPORTANT: Does not work with uff parser atm
+    bool success = m_context->execute(batchSize, &buffers[0]);
     if(!success)
         throw Exception("TensorRT execute inference failed!");
     reportInfo() << "Finished execute TensorRT" << reportEnd();
@@ -225,49 +225,54 @@ void TensorRTEngine::load() {
                                                                          Destroy());
         const auto flags = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
         std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network;
+        std::unique_ptr<nvuffparser::IUffParser, decltype(Destroy())> uffparser(nvuffparser::createUffParser(),
+                                                                             Destroy()); // IMPORTANT! UFF parser must be alive even after parse
+        if(filename.substr(filename.size()-4) == ".uff") {
+            network = {builder->createNetwork(),
+                       Destroy()}; // createNetworkV2 not working with UFF for some reason..
+        } else {
+            network = {builder->createNetworkV2(flags),
+                       Destroy()};
+        }
+        std::unique_ptr<nvonnxparser::IParser, decltype(Destroy())> onnxparser(nvonnxparser::createParser(*network, gLogger),
+                                                                           Destroy()); // IMPORTANT! Parser must be alive even after parse
 
         if(filename.substr(filename.size()-4) == ".uff") {
-            network = {builder->createNetwork(), Destroy()}; // createNetworkV2 not working with UFF for some reason..
             // Check that input and output nodes are set
             if(mInputNodes.empty() || mOutputNodes.empty())
                 throw Exception("Input and output nodes must be defined before loading Uff files using the TensorRT engine");
             reportInfo() << "Assuming file is in UFF format, parsing..." << reportEnd();
-            std::unique_ptr<nvuffparser::IUffParser, decltype(Destroy())> parser(nvuffparser::createUffParser(),
-                                                                                 Destroy());
 
             // Setup input nodes
             reportInfo() << "Going through nodes.." << reportEnd();
-            for (auto node : mInputNodes) {
+            for(auto node : mInputNodes) {
                 reportInfo() << node.first << reportEnd();
                 auto shape = node.second.shape;
-                if (shape.getDimensions() == 0)
+                if(shape.getDimensions() == 0)
                     throw Exception("Unknown shape for input node " + node.first +
                                     ". For TensorRT you need to specify the input tensor shape explictly with addInputNode");
-                if (shape.getDimensions() == 4)
-                    parser->registerInput(node.first.c_str(), nvinfer1::Dims3(shape[1], shape[2], shape[3]),
+                if(shape.getDimensions() == 4)
+                    uffparser->registerInput(node.first.c_str(), nvinfer1::Dims3(shape[1], shape[2], shape[3]),
                                           nvuffparser::UffInputOrder::kNCHW);
-                if (shape.getDimensions() == 5)
+                if(shape.getDimensions() == 5)
                     throw Exception("More than 4 dimensions input is not supported");
             }
             reportInfo() << "Input nodes finished" << reportEnd();
 
             // Setup output nodes
-            for (auto node : mOutputNodes) {
-                parser->registerOutput(node.first.c_str());
+            for(auto node : mOutputNodes) {
+                uffparser->registerOutput(node.first.c_str());
             }
             reportInfo() << "Output nodes finished" << reportEnd();
 
-            if (!parser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
+            if(!uffparser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
                 throw Exception("Error parsing UFF file " + filename);
 
             reportInfo() << "Finished parsing UFF file" << reportEnd();
         } else {
-            network = {builder->createNetworkV2(flags), Destroy()};
             // Assuming file is ONNX format
             reportInfo() << "Assuming file is in ONNX format, parsing..." << reportEnd();
-            std::unique_ptr<nvonnxparser::IParser, decltype(Destroy())> parser(nvonnxparser::createParser(*network, gLogger),
-                                                                                 Destroy());
-            bool parsed = parser->parseFromFile(filename.c_str(), 1);
+            bool parsed = onnxparser->parseFromFile(filename.c_str(), 1);
             if(!parsed)
                 throw Exception("Unable to parse ONNX file with TensorRT");
         }
