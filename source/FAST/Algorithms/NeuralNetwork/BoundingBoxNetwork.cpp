@@ -27,7 +27,6 @@ void BoundingBoxNetwork::setAnchors(std::vector<std::vector<Vector2f>> anchors) 
 
 BoundingBoxNetwork::BoundingBoxNetwork() {
     createInputPort<Image>(0);
-
     createOutputPort<BoundingBoxSet>(0);
     
     m_threshold = 0.5;
@@ -54,59 +53,46 @@ inline float sigmoid(float x) {
 }
 
 void BoundingBoxNetwork::execute() {
-
-    run();
-
     if(m_anchors.empty())
         throw Exception("No anchors was given to the bouding box network");
 
+    run();
+
     mRuntimeManager->startRegularTimer("output_processing");
     const auto outputNodes = m_engine->getOutputNodes();
-    for(auto node : outputNodes) {
-        //std::cout << node.first << ": " << node.second.shape.toString() << std::endl;
-    }
-    const auto ordering = m_engine->getPreferredImageOrdering();
 
 	int inputHeight;
     int inputWidth;
     auto inputShape = m_engine->getInputNodes().begin()->second.shape;
-    if(ordering == ImageOrdering::ChannelFirst) {
-        inputHeight = inputShape[2];
-        inputWidth = inputShape[3];
-    } else {
+    if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelLast) {
         inputHeight = inputShape[1];
         inputWidth = inputShape[2];
+    } else {
+        inputHeight = inputShape[2];
+        inputWidth = inputShape[3];
     }
 
+    const auto ordering = ImageOrdering::ChannelLast;
     auto bbset = BoundingBoxSet::New();
     bbset->create();
     auto outputAccess = bbset->getAccess(ACCESS_READ_WRITE);
     int nodeIdx = 0;
-    for(auto node : outputNodes) {
-		auto tensor = node.second.data;
+    for(auto node : m_processedOutputData) {
+		auto tensor = std::dynamic_pointer_cast<Tensor>(node.second);
+		if(!tensor)
+		    throw Exception("Output data " + std::to_string(node.first) + " was not a tensor");
 		const auto shape = tensor->getShape();
-		if(shape[0] != 1)
-			throw Exception("BoundingBoxNetwork only support batch size 1 atm");
-
 		auto access = tensor->getAccess(ACCESS_READ);
 		const int dims = shape.getDimensions();
-		if(dims != 4)
-			throw Exception("Expected nr of output dimensions to be 4");
+		if(dims != 3)
+			throw Exception("Expected nr of output dimensions to be 3");
 
-		// TODO reuse some of the output processing in NN
-		tensor->deleteDimension(0); // TODO assuming batch size is 1, remove this dimension
 		int outputHeight;
 		int outputWidth;
 		int channels;
-		if(ordering == ImageOrdering::ChannelFirst) {
-			outputHeight = shape[2];
-			outputWidth = shape[3];
-			channels = shape[1];
-		} else {
-			outputHeight = shape[1];
-			outputWidth = shape[2];
-			channels = shape[3];
-		}
+        outputHeight = shape[0];
+        outputWidth = shape[1];
+        channels = shape[2];
 		float* tensorData = access->getRawData();
         // Output tensor is 8x8x18, or 8x8x Anchors x (classes + 5)
 		const int classes = channels / m_anchors[nodeIdx].size() - 5;
@@ -114,7 +100,7 @@ void BoundingBoxNetwork::execute() {
         // Loop over grid
         for(int y = 0; y < outputHeight; ++y) {
             for(int x = 0; x < outputWidth; ++x) {
-				for(int a = 0; a < m_anchors.size(); ++a) {
+				for(int a = 0; a < m_anchors[nodeIdx].size(); ++a) {
 					float bestScore = 0.0f;
 					uchar bestClass = 0;
 					// Find best class

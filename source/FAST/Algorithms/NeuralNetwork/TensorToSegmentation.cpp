@@ -1,5 +1,6 @@
 #include <FAST/Data/Tensor.hpp>
 #include <FAST/Data/Image.hpp>
+#include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include "TensorToSegmentation.hpp"
 #include "InferenceEngine.hpp"
 
@@ -21,21 +22,18 @@ inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering or
 TensorToSegmentation::TensorToSegmentation() {
     createInputPort<Tensor>(0);
     createOutputPort<Image>(0);
+
+    createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", m_threshold);
 }
 
 void TensorToSegmentation::execute() {
     auto tensor = getInputData<Tensor>();
-    auto output = getOutputData<Image>();
+    auto output = Image::New();
 
     auto shape = tensor->getShape();
     const int dims = shape.getDimensions();
     int outputHeight = shape[dims-3];
     int outputWidth = shape[dims-2];
-    ImageOrdering ordering = ImageOrdering::ChannelLast;
-    if(ordering == ImageOrdering::ChannelFirst) {
-        outputHeight = shape[dims-2];
-        outputWidth = shape[dims-1];
-    }
     int outputDepth = 1;
     auto access = tensor->getAccess(ACCESS_READ);
     float* tensorData = access->getRawData();
@@ -45,7 +43,8 @@ void TensorToSegmentation::execute() {
     const int size = outputWidth*outputHeight*outputDepth;
 
     auto data = make_uninitialized_unique<uchar[]>(size);
-    const int nrOfClasses = ordering == ImageOrdering::ChannelFirst ? tensor->getShape()[0] : tensor->getShape()[tensor->getShape().getDimensions()-1];
+    const int nrOfClasses = tensor->getShape()[tensor->getShape().getDimensions()-1];
+    const auto ordering = ImageOrdering::ChannelLast;
     for(int x = 0; x < size; ++x) {
         uchar maxClass = 0;
         for(uchar j = 1; j < nrOfClasses; j++) {
@@ -62,6 +61,20 @@ void TensorToSegmentation::execute() {
         output->create(outputWidth, outputHeight, outputDepth, TYPE_UINT8, 1, std::move(data));
     }
     output->setSpacing(tensor->getSpacing());
+
+    addOutputData(0, output);
+}
+
+void TensorToSegmentation::setThreshold(float threshold) {
+    m_threshold = threshold;
+}
+
+float TensorToSegmentation::getThreshold() const {
+    return m_threshold;
+}
+
+void TensorToSegmentation::loadAttributes() {
+    setThreshold(getFloatAttribute("threshold"));
 }
 
 }

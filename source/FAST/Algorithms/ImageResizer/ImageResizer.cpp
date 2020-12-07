@@ -37,6 +37,14 @@ void ImageResizer::setPreserveAspectRatio(bool preserve) {
     mPreserveAspectRatio = preserve;
 }
 
+void ImageResizer::loadAttributes() {
+    auto size = getIntegerListAttribute("size");
+    setWidth(size[0]);
+    setHeight(size[1]);
+    if(size.size() == 3)
+        setDepth(size[2]);
+}
+
 ImageResizer::ImageResizer() {
 	createInputPort<Image>(0);
 	createOutputPort<Image>(0);
@@ -47,6 +55,8 @@ ImageResizer::ImageResizer() {
     mPreserveAspectRatio = false;
     mInterpolationSet = false;
     mInterpolation = true;
+
+    createIntegerAttribute("size", "Size", "Size", 0);
 }
 
 void ImageResizer::execute() {

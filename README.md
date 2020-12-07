@@ -4,20 +4,22 @@
 [![GitHub Downloads](https://img.shields.io/github/downloads/smistad/FAST/total?label=GitHub%20downloads&logo=github)](https://github.com/smistad/FAST/releases)
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://pypi.org/project/pyFAST/)
 
-FAST (Framework for Heterogeneous Medical Image Computing and Visualization) is an open-source cross-platform framework with the main goal of making it easier to do high performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST is constructed using modern C++, OpenCL and OpenGL.
+FAST is an open-source cross-platform framework with the main goal of making it easier to do high-performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
 
 ### Get started
 First, make sure you have the [requirements installed](https://github.com/smistad/FAST/wiki/Requirements).   
-Stable binary releases can be [downloaded for Windows and Ubuntu Linux on GitHub](https://github.com/smistad/FAST/releases/).
+Stable binary releases/installers can be [downloaded for Windows and Ubuntu Linux](https://github.com/smistad/FAST/releases/).
 
-To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide or the [examples page](https://github.com/smistad/FAST/wiki/Examples).
+To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide and [examples](https://github.com/smistad/FAST/wiki/Examples).
 
-FAST is available for Python 3 through [pip](https://pypi.org/project/pyFAST/): ```pip install pyfast```   
+FAST is also available for Python 3 through [pip](https://pypi.org/project/pyFAST/): ```pip install pyfast```   
 Python examples can be found [here](https://github.com/smistad/FAST/wiki/Examples#Python).
+
+Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
 
 ### Main features
 
-* **Data streaming** – Processing pipelines in FAST can handle both static and dynamic/temporal data without any change to the code. FAST can stream data from movie files, your webcamera, an Intel RealSense camera, a sequence of images and even directly from ultrasound scanners.
+* **Data streaming** – Processing pipelines in FAST can handle both static and dynamic/temporal data without any change to the code. FAST can stream data from movie files, your webcamera, an Intel RealSense camera, a sequence of images and even directly from ultrasound scanners such as Clarius.
 * **Deep learning** – FAST supports several inference engines, such as Google’s TensorFlow, NVIDIA's TensorRT and Intel's OpenVINO, making it possible to create real-time neural network pipelines.
 * **High-level data management** – Data objects in FAST represent data, such as an image, on all processors. FAST keeps data coherent across the different storage areas thereby removing the burden of explicit memory handling from the developer.
 * **High performance algorithms** – FAST has several high performance parallel OpenCL implementations of common algorithms, such as marching cubes surface extraction, Gaussian smoothing, non-local means, block matching tracking and seeded region growing.

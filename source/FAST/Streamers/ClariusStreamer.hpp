@@ -21,6 +21,14 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 		void toggleFreeze();
 		void increaseDepth();
 		void decreaseDepth();
+        /**
+         * Set depth in centimeters
+         */
+        void setDepth(float depth);
+        /**
+         * Set gain in percentage
+         */
+        void setGain(float gain);
         void loadAttributes() override;
 	private:
         ClariusStreamer();

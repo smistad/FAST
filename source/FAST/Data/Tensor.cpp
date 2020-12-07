@@ -244,8 +244,8 @@ void Tensor::updateHostData() {
 void Tensor::setSpacing(VectorXf spacing) {
     if(!isInitialized())
         throw Exception("Tensor was not initialized");
-    if(spacing.size() != m_shape.getDimensions())
-        throw Exception("Spacing vector has different size than shape");
+    //if(spacing.size() != m_shape.getDimensions())
+    //    throw Exception("Spacing vector has different size than shape");
     m_spacing = spacing;
 }
 
