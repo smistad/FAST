@@ -120,26 +120,25 @@ set(INCLUDE_FOLDERS
     QtPrintSupport
     QtSerialPort
     QtSql
-		QtSvg
+    QtSvg
     QtTest
     QtThemeSupport
     QtWidgets
     QtXml
     QtZlib)
 if(FAST_MODULE_Plotting)
-	list(APPEND INCLUDE_FOLDERS jkqtplotter jkqtcommon jkqtfastplotter jkqtmathtext)
+    list(APPEND INCLUDE_FOLDERS jkqtplotter jkqtcommon jkqtfastplotter jkqtmathtext)
 endif()
 if(WIN32)
-list(APPEND INCLUDE_FOLDERS
-    ActiveQt
-)
+    list(APPEND INCLUDE_FOLDERS
+        ActiveQt
+    )
 else()
-list(APPEND INCLUDE_FOLDERS
-    QtGlxSupport
-		QtServiceSupport
-		QtInputSupport
-		QtKmsSupport
-)
+    list(APPEND INCLUDE_FOLDERS
+        QtGlxSupport
+        QtServiceSupport
+        QtInputSupport
+    )
 endif()
 foreach(INCLUDE_FOLDER ${INCLUDE_FOLDERS})
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
