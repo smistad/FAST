@@ -54,11 +54,13 @@ if(WIN32)
                 echo "Installing tensorflow generated headers" COMMAND
                 xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\bazel-bin\\tensorflow\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\tensorflow\\" /syi COMMAND
                 echo "Installing tensorflow third party headers"  COMMAND
-                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\third_party\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\third_party\\" /syi  COMMAND
+                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\third_party\\" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\third_party\\" /syi  COMMAND
                 echo "Installing protobuf headers"  COMMAND
                 xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\bazel-tensorflow_download\\external\\com_google_protobuf\\src\\google\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\google\\" /syi COMMAND
+                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\bazel-tensorflow_download\\external\\com_google_protobuf\\src\\google\\*.inc" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\google\\" /syi COMMAND
                 echo "Installing absl headers"  COMMAND
-                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\bazel-tensorflow_download\\external\\com_google_absl\\absl\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\absl\\" /syi
+                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\bazel-tensorflow_download\\external\\com_google_absl\\absl\\*.h" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\absl\\" /syi COMMAND
+                xcopy "${FAST_EXTERNAL_BUILD_DIR_WIN}\\tensorflow\\src\\tensorflow_download\\bazel-tensorflow_download\\external\\com_google_absl\\absl\\*.inc" "${FAST_EXTERNAL_INSTALL_DIR_WIN}\\include\\absl\\" /syi
     )
 else(WIN32)
     # Use bazel to build tensorflow on linux
