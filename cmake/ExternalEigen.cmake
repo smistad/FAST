@@ -5,7 +5,7 @@ include(cmake/Externals.cmake)
 ExternalProject_Add(eigen
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/eigen
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/eigen
-        URL "https://gitlab.com/libeigen/eigen/-/archive/master/b4890dc.tar.gz"
+        URL "https://gitlab.com/libeigen/eigen/-/archive/55967f87d1dc5cf2c33145ddcff73f349e406635/eigen-55967f87d1dc5cf2c33145ddcff73f349e406635.tar.gz"
         INSTALL_DIR ${FAST_EXTERNAL_INSTALL_DIR}
         CMAKE_CACHE_ARGS
             -DCMAKE_BUILD_TYPE:STRING=Release
