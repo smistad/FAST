@@ -7,7 +7,7 @@ ExternalProject_Add(jkqtplotter
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/jkqtplotter
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/jkqtplotter
         GIT_REPOSITORY "https://github.com/jkriege2/JKQtPlotter.git"
-        GIT_TAG "2b942e1e2d64c5fd45f5f70e53153b87299781ab"
+        GIT_TAG "fc7622e901cec7ed68abe6b2d95ea20ce30490ed"
         #UPDATE_COMMAND "" # Hack to avoid rebuild all the time on linux
         CMAKE_ARGS
           -DJKQtPlotter_BUILD_EXAMPLES:BOOL=OFF
