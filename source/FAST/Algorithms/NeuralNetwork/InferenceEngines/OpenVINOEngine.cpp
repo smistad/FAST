@@ -64,7 +64,7 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
         // Read from file
         if (!fileExists(input_model))
             throw FileNotFoundException(input_model);
-        network = m_inferenceCore->ReadNetwork(fileNameToString(input_model));
+        network = m_inferenceCore->ReadNetwork(input_model);
     }
 
     //network.setBatchSize(1);
