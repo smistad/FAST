@@ -2,6 +2,7 @@
 
 if(FAST_MODULE_TensorFlow)
     message("-- TensorFlow module enabled. Select which TensorFlow versions to build (CPU only/CUDA/ROCM).")
+    set(FAST_TensorFlow_JOBS 4 CACHE STRING "Number of parallel jobs (integer) to build tensorflow with bazel. Too many jobs might exhaust memory.")
     option(FAST_BUILD_TensorFlow_CUDA "Build TensorFlow CUDA/cuDNN version" OFF)
     if(NOT WIN32)
       option(FAST_BUILD_TensorFlow_ROCm "Build TensorFlow ROCm version" OFF)
