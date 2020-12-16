@@ -17,20 +17,22 @@ void ImageClassificationNetwork::execute() {
 
     run();
 
+    // TODO batch support
     auto tensor = std::dynamic_pointer_cast<Tensor>(m_processedOutputData[0]);
+    if(!tensor)
+        throw Exception("ImageClassificationNetwork batch support not implemented");
     auto access = tensor->getAccess(ACCESS_READ);
+    std::cout << tensor->getShape().toString() << std::endl;
 
-    auto data = access->getData<2>();
+    auto data = access->getData<1>();
     auto output = getOutputData<ImageClassification>(0);
-    for(int i = 0; i < data.dimension(0); ++i) { // for each input image
-        std::map<std::string, float> mapResult;
-        for(int j = 0; j < data.dimension(1); ++j) { // for each class
-            mapResult[mLabels[j]] = data(i, j);
-            reportInfo() << mLabels[j] << ": " << data(i, j) << reportEnd();
-        }
+	std::map<std::string, float> mapResult;
+	for(int j = 0; j < data.dimension(0); ++j) { // for each class
+		mapResult[mLabels[j]] = data(j);
+		reportInfo() << mLabels[j] << ": " << data(j) << reportEnd();
+	}
 
-        output->create(mapResult);
-    }
+	output->create(mapResult);
 }
 
 void ImageClassificationNetwork::loadAttributes() {
