@@ -366,9 +366,6 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
                 glBindVertexArray(0);
 
-                if(mTexturesToRender.count(tileString) == 0)
-                    throw Exception("ERROR! Texture doesn't exist");
-
                 //std::cout << "drawing " << tileString << std::endl;
                 glBindTexture(GL_TEXTURE_2D, textureID);
                 glBindVertexArray(mVAO[tileString]);
