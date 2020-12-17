@@ -18,7 +18,7 @@ if(FAST_MODULE_TensorFlow)
         )
     else()
         set(TensorFlow_LIBRARIES
-            ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so.2.3.0
+            ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so
         )
     endif()
 endif()

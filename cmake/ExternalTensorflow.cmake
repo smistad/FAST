@@ -93,9 +93,10 @@ else(WIN32)
             INSTALL_COMMAND
                 echo "Installing tensorflow binary" &&
                 cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so.2.3.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
-                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+                cp -fP ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+                cp -fP ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
                 cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.2.3.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
-                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+                cp -fP ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
                 chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so.2.3.0 &&
                 chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework.so.2.3.0 &&
                 strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so.2.3.0 &&
