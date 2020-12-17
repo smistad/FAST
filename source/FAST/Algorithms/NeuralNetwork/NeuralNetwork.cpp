@@ -33,19 +33,22 @@ void NeuralNetwork::loadAttributes() {
             auto parts = split(info, ":");
             if(parts.size() > 2)
                 throw Exception("Incorrect input-nodes format.");
-            TensorShape shape;
             NodeType type = NodeType::IMAGE;
-            auto stringShape = split(parts[1], ",");
-            shape.addDimension(-1); // batch
-            for(auto strDim : stringShape)
-                shape.addDimension(std::stoi(strDim));
-            if(shape.getKnownDimensions() < 3)
-                type = NodeType::TENSOR;
+            TensorShape shape;
+            if(parts.size() == 2) { // Shape was given as well
+                auto stringShape = split(parts[1], ",");
+                shape.addDimension(-1); // batch
+                for (auto strDim : stringShape)
+                    shape.addDimension(std::stoi(strDim));
+                if (shape.getKnownDimensions() < 3)
+                    type = NodeType::TENSOR;
+            }
             if(inputOrOutput == "input") {
                 setInputNode(i, parts[0], type, shape);
             } else {
                 setOutputNode(i, parts[0], type, shape);
             }
+
             ++i;
         }
     }
