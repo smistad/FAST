@@ -262,7 +262,12 @@ void TensorFlowEngine::load() {
 					}
 					addInputNode(inputCounter, node.name(), type, shape);
 					++inputCounter;
-				} 
+				} else {
+				    // If shape that was given was empty, add the detected one here
+				    if(mInputNodes[node.name()].shape.getDimensions() == 0) {
+				        mInputNodes[node.name()].shape = shape;
+				    }
+				}
 			}
 		}
 	}
