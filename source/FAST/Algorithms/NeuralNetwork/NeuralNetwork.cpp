@@ -489,11 +489,15 @@ NeuralNetwork::~NeuralNetwork() {
 }
 
 void NeuralNetwork::setInputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
+    if(m_engine->isLoaded())
+        throw Exception("NeuralNetwork setInputNode/setOutputNode must be called before load()");
 	m_engine->addInputNode(portID, name, type, shape);
 	createInputPort<DataObject>(portID);
 }
 
 void NeuralNetwork::setOutputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
+    if(m_engine->isLoaded())
+        throw Exception("NeuralNetwork setInputNode/setOutputNode must be called before load()");
     m_engine->addOutputNode(portID, name, type, shape);
     createOutputPort<DataObject>(portID);
 }
