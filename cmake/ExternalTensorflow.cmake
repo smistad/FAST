@@ -23,13 +23,13 @@ if(WIN32)
         set(CONFIGURE_SCRIPT ${PROJECT_SOURCE_DIR}/cmake/TensorflowConfigureCUDA.bat ${CUDA_TOOLKIT_ROOT_DIR}  ${CUDA_VERSION_STRING})
         set(BUILD_COMMAND echo "Building tensorflow with bazel and CUDA GPU support" &&
                 cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/ &&
-                bazel build --config opt --config=cuda --jobs=4 //tensorflow:tensorflow_cc.dll
+                bazel build --config opt --config=cuda --jobs=${FAST_TensorFlow_JOBS} //tensorflow:tensorflow_cc.dll
         )
     else(FAST_BUILD_TensorFlow_CUDA)
         set(CONFIGURE_SCRIPT ${PROJECT_SOURCE_DIR}/cmake/TensorflowConfigureCPU.bat)
         set(BUILD_COMMAND echo "Building tensorflow with bazel for CPU only" &&
                 cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/ &&
-                bazel build --config=opt --jobs=4 //tensorflow:tensorflow_cc.dll
+                bazel build --config=opt --jobs=${FAST_TensorFlow_JOBS} //tensorflow:tensorflow_cc.dll
         )
     endif()
     ExternalProject_Add(tensorflow
@@ -70,13 +70,13 @@ else(WIN32)
         set(CONFIGURE_SCRIPT ${PROJECT_SOURCE_DIR}/cmake/TensorflowConfigureCUDA.sh)
         set(BUILD_COMMAND echo "Building tensorflow with bazel and CUDA GPU support" &&
             cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/ &&
-            bazel build -c opt --config=cuda --copt=-mfpmath=both --copt=-march=core-avx2 --jobs=4 //tensorflow:libtensorflow_cc.so
+            bazel build -c opt --config=cuda --copt=-mfpmath=both --copt=-march=core-avx2 --jobs=${FAST_TensorFlow_JOBS} //tensorflow:libtensorflow_cc.so
         )
     else(FAST_BUILD_TensorFlow_CUDA)
         set(CONFIGURE_SCRIPT ${PROJECT_SOURCE_DIR}/cmake/TensorflowConfigureCPU.sh)
         set(BUILD_COMMAND echo "Building tensorflow with bazel for CPU only" &&
             cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/ &&
-            bazel build -c opt --config=opt --copt=-mfpmath=both --copt=-march=core-avx2 --jobs=4 //tensorflow:libtensorflow_cc.so
+            bazel build -c opt --config=opt --copt=-mfpmath=both --copt=-march=core-avx2 --jobs=${FAST_TensorFlow_JOBS} //tensorflow:libtensorflow_cc.so
         )
     endif()
     ExternalProject_Add(tensorflow
@@ -94,9 +94,10 @@ else(WIN32)
             INSTALL_COMMAND
                 echo "Installing tensorflow binary" &&
                 cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so.2.3.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
-                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+                cp -fP ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+                cp -fP ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
                 cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.2.3.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
-                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+                cp -fP ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
                 chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so.2.3.0 &&
                 chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework.so.2.3.0 &&
                 strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so.2.3.0 &&
