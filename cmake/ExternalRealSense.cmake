@@ -6,7 +6,7 @@ ExternalProject_Add(realsense
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/realsense
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/realsense
         GIT_REPOSITORY "https://github.com/IntelRealSense/librealsense.git"
-        GIT_TAG "v2.17.0"
+        GIT_TAG "v2.40.0"
         CMAKE_ARGS
         -DBUILD_EXAMPLES:BOOL=OFF
         -DBUILD_GRAPHICAL_EXAMPLES:BOOL=OFF

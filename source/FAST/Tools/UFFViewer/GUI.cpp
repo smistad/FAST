@@ -1,4 +1,4 @@
-#include "GUI.hpp""
+#include "GUI.hpp"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -6,14 +6,21 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QComboBox>
+#include <QSlider>
+#include <QTimer>
 #include <FAST/Streamers/UFFStreamer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
+#include <FAST/Pipeline.cpp>
+#include <FAST/PipelineEditor.hpp>
+#include <FAST/Utility.hpp>
 
 namespace fast {
 
 UFFViewerWindow::UFFViewerWindow() {
-	Reporter::setGlobalReportMethod(Reporter::COUT);
 	setTitle("Ultrasound File Format FAST Viewer");
+	enableMaximized();
+
+	// Create layouts
 	auto mainLayout = new QHBoxLayout;
 	mWidget->setLayout(mainLayout);
 
@@ -21,14 +28,19 @@ UFFViewerWindow::UFFViewerWindow() {
 	menuLayout->setAlignment(Qt::AlignTop);
 	mainLayout->addLayout(menuLayout);
 
+	m_rightSideLayout = new QVBoxLayout;
+	mainLayout->addLayout(m_rightSideLayout);
+
 	m_viewLayout = new QHBoxLayout;
-	mainLayout->addLayout(m_viewLayout);
+	m_rightSideLayout->addLayout(m_viewLayout);
+
+	// Add an empty dummy view
 	auto view = createView();
 	view->setBackgroundColor(Color::Black());
 	view->set2DMode();
-	//view->setAutoUpdateCamera(true);
 	m_viewLayout->addWidget(view);
 
+	// Logo
 	auto logo = new QLabel;
 	logo->setText("Ultrasound File Format Viewer");
 	QFont font;
@@ -37,12 +49,68 @@ UFFViewerWindow::UFFViewerWindow() {
 	logo->setFont(font);
 	menuLayout->addWidget(logo);
 
+	// File selection
 	auto selectFileButton = new QPushButton;
 	selectFileButton->setText("Open UFF file");
 	menuLayout->addWidget(selectFileButton);
-	QObject::connect(selectFileButton, &QPushButton::clicked, this, &UFFViewerWindow::selectFile);
 
+	auto fileLabel = new QLabel;
+	menuLayout->addWidget(fileLabel);
 
+	QObject::connect(selectFileButton, &QPushButton::clicked, [this, fileLabel]() {
+		auto filename = QFileDialog::getOpenFileName(mWidget, "Open File", NULL,
+			"Ultrasound File Format (UFF) (*.uff *.hd5 *.hdf5)");
+		if(!filename.isEmpty()) {
+			m_filename = filename.toStdString();
+			//fileLabel->setText(m_filename.substr(m_filename.rfind("/")+1).c_str());
+			loadView();
+		}
+	});
+
+	// Pipeline selection and edit
+	auto pipelineLabel = new QLabel;
+	pipelineLabel->setText("Pipeline:");
+	menuLayout->addWidget(pipelineLabel);
+
+	auto pipelineSelection = new QComboBox;
+	menuLayout->addWidget(pipelineSelection);
+	const std::string path = Config::getPipelinePath() + "/uff_viewer/";
+	std::vector<std::string> pipelineFiles;
+	for(auto&& item : getDirectoryList(Config::getPipelinePath() + "/uff_viewer/")) {
+		try {
+			auto pipeline = Pipeline(path + item);
+			pipelineSelection->addItem(pipeline.getName().c_str());
+			pipelineFiles.push_back(item);
+		} catch(Exception &e) {
+			reportWarning() << "Error reading pipeline " << item << ": " << e.what() << reportEnd();
+		}
+	}
+	pipelineSelection->setCurrentText(QString("Default"));
+
+	auto editButton = new QPushButton;
+	menuLayout->addWidget(editButton);
+	editButton->setText("Edit");
+	QObject::connect(editButton, &QPushButton::clicked, [this, path, pipelineSelection, pipelineFiles]() {
+		auto selectedFile = pipelineFiles[pipelineSelection->currentIndex()];
+		auto editor = new PipelineEditor(path + selectedFile);
+		editor->show();
+		if(m_streamer)
+			m_streamer->setPause(true);
+		QObject::connect(editor, &PipelineEditor::saved, [this, selectedFile]() {
+			m_pipelineFile = selectedFile;
+			loadView();
+		});
+	});
+
+	auto runButton = new QPushButton;
+	menuLayout->addWidget(runButton);
+	runButton->setText("Run");
+	QObject::connect(runButton, &QPushButton::clicked, [this, pipelineSelection, pipelineFiles]() {
+		m_pipelineFile = pipelineFiles[pipelineSelection->currentIndex()];
+		loadView();
+	});
+
+	// Framerate control
 	auto framerateLabel = new QLabel;
 	framerateLabel->setText("Framerate:");
 	menuLayout->addWidget(framerateLabel);
@@ -52,39 +120,70 @@ UFFViewerWindow::UFFViewerWindow() {
 		m_framerateInput->addItem(QString(std::to_string(i).c_str()));
 	m_framerateInput->setCurrentIndex(m_framerate - 1);
 	menuLayout->addWidget(m_framerateInput);
-	QObject::connect(m_framerateInput, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &UFFViewerWindow::selectFramerate);
-}
+	QObject::connect(m_framerateInput, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
+		m_framerate = index + 1;
+		if(m_streamer)
+			m_streamer->setFramerate(m_framerate);
+	});
 
-void UFFViewerWindow::selectFile() {
-	auto filename = QFileDialog::getOpenFileName(mWidget, "Open File", NULL,
-                                                "Ultrasound File Format (UFF) (*.uff *.hd5 *.hdf5)");
-	if(!filename.isEmpty()) {
-		setFilename(filename.toStdString());
-		loadView();
-	}
-}
+	// Playback controls
+	auto playbackLayout = new QHBoxLayout;
+	m_rightSideLayout->addLayout(playbackLayout);
 
-void UFFViewerWindow::selectFramerate(int index) {
-	m_framerate = index + 1;
-	if(m_streamer)
-		m_streamer->setFramerate(m_framerate);
+	m_playButton = new QPushButton;
+	m_playButton->setText("Play");
+	playbackLayout->addWidget(m_playButton);
+	QObject::connect(m_playButton, &QPushButton::clicked, [this]() {
+		if(m_streamer) {
+			if(!m_streamer->getPause()) {
+				m_streamer->setCurrentFrameIndex(m_slider->sliderPosition()); // This will pause as well
+			} else {
+				m_streamer->setPause(false);
+			}
+		}
+	});
+
+	m_slider = new QSlider;
+	m_slider->setOrientation(Qt::Horizontal);
+	playbackLayout->addWidget(m_slider);
+	QObject::connect(m_slider, &QSlider::sliderMoved, [this](int index) {
+		if(m_streamer) {
+			m_streamer->setCurrentFrameIndex(index);
+		}
+	});
+
+	// Playback slider update
+	auto timer = new QTimer;
+	timer->setInterval(10);
+	timer->setSingleShot(false);
+	QObject::connect(timer, &QTimer::timeout, [this]() {
+		if(m_streamer) {
+			m_slider->setSliderPosition(m_streamer->getCurrentFrameIndex()); // This is not entirely correct as the streamer may have sent out more frames than has been visualized.. can be fixed by setting maximumNrOfFrames to 1
+			if(m_streamer->getPause()) {
+				m_playButton->setText("Play");
+			} else {
+				m_playButton->setText("Pause");
+			}
+		}
+
+	});
+	timer->start();
 }
 
 void UFFViewerWindow::setFilename(std::string filename) {
-	std::cout << filename << std::endl;
 	m_filename = filename;
 	loadView();
 }
 
 void UFFViewerWindow::loadView() {
 	// Set up pipeline and view
-	m_streamer = UFFStreamer::New();
-	m_streamer->setFilename(m_filename);
-	m_streamer->setLooping(true);
-	m_streamer->setFramerate(m_framerate);
-	/*
 	try {
-		streamer->update();
+		m_streamer = UFFStreamer::New();
+		m_streamer->setFilename(m_filename);
+		m_streamer->setLooping(true);
+		m_streamer->setFramerate(m_framerate);
+		m_streamer->setMaximumNrOfFrames(1); // To avoid glitches in playback we set the queue size to 1
+		m_slider->setRange(0, m_streamer->getNrOfFrames()-1);
 	} catch(Exception &e) {
 		std::string errorMessage = e.what();
 		int ret = QMessageBox::critical(mWidget, "UFF Viewer",
@@ -92,16 +191,50 @@ void UFFViewerWindow::loadView() {
                                QMessageBox::Ok,
                                QMessageBox::Ok);
 		return;
-	}*/
+	}
 
-	auto imageRenderer = ImageRenderer::New();
-	imageRenderer->addInputConnection(m_streamer->getOutputPort());
-	imageRenderer->setSynchronizedRendering(false);
+	stopComputationThread();
 
-	getView(0)->removeAllRenderers();
-	getView(0)->addRenderer(imageRenderer);
-	getView(0)->reinitialize();
+	// Remove and delete old views
+	auto views = mWidget->getViews();
+	mWidget->clearViews();
+	for(auto& view : views) {
+		delete view;
+	}
 
+	// Load pipeline
+	Pipeline pipeline(Config::getPipelinePath() + "/uff_viewer/" + m_pipelineFile);
+	pipeline.parse({{"UFFstream", m_streamer}});
+
+	// Setup renderers and views
+    auto renderers = pipeline.getRenderers();
+
+    // Disable renderers for now
+    for(auto&& renderer : renderers)
+        renderer->setDisabled(true);
+    
+    // Add all pipeline views to the window:
+    for(auto view : pipeline.getViews()) {
+        view->setAutoUpdateCamera(true);
+        mWidget->addView(view);
+    }
+
+	// Recreate the view layout
+	delete m_viewLayout;
+	m_viewLayout = new QHBoxLayout;
+	for(auto view : pipeline.getViews()) {
+		m_viewLayout->addWidget(view);
+	}
+	m_rightSideLayout->insertLayout(0, m_viewLayout);
+
+    m_streamer->update(); // This must be called to start streamer in correct thread
+
+    // Enable renderers again
+    for(auto&& renderer : renderers)
+        renderer->setDisabled(false);
+
+	// Restart computation thread
+	startComputationThread();
 }
 
 }

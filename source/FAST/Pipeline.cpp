@@ -196,7 +196,7 @@ void Pipeline::parseProcessObject(
     }
 }
 
-void Pipeline::parsePipelineFile(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects) {
+void Pipeline::parse(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects) {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
 
     mProcessObjects = processObjects;
@@ -304,6 +304,7 @@ std::vector<Pipeline> getAvailablePipelines(std::string path) {
             Pipeline pipeline(filepath);
             pipelines.push_back(pipeline);
         } catch(Exception & e) {
+            Reporter::warning() << "Error reading pipeline " << filepath << ": " << e.what() << Reporter::end();
             continue;
         }
     }
@@ -312,7 +313,7 @@ std::vector<Pipeline> getAvailablePipelines(std::string path) {
 
 std::unordered_map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() {
     if(mProcessObjects.size() == 0)
-        parsePipelineFile();
+        parse();
 
     return mProcessObjects;
 }

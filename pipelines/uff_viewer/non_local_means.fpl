@@ -1,0 +1,34 @@
+PipelineName "Non Local Means Filtering"
+PipelineDescription "asd"
+
+### Processing chain
+
+ProcessObject filter NonLocalMeans
+Attribute smoothing 0.2
+Attribute search-size 11
+Attribute filter-size 3
+Attribute iterations 3
+Attribute preprocess false
+Input 0 UFFstream 0
+
+ProcessObject enhance UltrasoundImageEnhancement
+Attribute reject 40
+Input 0 filter 0
+
+### Renderers
+
+Renderer renderer1 ImageRenderer
+Input 0 UFFstream 0
+
+Renderer renderer2 ImageRenderer
+Input 0 enhance 0
+
+### Views
+
+View view1 renderer1
+Attribute 2Dmode true
+Attribute background-color black
+
+View view2 renderer2
+Attribute 2Dmode true
+Attribute background-color black

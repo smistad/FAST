@@ -17,6 +17,7 @@
 #include <GL/gl.h>
 #endif
 #endif
+#include <zip/zip.h>
 
 namespace fast {
 
@@ -689,7 +690,8 @@ bool isFile(const std::string& path) {
 
 bool isDir(const std::string& path) {
 #ifdef _WIN32
-    throw Exception("Not implemented");
+    auto attr = GetFileAttributesA(path.c_str());
+    return attr & FILE_ATTRIBUTE_DIRECTORY;
 #else
     struct stat buf;
     stat(path.c_str(), &buf);
@@ -801,6 +803,12 @@ std::string getModifiedDate(std::string filename) {
         timeStr = ctime(&(attrib.st_mtime));
     #endif
     return timeStr;
+}
+
+void extractZipFile(std::string zipFilepath, std::string destination) {
+	int result = zip_extract(zipFilepath.c_str(), destination.c_str(), nullptr, nullptr);
+    if(result != 0)
+        throw Exception("Zip extraction failed");
 }
 
 } // end namespace fast

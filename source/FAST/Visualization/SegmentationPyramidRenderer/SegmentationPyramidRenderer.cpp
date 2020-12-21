@@ -395,22 +395,25 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     //for(int level = m_input->getNrOfLevels()-1; level >= levelToUse; level--) {
         const int levelWidth = m_input->getLevelWidth(level);
         const int levelHeight = m_input->getLevelHeight(level);
-        const int mTiles = m_input->getLevelPatches(level);
+        const int mTilesX = m_input->getLevelTilesX(level);
+        const int mTilesY = m_input->getLevelTilesY(level);
+        const int tileWidth = m_input->getLevelTileWidth(level);
+        const int tileHeight = m_input->getLevelTileHeight(level);
         const float mCurrentTileScale = (float)fullWidth/levelWidth;
 
-        for(int tile_x = 0; tile_x < mTiles; ++tile_x) {
-            for(int tile_y = 0; tile_y < mTiles; ++tile_y) {
+        for(int tile_x = 0; tile_x < mTilesX; ++tile_x) {
+            for(int tile_y = 0; tile_y < mTilesY; ++tile_y) {
                 const std::string tileString =
                         std::to_string(level) + "_" + std::to_string(tile_x) + "_" + std::to_string(tile_y);
 
-                int tile_offset_x = tile_x * (int) std::floor((float) levelWidth / mTiles);
-                int tile_offset_y = tile_y * (int) std::floor((float) levelHeight / mTiles);
+                int tile_offset_x = tile_x * tileWidth;
+                int tile_offset_y = tile_y * tileHeight;
 
-                int tile_width = std::floor(((float) levelWidth / mTiles));
-                if(tile_x == mTiles - 1)
+                int tile_width = tileWidth;
+                if(tile_x == mTilesX - 1)
                     tile_width = levelWidth - tile_offset_x;
-                int tile_height = std::floor((float) levelHeight / mTiles);
-                if(tile_y == mTiles - 1)
+                int tile_height = tileHeight;
+                if(tile_y == mTilesY - 1)
                     tile_height = levelHeight - tile_offset_y;
                 tile_width *= spacing.x();
                 tile_height *= spacing.y();

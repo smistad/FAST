@@ -21,7 +21,6 @@ setx TF_ENABLE_XLA 0
 setx TF_CUDA_CLANG 0
 setx TF_NEED_CUDA 0
 setx TF_NCCL_VERSION " "
-setx PYTHON_BIN_PATH "$(which python3)"
-setx PYTHON_LIB_PATH "$($PYTHON_BIN_PATH -c 'import site; print(site.getsitepackages()[0])')"
+setx TF_OVERRIDE_EIGEN_STRONG_INLINE 1
 
 python configure.py

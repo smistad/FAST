@@ -158,6 +158,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         // Indicates whether this data object is the last frame in a stream, and if so, the name of the stream
         std::unordered_set<std::string> m_lastFrame;
 
+        int m_maximumNrOfFrames = -1;
 
 };
 

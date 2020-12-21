@@ -23,6 +23,13 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
 
 		std::string getDefaultFileExtension() const override;
 
+        /**
+         * Get a list of devices available for this inference engine.
+         *
+         * @return vector with info on each device
+         */
+        std::vector<InferenceDeviceInfo> getDeviceList();
+
         ~OpenVINOEngine();
     private:
         std::shared_ptr<::InferenceEngine::Core> m_inferenceCore;
@@ -30,6 +37,9 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
         std::shared_ptr<::InferenceEngine::InferRequest> m_inferRequest;
 		
         void loadPlugin(std::string deviceType);
+
+        // This mutex is used to ensure only one thread is using this OpenVINO instance at the same time
+        std::mutex m_mutex;
 };
 
 DEFINE_INFERENCE_ENGINE(OpenVINOEngine, INFERENCEENGINEOPENVINO_EXPORT)

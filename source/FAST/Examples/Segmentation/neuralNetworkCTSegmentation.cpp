@@ -19,7 +19,7 @@ using namespace fast;
 int main(int argc, char** argv) {
     CommandLineParser parser("Neural network CT volume segmentation example");
     parser.addChoice("inference-engine",
-            {"default", "TensorFlowCPU", "TensorFlowCUDA", "TensorFlowROCm"},
+            {"TensorFlow"},
             "default",
             "Which neural network inference engine to use");
     parser.addPositionVariable(1,
@@ -37,15 +37,7 @@ int main(int argc, char** argv) {
     generator->enableRuntimeMeasurements();
 
     auto network = SegmentationNetwork::New();
-    if(parser.get("inference-engine") != "default") {
-        network->setInferenceEngine(parser.get("inference-engine"));
-    } else {
-        if(InferenceEngineManager::isEngineAvailable("TensorFlowCUDA")) {
-            network->setInferenceEngine("TensorFlowCUDA");
-        } else {
-            network->setInferenceEngine("TensorFlowCPU");
-        }
-    }
+    network->setInferenceEngine(parser.get("inference-engine"));
     const auto engine = network->getInferenceEngine()->getName();
     network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation.pb");
     network->setMinAndMaxIntensity(-1200.0f, 400.0f);

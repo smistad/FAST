@@ -125,6 +125,8 @@ if(WIN32)
 	# Parallel build in MSVC
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /nologo /MD /EHsc")
+  # Removes issues with Eigen complaining that M_LOG2E does not exist
+  add_definitions(-D_USE_MATH_DEFINES)
 endif()
 
 #### Add all subdirs

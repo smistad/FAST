@@ -6,7 +6,7 @@ if(WIN32)
 ExternalProject_Add(OpenVINO
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO
         GIT_REPOSITORY "https://github.com/openvinotoolkit/openvino.git"
-        GIT_TAG "2020.3.0"
+        GIT_TAG "2021.1"
         UPDATE_COMMAND
             git submodule update --init --recursive
         CMAKE_ARGS
@@ -21,6 +21,8 @@ ExternalProject_Add(OpenVINO
             -DBUILD_TESTING:BOOL=OFF
             #-DBUILD_SHARED_LIBS:BOOL=ON
             -DENABLE_VPU:BOOL=ON
+	    -DNGRAPH_UNIT_TEST_ENABLE:BOOL=OFF
+	    -DNGRAPH_UNIT_TEST_OPENVINO_ENABLE:BOOL=OFF
         CMAKE_CACHE_ARGS
             -DCMAKE_BUILD_TYPE:STRING=Release
             -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF
@@ -40,7 +42,11 @@ ExternalProject_Add(OpenVINO
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/inference_engine_transformations.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/inference_engine_lp_transformations.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/inference_engine_lp_transformations.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
-            ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/clDNNPlugin.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/inference_engine_ir_reader.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/inference_engine_ir_v7_reader.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/inference_engine_onnx_reader.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/onnx_importer.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/clDNNPlugin.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/MKLDNNPlugin.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/myriadPlugin.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/ngraph.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
@@ -52,7 +58,7 @@ else()
 ExternalProject_Add(OpenVINO
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO
         GIT_REPOSITORY "https://github.com/openvinotoolkit/openvino.git"
-        GIT_TAG "2020.3.0"
+        GIT_TAG "2021.1"
         UPDATE_COMMAND
             git submodule update --init --recursive
         CMAKE_ARGS
@@ -67,6 +73,9 @@ ExternalProject_Add(OpenVINO
             -DBUILD_TESTING:BOOL=OFF
             #-DBUILD_SHARED_LIBS:BOOL=ON
             -DENABLE_VPU:BOOL=ON
+	    -DNGRAPH_UNIT_TEST_ENABLE:BOOL=OFF
+	    -DNGRAPH_UNIT_TEST_OPENVINO_ENABLE:BOOL=OFF
+	    -DTREAT_WARNING_AS_ERROR:BOOL=OFF
         CMAKE_CACHE_ARGS
             -DCMAKE_BUILD_TYPE:STRING=Release
             -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF
@@ -79,7 +88,11 @@ ExternalProject_Add(OpenVINO
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libinference_engine_legacy.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libinference_engine_transformations.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libinference_engine_lp_transformations.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
-            ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libclDNNPlugin.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libinference_engine_ir_reader.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libinference_engine_ir_v7_reader.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libinference_engine_onnx_reader.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libonnx_importer.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+			${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libclDNNPlugin.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libMKLDNNPlugin.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libmyriadPlugin.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/lib/libngraph.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND

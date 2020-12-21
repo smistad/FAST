@@ -25,6 +25,11 @@
 //#include <tensorflow/core/platform/logging.h>
 #include <FAST/Utility.hpp>
 
+#include <tensorflow/cc/saved_model/loader.h>
+#include <tensorflow/cc/saved_model/loader_util.h>
+#include <tensorflow/cc/saved_model/tag_constants.h>
+#include <tensorflow/cc/saved_model/reader.h>
+
 
 namespace fast {
 
@@ -174,33 +179,48 @@ void TensorFlowEngine::run() {
 
 
 void TensorFlowEngine::load() {
-	const auto networkFilename = getFilename();
-	tensorflow::SessionOptions options;
-	tensorflow::ConfigProto &config = options.config;
-#ifndef WIN32
-    // These lines cause linking issues on windows
+    // Setup tensorflow session options
+    tensorflow::SessionOptions options;
+    tensorflow::ConfigProto &config = options.config;
     config.mutable_gpu_options()->set_allow_growth(true); // Set this so that tensorflow will not use up all GPU memory
-    if(m_deviceIndex >= 0)
-        config.mutable_gpu_options()->set_visible_device_list(std::to_string(m_deviceIndex));
-#endif
-    /*
-	tensorflow::GPUOptions* gpuOptions = config.mutable_gpu_options();
-	gpuOptions->set_allow_growth(true); 
-	//gpuOptions->set_per_process_gpu_memory_fraction(0.5);
-    */
-	mSession.reset(tensorflow::NewSession(options));
+    if (m_deviceType == InferenceDeviceType::CPU) {
+        config.mutable_gpu_options()->set_visible_device_list(""); // Hide devices to force CPU execution
+    } else if (m_deviceIndex >= 0) {
+        config.mutable_gpu_options()->set_visible_device_list(std::to_string(m_deviceIndex)); // Use specific GPU
+    }
+
 	tensorflow::GraphDef tensorflow_graph;
 
-	{
+    const auto networkFilename = getFilename();
+	if(networkFilename.substr(networkFilename.size()-3) == ".pb" || tensorflow::MaybeSavedModelDirectory(networkFilename) == false) {
+	    // Load a frozen protobuf file (.pb)
         if(!fileExists(networkFilename))
             throw Exception(networkFilename + " does not exist");
-		reportInfo() << "Loading network file: " << networkFilename << reportEnd();
-		tensorflow::Status s = ReadBinaryProto(tensorflow::Env::Default(), networkFilename, &tensorflow_graph);
-		if (!s.ok()) {
-			throw Exception("Could not read TensorFlow graph file " + networkFilename);
-		}
+        reportInfo() << "Loading network file: " << networkFilename << reportEnd();
+        tensorflow::Status s = ReadBinaryProto(tensorflow::Env::Default(), networkFilename, &tensorflow_graph);
+        if (!s.ok()) {
+            throw Exception("Could not read TensorFlow graph file " + networkFilename);
+        }
+        reportInfo() << "Creating session." << reportEnd();
+        mSession.reset(tensorflow::NewSession(options));
+        s = mSession->Create(tensorflow_graph);
+        if (!s.ok()) {
+            throw Exception("Could not create TensorFlow Graph: " + s.error_message());
+        }
+	} else {
+	    // Load a model stored in the SavedModel format
+        mSavedModelBundle = std::make_unique<tensorflow::SavedModelBundle>();
+        tensorflow::RunOptions runOptions;
+        auto s = tensorflow::LoadSavedModel(options, runOptions, networkFilename, {tensorflow::kSavedModelTagServe}, mSavedModelBundle.get());
+        if(!s.ok()) {
+            throw Exception("Could not read TensorFlow SavedModel from " + networkFilename);
+        }
+        tensorflow::MetaGraphDef metaGraphDef = mSavedModelBundle->meta_graph_def;
+        mSession.reset(mSavedModelBundle->GetSession());
+        tensorflow_graph = metaGraphDef.graph_def();
 	}
 
+	// Analyze nodes to find input node
 	bool nodesSpecified = true;
     int inputCounter = 0;
 	if(mInputNodes.size() == 0) {
@@ -234,31 +254,34 @@ void TensorFlowEngine::load() {
 					if(shape.getDimensions() >= 4) {
 						reportInfo() << "Assuming node is an image" << reportEnd();
 						type = NodeType::IMAGE;
-					} else {
+					} else if(shape.getDimensions() > 0) {
 						reportInfo() << "Assuming node is a tensor" << reportEnd();
+					} else {
+						reportInfo() << "Node has dimension 0, skipping.." << reportEnd();
+						continue;
 					}
-					addInputNode(inputCounter, tensorflow_graph.node(0).name(), type, shape);
+					addInputNode(inputCounter, node.name(), type, shape);
 					++inputCounter;
-				} 
+				} else {
+				    // If shape that was given was empty, add the detected one here
+				    if(mInputNodes[node.name()].shape.getDimensions() == 0) {
+				        mInputNodes[node.name()].shape = shape;
+				    }
+				}
 			}
 		}
 	}
+
+    // If no output nodes, guess that last node is the output node
     if(mOutputNodes.empty()) {
         tensorflow::NodeDef node = tensorflow_graph.node(tensorflow_graph.node_size()-1);
         reportWarning() << "No output nodes were given to TensorFlow engine, FAST is guessing it is the last node with name " << node.name() << reportEnd();
         addOutputNode(0, node.name());
     }
 
-	reportInfo() << "Creating session." << reportEnd();
-	tensorflow::Status s = mSession->Create(tensorflow_graph);
-	if (!s.ok()) {
-		throw Exception("Could not create TensorFlow Graph: " + s.error_message());
-	}
-
-	//tensorflow::graph::SetDefaultDevice("/gpu:0", &tensorflow_graph);
-
 	// Clear the proto to save memory space.
 	tensorflow_graph.Clear();
+
 	reportInfo() << "TensorFlow graph loaded from: " << networkFilename << reportEnd();
 
 	setIsLoaded(true);
@@ -284,6 +307,33 @@ std::string TensorFlowEngine::getName() const {
 
 std::string TensorFlowEngine::getDefaultFileExtension() const {
     return "pb";
+}
+
+std::vector<InferenceDeviceInfo> TensorFlowEngine::getDeviceList() {
+    std::vector<InferenceDeviceInfo> result;
+    InferenceDeviceInfo cpu;
+    cpu.type = InferenceDeviceType::CPU;
+    cpu.index = 0;
+    result.push_back(cpu);
+#ifdef FAST_TENSORFLOW_BUILD_CUDA
+    {
+        // TODO how to query number of devices?
+        InferenceDeviceInfo device;
+        device.type = InferenceDeviceType::GPU;
+        device.index = 0;
+        result.push_back(device);
+    }
+#endif
+#ifdef FAST_TENSORFLOW_BUILD_ROCM
+    {
+        // TODO ROCm how?
+        InferenceDeviceInfo device;
+        device.type = InferenceDeviceType::GPU;
+        device.index = 0;
+        result.push_back(device);
+    }
+#endif
+    return result;
 }
 
 }

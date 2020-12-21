@@ -1,6 +1,7 @@
 #include "TensorRTEngine.hpp"
 #include "NvInfer.h"
 #include "NvUffParser.h"
+#include "NvOnnxParser.h"
 #include "NvUtils.h"
 #include <cuda_runtime_api.h>
 #include <FAST/Utility.hpp>
@@ -141,7 +142,10 @@ void TensorRTEngine::run() {
     }
 
     // Execute network
-    m_context->execute(batchSize, &buffers[0]);
+    //bool success = m_context->executeV2(buffers.data()); // IMPORTANT: Does not work with uff parser atm
+    bool success = m_context->execute(batchSize, &buffers[0]);
+    if(!success)
+        throw Exception("TensorRT execute inference failed!");
     reportInfo() << "Finished execute TensorRT" << reportEnd();
 
     // Free input memory buffers
@@ -157,6 +161,7 @@ void TensorRTEngine::run() {
         CUDA_CHECK(cudaMemcpy(outputData.get(), buffers[index],
                               buffersSizes[index].first * elementSize(buffersSizes[index].second),
                               cudaMemcpyDeviceToHost));
+
         auto outputTensor = Tensor::New();
         mOutputNodes.at(output.first).data = outputTensor;
 
@@ -178,11 +183,16 @@ void TensorRTEngine::run() {
     }
 }
 
-void TensorRTEngine::load() {
+static TensorShape getTensorShape(nvinfer1::Dims dims) {
+    TensorShape shape;
+    for(int j = 0; j < dims.nbDims; ++j) {
+        auto size = dims.d[j];
+        shape.addDimension(size);
+    }
+    return shape;
+}
 
-    // Check that input and output nodes are set
-    if(mInputNodes.empty() || mOutputNodes.empty())
-        throw Exception("Input and output nodes must be defined before loading Uff files using the TensorRT engine");
+void TensorRTEngine::load() {
 
     const auto filename = getFilename();
     std::size_t hash = std::hash<std::string>{}(filename + std::to_string(m_maxBatchSize)); // Hash the full filename any other parameters
@@ -214,37 +224,58 @@ void TensorRTEngine::load() {
         std::unique_ptr<nvinfer1::IBuilder, decltype(Destroy())> builder(nvinfer1::createInferBuilder(gLogger),
                                                                          Destroy());
         const auto flags = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
-        std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network(builder->createNetwork(), Destroy());
-        std::unique_ptr<nvuffparser::IUffParser, decltype(Destroy())> parser(nvuffparser::createUffParser(), Destroy());
-        reportInfo() << "Created builders and parsers" << reportEnd();
-
-        // Setup input nodes
-        reportInfo() << "Going through nodes.." << reportEnd();
-        for(auto node : mInputNodes) {
-            reportInfo() << node.first << reportEnd();
-            auto shape = node.second.shape;
-            if(shape.getDimensions() == 0)
-                throw Exception("Unknown shape for input node " + node.first +
-                                ". For TensorRT you need to specify the input tensor shape explictly with addInptNode");
-            if(shape.getDimensions() == 4)
-                parser->registerInput(node.first.c_str(), nvinfer1::Dims3(shape[1], shape[2], shape[3]),
-                                      nvuffparser::UffInputOrder::kNCHW);
-            if(shape.getDimensions() == 5)
-                parser->registerInput(node.first.c_str(), nvinfer1::Dims4(shape[1], shape[2], shape[3], shape[4]),
-                                      nvuffparser::UffInputOrder::kNCHW);
+        std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network;
+        std::unique_ptr<nvuffparser::IUffParser, decltype(Destroy())> uffparser(nvuffparser::createUffParser(),
+                                                                             Destroy()); // IMPORTANT! UFF parser must be alive even after parse
+        if(filename.substr(filename.size()-4) == ".uff") {
+            network = {builder->createNetwork(),
+                       Destroy()}; // createNetworkV2 not working with UFF for some reason..
+        } else {
+            network = {builder->createNetworkV2(flags),
+                       Destroy()};
         }
-        reportInfo() << "Input nodes finished" << reportEnd();
+        std::unique_ptr<nvonnxparser::IParser, decltype(Destroy())> onnxparser(nvonnxparser::createParser(*network, gLogger),
+                                                                           Destroy()); // IMPORTANT! Parser must be alive even after parse
 
-        // Setup output nodes
-        for(auto node : mOutputNodes) {
-            parser->registerOutput(node.first.c_str());
+        if(filename.substr(filename.size()-4) == ".uff") {
+            // Check that input and output nodes are set
+            if(mInputNodes.empty() || mOutputNodes.empty())
+                throw Exception("Input and output nodes must be defined before loading Uff files using the TensorRT engine");
+            reportInfo() << "Assuming file is in UFF format, parsing..." << reportEnd();
+
+            // Setup input nodes
+            reportInfo() << "Going through nodes.." << reportEnd();
+            for(auto node : mInputNodes) {
+                reportInfo() << node.first << reportEnd();
+                auto shape = node.second.shape;
+                if(shape.getDimensions() == 0)
+                    throw Exception("Unknown shape for input node " + node.first +
+                                    ". For TensorRT you need to specify the input tensor shape explictly with addInputNode");
+                if(shape.getDimensions() == 4)
+                    uffparser->registerInput(node.first.c_str(), nvinfer1::Dims3(shape[1], shape[2], shape[3]),
+                                          nvuffparser::UffInputOrder::kNCHW);
+                if(shape.getDimensions() == 5)
+                    throw Exception("More than 4 dimensions input is not supported");
+            }
+            reportInfo() << "Input nodes finished" << reportEnd();
+
+            // Setup output nodes
+            for(auto node : mOutputNodes) {
+                uffparser->registerOutput(node.first.c_str());
+            }
+            reportInfo() << "Output nodes finished" << reportEnd();
+
+            if(!uffparser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
+                throw Exception("Error parsing UFF file " + filename);
+
+            reportInfo() << "Finished parsing UFF file" << reportEnd();
+        } else {
+            // Assuming file is ONNX format
+            reportInfo() << "Assuming file is in ONNX format, parsing..." << reportEnd();
+            bool parsed = onnxparser->parseFromFile(filename.c_str(), 1);
+            if(!parsed)
+                throw Exception("Unable to parse ONNX file with TensorRT");
         }
-        reportInfo() << "Output nodes finished" << reportEnd();
-
-        if(!parser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
-            throw Exception("Error parsing UFF file " + filename);
-
-        reportInfo() << "Finished parsing UFF file" << reportEnd();
 
         builder->setMaxBatchSize(m_maxBatchSize);
         //builder->setFp16Mode(builder->platformHasFastFp16());
@@ -275,6 +306,28 @@ void TensorRTEngine::load() {
         ifile.close();
         // Deserialize the model data
         m_engine = runtime->deserializeCudaEngine(buffer.data(), buffer.size(), nullptr);
+    }
+
+    // Get input and output nodes from the CUDA engine
+    if(filename.substr(filename.size()-4) != ".uff") {
+        int inputCount = 0;
+        int outputCount = 0;
+        for (int i = 0; i < m_engine->getNbBindings(); ++i) {
+            auto name = m_engine->getBindingName(i);
+            auto shape = getTensorShape(m_engine->getBindingDimensions(i));
+            NodeType type = NodeType::IMAGE;
+            if (shape.getDimensions() < 4)
+                type = NodeType::TENSOR;
+            if (m_engine->bindingIsInput(i)) {
+                reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
+                addInputNode(inputCount, name, type, shape);
+                ++inputCount;
+            } else {
+                reportInfo() << "Found output node " << name << " with shape " << shape.toString() << reportEnd();
+                addOutputNode(outputCount, name, type, shape);
+                ++outputCount;
+            }
+        }
     }
 
     m_context = m_engine->createExecutionContext();
