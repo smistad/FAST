@@ -28,7 +28,7 @@ setx TF_CUDA_COMPUTE_CAPABILITIES "5.2,6.1,7.5"
 setx TF_CUDA_PATHS %1
 setx TF_CUDA_VERSION %2
 setx TF_CUDA_CLANG 0
-setx TF_CUDNN_VERSION 7
+setx TF_CUDNN_VERSION 8
 
 
 python configure.py

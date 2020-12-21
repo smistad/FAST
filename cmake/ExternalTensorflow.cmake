@@ -6,7 +6,7 @@ ExternalProject_Add(tensorflow_download
     PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
     BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
     GIT_REPOSITORY "https://github.com/smistad/tensorflow.git"
-    GIT_TAG "628c81c1c6330e0cdd45a8f64114bcaed82ef682"
+    GIT_TAG "c1dbfb67dfdffad3b3bc2f4fc538139a830fe6c0"
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -47,7 +47,7 @@ if(WIN32)
                 ${BUILD_COMMAND}
             INSTALL_COMMAND
                 echo "Installing tensorflow binary"  COMMAND
-                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.dll.ifso ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_cc.lib COMMAND
+                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll.if.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_cc.lib COMMAND
                 #${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/external/protobuf_archive/protobuf.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/protobuf.lib COMMAND
                 ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/tensorflow_cc.dll COMMAND
                 echo "Installing tensorflow headers"  COMMAND
@@ -93,15 +93,15 @@ else(WIN32)
                 ${BUILD_COMMAND}
             INSTALL_COMMAND
                 echo "Installing tensorflow binary" &&
-                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so.2.3.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so.2.4.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
                 cp -fP ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
                 cp -fP ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
-                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.2.3.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.2.4.0 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
                 cp -fP ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so.2 ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
-                chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so.2.3.0 &&
-                chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework.so.2.3.0 &&
-                strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so.2.3.0 &&
-                strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework.so.2.3.0 &&
+                chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so.2.4.0 &&
+                chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework.so.2.4.0 &&
+                strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc.so.2.4.0 &&
+                strip -s ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework.so.2.4.0 &&
                 echo "Installing tensorflow headers" &&
                 cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/tensorflow/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
                 echo "Installing tensorflow generated headers" &&
