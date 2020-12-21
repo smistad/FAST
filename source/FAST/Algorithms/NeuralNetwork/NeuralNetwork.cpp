@@ -194,7 +194,8 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 shape[0] = m_batchSize;
                 tensors[inputNode.first] = convertImagesToTensor(inputImages2, shape, containsSequence);
             } else {
-                // TODO fix ordering if necessary
+                // TODO fix ordering if necessary. We are now assuming that input tensors are in correct ordering.
+                mInputTensors[inputNode.first] = inputTensors;
                 // We have a list of tensors, convert the list of tensors into a single tensor
                 auto shape = inputTensors.front()->getShape();
                 m_batchSize = shape[0];
@@ -210,9 +211,10 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 }
             }
         } else {
-            // TODO fix ordering if necessary
+            // TODO fix ordering if necessary. We are now assuming that input tensors are in correct ordering.
             // Input is a tensor, no conversion needed
             tensors[inputNode.first] = tensor;
+            mInputTensors[inputNode.first].push_back(tensor);
         }
         mRuntimeManager->stopRegularTimer("input_processing");
 	}
@@ -261,7 +263,7 @@ Tensor::pointer NeuralNetwork::standardizeOutputTensorData(Tensor::pointer tenso
 
     // Transfer frame data and spacing information from input to output data
     for(auto& inputNode : m_engine->getInputNodes()) {
-        if(inputNode.second.type == NodeType::IMAGE) {
+        if(mInputImages.count(inputNode.first) > 0) {
             for(auto &&frameData : mInputImages[inputNode.first][sample]->getFrameData())
                 tensor->setFrameData(frameData.first, frameData.second);
             for(auto &&lastFrame : mInputImages[inputNode.first][sample]->getLastFrame())
@@ -270,7 +272,11 @@ Tensor::pointer NeuralNetwork::standardizeOutputTensorData(Tensor::pointer tenso
             tensor->setSpacing(mNewInputSpacing);
             SceneGraph::setParentNode(tensor, mInputImages[inputNode.first][sample]);
         } else {
-            // TODO do the same for tensors
+            for(auto &&frameData : mInputTensors[inputNode.first][sample]->getFrameData())
+                tensor->setFrameData(frameData.first, frameData.second);
+            for(auto &&lastFrame : mInputTensors[inputNode.first][sample]->getLastFrame())
+                tensor->setLastFrame(lastFrame);
+            SceneGraph::setParentNode(tensor, mInputTensors[inputNode.first][sample]);
         }
     }
     return tensor;

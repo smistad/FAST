@@ -164,6 +164,7 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         std::shared_ptr<InferenceEngine> m_engine;
 
         std::unordered_map<std::string, std::vector<std::shared_ptr<Image>>> mInputImages;
+        std::unordered_map<std::string, std::vector<std::shared_ptr<Tensor>>> mInputTensors;
 
         std::unordered_map<std::string, Tensor::pointer> processInputData();
         std::vector<std::shared_ptr<Image>> resizeImages(const std::vector<std::shared_ptr<Image>>& images, int width, int height, int depth);
