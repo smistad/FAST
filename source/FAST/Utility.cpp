@@ -802,6 +802,7 @@ std::string getModifiedDate(std::string filename) {
         stat(filename.c_str(), &attrib);
         timeStr = ctime(&(attrib.st_mtime));
     #endif
+    trim(timeStr);
     return timeStr;
 }
 

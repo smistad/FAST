@@ -335,10 +335,11 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
 
     // Write cache file
     FILE * cacheFile = fopen(cacheFilename.c_str(), "w");
-    std::string timeStr = getModifiedDate(filename);
+    auto modifiedDate = getModifiedDate(filename);
+    std::string timeStr = modifiedDate + "\n";
     std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
-    timeStr += "-" + devices[0].getInfo<CL_DEVICE_NAME>() + "\n";
-    timeStr += "-" + buildOptions;
+    timeStr += devices[0].getInfo<CL_DEVICE_NAME>() + "\n";
+    timeStr += buildOptions;
     fwrite(timeStr.c_str(), sizeof(char), timeStr.size(), cacheFile);
     fclose(cacheFile);
 
@@ -389,32 +390,19 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
         std::string cache(
             std::istreambuf_iterator<char>(cacheFile),
             (std::istreambuf_iterator<char>()));
+        auto lines = split(cache, "\n");
 
         bool outOfDate = true;
         bool wrongDeviceID = true;
         bool buildOptionsChanged = true;
-        const size_t pos = cache.find("-");
-        const size_t pos2 = cache.find("-", pos+1);
-        if(pos != std::string::npos && pos2 != std::string::npos) {
+        if(lines.size() >= 2) {
             // Get modification date of file
-            #ifdef WIN32
-            HANDLE hFile = CreateFile(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-            FILETIME ftCreate, ftAccess, ftWrite;
-			SYSTEMTIME sysTime;
-            GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite);
-			FileTimeToSystemTime(&ftWrite, &sysTime);
-			char* buffer = new char[255];
-			sprintf(buffer, "%d%d%d%d%d", sysTime.wYear, sysTime.wMonth, sysTime.wDay, sysTime.wHour,sysTime.wMinute,sysTime.wSecond);
-			outOfDate = strcmp(buffer, cache.substr(0, pos).c_str()) != 0;
-			delete[] buffer;
-            #else
-            struct stat attrib; // create a file attribute structure
-            stat(filename.c_str(), &attrib);
-            outOfDate = strcmp(ctime(&(attrib.st_mtime)), cache.substr(0, pos).c_str()) != 0;
-            #endif
+            auto modifiedDate = getModifiedDate(filename);
+            outOfDate = modifiedDate != lines[0];
             std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
-            wrongDeviceID = cache.substr(pos+1, pos2-pos-2) != devices[0].getInfo<CL_DEVICE_NAME>();
-            buildOptionsChanged = cache.substr(pos2+1) != buildOptions;
+            wrongDeviceID = lines[1] != devices[0].getInfo<CL_DEVICE_NAME>();
+            if(lines.size() == 3)
+                buildOptionsChanged = lines[2] != buildOptions;
         }
 
         if(outOfDate || wrongDeviceID || buildOptionsChanged) {
