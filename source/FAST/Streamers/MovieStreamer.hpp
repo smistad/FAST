@@ -1,5 +1,4 @@
-#ifndef FAST_MOVIE_STREAMER_HPP_
-#define FAST_MOVIE_STREAMER_HPP_
+#pragma once
 
 #include "FAST/Streamers/Streamer.hpp"
 #include <QObject>
@@ -45,7 +44,7 @@ class FAST_EXPORT MovieStreamer : public Streamer {
 
 class VideoSurface;
 
-class MovieStreamerWorker : public QObject {
+class FAST_EXPORT MovieStreamerWorker : public QObject {
     Q_OBJECT
     public:
         MovieStreamerWorker(MovieStreamer* streamer);
@@ -63,4 +62,3 @@ class MovieStreamerWorker : public QObject {
 
 }
 
-#endif
