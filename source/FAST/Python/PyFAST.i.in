@@ -27,6 +27,7 @@ print('Done')
 @PYFAST_HEADER_INCLUDES@
 
 using namespace fast;
+#undef slots
 
 %}
 

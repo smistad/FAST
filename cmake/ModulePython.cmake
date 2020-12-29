@@ -51,7 +51,7 @@ if(FAST_MODULE_Python)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
     swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_FILE})
     swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
-    set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen) # Enable Python 3 specific features and doxygen comment translation in SWIG
+    set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi) # Enable Python 3 specific features and doxygen comment translation in SWIG
     set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
