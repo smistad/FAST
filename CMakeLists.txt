@@ -3,9 +3,9 @@
 project(FAST)
 
 set(VERSION_MAJOR 3)
-set(VERSION_MINOR 1)
-set(VERSION_PATCH 1)
-set(VERSION_SO 1)   # SO version, should be incremented by 1 every time the existing API changes
+set(VERSION_MINOR 2)
+set(VERSION_PATCH 0)
+set(VERSION_SO 2)   # SO version, should be incremented by 1 every time the existing API changes
 set(FAST_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 # set policies explicitly to avoid warnings.
