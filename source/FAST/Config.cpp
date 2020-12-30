@@ -40,7 +40,8 @@ namespace fast {
 		static void copyPipelineFilesRecursivly(std::string pipelineSourcePath, std::string pipelineDestinationPath) {
 			for(auto&& pipeline : getDirectoryList(pipelineSourcePath, true, true)) {
 				if(isDir(pipelineSourcePath + pipeline)) {
-					copyPipelineFilesRecursivly(join(pipelineSourcePath, pipeline), join(mPipelinePath, pipeline));
+				    createDirectories(join(pipelineDestinationPath, pipeline));
+					copyPipelineFilesRecursivly(join(pipelineSourcePath, pipeline), join(pipelineDestinationPath, pipeline));
 				} else {
 					if(!fileExists(join(pipelineDestinationPath, pipeline))) {
 						// Copy file from source folder to writable destination folder
