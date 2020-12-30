@@ -44,7 +44,7 @@ class FAST_EXPORT MovieStreamer : public Streamer {
 
 class VideoSurface;
 
-class FAST_EXPORT MovieStreamerWorker : public QObject {
+class MovieStreamerWorker : public QObject {
     Q_OBJECT
     public:
         MovieStreamerWorker(MovieStreamer* streamer);
