@@ -183,7 +183,6 @@ void UFFViewerWindow::loadView() {
 		m_streamer->setLooping(true);
 		m_streamer->setFramerate(m_framerate);
 		m_streamer->setMaximumNrOfFrames(1); // To avoid glitches in playback we set the queue size to 1
-		m_slider->setRange(0, m_streamer->getNrOfFrames()-1);
 	} catch(Exception &e) {
 		std::string errorMessage = e.what();
 		int ret = QMessageBox::critical(mWidget, "UFF Viewer",
@@ -228,6 +227,7 @@ void UFFViewerWindow::loadView() {
 	m_rightSideLayout->insertLayout(0, m_viewLayout);
 
     m_streamer->update(); // This must be called to start streamer in correct thread
+    m_slider->setRange(0, m_streamer->getNrOfFrames()-1); // This must be called after update, due to refactoring in UFFStreamer
 
     // Enable renderers again
     for(auto&& renderer : renderers)
