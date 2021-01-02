@@ -46,6 +46,9 @@ else()
     set(CPACK_PACKAGING_INSTALL_PREFIX "/opt")
     set(CPACK_DEBIAN_COMPRESSION_TYPE "xz")
 
+    # Add debian package depedencies
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libopenslide0,libusb-1.0-0")
+
     set(CPACK_COMPONENTS_ALL fast)
 
     set(CPACK_DEBIAN_FAST_FILE_NAME "fast_${DISTRO_NAME}${DISTRO_VERSION}_${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.deb")
