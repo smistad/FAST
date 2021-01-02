@@ -230,7 +230,7 @@ DeviceManager::DeviceManager() {
     // If NVIDIA platform is present on linux: disable OpenGL interop
     for(cl::Platform platform : platforms) {
         if(platform.getInfo<CL_PLATFORM_VENDOR>().find("NVIDIA") != std::string::npos) {
-            reportWarning() << "NVIDIA platform was detected, disabling OpenGL interop" << reportEnd();
+            reportInfo() << "NVIDIA platform was detected, disabling OpenGL interop" << reportEnd();
             mDisableGLInterop = true;
         }
     }
@@ -242,7 +242,7 @@ DeviceManager::DeviceManager() {
     OpenCLDevice::pointer device = std::static_pointer_cast<OpenCLDevice>(getDefaultComputationDevice());
     reportInfo() << "The following device was selected as main device: " << device->getName() << reportEnd();
     if(!device->isWritingTo3DTexturesSupported()) {
-        reportWarning() << "Writing directly to 3D textures/images is NOT supported on main device" << reportEnd();
+        reportInfo() << "Writing directly to 3D textures/images is NOT supported on main device" << reportEnd();
     } else {
         reportInfo() << "Writing directly to 3D textures/images is supported on main device" << reportEnd();
     }

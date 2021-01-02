@@ -152,7 +152,7 @@ namespace fast {
 			}
 			std::ifstream file(filename);
 			if (!file.is_open()) {
-				Reporter::warning() << "Unable to open the configuration file " << filename << ". Using defaults instead." << Reporter::end();
+				Reporter::info() << "Unable to open the configuration file " << filename << ". Using defaults instead." << Reporter::end();
 				mConfigurationLoaded = true;
 				return;
 			}
@@ -223,6 +223,10 @@ namespace fast {
 
 		std::string Config::getTestDataPath() {
 			loadConfiguration();
+			// Check if test data exists. If it doesn't issue a warning
+			if(!fileExists(mTestDataPath + "/LICENSE.md"))
+                            Reporter::warning() << "Test data was NOT found at " << mTestDataPath << ". Download the test data by running ./downloadTestData or fast.downloadTestDataIfNotExists() in Python." << Reporter::end();
+
 			return mTestDataPath;
 		}
 
