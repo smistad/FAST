@@ -35,7 +35,7 @@ void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewi
     cl::ImageGL inputColorGL;
 
 	bool useGLInterop = false;
-    if(DeviceManager::isGLInteropEnabled()) {		
+    if(device->isOpenGLInteropSupported()) {
 		try {
 			inputColorGL = textureToCLimageInterop(colorTextureID, gridSize.x(), gridSize.y(), device, false);
 			v.push_back(inputColorGL);

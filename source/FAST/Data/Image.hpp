@@ -336,21 +336,21 @@ void Image::create(uint width, uint height, uint depth, DataType type, uint nrOf
 
 template <class T>
 void Image::create(uint width, uint height, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
-    create(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), std::move(ptr));
+    create(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), std::move(ptr));
 }
 
 template <class T>
 void Image::create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
-    create(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), std::move(ptr));
+    create(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), std::move(ptr));
 }
 
 template <class T>
 void Image::create(VectorXui size, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
     if(size.size() == 3) {
-        create(size.x(), size.y(), size.z(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(),
+        create(size.x(), size.y(), size.z(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(),
                std::move(ptr));
     } else if(size.size() == 2) {
-        create(size.x(), size.y(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(),
+        create(size.x(), size.y(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(),
                std::move(ptr));
     } else {
         throw Exception("Incorrect size");

@@ -1,6 +1,7 @@
 #include "FAST/Tools/CommandLineParser.hpp"
 #include <iostream>
 #include <FAST/Utility.hpp>
+#include <FAST/DeviceManager.hpp>
 
 namespace fast {
 
@@ -15,7 +16,7 @@ void CommandLineParser::parse(const int argc, char ** const argv) {
     // TODO make sure there are no spaces. Add support for "asdasd asdasd"
     m_command = argv[0];
     std::shared_ptr<Variable> currentVariable;
-    uint currentPosition = 1;
+    uint currentPosition = 0;
     for(int i = 1; i < argc; ++i) {
         std::string token = argv[i];
         Reporter::info() << "Processing token " << token << Reporter::end();
@@ -27,11 +28,25 @@ void CommandLineParser::parse(const int argc, char ** const argv) {
         if(token == "--verbose") {
             // Print out all messages to the console
             Reporter::setGlobalReportMethod(Reporter::COUT);
+        } else if(token == "--opencl-platform") {
+            if(argc <= i + 1)
+                throw Exception("--opencl-platform was not given a value");
+
+            std::string value = argv[i + 1];
+            trim(value);
+            if(value == "intel") {
+                DeviceManager::setDefaultPlatform(DEVICE_PLATFORM_INTEL);
+            } else if(value == "nvidia") {
+                DeviceManager::setDefaultPlatform(DEVICE_PLATFORM_NVIDIA);
+            } else if(value == "amd") {
+                DeviceManager::setDefaultPlatform(DEVICE_PLATFORM_AMD);
+            }
+            ++i;
+            ++currentPosition;
         } else {
             processToken(currentVariable, currentPosition, token);
         }
-
-        currentPosition++;
+        ++currentPosition;
     }
 
     // Check if all required variables got a value
@@ -215,6 +230,7 @@ void CommandLineParser::printHelpMessage() const {
     }
 
     std::cout << "\nAdd --verbose to print out all information messages.\n";
+    std::cout << "Add --opencl-platform (intel/amd/nvidia) to select a specific OpenCL platform to use as default.\n";
 
     std::cout << std::flush;
 }

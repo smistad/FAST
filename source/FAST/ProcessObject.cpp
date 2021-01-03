@@ -11,7 +11,7 @@
 namespace fast {
 
 ProcessObject::ProcessObject() : mIsModified(false) {
-    mDevices[0] = DeviceManager::getInstance()->getDefaultComputationDevice();
+    mDevices[0] = DeviceManager::getInstance()->getDefaultDevice();
     mRuntimeManager = RuntimeMeasurementsManager::New();
 }
 

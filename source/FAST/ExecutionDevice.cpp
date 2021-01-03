@@ -458,4 +458,8 @@ bool OpenCLDevice::hasProgram(std::string name) {
     return programNames.count(name) > 0;
 }
 
+bool OpenCLDevice::isOpenGLInteropSupported() {
+    return mGLContext != nullptr;
+}
+
 } // end namespace fast

@@ -135,7 +135,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
         cl::ImageGL imageGL;
         std::vector<cl::Memory> v;
         GLuint textureID;
-        if(DeviceManager::isGLInteropEnabled()) {
+        if(device->isOpenGLInteropSupported()) {
             // Create OpenGL texture
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
@@ -182,7 +182,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
             cl::NullRange
         );
 
-        if(DeviceManager::isGLInteropEnabled()) {
+        if(device->isOpenGLInteropSupported()) {
             queue.enqueueReleaseGLObjects(&v);
             queue.finish();
         } else {

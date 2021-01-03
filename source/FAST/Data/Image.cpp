@@ -486,10 +486,10 @@ void Image::create(
 
     if(size.rows() > 2 && size.z() > 1) {
         // 3D
-        create(size.x(), size.y(), size.z(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
+        create(size.x(), size.y(), size.z(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
     } else {
         // 2D
-        create(size.x(), size.y(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
+        create(size.x(), size.y(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
     }
 }
 
@@ -538,7 +538,7 @@ void Image::create(
         unsigned int nrOfChannels,
         const void* const data) {
 
-	create(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
+	create(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
 }
 
 void Image::create(
@@ -582,7 +582,7 @@ void Image::create(
         unsigned int nrOfChannels,
         const void* const data) {
 
-	create(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
+	create(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
 }
 
 void Image::copyData(ExecutionDevice::pointer device, const void* const data) {
@@ -1030,7 +1030,8 @@ void Image::fill(float value) {
     	// Has no data
     	// Create an OpenCL image
     	cl::Image* clImage;
-        OpenCLDevice::pointer clDevice = std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultComputationDevice());
+        OpenCLDevice::pointer clDevice = std::dynamic_pointer_cast<OpenCLDevice>(
+                DeviceManager::getInstance()->getDefaultDevice());
     	if(getDimensions() == 2) {
 			clImage = new cl::Image2D(
 				clDevice->getContext(),
@@ -1147,7 +1148,7 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     OpenCLDevice::pointer clDevice;
     if(device->isHost()) { // If data is only on host, copy data to GPU first
         // TODO implement cropping on host instead
-        clDevice = std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultComputationDevice());
+        clDevice = std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultDevice());
         copyData(clDevice, mHostData.get());
     } else {
         clDevice = std::static_pointer_cast<OpenCLDevice>(device);

@@ -86,7 +86,7 @@ Object::Object() {
 #if WIN32
         SetConsoleTextAttribute(hStdout, defaultAttributes);
 #else
-        std::cout << "\033[0m"; // Reset
+        std::cout << "\033[0m" << std::flush; // Reset
 #endif
     });
 }

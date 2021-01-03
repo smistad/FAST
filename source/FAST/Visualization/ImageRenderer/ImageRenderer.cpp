@@ -138,7 +138,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         cl::ImageGL imageGL;
         std::vector<cl::Memory> v;
         GLuint textureID;
-        if(DeviceManager::isGLInteropEnabled() && false) {
+        if(device->isOpenGLInteropSupported()) {
             // Create OpenGL texture
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
@@ -183,7 +183,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
                 cl::NullRange
         );
 
-        if(DeviceManager::isGLInteropEnabled() && false) {
+        if(device->isOpenGLInteropSupported()) {
             queue.enqueueReleaseGLObjects(&v);
             queue.finish(); // This is needed, otherwise seg fault can occur when doing GL stuff with this texture
         } else {

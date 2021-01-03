@@ -46,7 +46,7 @@ void VectorFieldColorRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewing
         cl::ImageGL imageGL;
         std::vector<cl::Memory> v;
         GLuint textureID;
-        if(DeviceManager::isGLInteropEnabled() && false) {
+        if(device->isOpenGLInteropSupported()) {
             // Create OpenGL texture
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
@@ -88,7 +88,7 @@ void VectorFieldColorRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewing
             cl::NullRange
         );
 
-        if(DeviceManager::isGLInteropEnabled() && false) {
+        if(device->isOpenGLInteropSupported()) {
             queue.enqueueReleaseGLObjects(&v);
             queue.finish();
         } else {

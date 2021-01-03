@@ -21,8 +21,8 @@
 
 namespace fast {
 
-bool DeviceManager::mDisableGLInterop = false;
-DeviceManager* DeviceManager::mInstance = NULL;
+DeviceManager* DeviceManager::mInstance = nullptr;
+DevicePlatform DeviceManager::m_devicePlatform = DEVICE_PLATFORM_ANY;
 
 inline cl_context_properties* createInteropContextProperties(
         const cl_platform_id &platform,
@@ -85,31 +85,20 @@ void DeviceManager::deleteInstance() {
 }
 
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
-    unsigned long * glContext = NULL;
-    if(!isGLInteropEnabled()) {
-        enableVisualization = false;
+    unsigned long * glContext = nullptr;
+    if(enableVisualization) {
 #ifdef FAST_MODULE_VISUALIZATION
         fast::Window::getMainGLContext(); // Still have to create GL context
-#endif
-    }
-    if(enableVisualization) {
-        // Create GL context
-
-#ifdef FAST_MODULE_VISUALIZATION
 		Window::getMainGLContext()->makeCurrent();
 #endif
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
-		reportInfo() << "Initial GL context: " << CGLGetCurrentContext() << Reporter::end();
-		reportInfo() << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << Reporter::end();
 
 		glContext = (unsigned long *)appleContext;
 #elif _WIN32
         glContext = (unsigned long *)wglGetCurrentContext();
-		reportInfo() << "Initial W GL context " << glContext << Reporter::end();
 #else
         glContext = (long unsigned int*)glXGetCurrentContext();
-        reportInfo() << "Initial GLX context " << glContext << Reporter::end();
 #endif
         criteria.setCapabilityCriteria(DEVICE_CAPABILITY_OPENGL_INTEROP);
     }
@@ -161,7 +150,7 @@ OpenCLDevice::pointer DeviceManager::getOneGPUDevice(
 }
 
 OpenCLDevice::pointer DeviceManager::getOneOpenCLDevice(
-        bool enableVisualization) {
+        bool enableVisualization, DevicePlatform platform) {
 
     DeviceCriteria criteria;
 
@@ -169,6 +158,7 @@ OpenCLDevice::pointer DeviceManager::getOneOpenCLDevice(
     criteria.setTypeCriteria(DEVICE_TYPE_GPU);
     criteria.setDeviceCountCriteria(1);
     criteria.setDevicePreference(DEVICE_PREFERENCE_COMPUTE_UNITS);
+    criteria.setPlatformCriteria(platform);
     std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
     if(devices.size() > 0) {
         return devices[0];
@@ -199,57 +189,32 @@ Host::pointer DeviceManager::getHostDevice() {
 
 void DeviceManager::setDefaultDevice(ExecutionDevice::pointer device) {
     mDefaultComputationDevice = device;
-    mDefaultVisualizationDevice = device;
 }
 
-void DeviceManager::setDefaultComputationDevice(
-        ExecutionDevice::pointer device) {
-    mDefaultComputationDevice = device;
-}
-
-void DeviceManager::setDefaultVisualizationDevice(
-        ExecutionDevice::pointer device) {
-    mDefaultVisualizationDevice = device;
-}
-
-ExecutionDevice::pointer DeviceManager::getDefaultComputationDevice() {
+ExecutionDevice::pointer DeviceManager::getDefaultDevice() {
     return mDefaultComputationDevice;
 }
 
-ExecutionDevice::pointer DeviceManager::getDefaultVisualizationDevice() {
-    return mDefaultVisualizationDevice;
-}
-
 DeviceManager::DeviceManager() {
-    Reporter::info() << "Device manager initialize.." << Reporter::end();
     cl::Platform::get(&platforms);
 
-    mDisableGLInterop = false;
-    // Only check on linux/mac
-#ifndef _WIN32
-    // If NVIDIA platform is present on linux: disable OpenGL interop
-    for(cl::Platform platform : platforms) {
-        if(platform.getInfo<CL_PLATFORM_VENDOR>().find("NVIDIA") != std::string::npos) {
-            reportInfo() << "NVIDIA platform was detected, disabling OpenGL interop" << reportEnd();
-            mDisableGLInterop = true;
-        }
-    }
-#endif
-
     // Set one random device as default device
-    setDefaultDevice(getOneOpenCLDevice(true));
+    // First try to get one OpenCL device with OpenGL interop:
+    try {
+        setDefaultDevice(getOneOpenCLDevice(true, m_devicePlatform));
+    } catch(Exception& e) {
+        // If that fails, try to get a device, without GL interop
+        reportInfo() << "No devices with OpenGL interop was found. Looking again for best device WITHOUT OpenGL interop, this may lower visualization performance." << reportEnd();
+        setDefaultDevice(getOneOpenCLDevice(false, m_devicePlatform));
+    }
 
-    OpenCLDevice::pointer device = std::static_pointer_cast<OpenCLDevice>(getDefaultComputationDevice());
+    auto device = std::static_pointer_cast<OpenCLDevice>(getDefaultDevice());
     reportInfo() << "The following device was selected as main device: " << device->getName() << reportEnd();
     if(!device->isWritingTo3DTexturesSupported()) {
         reportInfo() << "Writing directly to 3D textures/images is NOT supported on main device" << reportEnd();
     } else {
         reportInfo() << "Writing directly to 3D textures/images is supported on main device" << reportEnd();
     }
-}
-
-bool DeviceManager::isGLInteropEnabled() {
-    return !mDisableGLInterop;
 }
 
 OpenCLDevice::pointer DeviceManager::getDevice(
@@ -267,15 +232,21 @@ OpenCLDevice::pointer DeviceManager::getDevice(
 
 bool DeviceManager::deviceSatisfiesCriteria(OpenCLDevice::pointer device,
         const DeviceCriteria& criteria) {
-    return deviceSatisfiesCriteria(criteria, device->getDevice());
+    return deviceSatisfiesCriteria(criteria, device->getDevice(), device->getPlatform());
 }
 
 
-bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
+bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device, const cl::Platform &platform) {
+#ifndef _WIN32
+    if(platform.getInfo<CL_PLATFORM_VENDOR>().find("NVIDIA") != std::string::npos) {
+        reportInfo() << "NVIDIA platform was detected on linux, disabling OpenGL interop due to error Xlib extension NV-GLX missing" << reportEnd();
+        return false;
+    }
+#endif
     // Get the cl_device_id of the device
     cl_device_id deviceID = device();
     // Get the platform of device
-    cl_platform_id platform = device.getInfo<CL_DEVICE_PLATFORM>();
+    cl_platform_id platformId = device.getInfo<CL_DEVICE_PLATFORM>();
     // Get all devices that are capable of OpenGL interop with this platform
     // Create properties for CL-GL context
 #ifdef FAST_MODULE_VISUALIZATION
@@ -284,17 +255,13 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
 		unsigned long* glContext;
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
-		reportInfo() << "Initial GL context: " << CGLGetCurrentContext() << Reporter::end();
-		reportInfo() << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << Reporter::end();
 
 		glContext = (unsigned long *)appleContext;
 #elif _WIN32
-        cl_context_properties * cps = createInteropContextProperties(platform, (cl_context_properties)wglGetCurrentContext(), (cl_context_properties)wglGetCurrentDC());
-		reportInfo() << "Initial W GL context " << glContext << Reporter::end();
+        cl_context_properties * cps = createInteropContextProperties(platformId, (cl_context_properties)wglGetCurrentContext(), (cl_context_properties)wglGetCurrentDC());
 #else
         glContext = (unsigned long*)glXGetCurrentContext();
-        cl_context_properties * cps = createInteropContextProperties(platform, (cl_context_properties)glContext, (cl_context_properties)glXGetCurrentDisplay());
-        reportInfo() << "Initial GLX context " << glContext << Reporter::end();
+        cl_context_properties * cps = createInteropContextProperties(platformId, (cl_context_properties)glContext, (cl_context_properties)glXGetCurrentDisplay());
 #endif
 #if defined(__APPLE__) || defined(__MACOSX)
 
@@ -336,7 +303,16 @@ throw Exception("Not able to get sharegroup");
     // Query which devices are associated with GL context
     cl_device_id cl_gl_device_ids[32];
     size_t returnSize = 0;
-    clGetGLContextInfoKHR_fn glGetGLContextInfo_func = (clGetGLContextInfoKHR_fn) clGetExtensionFunctionAddressForPlatform(platform, "clGetGLContextInfoKHR");
+    clGetGLContextInfoKHR_fn glGetGLContextInfo_func = (clGetGLContextInfoKHR_fn) clGetExtensionFunctionAddressForPlatform(platformId, "clGetGLContextInfoKHR");
+    if(glGetGLContextInfo_func == NULL) {
+	    Reporter::info() << "clGetGLContextInfoKHR function was not found. OpenGL interop unavailable." << Reporter::end();
+	    return false;
+    }
+    auto extensions = device.getInfo<CL_DEVICE_EXTENSIONS>();
+    if(extensions.find("cl_khr_gl_sharing") == std::string::npos) {
+	    Reporter::info() << "Device does not support cl_khr_gl_sharing." << Reporter::end();
+	    return false;
+    }
     glGetGLContextInfo_func(cps, CL_DEVICES_FOR_GL_CONTEXT_KHR, 32 * sizeof(cl_device_id), &cl_gl_device_ids, &returnSize);
     delete[] cps;
 
@@ -406,7 +382,7 @@ void DeviceManager::sortDevicesAccordingToPreference(
             das.device = device;
             switch (preference) {
             case DEVICE_PREFERENCE_NOT_CONNECTED_TO_SCREEN:
-                if (!deviceHasOpenGLInteropCapability(device)) {
+                if (!deviceHasOpenGLInteropCapability(device, platformDevices[i].first)) {
                     das.score += 1;
                 } else {
                     das.score += 0;
@@ -554,7 +530,7 @@ std::vector<cl::Device> DeviceManager::getDevicesForBestPlatform(
 }
 
 
-bool DeviceManager::deviceSatisfiesCriteria(const DeviceCriteria& criteria, const cl::Device &device) {
+bool DeviceManager::deviceSatisfiesCriteria(const DeviceCriteria& criteria, const cl::Device &device, const cl::Platform &platform) {
     bool success = true;
     if(criteria.getTypeCriteria() == DEVICE_TYPE_GPU) {
         success = device.getInfo<CL_DEVICE_TYPE>()== CL_DEVICE_TYPE_GPU;
@@ -564,7 +540,7 @@ bool DeviceManager::deviceSatisfiesCriteria(const DeviceCriteria& criteria, cons
     if(!success)
         return false;
     if(criteria.hasCapabilityCriteria(DEVICE_CAPABILITY_OPENGL_INTEROP)) {
-        success = deviceHasOpenGLInteropCapability(device);
+        success = deviceHasOpenGLInteropCapability(device, platform);
     }
     if(!success)
         return false;
@@ -593,8 +569,8 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
     	reportInfo() << "Platform " << i << ": " <<  validPlatforms[i].getInfo<CL_PLATFORM_VENDOR>() << Reporter::end();
 
         try {
-            reportInfo() << "This platform has " << validPlatforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices) <<
-                         " available devices in total" << reportEnd();
+            validPlatforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices);
+            reportInfo() << "This platform has " << devices.size() << " available devices in total" << reportEnd();
         } catch(cl::Error &error) {
             throw Exception("There was an error while getting OpenCL devices: " + std::string(error.what()));
         }
@@ -631,7 +607,7 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
             bool accepted = true;
             for (int k = 0; k < capabilityCriteria.size(); k++) {
                 if (capabilityCriteria[k] == DEVICE_CAPABILITY_OPENGL_INTEROP) {
-                    if (!deviceHasOpenGLInteropCapability(devices[j])) {
+                    if (!deviceHasOpenGLInteropCapability(devices[j], validPlatforms[i])) {
                         accepted = false;
                         reportInfo() << "Device has NOT OpenGL interop capability" << Reporter::end();
                     } else {
@@ -673,115 +649,10 @@ std::vector<cl::Platform> DeviceManager::getPlatforms(
     return retval;
 }
 
-/*
-Context DeviceManager::createContext(
-        std::vector<cl::Device> &devices,
-        unsigned long * OpenGLContext,
-        bool enableProfiling
-        ) {
-    return Context(devices, OpenGLContext, enableProfiling);
+void DeviceManager::setDefaultPlatform(DevicePlatform devicePlatform) {
+    if(mInstance != nullptr)
+        Reporter::warning() << "Main device criteria must be set before calling DeviceManager::getInstance() to have effect" << Reporter::end();
+    m_devicePlatform = devicePlatform;
 }
-*/
-
-/**
- * This method parses program arguments into device criteria and returns a context.
- * If some arguments are not used, the criteria supplied in the defaultCriteria object are used.
- * Possible arguments are:
- * --device any|gpu|cpu
- * --platform any|amd|apple|intel|nvidia
- * --capability opengl-interop
- * --preference none|no-screen|compute-units|global-memory
- * --device-min-count x
- * --device-max-count x
- */
-/*
-Context DeviceManager::createContext(
-        int argc,
-        char** argv,
-        DeviceCriteria &defaultCriteria) {
-
-    for (int i = 1; i < argc - 1; i++) {
-        std::string token = argv[i];
-        std::string value = "";
-        if (i + 1 < argc)
-            value = argv[i + 1];
-        if (token == "--device") {
-            if (value == "any") {
-                defaultCriteria.setTypeCriteria(DEVICE_TYPE_ANY);
-            } else if (value == "gpu") {
-                defaultCriteria.setTypeCriteria(DEVICE_TYPE_GPU);
-            } else if (value == "cpu") {
-                defaultCriteria.setTypeCriteria(DEVICE_TYPE_CPU);
-            }
-        } else if (token == "--platform") {
-            if (value == "any") {
-                defaultCriteria.setPlatformCriteria(DEVICE_PLATFORM_ANY);
-            } else if (value == "amd") {
-                defaultCriteria.setPlatformCriteria(DEVICE_PLATFORM_AMD);
-            } else if (value == "apple") {
-                defaultCriteria.setPlatformCriteria(DEVICE_PLATFORM_APPLE);
-            } else if (value == "intel") {
-                defaultCriteria.setPlatformCriteria(DEVICE_PLATFORM_INTEL);
-            } else if (value == "nvidia") {
-                defaultCriteria.setPlatformCriteria(DEVICE_PLATFORM_NVIDIA);
-            }
-        } else if (token == "--capability") {
-            if (value == "opengl-interop") {
-                defaultCriteria.setCapabilityCriteria(
-                        DEVICE_CAPABILITY_OPENGL_INTEROP);
-            }
-        } else if (token == "--preference") {
-            if (value == "none") {
-                defaultCriteria.setDevicePreference(DEVICE_PREFERENCE_NONE);
-            } else if (value == "no-screen") {
-                defaultCriteria.setDevicePreference(
-                        DEVICE_PREFERENCE_NOT_CONNECTED_TO_SCREEN);
-            } else if (value == "compute-units") {
-                defaultCriteria.setDevicePreference(
-                        DEVICE_PREFERENCE_COMPUTE_UNITS);
-            } else if (value == "global-memory") {
-                defaultCriteria.setDevicePreference(
-                        DEVICE_PREFERENCE_GLOBAL_MEMORY);
-            }
-        } else if (token == "--device-min-count") {
-            unsigned int count = atoi(value.c_str());
-            defaultCriteria.setDeviceCountCriteria(count,
-                    defaultCriteria.getDeviceCountMaxCriteria());
-        } else if (token == "--device-max-count") {
-            unsigned int count = atoi(value.c_str());
-            defaultCriteria.setDeviceCountCriteria(
-                    defaultCriteria.getDeviceCountMinCriteria(), count);
-        }
-    }
-
-    return createContext(defaultCriteria);
-
-}
-*/
-
-/**
- * This method finds a set of devices which satisfies the supplied device criteria and creates a context
- */
-/*
-Context DeviceManager::createContext(const DeviceCriteria &deviceCriteria, unsigned long * OpenGLContext, bool enableProfiling) {
-    std::vector<PlatformDevices> platformDevices = getDevices(deviceCriteria);
-    std::vector<cl::Device> validDevices = getDevicesForBestPlatform(deviceCriteria, platformDevices);
-
-    return Context(validDevices, OpenGLContext, enableProfiling);
-}
-
-ContextPtr DeviceManager::createContextPtr(const DeviceCriteria &deviceCriteria, unsigned long * OpenGLContext, bool enableProfiling) {
-    std::vector<PlatformDevices> platformDevices = getDevices(deviceCriteria);
-    std::vector<cl::Device> validDevices = getDevicesForBestPlatform(deviceCriteria, platformDevices);
-
-	return ContextPtr(new Context(validDevices, OpenGLContext, enableProfiling));
-}
-
-Context DeviceManager::createContext(cl::Device device, unsigned long * OpenGLContext, bool enableProfiling) {
-    std::vector<cl::Device> deviceVector;
-    deviceVector.push_back(device);
-    return this->createContext(deviceVector, OpenGLContext, enableProfiling);
-}
-*/
 
 } // end namespace fast

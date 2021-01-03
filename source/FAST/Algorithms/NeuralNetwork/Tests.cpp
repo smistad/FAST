@@ -88,7 +88,7 @@ TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d][visual]") 
     auto importer = ImageFileImporter::New();
     //importer->setFilename("/home/smistad/3000611.mhd");
     importer->setFilename("/home/smistad/3000611-03264/000001.dcm");
-    importer->setMainDevice(DeviceManager::getInstance()->getDefaultComputationDevice());
+    importer->setMainDevice(DeviceManager::getInstance()->getDefaultDevice());
 
     auto cropper = ImageCropper::New();
     cropper->setInputConnection(importer->getOutputPort());

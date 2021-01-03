@@ -219,7 +219,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 				GLuint textureID;
 				// TODO The GL-CL interop here is causing glClear to not work on AMD systems and therefore disabled
 				/*
-				if(DeviceManager::isGLInteropEnabled()) {
+				if(device->isOpenGLInteropSupported()) {
 					// Create OpenGL texture
 					glGenTextures(1, &textureID);
 					glBindTexture(GL_TEXTURE_2D, textureID);
@@ -260,7 +260,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 						cl::NullRange
 				);
 
-				/*if(DeviceManager::isGLInteropEnabled()) {
+				/*if(device->isOpenGLInteropSupported()) {
 					queue.enqueueReleaseGLObjects(&v);
 				} else {*/
 				// Copy data from CL image to CPU

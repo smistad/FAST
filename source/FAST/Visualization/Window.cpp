@@ -102,12 +102,7 @@ void Window::setTitle(std::string title) {
 void Window::cleanup() {
     //delete QApplication::instance();
 }
-static QGLFormat getGLFormat() {
-    QGLFormat qglFormat;
-    qglFormat.setVersion(3,3);
-    qglFormat.setProfile(QGLFormat::CoreProfile);
-    return qglFormat;
-}
+
 void Window::initializeQtApp() {
     // First: Tell Qt where to finds its plugins
     QCoreApplication::setLibraryPaths({ Config::getQtPluginsPath().c_str() }); // Removes need for qt.conf

@@ -317,7 +317,7 @@ void SurfaceExtraction::execute() {
     cl::Buffer coordinatesBuffer;
     cl::Buffer normalBuffer;
     std::vector<cl::Memory> v;
-    if(DeviceManager::isGLInteropEnabled()) {
+    if(device->isOpenGLInteropSupported()) {
         coordinatesBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *coordinatesVBO);
         normalBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *normalVBO);
         v.push_back(coordinatesBuffer);
@@ -348,7 +348,7 @@ void SurfaceExtraction::execute() {
     // Run a NDRange kernel over this buffer which traverses back to the base level
     queue.enqueueNDRangeKernel(traverseHPKernel, cl::NullRange, cl::NDRange(global_work_size), cl::NDRange(64));
 
-    if(DeviceManager::isGLInteropEnabled()) {
+    if(device->isOpenGLInteropSupported()) {
         queue.enqueueReleaseGLObjects(&v);
         queue.finish();
     } else {

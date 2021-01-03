@@ -82,6 +82,7 @@ class FAST_EXPORT  OpenCLDevice : public ExecutionDevice {
         bool hasProgram(std::string name);
 
         bool isImageFormatSupported(cl_channel_order order, cl_channel_type type, cl_mem_object_type imageType);
+        bool isOpenGLInteropSupported();
 
         //OpenCLPlatformVendor getPlatformVendor();
         //DeviceVendor getDeviceVendor();
