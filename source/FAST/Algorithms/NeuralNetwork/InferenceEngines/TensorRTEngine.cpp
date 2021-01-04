@@ -364,8 +364,4 @@ int TensorRTEngine::getMaxBatchSize() const {
     return m_maxBatchSize;
 }
 
-std::string TensorRTEngine::getDefaultFileExtension() const {
-    return "uff";
-}
-
 }

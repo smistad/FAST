@@ -47,7 +47,7 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
             network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
         }
         network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." +
-                      network->getInferenceEngine()->getDefaultFileExtension());
+                      getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
         network->setInputConnection(generator->getOutputPort());
         network->setScaleFactor(1.0f / 255.0f);
 
@@ -99,7 +99,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
             network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
         }
         network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." +
-                      network->getInferenceEngine()->getDefaultFileExtension());
+                      getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
         network->setInputConnection(batchGenerator->getOutputPort());
         network->setScaleFactor(1.0f / 255.0f);
 
@@ -118,7 +118,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
         auto window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->addRenderer(heatmapRenderer);
-        //window->setTimeout(4000);
+        window->setTimeout(4000);
         window->set2DMode();
         window->start();
     }

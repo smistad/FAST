@@ -107,6 +107,34 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
     return loadEngine(getEngineList().front());
 }
 
+std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine(ModelFormat modelFormat) {
+    loadAll();
+    if(m_engines.empty())
+        throw Exception("No inference engines available on the system");
+
+    if(isEngineAvailable("TensorFlow") && loadEngine("TensorFlow")->isModelFormatSupported(modelFormat)) {
+        // Default is tensorflow if GPU support is enabled
+        auto engine = loadEngine("TensorFlow");
+        auto devices = engine->getDeviceList();
+        for (auto &&device : devices) {
+            if (device.type == InferenceDeviceType::GPU)
+                return engine;
+        }
+    }
+
+    if(isEngineAvailable("TensorRT") && loadEngine("TensorRT")->isModelFormatSupported(modelFormat))
+        return loadEngine("TensorRT");
+
+    for(auto name : getEngineList()) {
+        auto engine = loadEngine(name);
+        if(engine->isModelFormatSupported(modelFormat))
+            return engine;
+    }
+    throw Exception("No engine for model format found");
+}
+
+
+
 bool InferenceEngineManager::isEngineAvailable(std::string name) {
     loadAll();
     return m_engines.count(name) > 0;

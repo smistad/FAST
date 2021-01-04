@@ -51,7 +51,7 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual][ultras
             try {
                 segmentation->load(join(Config::getTestDataPath(),
                                         "NeuralNetworkModels/jugular_vein_segmentation." +
-                                        segmentation->getInferenceEngine()->getDefaultFileExtension()));
+							  getModelFileExtension(segmentation->getInferenceEngine()->getPreferredModelFormat())));
             } catch(Exception &e) {
                 // If a device type is not present, it will fail in load
                 Reporter::warning() << e.what() << Reporter::end();

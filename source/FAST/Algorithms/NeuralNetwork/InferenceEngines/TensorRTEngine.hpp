@@ -17,7 +17,12 @@ class INFERENCEENGINETENSORRT_EXPORT TensorRTEngine : public InferenceEngine {
         void load() override;
         ImageOrdering getPreferredImageOrdering() const override;
         std::string getName() const override;
-        std::string getDefaultFileExtension() const override;
+		std::vector<ModelFormat> getSupportedModelFormats() const {
+            return { ModelFormat::ONNX, ModelFormat::UFF };
+        };
+        ModelFormat getPreferredModelFormat() const {
+            return ModelFormat::ONNX;
+        };
         ~TensorRTEngine() override;
         void setMaxBatchSize(int maxBathSize);
         int getMaxBatchSize() const;

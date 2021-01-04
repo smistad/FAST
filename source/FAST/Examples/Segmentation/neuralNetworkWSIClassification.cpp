@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
         network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
     }
     network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." +
-                  network->getInferenceEngine()->getDefaultFileExtension());
+                  getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
     network->setInputConnection(generator->getOutputPort());
     network->setScaleFactor(1.0f / 255.0f);
 

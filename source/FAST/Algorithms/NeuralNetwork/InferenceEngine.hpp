@@ -42,6 +42,26 @@ struct InferenceDeviceInfo {
     int index;
 };
 
+/**
+ * Neural network modell formats
+ */
+enum class ModelFormat {
+    PROTOBUF,
+    SAVEDMODEL,
+    ONNX,
+    OPENVINO,
+    UFF
+};
+
+/**
+ * Get model format file extension.
+ */
+FAST_EXPORT std::string getModelFileExtension(ModelFormat format);
+
+/**
+ * Get model format of the given file.
+ */
+FAST_EXPORT ModelFormat getModelFormat(std::string filename);
 
 /**
  * Abstract class for neural network inference engines (TensorFlow, TensorRT ++)
@@ -73,7 +93,9 @@ class FAST_EXPORT InferenceEngine : public Object {
         virtual bool isLoaded();
         virtual ImageOrdering getPreferredImageOrdering() const = 0;
         virtual std::string getName() const = 0;
-        virtual std::string getDefaultFileExtension() const = 0;
+        virtual std::vector<ModelFormat> getSupportedModelFormats() const = 0;
+        virtual ModelFormat getPreferredModelFormat() const = 0;
+        virtual bool isModelFormatSupported(ModelFormat format);
         /**
          * Set which device type the inference engine should use
          * (assuming the IE supports multiple devices like OpenVINO)

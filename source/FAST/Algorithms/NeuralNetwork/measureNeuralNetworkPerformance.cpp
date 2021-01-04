@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
                     try {
                         segmentation->load(join(Config::getTestDataPath(),
                                                 "NeuralNetworkModels/jugular_vein_segmentation"+postfix+"." +
-                                                segmentation->getInferenceEngine()->getDefaultFileExtension()));
+							  getModelFileExtension(segmentation->getInferenceEngine()->getPreferredModelFormat())));
                     } catch(Exception &e) {
                         // If a device type is not present, it will fail in load
                         Reporter::warning() << e.what() << Reporter::end();
@@ -255,7 +255,7 @@ int main(int argc, char** argv) {
                         }
                     }
                     network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification" + postfix + "." +
-                                  network->getInferenceEngine()->getDefaultFileExtension());
+							  getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
                     network->setInputConnection(generator->getOutputPort());
                     network->setScaleFactor(1.0f / 255.0f);
                     network->enableRuntimeMeasurements();
@@ -361,7 +361,7 @@ int main(int argc, char** argv) {
                         }
                     }
                     network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification" + postfix + "." +
-                                  network->getInferenceEngine()->getDefaultFileExtension());
+							  getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
                     network->setInputConnection(generator->getOutputPort());
                     network->setScaleFactor(1.0f / 255.0f);
                     network->enableRuntimeMeasurements();

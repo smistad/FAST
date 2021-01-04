@@ -197,10 +197,6 @@ std::string OpenVINOEngine::getName() const {
     return "OpenVINO";
 }
 
-std::string OpenVINOEngine::getDefaultFileExtension() const {
-    return "xml";
-}
-
 OpenVINOEngine::~OpenVINOEngine() {
     //if(m_inferState != nullptr)
     //    delete m_inferState;

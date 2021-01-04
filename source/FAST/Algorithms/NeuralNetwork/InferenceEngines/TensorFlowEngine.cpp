@@ -305,17 +305,13 @@ std::string TensorFlowEngine::getName() const {
     return "TensorFlow";
 }
 
-std::string TensorFlowEngine::getDefaultFileExtension() const {
-    return "pb";
-}
-
 std::vector<InferenceDeviceInfo> TensorFlowEngine::getDeviceList() {
     std::vector<InferenceDeviceInfo> result;
     InferenceDeviceInfo cpu;
     cpu.type = InferenceDeviceType::CPU;
     cpu.index = 0;
     result.push_back(cpu);
-#ifdef FAST_TENSORFLOW_BUILD_CUDA
+#ifdef FAST_TENSORFLOW_CUDA
     {
         // TODO how to query number of devices?
         InferenceDeviceInfo device;
@@ -324,7 +320,7 @@ std::vector<InferenceDeviceInfo> TensorFlowEngine::getDeviceList() {
         result.push_back(device);
     }
 #endif
-#ifdef FAST_TENSORFLOW_BUILD_ROCM
+#ifdef FAST_TENSORFLOW_ROCM
     {
         // TODO ROCm how?
         InferenceDeviceInfo device;

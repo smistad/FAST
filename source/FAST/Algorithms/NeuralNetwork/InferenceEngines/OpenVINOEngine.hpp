@@ -21,7 +21,13 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
 
         std::string getName() const override;
 
-		std::string getDefaultFileExtension() const override;
+        std::vector<ModelFormat> getSupportedModelFormats() const {
+            return { ModelFormat::OPENVINO, ModelFormat::ONNX };
+        };
+
+        ModelFormat getPreferredModelFormat() const {
+            return ModelFormat::OPENVINO;
+        };
 
         /**
          * Get a list of devices available for this inference engine.

@@ -13,6 +13,7 @@ class FAST_EXPORT InferenceEngineManager {
         static void loadAll();
         static std::shared_ptr<InferenceEngine> loadEngine(std::string name);
         static std::shared_ptr<InferenceEngine> loadBestAvailableEngine();
+        static std::shared_ptr<InferenceEngine> loadBestAvailableEngine(ModelFormat modelFormat);
         static bool isEngineAvailable(std::string name);
     private:
         static bool m_loaded;

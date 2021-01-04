@@ -1,4 +1,5 @@
 #include "InferenceEngine.hpp"
+#include <FAST/Utility.hpp>
 
 namespace fast {
 
@@ -92,5 +93,45 @@ void InferenceEngine::setMaxBatchSize(int size) {
 int InferenceEngine::getMaxBatchSize() {
     return m_maxBatchSize;
 }
+
+std::string getModelFileExtension(ModelFormat format) {
+    std::map<ModelFormat, std::string> map = {
+        {ModelFormat::PROTOBUF, "pb"},
+        {ModelFormat::SAVEDMODEL, "/"}, // Saved model format is a directory
+        {ModelFormat::ONNX, "onnx"},
+        {ModelFormat::OPENVINO, "xml"},
+        {ModelFormat::UFF, "uff"}
+    };
+    return map.at(format);
+}
+
+ModelFormat getModelFormat(std::string filename) {
+    if(isDir(filename))
+        return ModelFormat::SAVEDMODEL;
+
+    auto pos = filename.rfind(".");
+	if(pos == std::string::npos)
+		throw Exception("Unable to determine model format because: Unable to get extension of file " + filename);
+    auto extension = filename.substr(pos);
+    extension = stringToLower(extension);
+    std::map<std::string, ModelFormat> map = {
+        {"pb", ModelFormat::PROTOBUF},
+        {"onnx", ModelFormat::ONNX},
+        {"xml", ModelFormat::OPENVINO},
+        {"uff", ModelFormat::UFF}
+    };
+    if(map.count(extension))
+        throw Exception("Unable to determine model format of file " + filename);
+
+    return map[extension];
+}
+
+bool InferenceEngine::isModelFormatSupported(ModelFormat format) {
+    auto formats = getSupportedModelFormats();
+    auto pos = std::find(formats.begin(), formats.end(), format);
+    return pos != formats.end();
+}
+
+
 
 }

@@ -18,7 +18,14 @@ class TensorFlowEngine : public InferenceEngine {
         std::string getName() const override;
         ~TensorFlowEngine() override;
         ImageOrdering getPreferredImageOrdering() const override;
-        std::string getDefaultFileExtension() const override;
+		std::vector<ModelFormat> getSupportedModelFormats() const {
+            return { ModelFormat::PROTOBUF, ModelFormat::SAVEDMODEL };
+        };
+
+        ModelFormat getPreferredModelFormat() const {
+            return ModelFormat::PROTOBUF;
+        };
+
         TensorFlowEngine();
         /**
          * Get a list of devices available for this inference engine.

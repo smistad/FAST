@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
         segmentation->setOutputNode(0, "permute_2/transpose", NodeType::TENSOR, TensorShape({-1, 3, 256, 256}));
     }
     segmentation->load(join(Config::getTestDataPath(),
-                            "NeuralNetworkModels/jugular_vein_segmentation." + segmentation->getInferenceEngine()->getDefaultFileExtension()));
+                            "NeuralNetworkModels/jugular_vein_segmentation." + getModelFileExtension(segmentation->getInferenceEngine()->getPreferredModelFormat())));
     segmentation->setInputConnection(inputStream->getOutputPort());
     segmentation->enableRuntimeMeasurements();
 
