@@ -39,11 +39,23 @@ void ComputationThread::run() {
 
     uint executeToken = 0;
     while(true) {
+		bool canUpdate = false;
         {
             std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
             if(mStop)
                 break;
+            if(m_processObjects.size() > 0)
+                canUpdate = true;
+            for(View* view : mViews) {
+                auto rendererList = view->getRenderers();
+                if(rendererList.size() > 0)
+                    canUpdate = true;
+            }
         }
+		if(!canUpdate) { // There is nothing for this computation thread to do atm, sleep a short while
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			continue;
+		}
         try {
             for(auto po : m_processObjects)
                 po->update(executeToken);
