@@ -690,8 +690,14 @@ bool isFile(const std::string& path) {
 
 bool isDir(const std::string& path) {
 #ifdef _WIN32
-    auto attr = GetFileAttributesA(path.c_str());
-    return attr & FILE_ATTRIBUTE_DIRECTORY;
+	auto ftyp = GetFileAttributesA(path.c_str());
+	if(ftyp == INVALID_FILE_ATTRIBUTES)
+		return false; 
+
+	if(ftyp & FILE_ATTRIBUTE_DIRECTORY)
+		return true;
+
+	return false; 
 #else
     struct stat buf;
     stat(path.c_str(), &buf);
@@ -812,4 +818,16 @@ void extractZipFile(std::string zipFilepath, std::string destination) {
         throw Exception("Zip extraction failed");
 }
 
+std::string stringToLower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(), 
+                   [](unsigned char c){ return std::tolower(c); }
+	);
+    return s;
+}
+std::string stringToUpper(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(), 
+                   [](unsigned char c){ return std::toupper(c); }
+	);
+    return s;
+}
 } // end namespace fast

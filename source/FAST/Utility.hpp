@@ -1,5 +1,4 @@
-#ifndef UTILITY_HPP_
-#define UTILITY_HPP_
+#pragma once
 #include "FAST/ExecutionDevice.hpp"
 #include "FAST/Data/DataTypes.hpp"
 #include <algorithm>
@@ -255,6 +254,8 @@ std::unique_ptr<T> make_uninitialized_unique(std::size_t size) {
  */
 FAST_EXPORT void extractZipFile(std::string zipFilepath, std::string destination);
 
+FAST_EXPORT std::string stringToLower(std::string);
+FAST_EXPORT std::string stringToUpper(std::string);
+
 } // end namespace fast
 
-#endif /* UTILITY_HPP_ */
