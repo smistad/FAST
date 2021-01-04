@@ -10,19 +10,40 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
 set(CPACK_PACKAGE_FILE_NAME "fast")
-set(CPACK_COMPONENT_FAST_REQUIRED ON)
 
 if(WIN32 AND NOT UNIX)
     ## Windows
     set(CPACK_GENERATOR "NSIS")
+    set(CPACK_MONOLITHIC_INSTALL ON)
     set(CPACK_PACKAGE_FILE_NAME "fast_windows_${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "FAST")
     set(CPACK_NSIS_MUI_ICON ${PROJECT_SOURCE_DIR}/doc/images/fast_icon.ico)
     set(CPACK_NSIS_MUI_UNICON ${PROJECT_SOURCE_DIR}/doc/images/fast_icon.ico)
     set(CPACK_NSIS_MODIFY_PATH ON)
-    set(CPACK_COMPONENTS_ALL fast)
-    set(CPACK_COMPONENT_FAST_DISPLAY_NAME "FAST")
-    set(CPACK_COMPONENT_FAST_DESCRIPTION "FAST framework: executables, examples, libraries and headers.")
+    # Start menu items
+    set(CPACK_NSIS_MENU_LINKS
+        "fast\\\\bin\\\\UFFviewer"
+        "Ultrasound File Format Viewer"
+        "fast\\\\bin\\\\runPipeline"
+        "Run pipelines"
+        "fast\\\\bin\\\\OpenIGTLinkServer"
+        "OpenIGTLink Server"
+        "fast\\\\bin\\\\downloadTestData"
+        "Download test data (~2GB)"
+        "http://fast.eriksmistad.no"
+        "FAST Webpage"
+        "Uninstall.exe"
+        "Uninstall"
+    )
+    # Some more shortcuts
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+        CreateShortCut \\\"$SMPROGRAMS\\\\FAST\\\\Examples.lnk\\\" \\\"$INSTDIR\\\\fast\\\\bin\\\"
+        CreateShortCut \\\"$SMPROGRAMS\\\\FAST\\\\Data Folder.lnk\\\" \\\"C:\\\\ProgramData\\\\FAST\\\"
+    ")
+    set(CPACK_NSIS_DELETE_ICONS_EXTRA "
+        Delete \\\"$SMPROGRAMS\\\\FAST\\\\Examples.lnk\\\"
+        Delete \\\"$SMPROGRAMS\\\\FAST\\\\Data Folder.lnk\\\"
+    ")
     include(CPack) # Must be before cpack_ macros
 else()
     ## UNIX
