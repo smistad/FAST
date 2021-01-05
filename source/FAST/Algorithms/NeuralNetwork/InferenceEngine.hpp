@@ -64,6 +64,13 @@ FAST_EXPORT std::string getModelFileExtension(ModelFormat format);
 FAST_EXPORT ModelFormat getModelFormat(std::string filename);
 
 /**
+ * Get name of model format as string
+ * @param format
+ * @return
+ */
+FAST_EXPORT std::string getModelFormatName(ModelFormat format);
+
+/**
  * Abstract class for neural network inference engines (TensorFlow, TensorRT ++)
  */
 class FAST_EXPORT InferenceEngine : public Object {

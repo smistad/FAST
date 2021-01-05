@@ -109,7 +109,7 @@ ModelFormat getModelFormat(std::string filename) {
     if(isDir(filename))
         return ModelFormat::SAVEDMODEL;
 
-    auto pos = filename.rfind(".");
+    auto pos = filename.rfind(".") + 1;
 	if(pos == std::string::npos)
 		throw Exception("Unable to determine model format because: Unable to get extension of file " + filename);
     auto extension = filename.substr(pos);
@@ -120,7 +120,7 @@ ModelFormat getModelFormat(std::string filename) {
         {"xml", ModelFormat::OPENVINO},
         {"uff", ModelFormat::UFF}
     };
-    if(map.count(extension))
+    if(map.count(extension) == 0)
         throw Exception("Unable to determine model format of file " + filename);
 
     return map[extension];
@@ -133,5 +133,15 @@ bool InferenceEngine::isModelFormatSupported(ModelFormat format) {
 }
 
 
+std::string getModelFormatName(ModelFormat format) {
+    std::map<ModelFormat, std::string> map = {
+        {ModelFormat::SAVEDMODEL, "TensorFlow SavedModel"},
+        {ModelFormat::PROTOBUF, "TensorFlow Protobuf"},
+        {ModelFormat::ONNX, "ONNX"},
+        {ModelFormat::OPENVINO, "OpenVINO"},
+        {ModelFormat::UFF, "UFF"}
+    };
+    return map.at(format);
+}
 
 }

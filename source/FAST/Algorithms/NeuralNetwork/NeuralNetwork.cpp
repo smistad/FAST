@@ -511,9 +511,11 @@ void NeuralNetwork::setOutputNode(uint portID, std::string name, NodeType type, 
 void NeuralNetwork::load(std::string filename) {
     if(!fileExists(filename))
         throw FileNotFoundException(filename);
-    if(!m_engine->isModelFormatSupported(getModelFormat(filename))) {
-        reportInfo() << "Model format was not supported by engine " << m_engine->getName() << ", auto selecting engine which supports this format..." << reportEnd();
-        m_engine = InferenceEngineManager::loadBestAvailableEngine(getModelFormat(filename));
+    auto format = getModelFormat(filename);
+    if(!m_engine->isModelFormatSupported(format)) {
+        reportInfo() << "Model format " << getModelFormatName(format) << " was not supported by engine " << m_engine->getName() << ", auto selecting engine which supports this format..." << reportEnd();
+        m_engine = InferenceEngineManager::loadBestAvailableEngine(format);
+        reportInfo() << "Selected " << m_engine->getName() << " as the best engine for format " << getModelFormatName(format) << reportEnd();
     }
     m_engine->setFilename(filename);
     m_engine->load();
