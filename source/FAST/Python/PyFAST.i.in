@@ -14,7 +14,7 @@ print('Done')
 %enddef
 
 
-%module(moduleimport=MODULEIMPORT) fast
+%module(moduleimport=MODULEIMPORT, directors=1) fast
 %{
 
 
@@ -256,5 +256,76 @@ float* _intToFloatPointer(std::size_t intPointer) {
         fast_shape.addDimension(i)
 
     self.create(self._intToFloatPointer(array_interface['data'][0]), fast_shape)
+%}
+}
+
+// Python process object functionality using directors feature
+
+%feature("director") PythonProcessObject;
+%shared_ptr(fast::PythonProcessObject)
+
+%inline %{
+
+namespace fast {
+    class PythonProcessObject : public ProcessObject {
+    public:
+        virtual void execute() = 0;
+        std::string getNameOfClass() const {
+            return "PythonProcessObject";
+        }
+        virtual ~PythonProcessObject() {};
+        std::shared_ptr<PythonProcessObject> m_hack;
+        PythonProcessObject() {
+            // A hack to this work as PythonProcessObject is not a smart pointer
+            m_hack.reset(this);
+            mPtr = m_hack;
+        }
+
+        void setInputConnection(DataChannel::pointer port) {
+            ProcessObject::setInputConnection(0, port);
+        }
+
+        void setInputConnection(uint portID, DataChannel::pointer port) {
+            ProcessObject::setInputConnection(portID, port);
+        }
+
+        DataChannel::pointer getOutputPort(uint portID = 0) {
+            return ProcessObject::getOutputPort(portID);
+        }
+
+        std::shared_ptr<Image> getInputImage() {
+            return ProcessObject::getInputData<Image>(0);
+        }
+
+        void addOutputImage(int port, std::shared_ptr<Image> image) {
+            ProcessObject::addOutputData(port, image);
+        }
+
+        void createInputImagePort(int port) {
+            createInputPort<Image>(port);
+        }
+        void createOutputImagePort(int port) {
+            createOutputPort<Image>(port);
+        }
+        void createInputTensorPort(int port) {
+            createInputPort<Tensor>(port);
+        }
+        void createOutputTensorPort(int port) {
+            createOutputPort<Tensor>(port);
+        }
+
+
+    };
+}
+%}
+
+// Convienience method for PythonProcessObject. Static method New makes it similar to other POs
+%extend fast::PythonProcessObject {
+
+%pythoncode %{
+@classmethod
+def New(cls):
+    instance = cls()
+    return instance
 %}
 }
