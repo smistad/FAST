@@ -57,20 +57,10 @@ int main(int argc, char** argv) {
 
     auto segmentation = SegmentationNetwork::New();
     segmentation->setScaleFactor(1.0f / 255.0f);
-    if(parser.get("inference-engine") != "default") {
+    if(parser.get("inference-engine") != "default")
         segmentation->setInferenceEngine(parser.get("inference-engine"));
-    }
-    const auto engine = segmentation->getInferenceEngine()->getName();
-    if(engine == "TensorFlow") {
-        // TensorFlow needs to know what the output node is called
-        segmentation->setOutputNode(0, "conv2d_23/truediv");
-    } else if(engine == "TensorRT") {
-        // TensorRT needs to know everything about the input and output nodes
-        segmentation->setInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
-        segmentation->setOutputNode(0, "permute_2/transpose", NodeType::TENSOR, TensorShape({-1, 3, 256, 256}));
-    }
     segmentation->load(join(Config::getTestDataPath(),
-                            "NeuralNetworkModels/jugular_vein_segmentation." + getModelFileExtension(segmentation->getInferenceEngine()->getPreferredModelFormat())));
+        "NeuralNetworkModels/jugular_vein_segmentation." + getModelFileExtension(segmentation->getInferenceEngine()->getPreferredModelFormat())));
     segmentation->setInputConnection(inputStream->getOutputPort());
     segmentation->enableRuntimeMeasurements();
 

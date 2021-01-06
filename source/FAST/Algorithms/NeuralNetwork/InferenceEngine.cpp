@@ -16,7 +16,7 @@ std::string InferenceEngine::getFilename() const {
     return m_filename;
 }
 
-bool InferenceEngine::isLoaded() {
+bool InferenceEngine::isLoaded() const {
     return m_isLoaded;
 }
 

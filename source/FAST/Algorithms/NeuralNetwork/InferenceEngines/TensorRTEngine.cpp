@@ -103,7 +103,6 @@ void* safeCudaMalloc(size_t memSize)
 
 
 void TensorRTEngine::run() {
-
     const int nbBindings = m_engine->getNbBindings();
 
     // Get batch size
@@ -237,6 +236,12 @@ void TensorRTEngine::load() {
         std::unique_ptr<nvonnxparser::IParser, decltype(Destroy())> onnxparser(nvonnxparser::createParser(*network, gLogger),
                                                                            Destroy()); // IMPORTANT! Parser must be alive even after parse
 
+        builder->setMaxBatchSize(m_maxBatchSize);
+        //builder->setFp16Mode(builder->platformHasFastFp16());
+
+        std::unique_ptr<nvinfer1::IBuilderConfig, decltype(Destroy())> config(builder->createBuilderConfig(), Destroy());
+        config->setMaxWorkspaceSize(m_maxWorkspaceSize);
+
         if(filename.substr(filename.size()-4) == ".uff") {
             // Check that input and output nodes are set
             if(mInputNodes.empty() || mOutputNodes.empty())
@@ -268,6 +273,7 @@ void TensorRTEngine::load() {
             if(!uffparser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
                 throw Exception("Error parsing UFF file " + filename);
 
+            m_dimensionOrdering = ImageOrdering::ChannelFirst;
             reportInfo() << "Finished parsing UFF file" << reportEnd();
         } else {
             // Assuming file is ONNX format
@@ -275,13 +281,20 @@ void TensorRTEngine::load() {
             bool parsed = onnxparser->parseFromFile(filename.c_str(), 1);
             if(!parsed)
                 throw Exception("Unable to parse ONNX file with TensorRT");
+
+            auto profile = builder->createOptimizationProfile();
+            // For all inputs, set profiling dimensions
+            for(int inputNr = 0; inputNr < network->getNbInputs(); ++inputNr) {
+                auto input = network->getInput(inputNr);
+                auto dims = input->getDimensions();
+                dims.d[0] = 1;
+                profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, dims);
+                profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);
+                dims.d[0] = m_maxBatchSize;
+                profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, dims);
+                config->addOptimizationProfile(profile);
+            }
         }
-
-        builder->setMaxBatchSize(m_maxBatchSize);
-        //builder->setFp16Mode(builder->platformHasFastFp16());
-
-        std::unique_ptr<nvinfer1::IBuilderConfig, decltype(Destroy())> config(builder->createBuilderConfig(), Destroy());
-        config->setMaxWorkspaceSize(m_maxWorkspaceSize);
 
         m_engine = builder->buildEngineWithConfig(*network, *config);
         if(!m_engine)
@@ -315,9 +328,22 @@ void TensorRTEngine::load() {
         for (int i = 0; i < m_engine->getNbBindings(); ++i) {
             auto name = m_engine->getBindingName(i);
             auto shape = getTensorShape(m_engine->getBindingDimensions(i));
-            NodeType type = NodeType::IMAGE;
-            if (shape.getDimensions() < 4)
+            NodeType type;
+            if(shape.getDimensions() >= 4) { // If image; 2D or 3D
+                type = NodeType::IMAGE;
+                // Try to determine channel ordering since TensorRT API doesn't seem to have a good way to do this..
+                if (shape[shape.getDimensions() - 1] <= 4) {
+                    m_dimensionOrdering = ImageOrdering::ChannelLast;
+                    reportInfo() << "Guessed image ordering to be channel last as shape was " << shape.toString()
+                                 << reportEnd();
+                } else {
+                    m_dimensionOrdering = ImageOrdering::ChannelFirst;
+                    reportInfo() << "Guessed image ordering to be channel first as shape was " << shape.toString()
+                                 << reportEnd();
+                }
+            } else {
                 type = NodeType::TENSOR;
+            }
             if (m_engine->bindingIsInput(i)) {
                 reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
                 addInputNode(inputCount, name, type, shape);
@@ -335,7 +361,9 @@ void TensorRTEngine::load() {
 }
 
 ImageOrdering TensorRTEngine::getPreferredImageOrdering() const {
-    return ImageOrdering::ChannelFirst;
+    if(!isLoaded())
+        throw Exception("Network must be loaded before calling getPreferredImageOrdering on TensorRTEngine");
+    return m_dimensionOrdering;
 }
 
 TensorRTEngine::~TensorRTEngine() {

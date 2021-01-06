@@ -97,7 +97,7 @@ class FAST_EXPORT InferenceEngine : public Object {
         virtual void setInputData(std::string inputNodeName, std::shared_ptr<Tensor> tensor);
         virtual std::shared_ptr<Tensor> getOutputData(std::string inputNodeName);
         virtual void load() = 0;
-        virtual bool isLoaded();
+        virtual bool isLoaded() const;
         virtual ImageOrdering getPreferredImageOrdering() const = 0;
         virtual std::string getName() const = 0;
         virtual std::vector<ModelFormat> getSupportedModelFormats() const = 0;
