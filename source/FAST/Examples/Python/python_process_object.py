@@ -7,8 +7,8 @@ fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT) # Show debug info
 class Inverter(fast.PythonProcessObject):
     def __init__(self):
         super().__init__()
-        self.createInputImagePort(0)
-        self.createOutputImagePort(0)
+        self.createInputPort(0)
+        self.createOutputPort(0)
 
     def execute(self):
         print('In execute...')
@@ -22,7 +22,7 @@ class Inverter(fast.PythonProcessObject):
         new_output_image = fast.Image.New()
         new_output_image.createFromArray(np_image)
         new_output_image.setSpacing(image.getSpacing())
-        self.addOutputImage(0, new_output_image)
+        self.addOutputData(0, new_output_image)
         print('Done in execute')
 
 

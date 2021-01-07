@@ -134,15 +134,19 @@ public
 %include <FAST/Data/Access/BoundingBoxSetAccess.hpp>
 %include <FAST/Visualization/Plane.hpp>
 
+%define ADD_TEMPLATE_METHODS(TYPE)
+%template(updateAndGetOutput ## TYPE) fast::ProcessObject::updateAndGetOutputData<fast::TYPE>;
+%template(getNext ## TYPE) fast::DataChannel::getNextFrame<fast::TYPE>;
+%enddef
 
-%template(updateAndGetOutputImage) fast::ProcessObject::updateAndGetOutputData<fast::Image>;
-%template(getNextImage) fast::DataChannel::getNextFrame<fast::Image>;
-
-%template(updateAndGetOutputMesh) fast::ProcessObject::updateAndGetOutputData<fast::Mesh>;
-%template(getNextMesh) fast::DataChannel::getNextFrame<fast::Mesh>;
-
-%template(updateAndGetOutputTensor) fast::ProcessObject::updateAndGetOutputData<fast::Tensor>;
-%template(getNextTensor) fast::DataChannel::getNextFrame<fast::Tensor>;
+ADD_TEMPLATE_METHODS(Image)
+ADD_TEMPLATE_METHODS(ImagePyramid)
+ADD_TEMPLATE_METHODS(Segmentation)
+ADD_TEMPLATE_METHODS(Tensor)
+ADD_TEMPLATE_METHODS(Mesh)
+ADD_TEMPLATE_METHODS(BoundingBox)
+ADD_TEMPLATE_METHODS(BoundingBoxSet)
+ADD_TEMPLATE_METHODS(Text)
 
 @PYFAST_INTERFACE_INCLUDES@
 
@@ -266,6 +270,11 @@ float* _intToFloatPointer(std::size_t intPointer) {
 
 %inline %{
 
+#define ADD_GET_INPUT_DATA_METHOD(TYPE)                     \
+    std::shared_ptr<TYPE> getInput ## TYPE (int port = 0) {  \
+        return ProcessObject::getInputData<TYPE>(port);   \
+    };                                                      \
+
 namespace fast {
     class PythonProcessObject : public ProcessObject {
     public:
@@ -273,11 +282,12 @@ namespace fast {
         std::string getNameOfClass() const {
             return "PythonProcessObject";
         }
-        virtual ~PythonProcessObject() {};
+        virtual ~PythonProcessObject() { };
         std::shared_ptr<PythonProcessObject> m_hack;
         PythonProcessObject() {
-            // A hack to this work as PythonProcessObject is not a smart pointer
-            m_hack.reset(this);
+            // A hack to make this work as PythonProcessObject does not return a smart pointer thread New as other POs.
+            // Use a custom deleter which doesn't delete to avoid double delete
+            m_hack.reset(this, [](PythonProcessObject* obj) {});
             mPtr = m_hack;
         }
 
@@ -293,30 +303,28 @@ namespace fast {
             return ProcessObject::getOutputPort(portID);
         }
 
-        std::shared_ptr<Image> getInputImage() {
-            return ProcessObject::getInputData<Image>(0);
-        }
+        ADD_GET_INPUT_DATA_METHOD(Image)
+        ADD_GET_INPUT_DATA_METHOD(ImagePyramid)
+        ADD_GET_INPUT_DATA_METHOD(Segmentation)
+        ADD_GET_INPUT_DATA_METHOD(Tensor)
+        ADD_GET_INPUT_DATA_METHOD(Mesh)
+        ADD_GET_INPUT_DATA_METHOD(BoundingBox)
+        ADD_GET_INPUT_DATA_METHOD(BoundingBoxSet)
+        ADD_GET_INPUT_DATA_METHOD(Text)
 
-        void addOutputImage(int port, std::shared_ptr<Image> image) {
+        void addOutputData(int port, std::shared_ptr<DataObject> image) {
             ProcessObject::addOutputData(port, image);
         }
 
-        void createInputImagePort(int port) {
-            createInputPort<Image>(port);
+        void createInputPort(int port) {
+            ProcessObject::createInputPort<DataObject>(port);
         }
-        void createOutputImagePort(int port) {
-            createOutputPort<Image>(port);
-        }
-        void createInputTensorPort(int port) {
-            createInputPort<Tensor>(port);
-        }
-        void createOutputTensorPort(int port) {
-            createOutputPort<Tensor>(port);
+        void createOutputPort(int port) {
+            ProcessObject::createOutputPort<DataObject>(port);
         }
 
-
-    };
-}
+    }; // end class python process object
+} // end namespace
 %}
 
 // Convienience method for PythonProcessObject. Static method New makes it similar to other POs
@@ -328,4 +336,32 @@ def New(cls):
     instance = cls()
     return instance
 %}
+}
+
+// Get proper error messages if python error occurs in PythonProcessObject director
+// This was taken from https://github.com/swig/swig/issues/1117
+%feature("director:except") {
+    if($error != NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_NormalizeException(&exc, &val, &tb);
+        std::string err_msg("In method '$symname': ");
+
+        PyObject* exc_str = PyObject_GetAttrString(exc, "__name__");
+        err_msg += SWIG_Python_str_AsChar(exc_str);
+        Py_XDECREF(exc_str);
+
+        if(val != NULL) {
+            PyObject* val_str = PyObject_Str(val);
+            err_msg += ": ";
+            err_msg += SWIG_Python_str_AsChar(val_str);
+            Py_XDECREF(val_str);
+        }
+
+        Py_XDECREF(exc);
+        Py_XDECREF(val);
+        Py_XDECREF(tb);
+
+        Swig::DirectorMethodException::raise(err_msg.c_str());
+    }
 }
