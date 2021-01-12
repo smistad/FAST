@@ -9,15 +9,10 @@
 #include <FAST/Config.hpp>
 
 #define CUDA_CHECK(status)                             \
-    do                                            \
-    {                                             \
-        auto ret = (status);                      \
-        if (ret != 0)                             \
-        {                                         \
-            std::cout << "Cuda failure: " << ret; \
-            abort();                              \
-        }                                         \
-    } while (0)
+    if(status != 0)                             \
+    {                                         \
+        throw Exception("CUDA failure: " + std::string(cudaGetErrorString(cudaGetLastError())));    \
+    }                                         \
 
 
 namespace fast {
@@ -64,43 +59,23 @@ inline unsigned int elementSize(nvinfer1::DataType t) {
     return 0;
 }
 
-
-inline int64_t volume(const nvinfer1::Dims& d) {
-    int64_t v = 1;
-    for (int64_t i = 0; i < d.nbDims; i++)
-        v *= d.d[i];
-    return v;
-}
-
-
-static std::vector<std::pair<int64_t, nvinfer1::DataType>>
-calculateBindingBufferSizes(const nvinfer1::ICudaEngine& engine, int nbBindings, int batchSize) {
-    std::vector<std::pair<int64_t, nvinfer1::DataType>> sizes;
-    for (int i = 0; i < nbBindings; ++i)
-    {
-        nvinfer1::Dims dims = engine.getBindingDimensions(i);
-        nvinfer1::DataType dtype = engine.getBindingDataType(i);
-
-        int64_t eltCount = volume(dims) * batchSize;
-        sizes.push_back(std::make_pair(eltCount, dtype));
-    }
-
-    return sizes;
-}
-
-void* safeCudaMalloc(size_t memSize)
-{
+void* safeCudaMalloc(size_t memSize) {
     void* deviceMem;
     CUDA_CHECK(cudaMalloc(&deviceMem, memSize));
-    if (deviceMem == nullptr)
-    {
-        std::cerr << "Out of memory" << std::endl;
-        exit(1);
+    if(deviceMem == nullptr) {
+        throw Exception("CUDA: Out of memory");
     }
     return deviceMem;
 }
 
-
+inline nvinfer1::Dims shapeToDims(TensorShape shape) {
+    nvinfer1::Dims d;
+    d.nbDims = shape.getDimensions();
+    for(int i = 0; i < shape.getDimensions(); ++i) {
+        d.d[i] = shape[i];
+    }
+    return d;
+}
 
 void TensorRTEngine::run() {
     const int nbBindings = m_engine->getNbBindings();
@@ -112,20 +87,23 @@ void TensorRTEngine::run() {
     }
 
     std::vector<void*> buffers(nbBindings);
-    auto buffersSizes = calculateBindingBufferSizes(*m_engine, nbBindings, batchSize);
 
-    // TODO assuming 1 input and output here
     std::map<std::string, int> inputIndexes;
     std::map<std::string, int> outputIndexes;
     for(int i = 0; i < nbBindings; ++i) {
         auto name = m_engine->getBindingName(i);
+        TensorShape shape;
         if (m_engine->bindingIsInput(i)) {
             inputIndexes[name] = i;
+            shape = mInputNodes[name].shape;
         } else {
             outputIndexes[name] = i;
-        }
+            shape = mOutputNodes[name].shape;
+         }
+        shape[0] = batchSize;
         // Allocate data
-        buffers[i] = safeCudaMalloc(buffersSizes[i].first * elementSize(buffersSizes[i].second));
+        nvinfer1::DataType dtype = m_engine->getBindingDataType(i);
+        buffers[i] = safeCudaMalloc(shape.getTotalSize() * elementSize(dtype));
     }
 
     // Allocate data for each input and copy data to it
@@ -134,8 +112,12 @@ void TensorRTEngine::run() {
         auto access = tensor->getAccess(ACCESS_READ);
         float* tensorData = access->getRawData();
         const int index = inputIndexes.at(inputNode.first);
+        auto dtype = m_engine->getBindingDataType(index);
+        auto shape = inputNode.second.shape;
+        shape[0] = batchSize;
+        m_context->setBindingDimensions(index, shapeToDims(shape));
         CUDA_CHECK(cudaMemcpy(buffers[index], tensorData,
-                              buffersSizes[index].first * elementSize(buffersSizes[index].second),
+                              shape.getTotalSize() * elementSize(dtype),
                               cudaMemcpyHostToDevice));
         reportInfo() << "Finished copying input data to TensorRT" << reportEnd();
     }
@@ -153,26 +135,25 @@ void TensorRTEngine::run() {
     reportInfo() << "Finished freeing input data TensorRT" << reportEnd();
 
     // Transfer output data back
-    for(const auto& output : outputIndexes) {
-        const int index = output.second;
-        reportInfo() << "Processing output node " << output.first << reportEnd();
-        auto outputData = make_uninitialized_unique<float[]>(buffersSizes[index].first);
+    for(auto& outputNode : mOutputNodes) {
+        const auto name = outputNode.first;
+        auto shape = outputNode.second.shape;
+        shape[0] = batchSize;
+        const int index = outputIndexes[name];
+        auto dtype = m_engine->getBindingDataType(index);
+        reportInfo() << "Processing output node " << name << reportEnd();
+        auto outputData = make_uninitialized_unique<float[]>(shape.getTotalSize()); // TODO possible type mismatch issue here..
         CUDA_CHECK(cudaMemcpy(outputData.get(), buffers[index],
-                              buffersSizes[index].first * elementSize(buffersSizes[index].second),
+                              shape.getTotalSize() * elementSize(dtype),
                               cudaMemcpyDeviceToHost));
 
         auto outputTensor = Tensor::New();
-        mOutputNodes.at(output.first).data = outputTensor;
+        outputNode.second.data = outputTensor;
 
         // Get output shape
         nvinfer1::Dims dims = m_engine->getBindingDimensions(index);
-        TensorShape shape = mOutputNodes.at(output.first).shape;
         if(shape.getDimensions() == 0)
             throw Exception("Missing shape for output node");
-        shape[0] = batchSize;
-        // TODO check if output dims are correct:
-        //for(int i = 0; i < dims.nbDims; ++i) {
-        //}
 
         outputTensor->create(std::move(outputData), shape);
         reportInfo() << "Finished moving data to FAST tensor, TensorRT" << reportEnd();
@@ -236,7 +217,6 @@ void TensorRTEngine::load() {
         std::unique_ptr<nvonnxparser::IParser, decltype(Destroy())> onnxparser(nvonnxparser::createParser(*network, gLogger),
                                                                            Destroy()); // IMPORTANT! Parser must be alive even after parse
 
-        builder->setMaxBatchSize(m_maxBatchSize);
         //builder->setFp16Mode(builder->platformHasFastFp16());
 
         std::unique_ptr<nvinfer1::IBuilderConfig, decltype(Destroy())> config(builder->createBuilderConfig(), Destroy());
@@ -292,10 +272,11 @@ void TensorRTEngine::load() {
                 profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);
                 dims.d[0] = m_maxBatchSize;
                 profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, dims);
-                config->addOptimizationProfile(profile);
             }
+            config->addOptimizationProfile(profile);
         }
 
+        builder->setMaxBatchSize(m_maxBatchSize);
         m_engine = builder->buildEngineWithConfig(*network, *config);
         if(!m_engine)
             throw Exception("Failed to build CUDA engine for TensorRT");

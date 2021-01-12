@@ -10,7 +10,6 @@ Attribute loop true
 ProcessObject network SegmentationNetwork
 Attribute scale-factor 0.003921568627451
 Attribute model @@model=$TEST_DATA_PATH$/NeuralNetworkModels/jugular_vein_segmentation.xml@@
-Attribute inference-engine OpenVINO
 Input 0 streamer 0
 
 ### Renderers

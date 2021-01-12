@@ -19,8 +19,8 @@ using namespace fast;
 int main(int argc, char** argv) {
     CommandLineParser parser("Neural network CT volume segmentation example");
     parser.addChoice("inference-engine",
-            {"TensorFlow"},
-            "TensorFlow",
+            {"default", "TensorFlow", "OpenVINO", "TensorRT"},
+            "default",
             "Which neural network inference engine to use");
     parser.addPositionVariable(1,
             "filename",
@@ -37,10 +37,10 @@ int main(int argc, char** argv) {
     generator->enableRuntimeMeasurements();
 
     auto network = SegmentationNetwork::New();
-    network->setInferenceEngine(parser.get("inference-engine"));
+    if(parser.get("inference-engine") != "default")
+        network->setInferenceEngine(parser.get("inference-engine"));
     const auto engine = network->getInferenceEngine()->getName();
-    network->setOutputNode(0, "conv3d_14/truediv");
-    network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation.pb");
+    network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation." + getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
     network->setMinAndMaxIntensity(-1200.0f, 400.0f);
     network->setScaleFactor(1.0f / (400 + 1200));
     network->setMeanAndStandardDeviation(-1200.0f, 1.0f);

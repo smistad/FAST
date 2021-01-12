@@ -41,19 +41,11 @@ int main(int argc, char** argv) {
     generator->setInputConnection(1, tissueSegmentation->getOutputPort());
 
     auto network = NeuralNetwork::New();
-    if(parser.get("inference-engine") != "default") {
+    if(parser.get("inference-engine") != "default")
         network->setInferenceEngine(parser.get("inference-engine"));
-    }
     const auto engine = network->getInferenceEngine()->getName();
     network->setInferenceEngine(engine);
-    if(engine == "TensorFlow") {
-        network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR);
-    } else if(engine == "TensorRT") {
-        network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape{-1, 3, 512, 512});
-        network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
-    }
-    network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." +
-                  getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." + getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
     network->setInputConnection(generator->getOutputPort());
     network->setScaleFactor(1.0f / 255.0f);
 

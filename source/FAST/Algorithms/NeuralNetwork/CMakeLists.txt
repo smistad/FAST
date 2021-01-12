@@ -30,15 +30,7 @@ fast_add_process_object(TensorToSegmentation TensorToSegmentation.hpp)
 if(FAST_MODULE_Visualization)
     fast_add_test_sources(
         Tests.cpp
-        ImageClassifierTests.cpp
     )
-    if(FAST_MODULE_WholeSlideImaging)
-        fast_add_test_sources(
-            WSITests.cpp
-            VolumeTests.cpp
-        )
-        fast_add_example(measureNeuralNetworkPerformance measureNeuralNetworkPerformance.cpp)
-    endif()
 endif()
 
 fast_add_subdirectories(InferenceEngines)
