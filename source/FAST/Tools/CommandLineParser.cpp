@@ -16,7 +16,7 @@ void CommandLineParser::parse(const int argc, char ** const argv) {
     // TODO make sure there are no spaces. Add support for "asdasd asdasd"
     m_command = argv[0];
     std::shared_ptr<Variable> currentVariable;
-    uint currentPosition = 0;
+    uint currentPosition = 1;
     for(int i = 1; i < argc; ++i) {
         std::string token = argv[i];
         Reporter::info() << "Processing token " << token << Reporter::end();
@@ -69,7 +69,6 @@ void CommandLineParser::parse(const int argc, char ** const argv) {
 }
 
 void CommandLineParser::processToken(std::shared_ptr<Variable>& currentVariable, uint currentPosition, const std::string &token) {
-
     // If no current variable, then the first token has to start with --, or it is a position variable
     if(!currentVariable) {
         if(token.size() > 2 && token.substr(0, 2) == "--") {
