@@ -50,6 +50,7 @@ ExternalProject_Add(OpenVINO
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/MKLDNNPlugin.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/myriadPlugin.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/ngraph.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+            ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/ngraph.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/bin/intel64/Release/plugins.xml ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
             ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/inference-engine/temp/tbb/bin/tbb.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
             ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/inference-engine/include/ ${FAST_EXTERNAL_INSTALL_DIR}/include/openvino/ COMMAND

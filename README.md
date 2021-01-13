@@ -20,8 +20,9 @@ Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.
 ### Main features
 
 * **Data streaming** – Processing pipelines in FAST can handle both static and dynamic/temporal data without any change to the code. FAST can stream data from movie files, your webcamera, an Intel RealSense camera, a sequence of images and even directly from ultrasound scanners such as Clarius.
-* **Deep learning** – FAST supports several inference engines, such as Google’s TensorFlow, NVIDIA's TensorRT and Intel's OpenVINO, making it possible to create real-time neural network pipelines.
+* **Deep learning** – FAST provides a common interface for neural networks supporting different model formats (ONNX, protobuf, SavedModel, OpenVINO, UFF) and backends (Google TensorFlow, NVIDIA TensorRT, Intel OpenVINO), making it possible to create real-time neural network pipelines.
 * **High-level data management** – Data objects in FAST represent data, such as an image, on all processors. FAST keeps data coherent across the different storage areas thereby removing the burden of explicit memory handling from the developer.
+* **Wide data format support** - FAST supports several data formats (DICOM, metaimage (MHD), regular jpg/png/bmp images, videos, HDF5, VTK polydata, whole slide images, ultrasound file format) and data types (images 2D and 3D, grayscale and color, image pyramids, surface mesh, vertices, lines, text ++).
 * **High performance algorithms** – FAST has several high performance parallel OpenCL implementations of common algorithms, such as marching cubes surface extraction, Gaussian smoothing, non-local means, block matching tracking and seeded region growing.
 * **Fast concurrent visualization** – Rendering and computation are done in separate threads to ensure smooth responsive visualizations. Several types of visualizations are supported both 3D (mesh, point, line, image slice and volume rendering) and 2D (2D image, image slice and segmentation/label rendering, whole slide image (WSI) pyramids).
 * **Interoperability** – FAST can be used with Python and can also be easily integrated into existing Qt applications.
