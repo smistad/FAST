@@ -1,4 +1,4 @@
-file(GLOB installedSOs "${CMAKE_INSTALL_PREFIX}/fast/lib/*.so*")
+file(GLOB installedSOs "$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/lib/*.so*")
 foreach(SO ${installedSOs})
     if(SO MATCHES "^.*librealsense.*$")
     message("-- Setting runtime path of ${SO} and stripping..")

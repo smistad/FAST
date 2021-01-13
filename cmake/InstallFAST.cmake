@@ -53,7 +53,7 @@ else()
 		COMPONENT fast
     )
 	# Fix RPaths on install
-    install(SCRIPT cmake/FixRPaths.cmake)
+    install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
 endif()
 
 # Install Qt plugins
