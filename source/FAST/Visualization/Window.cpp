@@ -5,6 +5,9 @@
 #include <QScreen>
 #include <QIcon>
 #include <QFontDatabase>
+#ifndef WIN32
+#include <X11/Xlib.h>
+#endif
 
 namespace fast {
 
@@ -113,7 +116,20 @@ void Window::initializeQtApp() {
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
+#ifdef WIN32
         QApplication* app = new FASTApplication(*argc,NULL);
+#else
+        if(XOpenDisplay(nullptr) == nullptr) {
+            Reporter::warning() << "Unable to open X display. Disabling visualization." << Reporter::end();
+            // Give the -platform offscreen option to Qt. This will stop Qt for trying to initiating X and open a display
+            *argc = 3;
+            char const* argv[3] = {"fast", "-platform", "offscreen"};
+            QApplication *app = new FASTApplication(*argc, (char**)&argv);
+            Config::setVisualization(false);
+        } else {
+            QApplication *app = new FASTApplication(*argc, NULL);
+        }
+#endif
 
         // Set default window icon
         QApplication::setWindowIcon(QIcon((Config::getDocumentationPath() + "images/fast_icon.png").c_str()));
@@ -129,7 +145,7 @@ void Window::initializeQtApp() {
     }
 
      // Create computation GL context, if it doesn't exist
-    if(mMainGLContext == NULL) {
+    if(mMainGLContext == NULL && Config::getVisualization()) {
         Reporter::info() << "Creating new GL context for computation thread" << Reporter::end();
 
         // Create GL context to be shared with the CL contexts
@@ -239,7 +255,8 @@ void Window::setTimeout(unsigned int milliseconds) {
 
 QGLContext* Window::getMainGLContext() {
     if(mMainGLContext == NULL) {
-        //throw Exception("No OpenGL context created");
+        if(!Config::getVisualization())
+            throw Exception("Visualization in FAST was disabled, unable to continue.\nIf you want to run FAST with visualization on a remote server, see the wiki page\nhttps://github.com/smistad/FAST/wiki/Running-FAST-on-a-remote-server");
         initializeQtApp();
     }
 

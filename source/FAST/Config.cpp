@@ -35,6 +35,7 @@ namespace fast {
 			std::string mLibraryPath;
 			std::string mQtPluginsPath;
 			StreamingMode m_streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
+			bool m_visualization = true;
 		}
 
 		static void copyPipelineFilesRecursivly(std::string pipelineSourcePath, std::string pipelineDestinationPath) {
@@ -309,6 +310,14 @@ namespace fast {
 
 		StreamingMode Config::getStreamingMode() {
 		    return m_streamingMode;
+		}
+
+		void Config::setVisualization(bool visualization) {
+		    m_visualization = visualization;
+		}
+
+		bool Config::getVisualization() {
+		    return m_visualization;
 		}
 
 		void downloadTestDataIfNotExists(std::string destination, bool force) {

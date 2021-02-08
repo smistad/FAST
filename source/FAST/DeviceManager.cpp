@@ -201,7 +201,7 @@ DeviceManager::DeviceManager() {
     // Set one random device as default device
     // First try to get one OpenCL device with OpenGL interop:
     try {
-        setDefaultDevice(getOneOpenCLDevice(true, m_devicePlatform));
+        setDefaultDevice(getOneOpenCLDevice(Config::getVisualization(), m_devicePlatform));
     } catch(Exception& e) {
         // If that fails, try to get a device, without GL interop
         reportInfo() << "No devices with OpenGL interop was found. Looking again for best device WITHOUT OpenGL interop, this may lower visualization performance." << reportEnd();
