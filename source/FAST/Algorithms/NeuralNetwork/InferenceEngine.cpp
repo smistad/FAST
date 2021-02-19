@@ -94,6 +94,10 @@ int InferenceEngine::getMaxBatchSize() {
     return m_maxBatchSize;
 }
 
+void InferenceEngine::loadCustomPlugins(std::vector<std::string> filenames) {
+    throw NotImplementedException();
+}
+
 std::string getModelFileExtension(ModelFormat format) {
     std::map<ModelFormat, std::string> map = {
         {ModelFormat::PROTOBUF, "pb"},

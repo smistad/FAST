@@ -252,4 +252,23 @@ OpenVINOEngine::~OpenVINOEngine() {
     //    delete m_inferState;
 }
 
+void OpenVINOEngine::loadCustomPlugins(std::vector<std::string> filenames) {
+    if(isLoaded())
+        throw Exception("Call loadCustomPlugins before load()");
+
+    if(!m_inferenceCore)
+        m_inferenceCore = std::make_shared<Core>();
+
+    for(auto&& filename : filenames) {
+        if(!fileExists(filename))
+            throw FileNotFoundException(filename);
+        if(stringToLower(filename.substr(filename.length()-4)) == "xml") {
+            m_inferenceCore->SetConfig({ { ::InferenceEngine::PluginConfigParams::KEY_CONFIG_FILE, filename} }, "GPU"); // TODO how to detect VPU?
+        } else {
+            auto extension_ptr = make_so_pointer<::InferenceEngine::IExtension>(filename);
+            m_inferenceCore->AddExtension(extension_ptr, "CPU");
+        }
+    }
+}
+
 }

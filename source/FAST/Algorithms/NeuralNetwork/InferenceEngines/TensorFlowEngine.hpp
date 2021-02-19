@@ -33,6 +33,12 @@ class TensorFlowEngine : public InferenceEngine {
          * @return vector with info on each device
          */
         std::vector<InferenceDeviceInfo> getDeviceList();
+        /**
+         * Load a custom operator (op). You have to do this BEFORE calling load() to load the model/graph.
+         *
+         * @param filename
+         */
+        void loadCustomPlugins(std::vector<std::string> filename) override;
     protected:
         std::unique_ptr<tensorflow::Session> mSession;
         std::unique_ptr<tensorflow::SavedModelBundle> mSavedModelBundle;

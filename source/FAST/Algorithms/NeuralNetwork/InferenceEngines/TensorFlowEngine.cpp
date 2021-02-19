@@ -24,11 +24,12 @@
 //#include <tensorflow/cc/framework/ops.h>
 //#include <tensorflow/core/platform/logging.h>
 #include <FAST/Utility.hpp>
-
 #include <tensorflow/cc/saved_model/loader.h>
 #include <tensorflow/cc/saved_model/loader_util.h>
 #include <tensorflow/cc/saved_model/tag_constants.h>
 #include <tensorflow/cc/saved_model/reader.h>
+#include <tensorflow/c/c_api.h>
+#include <tensorflow/c/tf_status.h>
 
 
 namespace fast {
@@ -330,6 +331,23 @@ std::vector<InferenceDeviceInfo> TensorFlowEngine::getDeviceList() {
     }
 #endif
     return result;
+}
+
+void TensorFlowEngine::loadCustomPlugins(std::vector<std::string> filenames) {
+    if(isLoaded())
+        throw Exception("You must call loadCustomPlugin before loading the model (e.g. load())");
+    for(auto& filename : filenames) {
+        if (!fileExists(filename))
+            throw FileNotFoundException(filename);
+
+        TF_Status *status = TF_NewStatus();
+        TF_Library *library = TF_LoadLibrary(filename.c_str(), status);
+        if(TF_GetCode(status) == TF_OK) {
+            reportInfo() << "Plugin " << filename << " loaded in TensorFlowEngine" << reportEnd();
+        } else {
+            reportError() << "Plugin " << filename << " FAILED to load in TensorFlowEngine" << reportEnd();
+        }
+    }
 }
 
 }

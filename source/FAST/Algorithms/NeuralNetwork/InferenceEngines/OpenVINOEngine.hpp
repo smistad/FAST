@@ -36,6 +36,13 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
          */
         std::vector<InferenceDeviceInfo> getDeviceList();
 
+        /**
+         * Load a custom operator (op). You have to do this BEFORE calling load() to load the model/graph.
+         *
+         * @param filenames (can be a .so/.dll file for CPU plugin, or .xml for GPU/VPU plugins
+         */
+        void loadCustomPlugins(std::vector<std::string> filename) override;
+
         ~OpenVINOEngine();
     private:
         std::shared_ptr<::InferenceEngine::Core> m_inferenceCore;

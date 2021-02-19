@@ -124,6 +124,12 @@ class FAST_EXPORT InferenceEngine : public Object {
 
         virtual int getMaxBatchSize();
         virtual void setMaxBatchSize(int size);
+        /**
+         * Load a custom operator (op), plugin. Must be called before load()
+         *
+         * @param filename path to library (.so/.dll) or in the case of GPU/VPU OpenVINO .xml files.
+         */
+        virtual void loadCustomPlugins(std::vector<std::string> filenames);
     protected:
         virtual void setIsLoaded(bool loaded);
 
