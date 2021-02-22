@@ -508,7 +508,7 @@ void NeuralNetwork::setOutputNode(uint portID, std::string name, NodeType type, 
     createOutputPort<DataObject>(portID);
 }
 
-void NeuralNetwork::load(std::string filename) {
+void NeuralNetwork::load(std::string filename, std::vector<std::string> customPlugins) {
     if(!fileExists(filename))
         throw FileNotFoundException(filename);
     auto format = getModelFormat(filename);
@@ -517,6 +517,8 @@ void NeuralNetwork::load(std::string filename) {
         m_engine = InferenceEngineManager::loadBestAvailableEngine(format);
         reportInfo() << "Selected " << m_engine->getName() << " as the best engine for format " << getModelFormatName(format) << reportEnd();
     }
+    if(!customPlugins.empty())
+        m_engine->loadCustomPlugins(customPlugins);
     m_engine->setFilename(filename);
     m_engine->load();
     // Make sure all ports exist
@@ -528,14 +530,16 @@ void NeuralNetwork::load(std::string filename) {
     }
 }
 
-void NeuralNetwork::load(std::vector<uint8_t> model, std::vector<uint8_t> weights) {
+void NeuralNetwork::load(std::vector<uint8_t> model, std::vector<uint8_t> weights, std::vector<std::string> customPlugins) {
+    if(!customPlugins.empty())
+        m_engine->loadCustomPlugins(customPlugins);
     m_engine->setModelAndWeights(model, weights);
     m_engine->load();
     // Make sure all ports exist
-    for (auto node : m_engine->getInputNodes()) {
+    for(auto node : m_engine->getInputNodes()) {
         createInputPort<DataObject>(node.second.portID);
     }
-    for (auto node : m_engine->getOutputNodes()) {
+    for(auto node : m_engine->getOutputNodes()) {
         createOutputPort<DataObject>(node.second.portID);
     }
 }

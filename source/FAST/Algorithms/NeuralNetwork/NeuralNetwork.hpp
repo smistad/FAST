@@ -78,16 +78,23 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
     FAST_OBJECT(NeuralNetwork)
     public:
         /**
-         * Load a given netowrk file. This takes time.
+         * Load a given network model file. This takes time. The second argument can be used
+         * to specify files for loading custom plugins/operators needed by the network model.
+         *
          * @param filename
+         * @param customPlugins paths to custom plugins/operators which can be libraries (.so/.dll) or in the case of GPU/VPU OpenVINO: .xml files.
          */
-        void load(std::string filename);
+        void load(std::string filename, std::vector<std::string> customPlugins = {});
         /**
          * Load a network from memory provided as byte two byte vectors: model and weights
+         * The second argument can be used to specify files for loading custom plugins/operators
+         * needed by the network model.
+         *
          * @param model
          * @param weights
+         * @param customPlugins paths to custom plugins/operators which can be libraries (.so/.dll) or in the case of GPU/VPU OpenVINO: .xml files.
          */
-        void load(std::vector<uint8_t> model, std::vector<uint8_t> weights);
+        void load(std::vector<uint8_t> model, std::vector<uint8_t> weights, std::vector<std::string> customPlugins = {});
         /**
          * Specify which inference engine to use
          * @param engine

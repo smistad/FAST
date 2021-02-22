@@ -56,6 +56,8 @@ using namespace fast;
 %template(vectorf) std::vector<float>;
 %template(vectorui) std::vector<uint>;
 %template(vectorc) std::vector<char>;
+%template(vectoruc) std::vector<uchar>;
+%template(vectors) std::vector<std::string>;
 
 // FAST CORE LIBRARY
 
