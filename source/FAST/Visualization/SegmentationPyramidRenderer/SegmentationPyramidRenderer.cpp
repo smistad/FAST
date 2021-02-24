@@ -276,8 +276,8 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 				// Copy data from CPU to GL texture
 				glGenTextures(1, &textureID);
 				glBindTexture(GL_TEXTURE_2D, textureID);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, patch->getWidth(), patch->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
                 GLint compressedImageSize = 0;
                 glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
