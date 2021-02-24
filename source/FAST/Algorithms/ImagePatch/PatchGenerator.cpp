@@ -21,6 +21,7 @@ PatchGenerator::PatchGenerator() {
 
     createIntegerAttribute("patch-size", "Patch size", "", 0);
     createIntegerAttribute("patch-level", "Patch level", "Patch level used for image pyramid inputs", m_level);
+    createIntegerAttribute("patch-overlap", "Patch overlap in percent", "Patch overlap in percent", m_overlapPercent);
 }
 
 void PatchGenerator::loadAttributes() {
@@ -34,6 +35,7 @@ void PatchGenerator::loadAttributes() {
     }
 
     setPatchLevel(getIntegerAttribute("patch-level"));
+    setOverlap(getIntegerAttribute("patch-overlap"));
 }
 
 PatchGenerator::~PatchGenerator() {
@@ -46,18 +48,22 @@ void PatchGenerator::generateStream() {
     if(m_inputImagePyramid) {
         const int levelWidth = m_inputImagePyramid->getLevelWidth(m_level);
         const int levelHeight = m_inputImagePyramid->getLevelHeight(m_level);
-        const int patchesX = std::ceil((float) levelWidth / m_width);
-        const int patchesY = std::ceil((float) levelHeight / m_height);
+        const int overlapInPixelsX = std::round((m_overlapPercent/100.0f)*m_width);
+        const int overlapInPixelsY = std::round((m_overlapPercent/100.0f)*m_height);
+        const int patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
+        const int patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
+        const int patchesX = std::ceil((float) levelWidth / patchWidthWithoutOverlap);
+        const int patchesY = std::ceil((float) levelHeight / patchHeightWithoutOverlap);
 
         for(int patchY = 0; patchY < patchesY; ++patchY) {
             for(int patchX = 0; patchX < patchesX; ++patchX) {
                 mRuntimeManager->startRegularTimer("create patch");
                 int patchWidth = m_width;
                 if(patchX == patchesX - 1)
-                    patchWidth = levelWidth - patchX * m_width - 1;
+                    patchWidth = levelWidth - patchX * patchWidthWithoutOverlap - 1;
                 int patchHeight = m_height;
                 if(patchY == patchesY - 1)
-                    patchHeight = levelHeight - patchY * m_height - 1;
+                    patchHeight = levelHeight - patchY * patchHeightWithoutOverlap - 1;
 
                 if(m_inputMask) {
                     // If a mask exist, check if this patch should be included or not
@@ -79,7 +85,8 @@ void PatchGenerator::generateStream() {
                 }
                 reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
                 auto access = m_inputImagePyramid->getAccess(ACCESS_READ);
-                auto patch = access->getPatchAsImage(m_level, patchX * m_width, patchY * m_height,
+                // TODO handle edge cases
+                auto patch = access->getPatchAsImage(m_level, patchX * patchWidthWithoutOverlap, patchY * patchHeightWithoutOverlap,
                                                                   patchWidth,
                                                                   patchHeight);
 
@@ -91,6 +98,8 @@ void PatchGenerator::generateStream() {
                 // Target width/height of patches
                 patch->setFrameData("patch-width", std::to_string(m_width));
                 patch->setFrameData("patch-height", std::to_string(m_height));
+                patch->setFrameData("patch-overlap-x", std::to_string(overlapInPixelsX));
+                patch->setFrameData("patch-overlap-y", std::to_string(overlapInPixelsY));
                 patch->setFrameData("patch-spacing-x", std::to_string(patch->getSpacing().x()));
                 patch->setFrameData("patch-spacing-y", std::to_string(patch->getSpacing().y()));
 
@@ -198,6 +207,12 @@ void PatchGenerator::setPatchSize(int width, int height, int depth) {
 void PatchGenerator::setPatchLevel(int level) {
     m_level = level;
     mIsModified = true;
+}
+
+void PatchGenerator::setOverlap(float percent) {
+    if(percent < 0 || percent > 100)
+        throw Exception("Overlap percent must be >= 0 && <= 100");
+    m_overlapPercent = percent;
 }
 
 }

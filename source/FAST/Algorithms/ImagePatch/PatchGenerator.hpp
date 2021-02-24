@@ -13,11 +13,17 @@ class FAST_EXPORT PatchGenerator : public Streamer {
     FAST_OBJECT(PatchGenerator)
     public:
         void setPatchSize(int width, int height, int depth = 1);
+        /**
+         * Set overlap of generated patches, in percent of patch size.
+         * @param percent
+         */
+        void setOverlap(float percent);
         void setPatchLevel(int level);
         ~PatchGenerator();
         void loadAttributes() override;
     protected:
         int m_width, m_height, m_depth;
+        float m_overlapPercent = 0;
 
         std::shared_ptr<ImagePyramid> m_inputImagePyramid;
         std::shared_ptr<Image> m_inputVolume;

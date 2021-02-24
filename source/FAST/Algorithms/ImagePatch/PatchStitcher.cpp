@@ -152,11 +152,11 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     if(fullDepth == 1) {
-		const int startX = std::stoi(patch->getFrameData("patchid-x")) * std::stoi(patch->getFrameData("patch-width"));
-		const int startY = std::stoi(patch->getFrameData("patchid-y")) * std::stoi(patch->getFrameData("patch-height"));
-		const int endX = startX + patch->getWidth();
-		const int endY = startY + patch->getHeight();
-		reportInfo() << "Stitching 2D data" << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y")
+		int startX = std::stoi(patch->getFrameData("patchid-x")) * std::stoi(patch->getFrameData("patch-width"));
+		int startY = std::stoi(patch->getFrameData("patchid-y")) * std::stoi(patch->getFrameData("patch-height"));
+		int endX = startX + patch->getWidth();
+		int endY = startY + patch->getHeight();
+		reportInfo() << "Stitching 2D data " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y")
 			<< reportEnd();
         if(m_outputImage) {
             cl::Program program = getOpenCLProgram(device, "2D");
@@ -176,6 +176,12 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 cl::NullRange
             );
         } else {
+            const int patchOverlapX = std::stoi(patch->getFrameData("patch-overlap-x"));
+            const int patchOverlapY = std::stoi(patch->getFrameData("patch-overlap-y"));
+            startX = std::stoi(patch->getFrameData("patchid-x")) * (std::stoi(patch->getFrameData("patch-width")) - patchOverlapX*2) + patchOverlapX; // TODO + overlap to compensate for start offset
+            startY = std::stoi(patch->getFrameData("patchid-y")) * (std::stoi(patch->getFrameData("patch-height")) - patchOverlapY*2) + patchOverlapY;
+            endX = startX + patch->getWidth() - patchOverlapX*2;
+            endY = startY + patch->getHeight() - patchOverlapY*2;
             //enableRuntimeMeasurements();
             // Image pyramid, do it on CPU TODO: optimize somehow?
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
@@ -185,7 +191,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
             const int maxX = std::min(endX, fullWidth);
             for(int y = startY; y < maxY; ++y) {
                 for(int x = startX; x < maxX; ++x) {
-                    outputAccess->setScalarFast(x, y, 0, patchAccess->getScalarFast<uchar>(Vector2i(x - startX, y - startY)));
+                    outputAccess->setScalarFast(x, y, 0, patchAccess->getScalarFast<uchar>(Vector2i(x - startX + patchOverlapX, y - startY + patchOverlapY)));
                 }
             }
             //mRuntimeManager->stopRegularTimer("copy patch");
