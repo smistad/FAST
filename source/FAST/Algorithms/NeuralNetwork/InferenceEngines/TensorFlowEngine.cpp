@@ -345,7 +345,8 @@ void TensorFlowEngine::loadCustomPlugins(std::vector<std::string> filenames) {
         if(TF_GetCode(status) == TF_OK) {
             reportInfo() << "Plugin " << filename << " loaded in TensorFlowEngine" << reportEnd();
         } else {
-            reportError() << "Plugin " << filename << " FAILED to load in TensorFlowEngine" << reportEnd();
+            auto message = TF_Message(status);
+            reportError() << "Plugin " << filename << " FAILED to load in TensorFlowEngine. Message: " << message << reportEnd();
         }
     }
 }
