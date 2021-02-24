@@ -187,7 +187,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 bool dirtyPatch = false;
                 if(mTexturesToRender.count(tileID) > 0) {
                     if(m_input->getDirtyPatches().count(tileID) == 0) {
-                        continue;
+                        //continue; // This would mean only dirty patches are created..
                     } else {
                         dirtyPatch = true;
                     }
@@ -285,23 +285,26 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 				glFinish();
 				//}
 
-                if(dirtyPatch) {
-                    // Delete dirty texture patch first
-					GLuint oldTextureID = mTexturesToRender[tileID];
-					glBindTexture(GL_TEXTURE_2D, oldTextureID);
-					GLint compressedImageSizeOld = 0;
-					glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSizeOld);
-					m_memoryUsage -= compressedImageSizeOld;
-					glBindTexture(GL_TEXTURE_2D, 0);
+				if(mTexturesToRender.count(tileID) > 0) {
+				    // Delete old texture
+                    GLuint oldTextureID = mTexturesToRender[tileID];
+                    glBindTexture(GL_TEXTURE_2D, oldTextureID);
+                    GLint compressedImageSizeOld = 0;
+                    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSizeOld);
+                    m_memoryUsage -= compressedImageSizeOld;
+                    glBindTexture(GL_TEXTURE_2D, 0);
                     {
-                        std::lock_guard<std::mutex> lock(m_texturesToRenderMutex);
+                        std::lock_guard<std::mutex> lock(m_tileQueueMutex);
                         mTexturesToRender[tileID] = textureID;
                         glDeleteTextures(1, &oldTextureID);
                     }
+				} else {
+                    std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+                    mTexturesToRender[tileID] = textureID;
+				}
+
+                if(dirtyPatch) {
                     m_input->clearDirtyPatches({tileID});
-                } else {
-					std::lock_guard<std::mutex> lock(m_texturesToRenderMutex);
-					mTexturesToRender[tileID] = textureID;
                 }
 
                 m_memoryUsage += compressedImageSize;
@@ -390,6 +393,10 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
+    // Enable transparency
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     level = levelToUse;
     // TODO: since segmentations are transparent; this trick doesn't work:
     //for(int level = m_input->getNrOfLevels()-1; level >= levelToUse; level--) {
@@ -446,22 +453,28 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                     continue;
 
                 // Is patch in cache?
-				std::unique_lock<std::mutex> lock(m_texturesToRenderMutex);
-                if(mTexturesToRender.count(tileString) == 0 || m_input->isDirtyPatch(tileString)) {
-                    // Add to queue if not in cache or is dirty patch
+                bool textureReady = false;
+                uint textureID;
+                {
+                    std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+                    // Add to queue if texture is not loaded
+                    textureReady = mTexturesToRender.count(tileString) > 0;
+                }
+                if(!textureReady || m_input->isDirtyPatch(tileString)) {
+                    // Add to queue
                     {
                         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
                         // Remove any duplicates first
                         m_tileQueue.remove(tileString); // O(n) time complexity..
                         m_tileQueue.push_back(tileString);
+                        //std::cout << "Added tile " << tileString << " to queue" << std::endl;
                     }
                     m_queueEmptyCondition.notify_one();
-                    continue;
+                    if(!textureReady) {
+                        continue;
+                    }
                 }
-
-                // Enable transparency
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                textureID = mTexturesToRender[tileString];
 
                 // Delete old VAO
                 if(mVAO.count(tileString) > 0)
@@ -515,19 +528,16 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
                 glBindVertexArray(0);
 
-                if(mTexturesToRender.count(tileString) == 0)
-                    throw Exception("ERROR! Texture doesn't exist");
-
-                glBindTexture(GL_TEXTURE_2D, mTexturesToRender[tileString]);
+                glBindTexture(GL_TEXTURE_2D, textureID);
                 glBindVertexArray(mVAO[tileString]);
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glBindVertexArray(0);
-                glDisable(GL_BLEND);
                 glFinish();
             }
         }
     //}
+    glDisable(GL_BLEND);
     deactivateShader();
 }
 

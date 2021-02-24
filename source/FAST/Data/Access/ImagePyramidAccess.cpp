@@ -35,7 +35,7 @@ void ImagePyramidAccess::setScalarFast(uint x, uint y, uint level, uint8_t value
     int levelWidth = m_image->getLevelWidth(level);
     int levelHeight = m_image->getLevelHeight(level);
     const int tilesX = m_image->getLevelTilesX(level);
-    const int tilesY = m_image->getLevelTilesX(level);
+    const int tilesY = m_image->getLevelTilesY(level);
     int patchIdX = std::floor(((float)x / levelWidth)* tilesX);
     int patchIdY = std::floor(((float)y / levelHeight)* tilesY);
     m_image->setDirtyPatch(level, patchIdX, patchIdY);
