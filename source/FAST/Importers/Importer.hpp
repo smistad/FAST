@@ -1,5 +1,4 @@
-#ifndef IMPORTER_HPP_
-#define IMPORTER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 
@@ -11,5 +10,3 @@ class FAST_EXPORT  Importer : public ProcessObject {
 
 } // end namespace fast
 
-
-#endif /* IMPORTER_HPP_ */

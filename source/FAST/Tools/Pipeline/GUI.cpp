@@ -179,7 +179,7 @@ void GUI::loadPipeline() {
 		}
 
 		for(auto&& po : pipeline.getProcessObjects()) {
-		    if(po.second->getNrOfOutputPorts() == 0) {
+		    if(po.second->getNrOfOutputPorts() == 0 && std::dynamic_pointer_cast<Renderer>(po.second) == nullptr) {
 		        // Process object has no output ports, must add to window to make sure it is updated.
 		        reportInfo() << "Process object " << po.first << " had no output ports defined in pipeline, therefore adding to window so it is updated." << reportEnd();
 		        addProcessObject(po.second);

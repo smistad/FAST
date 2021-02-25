@@ -52,12 +52,16 @@ void ImagePyramidPatchExporter::exportPatch(std::shared_ptr<Image> patch) {
     auto patchHeight = std::stoi(patch->getFrameData("patch-height"));
     auto patchOverlapX = std::stoi(patch->getFrameData("patch-overlap-x"));
     auto patchOverlapY = std::stoi(patch->getFrameData("patch-overlap-y"));
+    auto spacingX = patch->getFrameData("patch-spacing-x");
+    auto spacingY = patch->getFrameData("patch-spacing-y");
+    auto totalWidth = patch->getFrameData("original-width");
+    auto totalHeight = patch->getFrameData("original-height");
     // Calculate offset
     auto x = patchX*(patchWidth - patchOverlapX*2) + patchOverlapX;
     auto y = patchY*(patchHeight - patchOverlapY*2) + patchOverlapY;
     auto width = patch->getWidth() - patchOverlapX*2;
     auto height = patch->getHeight() - patchOverlapY*2;
-    std::string patchName = "patch_(" + level + "," + std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(width) + "," + std::to_string(height) + ").png";
+    std::string patchName = "patch_" + totalWidth + "_" + totalHeight + "_" + level + "_" + std::to_string(x) + "_" + std::to_string(y) + "_" + spacingX + "_" + spacingY + ".png";
     if(patchOverlapX > 0 || patchOverlapY > 0) {
         // Crop image first to deal with overlap
         patch->crop(Vector2i(patchOverlapX, patchOverlapY), Vector2i(width, height));
