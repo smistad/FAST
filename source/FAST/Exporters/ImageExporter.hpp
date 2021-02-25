@@ -1,12 +1,14 @@
-#ifndef ImageExporter_HPP_
-#define ImageExporter_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include <string>
 
 namespace fast {
 
-class FAST_EXPORT  ImageExporter : public ProcessObject {
+/**
+ * Export an image to a normal image format such as PNG, JPEG, BMP etc.
+ */
+class FAST_EXPORT ImageExporter : public ProcessObject {
     FAST_OBJECT(ImageExporter)
     public:
         void setFilename(std::string filename);
@@ -19,8 +21,3 @@ class FAST_EXPORT  ImageExporter : public ProcessObject {
 
 
 } // end namespace fast
-
-
-
-
-#endif /* ImageExporter_HPP_ */

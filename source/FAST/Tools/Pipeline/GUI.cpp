@@ -178,6 +178,14 @@ void GUI::loadPipeline() {
 			renderer->setDisabled(false);
 		}
 
+		for(auto&& po : pipeline.getProcessObjects()) {
+		    if(po.second->getNrOfOutputPorts() == 0) {
+		        // Process object has no output ports, must add to window to make sure it is updated.
+		        reportInfo() << "Process object " << po.first << " had no output ports defined in pipeline, therefore adding to window so it is updated." << reportEnd();
+		        addProcessObject(po.second);
+		    }
+		}
+
 		// Restart computation thread
 		startComputationThread();
 

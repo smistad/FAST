@@ -178,6 +178,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         } else {
             const int patchOverlapX = std::stoi(patch->getFrameData("patch-overlap-x"));
             const int patchOverlapY = std::stoi(patch->getFrameData("patch-overlap-y"));
+            // Calculate offset. If this calculation is incorrect. Update in ImagePyramidPatchExporter as well.
             startX = std::stoi(patch->getFrameData("patchid-x")) * (std::stoi(patch->getFrameData("patch-width")) - patchOverlapX*2) + patchOverlapX; // TODO + overlap to compensate for start offset
             startY = std::stoi(patch->getFrameData("patchid-y")) * (std::stoi(patch->getFrameData("patch-height")) - patchOverlapY*2) + patchOverlapY;
             endX = startX + patch->getWidth() - patchOverlapX*2;

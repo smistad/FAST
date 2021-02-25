@@ -59,3 +59,10 @@ if(FAST_MODULE_HDF5)
     fast_add_process_object(HDF5TensorExporter HDF5TensorExporter.hpp)
     fast_add_test_sources(Tests/HDF5TensorExporterTests.cpp)
 endif()
+if(FAST_MODULE_WholeSlideImaging)
+    fast_add_sources(
+        ImagePyramidPatchExporter.cpp
+        ImagePyramidPatchExporter.hpp
+    )
+    fast_add_process_object(ImagePyramidPatchExporter ImagePyramidPatchExporter.hpp)
+endif()

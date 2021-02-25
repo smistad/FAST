@@ -102,6 +102,7 @@ void PatchGenerator::generateStream() {
                 patch->setFrameData("patch-overlap-y", std::to_string(overlapInPixelsY));
                 patch->setFrameData("patch-spacing-x", std::to_string(patch->getSpacing().x()));
                 patch->setFrameData("patch-spacing-y", std::to_string(patch->getSpacing().y()));
+                patch->setFrameData("patch-level", std::to_string(m_level));
 
                 mRuntimeManager->stopRegularTimer("create patch");
                 try {
