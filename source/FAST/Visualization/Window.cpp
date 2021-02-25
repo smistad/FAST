@@ -62,9 +62,9 @@ Window::Window() {
             if(defaultFont.pointSize() <= 12)
                 mGUIScalingFactor = 1.5;
         }
-        Reporter::info() << "Scaling default font with factor " << mGUIScalingFactor << Reporter::end();
+        //Reporter::info() << "Scaling default font with factor " << mGUIScalingFactor << Reporter::end();
     }
-    defaultFont.setPointSize((int)round(defaultFont.pointSize() * mGUIScalingFactor));
+    //defaultFont.setPointSize((int)round(defaultFont.pointSize() * mGUIScalingFactor));
     QApplication::setFont(defaultFont);
 
 	mEventLoop = NULL;
