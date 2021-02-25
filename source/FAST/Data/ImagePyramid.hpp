@@ -28,7 +28,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getLevelTileHeight(int level);
         int getLevelTilesX(int level);
         int getLevelTilesY(int level);
-    int getFullWidth();
+        int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;
         void setSpacing(Vector3f spacing);
@@ -44,6 +44,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     private:
         ImagePyramid();
         std::vector<ImagePyramidLevel> m_levels;
+        ImagePyramidLevel getLevelInfo(int level);
 
         openslide_t* m_fileHandle = nullptr;
 

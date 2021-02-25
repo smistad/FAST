@@ -24,7 +24,7 @@ void WholeSlideImageImporter::execute() {
         throw Exception("Unable to open file " + mFilename + ". OpenSlide error message: " + message);
     }
 
-    auto image = getOutputData<ImagePyramid>();
+    auto image = ImagePyramid::New();
 
     // Read metainformation
     auto names = openslide_get_property_names(file);
@@ -67,6 +67,7 @@ void WholeSlideImageImporter::execute() {
         }
     }
     image->create(file, levelList);
+    addOutputData(0, image);
 }
 
 WholeSlideImageImporter::WholeSlideImageImporter() {

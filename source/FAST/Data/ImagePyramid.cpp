@@ -20,8 +20,6 @@ namespace fast {
 int ImagePyramid::m_counter = 0;
 
 void ImagePyramid::create(int width, int height, int channels, int levels) {
-    // TODO Create memory mapped files on disk to use as virtual memory
-
     if(channels <= 0 || channels > 4)
         throw Exception("Nr of channels must be between 1 and 4");
 
@@ -154,40 +152,48 @@ ImagePyramid::ImagePyramid() {
     m_initialized = false;
 }
 
+ImagePyramidLevel ImagePyramid::getLevelInfo(int level) {
+    /*if(!m_initialized)
+        throw Exception("ImagePyramid has not been initialized.");*/ // TODO why does this fail?
+    if(level < 0 || level > m_levels.size()-1)
+        throw Exception("Level " + std::to_string(level) + " doesn't exist in ImagePyramid. Pyramid has " + std::to_string(m_levels.size()) + " levels");
+    return m_levels[level];
+}
+
 int ImagePyramid::getNrOfLevels() {
     return m_levels.size();
 }
 
 int ImagePyramid::getLevelWidth(int level) {
-    return m_levels.at(level).width;
+    return getLevelInfo(level).width;
 }
 
 int ImagePyramid::getLevelHeight(int level) {
-    return m_levels.at(level).height;
+    return getLevelInfo(level).height;
 }
 
 int ImagePyramid::getLevelTileWidth(int level) {
-    return m_levels.at(level).tileWidth;
+    return getLevelInfo(level).tileWidth;
 }
 
 int ImagePyramid::getLevelTileHeight(int level) {
-    return m_levels.at(level).tileHeight;
+    return getLevelInfo(level).tileHeight;
 }
 
 int ImagePyramid::getLevelTilesX(int level) {
-    return m_levels.at(level).tilesX;
+    return getLevelInfo(level).tilesX;
 }
 
 int ImagePyramid::getLevelTilesY(int level) {
-    return m_levels.at(level).tilesY;
+    return getLevelInfo(level).tilesY;
 }
 
 int ImagePyramid::getFullWidth() {
-    return m_levels[0].width;
+    return getLevelInfo(0).width;
 }
 
 int ImagePyramid::getFullHeight() {
-    return m_levels[0].height;
+    return getLevelInfo(0).height;
 }
 
 void ImagePyramid::free(ExecutionDevice::pointer device) {

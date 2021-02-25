@@ -325,7 +325,9 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     //std::cout << "Offset x:" << offset_x << std::endl;
     //std::cout << "Offset y:" << offset_y << std::endl;
 
-    m_input = std::static_pointer_cast<ImagePyramid>(mDataToRender[0]);
+    m_input = std::dynamic_pointer_cast<ImagePyramid>(mDataToRender[0]);
+    if(m_input == nullptr)
+        throw Exception("The SegmentationPyramidRenderer requires an ImagePyramid data object");
     int fullWidth = m_input->getFullWidth();
     int fullHeight = m_input->getFullHeight();
     //std::cout << "scaling: " << fullWidth/width << std::endl;

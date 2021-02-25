@@ -5,7 +5,7 @@
 namespace fast {
 
 /**
- *
+ * Imports an ImagePyramid stored as a set of image patches stored in a folder.
  */
 class ImagePyramidPatchImporter : public ProcessObject {
     FAST_OBJECT(ImagePyramidPatchImporter)
