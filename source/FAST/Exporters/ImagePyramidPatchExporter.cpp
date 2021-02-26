@@ -66,6 +66,9 @@ void ImagePyramidPatchExporter::exportPatch(std::shared_ptr<Image> patch) {
         // Crop image first to deal with overlap
         patch->crop(Vector2i(patchOverlapX, patchOverlapY), Vector2i(width, height));
     }
+    // If sum of intensities is 0, e.g. there is not data in this patch, simply skip saving it.
+    if(patch->calculateMaximumIntensity() == 0)
+        return;
     auto exporter = ImageExporter::New();
     exporter->setFilename(join(m_path, patchName));
     exporter->setInputData(patch);

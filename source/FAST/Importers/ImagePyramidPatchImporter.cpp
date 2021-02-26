@@ -51,7 +51,6 @@ void ImagePyramidPatchImporter::execute() {
 
     auto outputAccess = pyramid->getAccess(ACCESS_READ_WRITE);
 
-    // TODO accelerate with multi-threading: For this to work, the level propagation has to be disabled, and then the entire pyramid updated afterwards.
     for(auto&& patchFilename : patches) {
         importer->setFilename(join(m_path, patchFilename));
         auto patch = importer->updateAndGetOutputData<Image>();
@@ -65,6 +64,7 @@ void ImagePyramidPatchImporter::execute() {
         const auto startY = std::stoi(parts[5]);
         const auto endX = startX + patch->getWidth();
         const auto endY = startY + patch->getHeight();
+        // This is slow:
         for(int y = startY; y < endY; ++y) {
             for(int x = startX; x < endX; ++x) {
                 outputAccess->setScalarFast(x, y, 0, patchAccess->getScalarFast<uchar>(Vector2i(x - startX, y - startY)));
