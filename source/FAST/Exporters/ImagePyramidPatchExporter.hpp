@@ -8,8 +8,10 @@ class Image;
 
 /**
  * Exports an image pyramid to disk as a large set of image patches.
- * Each path is stored as a PNG image with the file name indicating its position and size.
+ * Each patch is stored as a PNG image with the file name indicating its position and size.
  * This exporter can handle both an ImagePyramid input and a stream of image patches.
+ *
+ * @sa ImagePyramidPatchImporter
  */
 class FAST_EXPORT ImagePyramidPatchExporter : public ProcessObject {
     FAST_OBJECT(ImagePyramidPatchExporter)
