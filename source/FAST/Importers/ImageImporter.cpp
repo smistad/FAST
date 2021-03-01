@@ -66,11 +66,19 @@ void ImageImporter::execute() {
     }
 }
 
+void ImageImporter::loadAttributes() {
+    setFilename(getStringAttribute("filename"));
+    setGrayscale(getBooleanAttribute("grayscale"));
+}
+
 ImageImporter::ImageImporter() {
     mFilename = "";
     mIsModified = true;
     mGrayscale = true;
     createOutputPort<Image>(0);
+
+    createStringAttribute("filename", "Filename", "Path to file to load", mFilename);
+    createBooleanAttribute("grayscale", "Grayscale", "Whether to convert image to grayscale or not", mGrayscale);
 }
 
 void ImageImporter::setGrayscale(bool grayscale) {

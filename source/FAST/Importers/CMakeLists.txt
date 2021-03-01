@@ -9,6 +9,7 @@ fast_add_sources(
 )
 fast_add_process_object(ImageFileImporter ImageFileImporter.hpp)
 fast_add_process_object(MetaImageImporter MetaImageImporter.hpp)
+fast_add_process_object(ImageImporter ImageImporter.hpp)
 fast_add_process_object(VTKMeshFileImporter VTKMeshFileImporter.hpp)
 fast_add_test_sources(
     Tests/MetaImageImporterTests.cpp

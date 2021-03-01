@@ -1,5 +1,4 @@
-#ifndef ImageImporter_HPP_
-#define ImageImporter_HPP_
+#pragma once
 
 #include "Importer.hpp"
 #include <string>
@@ -11,7 +10,7 @@ class FAST_EXPORT  ImageImporter : public Importer {
     public:
         void setFilename(std::string filename);
         void setGrayscale(bool grayscale);
-        ~ImageImporter() {};
+        void loadAttributes() override;
     private:
         ImageImporter();
         std::string mFilename;
@@ -24,5 +23,3 @@ class FAST_EXPORT  ImageImporter : public Importer {
 } // end namespace fast
 
 
-
-#endif /* ImageImporter_HPP_ */

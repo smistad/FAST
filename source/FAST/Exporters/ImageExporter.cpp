@@ -13,10 +13,16 @@ void ImageExporter::setFilename(std::string filename) {
     mIsModified = true;
 }
 
+void ImageExporter::loadAttributes() {
+    setFilename(getStringAttribute("filename"));
+}
+
 ImageExporter::ImageExporter() {
     createInputPort<Image>(0);
     mFilename = "";
     mIsModified = true;
+
+    createStringAttribute("filename", "Filename", "Path to file to load", mFilename);
 }
 
 void ImageExporter::execute() {
@@ -24,15 +30,16 @@ void ImageExporter::execute() {
     if(mFilename == "")
         throw Exception("No filename given to ImageExporter");
 
-    Image::pointer input = getInputData<Image>();
+    auto input = getInputData<Image>();
 
     if(input->getDimensions() != 2)
         throw Exception("Input image to ImageExporter must be 2D.");
 
-
-    QImage::Format format = QImage::Format_RGB32;
+    auto format = QImage::Format_RGB32;
+    int Qchannels = 4;
     if(input->getNrOfChannels() == 1) {
         format = QImage::Format_Grayscale8;
+        Qchannels = 1;
     }
     QImage image(input->getWidth(), input->getHeight(), format);
 
@@ -41,7 +48,19 @@ void ImageExporter::execute() {
     void * inputData = access->get();
     if(input->getNrOfChannels() == 1 && input->getDataType() == TYPE_UINT8) {
         // Fast simple copy for single channel/grayscale uchar copy only
-        std::memcpy(pixelData, inputData, sizeof(uchar)*input->getWidth()*input->getHeight());
+        if(image.width() * image.depth() / 8 != image.bytesPerLine()) { // Misalignment: QImage requires 32-bit alignment per scanline
+            // Copy per scan line
+            for(int scanline = 0; scanline < image.height(); ++scanline) {
+                std::memcpy(
+                    (void*)(&pixelData[scanline * image.bytesPerLine()]),
+                    (void*)(&((uchar*)inputData)[scanline * image.width()]),
+                    image.width()
+                );
+            }
+        } else {
+            // No misalignment, simply just copy the entire image
+            std::memcpy(pixelData, inputData, sizeof(uchar) * input->getWidth() * input->getHeight());
+        }
     } else {
         // More complicated copy which supports more..
         const uint nrOfChannels = input->getNrOfChannels();
@@ -70,11 +89,13 @@ void ImageExporter::execute() {
                     }
                     channelData.push_back(data);
                 }
-                uint i = x + y * input->getWidth();
-                pixelData[i * 4 + 0] = channelData[0];
-                pixelData[i * 4 + 1] = channelData[1 % nrOfChannels];
-                pixelData[i * 4 + 2] = channelData[2 % nrOfChannels];
-                pixelData[i * 4 + 3] = 255; // Alpha
+                uint i = Qchannels*x + y * image.bytesPerLine();
+                pixelData[i] = channelData[0];
+                if(Qchannels == 4) {
+                    pixelData[i + 1] = channelData[1 % nrOfChannels];
+                    pixelData[i + 2] = channelData[2 % nrOfChannels];
+                    pixelData[i + 3] = 255; // Alpha
+                }
             }
         }
     }
