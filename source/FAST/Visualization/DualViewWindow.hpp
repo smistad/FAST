@@ -1,5 +1,4 @@
-#ifndef DUAL_VIEW_WINDOW_HPP_
-#define DUAL_VIEW_WINDOW_HPP_
+#pragma once
 
 #include "Window.hpp"
 #include "View.hpp"
@@ -14,8 +13,8 @@ class FAST_EXPORT  DualViewWindow : public Window {
         void addRendererToTopLeftView(Renderer::pointer renderer);
         void addRendererToBottomRightView(Renderer::pointer renderer);
         void removeAllRenderers();
-        View* getTopLeftView() const;
-        View* getBottomRightView() const;
+        View* getTopLeftView();
+        View* getBottomRightView();
         void setHorizontalMode();
         void setVerticalMode();
         ~DualViewWindow();
@@ -28,5 +27,3 @@ class FAST_EXPORT  DualViewWindow : public Window {
 
 } // end namespace fast
 
-
-#endif

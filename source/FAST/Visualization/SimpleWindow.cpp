@@ -36,7 +36,7 @@ void SimpleWindow::set3DMode() {
     getView()->set3DMode();
 }
 
-View* SimpleWindow::getView() const {
+View* SimpleWindow::getView() {
     return Window::getView(0);
 }
 

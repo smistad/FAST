@@ -1,5 +1,4 @@
-#ifndef SIMPLEWINDOW_HPP_
-#define SIMPLEWINDOW_HPP_
+#pragma once
 
 #include "Window.hpp"
 #include "View.hpp"
@@ -13,7 +12,7 @@ class FAST_EXPORT  SimpleWindow : public Window {
         void addRenderer(std::shared_ptr<Renderer> renderer);
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);
-        View* getView() const;
+        View* getView();
         ~SimpleWindow();
         void set2DMode();
         void set3DMode();
@@ -24,7 +23,3 @@ class FAST_EXPORT  SimpleWindow : public Window {
 
 } // end namespace fast
 
-
-
-
-#endif /* SIMPLEWINDOW_HPP_ */

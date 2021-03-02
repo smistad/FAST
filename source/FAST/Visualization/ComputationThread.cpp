@@ -11,14 +11,6 @@ ComputationThread::ComputationThread(QThread* mainThread) {
     mMainThread = mainThread;
 }
 
-void ComputationThread::addView(View* view) {
-    mViews.push_back(view);
-}
-
-void ComputationThread::clearViews() {
-    mViews.clear();
-}
-
 ComputationThread::~ComputationThread() {
     reportInfo() << "Computation thread object destroyed" << Reporter::end();
 }
@@ -40,8 +32,15 @@ void ComputationThread::run() {
     uint executeToken = 0;
     while(true) {
 		bool canUpdate = false;
+        std::vector<View*> mViews;
+        std::vector<std::shared_ptr<ProcessObject>> m_processObjects;
         {
             std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+            if(m_window.expired())
+                break;
+            auto window = m_window.lock();
+            mViews = window->getViews();
+            m_processObjects = window->getProcessObjects();
             if(mStop)
                 break;
             if(m_processObjects.size() > 0)
@@ -88,6 +87,12 @@ void ComputationThread::run() {
 void ComputationThread::stop() {
     std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
     mStop = true;
+	if(m_window.expired())
+		return;
+	auto window = m_window.lock();
+	auto mViews = window->getViews();
+	auto m_processObjects = window->getProcessObjects();
+
     // This is run in the main thread
     reportInfo() << "Stopping pipelines and waking any blocking threads..." << Reporter::end();
     for(View* view : mViews) {
@@ -105,10 +110,13 @@ void ComputationThread::stop() {
     for(View* view : mViews) {
         view->resetRenderers();
     }
+
+    for(auto po : m_processObjects)
+        po->stopPipeline();
 }
 
-void ComputationThread::setProcessObjects(std::vector<std::shared_ptr<ProcessObject>> pos) {
-    m_processObjects = pos;
+void ComputationThread::setWindow(std::weak_ptr<Window> ptr) {
+    m_window = ptr;
 }
 
 }

@@ -189,6 +189,7 @@ void Window::stop() {
 }
 
 View* Window::createView() {
+    std::lock_guard<std::mutex> lock(m_mutex);
     View* view = mWidget->createView();
 
     return view;
@@ -278,9 +279,8 @@ void Window::startComputationThread() {
         connect(mThread, SIGNAL(finished()), thread, SLOT(quit()));
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
-        for(int i = 0; i < getViews().size(); i++)
-            mThread->addView(getViews()[i]);
-        mThread->setProcessObjects(m_processObjects);
+        std::weak_ptr<Window> ptr = std::static_pointer_cast<Window>(mPtr.lock());
+        mThread->setWindow(ptr);
         QGLContext* mainGLContext = Window::getMainGLContext();
         if(!mainGLContext->isValid()) {
             throw Exception("QGL context is invalid!");
@@ -306,11 +306,13 @@ void Window::stopComputationThread() {
     }
 }
 
-std::vector<View*> Window::getViews() const {
+std::vector<View*> Window::getViews() {
+    std::lock_guard<std::mutex> lock(m_mutex);
     return mWidget->getViews();
 }
 
-View* Window::getView(uint i) const {
+View* Window::getView(uint i) {
+    std::lock_guard<std::mutex> lock(m_mutex);
     return mWidget->getViews().at(i);
 }
 
@@ -352,7 +354,17 @@ QWidget* Window::getWidget() {
 }
 
 void Window::addProcessObject(std::shared_ptr<ProcessObject> po) {
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_processObjects.push_back(po);
 }
 
+std::vector<std::shared_ptr<ProcessObject>> Window::getProcessObjects() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_processObjects;
+}
+
+void Window::clearProcessObjects() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_processObjects.clear();
+}
 } // end namespace fast

@@ -19,11 +19,11 @@ void DualViewWindow::removeAllRenderers() {
     getView(1)->removeAllRenderers();
 }
 
-View* DualViewWindow::getTopLeftView() const {
+View* DualViewWindow::getTopLeftView() {
     return getView(0);
 }
 
-View* DualViewWindow::getBottomRightView() const {
+View* DualViewWindow::getBottomRightView() {
     return getView(1);
 }
 

@@ -39,8 +39,8 @@ class FAST_EXPORT  Window : public QObject, public Object {
         void enableFullscreen();
         void disableFullscreen();
         void setTitle(std::string);
-        std::vector<View*> getViews() const;
-        View* getView(uint i) const;
+        std::vector<View*> getViews();
+        View* getView(uint i);
         static void cleanup();
         /**
          * Get screen width in pixels
@@ -60,7 +60,18 @@ class FAST_EXPORT  Window : public QObject, public Object {
         void saveScreenshotOnClose(std::string filename);
         void saveScreenshotOfViewsOnClose(std::string filename);
         QWidget* getWidget();
+        /**
+         * Add a process object to be updated by the computation thread.
+         */
         void addProcessObject(std::shared_ptr<ProcessObject> po);
+        /**
+         * Get process objects to be updated by the computation thread.
+         */
+        std::vector<std::shared_ptr<ProcessObject>> getProcessObjects();
+        /**
+         * Clear the process objects to be updated by the computation thread.
+         */
+        void clearProcessObjects();
     protected:
         void startComputationThread();
         void stopComputationThread();
@@ -75,6 +86,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
         std::vector<std::shared_ptr<ProcessObject>> m_processObjects;
+        std::mutex m_mutex;
     private:
         static QGLContext* mMainGLContext;
     public Q_SLOTS:
