@@ -18,6 +18,7 @@ class FAST_EXPORT ImageExporter : public ProcessObject {
         void execute();
 
         std::string mFilename;
+        bool mIsModified = true;
 };
 
 

@@ -20,6 +20,7 @@ class FAST_EXPORT ImagePyramidPatchImporter : public ProcessObject {
         void execute() override;
 
         std::string m_path;
+        bool mIsModified = true;
 };
 
 }

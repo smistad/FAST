@@ -11,6 +11,7 @@ namespace fast {
 void ImageExporter::setFilename(std::string filename) {
     mFilename = filename;
     mIsModified = true;
+    setModified(true);
 }
 
 void ImageExporter::loadAttributes() {
@@ -27,7 +28,7 @@ ImageExporter::ImageExporter() {
 
 void ImageExporter::execute() {
 #ifdef FAST_MODULE_VISUALIZATION
-    if(mFilename == "")
+    if(mFilename.empty())
         throw Exception("No filename given to ImageExporter");
 
     auto input = getInputData<Image>();

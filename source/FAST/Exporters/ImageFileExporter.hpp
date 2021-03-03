@@ -11,7 +11,7 @@ class FAST_EXPORT ImageFileExporter : public ProcessObject {
         ImageFileExporter();
         void setCompression(bool compress);
     private:
-        void execute();
+        void execute() override;
 
         std::string mFilename;
         bool mCompress = false;
