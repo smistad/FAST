@@ -1,4 +1,6 @@
 #include "FAST/Exporters/ImageExporter.hpp"
+
+#include <utility>
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/Data/Image.hpp"
@@ -9,7 +11,7 @@
 namespace fast {
 
 void ImageExporter::setFilename(std::string filename) {
-    mFilename = filename;
+    mFilename = std::move(filename);
     mIsModified = true;
     setModified(true);
 }
@@ -91,10 +93,12 @@ void ImageExporter::execute() {
                     channelData.push_back(data);
                 }
                 uint i = Qchannels*x + y * image.bytesPerLine();
-                pixelData[i] = channelData[0];
-                if(Qchannels == 4) {
+                if(Qchannels == 1) {
+                    pixelData[i] = channelData[0];
+                } else if(Qchannels == 4) {
+                    pixelData[i + 2] = channelData[0];  // BGR <-> RGB mismatch
                     pixelData[i + 1] = channelData[1 % nrOfChannels];
-                    pixelData[i + 2] = channelData[2 % nrOfChannels];
+                    pixelData[i] = channelData[2 % nrOfChannels];  // BGR <-> RGB mismatch
                     pixelData[i + 3] = 255; // Alpha
                 }
             }
