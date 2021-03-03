@@ -11,9 +11,10 @@ namespace fast {
          * @param size
          */
         void setStructuringElementSize(int size);
+        void loadAttributes() override;
     private:
         Erosion();
-        void execute();
+        void execute() override;
 
         int mSize;
 

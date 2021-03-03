@@ -8,6 +8,12 @@ Erosion::Erosion() {
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Morphology/Erosion.cl");
     mSize = 3;
+
+    createIntegerAttribute("kernel-size", "Kernel size", "Kernel size used for erosion", mSize);
+}
+
+void Erosion::loadAttributes() {
+    setStructuringElementSize(getIntegerAttribute("kernel-size"));
 }
 
 void Erosion::setStructuringElementSize(int size) {

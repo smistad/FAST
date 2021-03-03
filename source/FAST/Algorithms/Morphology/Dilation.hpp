@@ -12,9 +12,10 @@ public:
      * @param size
      */
     void setStructuringElementSize(int size);
+    void loadAttributes() override;
 private:
     Dilation();
-    void execute();
+    void execute() override;
 
     int mSize;
 

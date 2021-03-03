@@ -34,8 +34,9 @@ class FAST_EXPORT TissueSegmentation : public SegmentationAlgorithm {
          * Get current erosion value
          */
         int getErode() const;
+        void loadAttributes() override;
     protected:
-        void execute();
+        void execute() override;
         TissueSegmentation();
     private:
         int m_dilate = 9;
