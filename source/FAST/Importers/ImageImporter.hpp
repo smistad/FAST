@@ -16,10 +16,7 @@ class FAST_EXPORT ImageImporter : public Importer {
         std::string mFilename;
         bool mGrayscale;
         void execute() override;
-        bool mIsModified = true;
-
 };
-
 
 } // end namespace fast
 

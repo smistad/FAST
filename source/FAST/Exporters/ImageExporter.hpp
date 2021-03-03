@@ -18,7 +18,6 @@ class FAST_EXPORT ImageExporter : public ProcessObject {
         void execute() override;
 
         std::string mFilename;
-        bool mIsModified = true;
 };
 
 

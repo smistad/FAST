@@ -12,7 +12,6 @@ namespace fast {
 
 void ImageExporter::setFilename(std::string filename) {
     mFilename = std::move(filename);
-    mIsModified = true;
     setModified(true);
 }
 
@@ -23,7 +22,6 @@ void ImageExporter::loadAttributes() {
 ImageExporter::ImageExporter() {
     createInputPort<Image>(0);
     mFilename = "";
-    mIsModified = true;
 
     createStringAttribute("filename", "Filename", "Path to file to load", mFilename);
 }
@@ -38,7 +36,7 @@ void ImageExporter::execute() {
     if(input->getDimensions() != 2)
         throw Exception("Input image to ImageExporter must be 2D.");
 
-    auto format = QImage::Format_RGB32;
+    auto format = QImage::Format_RGBA8888;
     int Qchannels = 4;
     if(input->getNrOfChannels() == 1) {
         format = QImage::Format_Grayscale8;
@@ -93,12 +91,10 @@ void ImageExporter::execute() {
                     channelData.push_back(data);
                 }
                 uint i = Qchannels*x + y * image.bytesPerLine();
-                if(Qchannels == 1) {
-                    pixelData[i] = channelData[0];
-                } else if(Qchannels == 4) {
-                    pixelData[i + 2] = channelData[0];  // BGR <-> RGB mismatch
+                pixelData[i] = channelData[0];
+                if(Qchannels == 4) {
                     pixelData[i + 1] = channelData[1 % nrOfChannels];
-                    pixelData[i] = channelData[2 % nrOfChannels];  // BGR <-> RGB mismatch
+                    pixelData[i + 2] = channelData[2 % nrOfChannels];
                     pixelData[i + 3] = 255; // Alpha
                 }
             }

@@ -39,7 +39,6 @@ class FAST_EXPORT ImagePyramidPatchExporter : public ProcessObject {
         int m_patchWidth = 512;
         int m_patchHeight = 512;
         std::string m_path;
-        bool mIsModified = true;
 };
 
 }
