@@ -21,8 +21,8 @@ PatchGenerator::PatchGenerator() {
 
     createIntegerAttribute("patch-size", "Patch size", "", 0);
     createIntegerAttribute("patch-level", "Patch level", "Patch level used for image pyramid inputs", m_level);
-    createFloatAttribute("patch-overlap", "Patch overlap", "Patch overlap in range [0, 1]", m_overlapPercent);
-    createFloatAttribute("patch-accept", "Tissue overlap acceptance threshold", "Acceptance threshold for when a patch contains enough tissue to be assessed in range [0, 1]", m_accept);
+    createFloatAttribute("patch-overlap", "Patch overlap", "Patch overlap in percent", m_overlapPercent);
+    createFloatAttribute("mask-threshold", "Mask threshold", "Threshold, in percent, for how much of the candidate patch must be inside the mask to be accepted", m_maskThreshold);
 }
 
 void PatchGenerator::loadAttributes() {
@@ -37,7 +37,7 @@ void PatchGenerator::loadAttributes() {
 
     setPatchLevel(getIntegerAttribute("patch-level"));
     setOverlap(getFloatAttribute("patch-overlap"));
-    setAcceptOverlap(getFloatAttribute("patch-accept"));
+    setMaskThreshold(getFloatAttribute("mask-threshold"));
 }
 
 PatchGenerator::~PatchGenerator() {
@@ -82,7 +82,7 @@ void PatchGenerator::generateStream() {
                         )
                     );
                     float average = croppedMask->calculateAverageIntensity();
-                    if(average < m_accept)  // A specific percentage of the mask has to be foreground to be assessed
+                    if(average < m_maskThreshold)  // A specific percentage of the mask has to be foreground to be assessed
                         continue;
                 }
                 reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
@@ -219,10 +219,10 @@ void PatchGenerator::setOverlap(float percent) {
     mIsModified = true;
 }
 
-void PatchGenerator::setAcceptOverlap(float percent) {
+void PatchGenerator::setMaskThreshold(float percent) {
     if(percent < 0 || percent > 1)
-        throw Exception("Acception overlap must be >= 0 && <= 1");
-    m_accept = percent;
+        throw Exception("Mask threshold must be >= 0 && <= 1");
+    m_maskThreshold = percent;
     mIsModified = true;
 }
 
