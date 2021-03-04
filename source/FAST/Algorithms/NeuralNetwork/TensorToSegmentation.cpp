@@ -37,7 +37,7 @@ void TensorToSegmentation::execute() {
     int outputDepth = 1;
     auto access = tensor->getAccess(ACCESS_READ);
     float* tensorData = access->getRawData();
-    if(dims == 5) {
+    if(dims == 4) {
         outputDepth = shape[dims - 4];
     }
     const int size = outputWidth*outputHeight*outputDepth;
