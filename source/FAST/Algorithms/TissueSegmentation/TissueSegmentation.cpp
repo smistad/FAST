@@ -11,6 +11,15 @@ TissueSegmentation::TissueSegmentation() {
     createOutputPort<Segmentation>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/TissueSegmentation/TissueSegmentation.cl");
+    createIntegerAttribute("threshold", "Intensity threshold", "", m_thresh);
+    createIntegerAttribute("dilate-kernel-size", "Kernel size for dilation", "", m_dilate);
+    createIntegerAttribute("erode-kernel-size", "Kernel size for erosion", "", m_erode);
+}
+
+void TissueSegmentation::loadAttributes() {
+    setThreshold(getIntegerAttribute("threshold"));
+    setDilate(getIntegerAttribute("dilate-kernel-size"));
+    setErode(getIntegerAttribute("erode-kernel-size"));
 }
 
 void TissueSegmentation::setThreshold(int thresh) {
