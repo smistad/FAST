@@ -83,6 +83,7 @@ SegmentationPyramidRenderer::SegmentationPyramidRenderer() : Renderer() {
 void SegmentationPyramidRenderer::loadAttributes() {
     setOpacity(getFloatAttribute("opacity"));
 }
+
 void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     if(mDataToRender.empty())
         return;
@@ -546,7 +547,6 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 void SegmentationPyramidRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
 
 }
-
 
 void SegmentationPyramidRenderer::setOpacity(float opacity) {
     if(opacity < 0 || opacity > 1)

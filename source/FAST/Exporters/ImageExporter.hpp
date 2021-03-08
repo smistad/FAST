@@ -15,7 +15,7 @@ class FAST_EXPORT ImageExporter : public ProcessObject {
         void loadAttributes() override;
     private:
         ImageExporter();
-        void execute();
+        void execute() override;
 
         std::string mFilename;
 };

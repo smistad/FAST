@@ -1,4 +1,6 @@
 #include "FAST/Exporters/ImageExporter.hpp"
+
+#include <utility>
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/Data/Image.hpp"
@@ -9,8 +11,8 @@
 namespace fast {
 
 void ImageExporter::setFilename(std::string filename) {
-    mFilename = filename;
-    mIsModified = true;
+    mFilename = std::move(filename);
+    setModified(true);
 }
 
 void ImageExporter::loadAttributes() {
@@ -20,14 +22,13 @@ void ImageExporter::loadAttributes() {
 ImageExporter::ImageExporter() {
     createInputPort<Image>(0);
     mFilename = "";
-    mIsModified = true;
 
     createStringAttribute("filename", "Filename", "Path to file to load", mFilename);
 }
 
 void ImageExporter::execute() {
 #ifdef FAST_MODULE_VISUALIZATION
-    if(mFilename == "")
+    if(mFilename.empty())
         throw Exception("No filename given to ImageExporter");
 
     auto input = getInputData<Image>();
@@ -35,7 +36,7 @@ void ImageExporter::execute() {
     if(input->getDimensions() != 2)
         throw Exception("Input image to ImageExporter must be 2D.");
 
-    auto format = QImage::Format_RGB32;
+    auto format = QImage::Format_RGBA8888;
     int Qchannels = 4;
     if(input->getNrOfChannels() == 1) {
         format = QImage::Format_Grayscale8;

@@ -7,11 +7,12 @@
 #include "FAST/Data/Image.hpp"
 #include <cctype>
 #include <algorithm>
+#include <utility>
 
 namespace fast {
 
 void ImageImporter::execute() {
-    if (mFilename == "")
+    if(mFilename.empty())
         throw Exception("No filename was supplied to the ImageImporter");
 
     uchar* convertedPixelData;
@@ -86,8 +87,9 @@ void ImageImporter::setGrayscale(bool grayscale) {
 }
 
 void ImageImporter::setFilename(std::string filename) {
-    mFilename = filename;
+    mFilename = std::move(filename);
     mIsModified = true;
+    setModified(true);
 }
 
 }

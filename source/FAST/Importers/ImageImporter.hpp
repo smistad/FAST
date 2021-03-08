@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class FAST_EXPORT  ImageImporter : public Importer {
+class FAST_EXPORT ImageImporter : public Importer {
     FAST_OBJECT(ImageImporter)
     public:
         void setFilename(std::string filename);
@@ -15,10 +15,8 @@ class FAST_EXPORT  ImageImporter : public Importer {
         ImageImporter();
         std::string mFilename;
         bool mGrayscale;
-        void execute();
-
+        void execute() override;
 };
-
 
 } // end namespace fast
 

@@ -21,7 +21,8 @@ PatchGenerator::PatchGenerator() {
 
     createIntegerAttribute("patch-size", "Patch size", "", 0);
     createIntegerAttribute("patch-level", "Patch level", "Patch level used for image pyramid inputs", m_level);
-    createIntegerAttribute("patch-overlap", "Patch overlap in percent", "Patch overlap in percent", m_overlapPercent);
+    createFloatAttribute("patch-overlap", "Patch overlap", "Patch overlap in percent", m_overlapPercent);
+    createFloatAttribute("mask-threshold", "Mask threshold", "Threshold, in percent, for how much of the candidate patch must be inside the mask to be accepted", m_maskThreshold);
 }
 
 void PatchGenerator::loadAttributes() {
@@ -35,7 +36,8 @@ void PatchGenerator::loadAttributes() {
     }
 
     setPatchLevel(getIntegerAttribute("patch-level"));
-    setOverlap(getIntegerAttribute("patch-overlap"));
+    setOverlap(getFloatAttribute("patch-overlap"));
+    setMaskThreshold(getFloatAttribute("mask-threshold"));
 }
 
 PatchGenerator::~PatchGenerator() {
@@ -48,12 +50,12 @@ void PatchGenerator::generateStream() {
     if(m_inputImagePyramid) {
         const int levelWidth = m_inputImagePyramid->getLevelWidth(m_level);
         const int levelHeight = m_inputImagePyramid->getLevelHeight(m_level);
-        const int overlapInPixelsX = std::round((m_overlapPercent/100.0f)*m_width);
-        const int overlapInPixelsY = std::round((m_overlapPercent/100.0f)*m_height);
+        const int overlapInPixelsX = (int) std::round(m_overlapPercent * (float) m_width);
+        const int overlapInPixelsY = (int) std::round(m_overlapPercent * (float) m_height);
         const int patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
         const int patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
-        const int patchesX = std::ceil((float) levelWidth / patchWidthWithoutOverlap);
-        const int patchesY = std::ceil((float) levelHeight / patchHeightWithoutOverlap);
+        const int patchesX = std::ceil((float) levelWidth / (float) patchWidthWithoutOverlap);
+        const int patchesY = std::ceil((float) levelHeight / (float) patchHeightWithoutOverlap);
 
         for(int patchY = 0; patchY < patchesY; ++patchY) {
             for(int patchX = 0; patchX < patchesX; ++patchX) {
@@ -80,7 +82,7 @@ void PatchGenerator::generateStream() {
                         )
                     );
                     float average = croppedMask->calculateAverageIntensity();
-                    if(average < 0.5) // At least half of the mask has to be foreground
+                    if(average < m_maskThreshold)  // A specific percentage of the mask has to be foreground to be assessed
                         continue;
                 }
                 reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
@@ -211,9 +213,17 @@ void PatchGenerator::setPatchLevel(int level) {
 }
 
 void PatchGenerator::setOverlap(float percent) {
-    if(percent < 0 || percent > 100)
-        throw Exception("Overlap percent must be >= 0 && <= 100");
+    if(percent < 0 || percent > 1)
+        throw Exception("Overlap percent must be >= 0 && <= 1");
     m_overlapPercent = percent;
+    mIsModified = true;
+}
+
+void PatchGenerator::setMaskThreshold(float percent) {
+    if(percent < 0 || percent > 1)
+        throw Exception("Mask threshold must be >= 0 && <= 1");
+    m_maskThreshold = percent;
+    mIsModified = true;
 }
 
 }
