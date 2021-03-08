@@ -1,6 +1,7 @@
 #include "LinePlotter.hpp"
 #include <jkqtplotter/jkqtplotter.h>
 #include <jkqtplotter/graphs/jkqtpscatter.h>
+#include <jkqtplotter/graphs/jkqtpgeometric.h>
 
 namespace fast {
 
@@ -27,16 +28,28 @@ uint LinePlotter::addInputConnection(DataChannel::pointer port, std::string name
 
 void LinePlotter::execute() {
 	// Remember: This does not occur in main thread.
-	std::map<int, float> newDataList;
+	std::map<int, Vector2f> newDataList;
 	for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
 		if(hasNewInputData(inputNr)) {
-			auto scalar = getInputData<FloatScalar>(inputNr);
-			newDataList[inputNr] = scalar->getAccess(ACCESS_READ)->getData();
+			auto input = getInputData<DataObject>(inputNr);
+			if(auto floatScalar = std::dynamic_pointer_cast<FloatScalar>(input)) {
+			    Vector2f point;
+			    point.x() = m_frameCounter;
+			    point.y() = floatScalar->getAccess(ACCESS_READ)->getData();
+                newDataList[inputNr] = point;
+            } else if(auto floatXY = std::dynamic_pointer_cast<FloatPoint>(input)) {
+                newDataList[inputNr] = floatXY->getAccess(ACCESS_READ)->getData();
+            } else {
+			    throw Exception("Incorrect input type to LinePlotter");
+			}
 		}
 	}
 	{
 		std::lock_guard<std::mutex> lock(m_queueMutex);
-		m_queue.push_back(newDataList);
+		if(!newDataList.empty()) {
+            m_queue.push_back(newDataList);
+            m_frameCounter += 1;
+        }
 	}
 	if(m_timer == nullptr) {
 		// Always redraw on new input if timer is not set
@@ -60,13 +73,13 @@ void LinePlotter::processQueue() {
 			while(m_buffer[input.first].size() != m_bufferSize)
 				m_buffer[input.first].push_back(0);
 			auto columnY = ds->addColumn(m_buffer[input.first].data(), m_buffer[input.first].size(), "y");
-			JKQTPXYLineGraph* graph = new JKQTPXYLineGraph(m_plotterWidget);
+			auto graph = new JKQTPXYLineGraph(m_plotterWidget);
 			graph->setXColumn(columnX);
 			graph->setYColumn(columnY);
 			if(!m_names[input.first].empty())
 				graph->setTitle(m_names[input.first].c_str());
-			graph->setLineWidth(1);
-			graph->setSymbolSize(3);
+			//graph->setLineWidth(1);
+			//graph->setSymbolSize(3);
 			m_plotterWidget->addGraph(graph);
 		}
 		m_plotterWidget->setX(m_xAxis[0], m_xAxis[m_xAxis.size() - 1]);
@@ -78,22 +91,26 @@ void LinePlotter::processQueue() {
 		while(!m_queue.empty()) {
 			auto newDataList = m_queue.front();
 			m_queue.pop_front();
-			// Add new value to graph
+			// Add new values to graph
 			if(m_currentIndex < m_bufferSize) {
 				for(auto&& data : newDataList) {
-					m_buffer[data.first][m_currentIndex] = data.second;
+					m_buffer[data.first][m_currentIndex] = data.second.y();
+                    m_xAxis[m_currentIndex] = data.second.x();
 				}
 			} else {
+			    // Shift all values 1 index to the left
+			    // TODO this is inefficient if we have multiple values to add
 				for(int i = 0; i < m_bufferSize - 1; ++i) {
 					for(auto&& data : newDataList) {
 						m_buffer[data.first][i] = m_buffer[data.first][i + 1];
 					}
 					m_xAxis[i] = m_xAxis[i + 1];
 				}
+				// Add new values to the end of buffer
 				for(auto&& data : newDataList) {
-					m_buffer[data.first][m_bufferSize - 1] = data.second;
+					m_buffer[data.first][m_bufferSize - 1] = data.second.y();
+                    m_xAxis[m_bufferSize - 1] = data.second.x();
 				}
-				m_xAxis[m_bufferSize - 1] = m_currentIndex;
 			}
 			++m_currentIndex;
 		}
@@ -119,5 +136,14 @@ void LinePlotter::processQueue() {
 void LinePlotter::setBufferSize(int size) {
 	m_bufferSize = size;
 }
+
+void LinePlotter::addHorizontalLine(float x, Color color) {
+    auto infLine = new JKQTPGeoInfiniteLine(m_plotterWidget, x,  0, 0, std::numeric_limits<float>::max());
+    infLine->setStyle(QColor(color.getRedValue()*255, color.getGreenValue()*255, color.getBlueValue()*255), 1.5, Qt::PenStyle::DashLine);
+    infLine->setTwoSided(true);
+    //infLine->setAlpha(0.5);
+    m_plotterWidget->addGraph(infLine);
+}
+
 
 }
