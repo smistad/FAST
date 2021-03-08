@@ -77,6 +77,7 @@ void ImagePyramidPatchExporter::exportPatch(std::shared_ptr<Image> patch) {
 
 void ImagePyramidPatchExporter::setPath(std::string path) {
     m_path = std::move(path);
+    setModified(true);
 }
 
 void ImagePyramidPatchExporter::setPatchSize(uint width, uint height) {

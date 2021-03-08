@@ -3,11 +3,12 @@
 #include "ImageExporter.hpp"
 #include "FAST/Data/Image.hpp"
 #include <algorithm>
+#include <utility>
 
 namespace fast {
 
 void ImageFileExporter::setFilename(std::string filename) {
-    mFilename = filename;
+    mFilename = std::move(filename);
     mIsModified = true;
 }
 
@@ -24,7 +25,7 @@ inline bool matchExtension(std::string extension, std::string extension2) {
 }
 
 void ImageFileExporter::execute() {
-    if(mFilename == "")
+    if(mFilename.empty())
         throw Exception("No filename was given to the ImageFileExporter");
 
     Image::pointer input = getInputData<Image>();

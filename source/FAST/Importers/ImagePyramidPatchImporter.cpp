@@ -2,6 +2,7 @@
 #include "ImageImporter.hpp"
 #include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Data/Image.hpp>
+#include <utility>
 
 namespace fast {
 
@@ -12,7 +13,8 @@ ImagePyramidPatchImporter::ImagePyramidPatchImporter() {
 }
 
 void ImagePyramidPatchImporter::setPath(std::string path) {
-    m_path = path;
+    m_path = std::move(path);
+    setModified(true);
 }
 
 void ImagePyramidPatchImporter::loadAttributes() {

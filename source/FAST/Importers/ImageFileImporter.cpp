@@ -8,11 +8,12 @@
 #endif
 #include "FAST/Data/Image.hpp"
 #include <algorithm>
+#include <utility>
 
 namespace fast {
 
 void ImageFileImporter::setFilename(std::string filename) {
-    mFilename = filename;
+    mFilename = std::move(filename);
     mIsModified = true;
 }
 
@@ -32,7 +33,7 @@ inline bool matchExtension(std::string extension, std::string extension2) {
 }
 
 void ImageFileImporter::execute() {
-    if(mFilename == "")
+    if(mFilename.empty())
         throw Exception("No filename was given to the ImageFileImporter");
 
     if(!fileExists(mFilename))

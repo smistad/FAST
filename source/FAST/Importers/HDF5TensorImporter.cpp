@@ -54,5 +54,4 @@ void HDF5TensorImporter::execute() {
 	addOutputData(0, tensor);
 }
 
-
 }

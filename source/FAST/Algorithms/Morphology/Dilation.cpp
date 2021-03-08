@@ -8,6 +8,12 @@ Dilation::Dilation() {
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Morphology/Dilation.cl");
     mSize = 3;
+
+    createIntegerAttribute("kernel-size", "Kernel size", "Kernel size used for dilation", mSize);
+}
+
+void Dilation::loadAttributes() {
+    setStructuringElementSize(getIntegerAttribute("kernel-size"));
 }
 
 void Dilation::setStructuringElementSize(int size) {

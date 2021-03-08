@@ -12,7 +12,7 @@ class FAST_EXPORT  ImageFileImporter : public ProcessObject {
         void loadAttributes() override;
     private:
         ImageFileImporter();
-        void execute();
+        void execute() override;
 
         std::string mFilename;
 };
