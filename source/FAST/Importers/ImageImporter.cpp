@@ -74,7 +74,6 @@ void ImageImporter::loadAttributes() {
 
 ImageImporter::ImageImporter() {
     mFilename = "";
-    mIsModified = true;
     mGrayscale = true;
     createOutputPort<Image>(0);
 
@@ -84,11 +83,11 @@ ImageImporter::ImageImporter() {
 
 void ImageImporter::setGrayscale(bool grayscale) {
     mGrayscale = grayscale;
+    setModified(true);
 }
 
 void ImageImporter::setFilename(std::string filename) {
     mFilename = std::move(filename);
-    mIsModified = true;
     setModified(true);
 }
 
