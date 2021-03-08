@@ -90,7 +90,8 @@ class WindowWidget : public QWidget {
                 connect(mThread, SIGNAL(finished()), thread, SLOT(quit()));
                 connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
-                mThread->addView(mView);
+                // TODO FIX
+                //mThread->addView(mView);
 
                 QGLContext* mainGLContext = fast::Window::getMainGLContext();
                 if(!mainGLContext->isValid()) {
