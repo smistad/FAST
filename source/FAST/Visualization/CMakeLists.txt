@@ -22,6 +22,8 @@ fast_add_sources(
     View.hpp
     Renderer.cpp
     Renderer.hpp
+    LabelColorRenderer.cpp
+    LabelColorRenderer.hpp
 )
 fast_add_all_subdirectories()
 fast_add_test_sources()

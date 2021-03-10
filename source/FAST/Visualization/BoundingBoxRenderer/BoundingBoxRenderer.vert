@@ -13,5 +13,5 @@ uniform mat4 perspectiveTransform;
 
 void main() {
     gl_Position = perspectiveTransform * viewTransform * transform * vec4(in_position, 1.0);
-    vertexColor = in_label < uint(256) ? color[in_label] : vec4(0.0, 0.0, 0.0, 1.0);
+    vertexColor = in_label < uint(256) ? color[in_label] : vec4(0.0, 0.0, 0.0, 0.0);
 }

@@ -6,6 +6,7 @@
 #include <FAST/Data/Access/ImageAccess.hpp>
 #include <FAST/Data/Access/OpenCLImageAccess.hpp>
 #include <FAST/Data/Access/OpenCLBufferAccess.hpp>
+#include <FAST/Data/Access/OpenGLTextureAccess.hpp>
 #include <FAST/DeviceManager.hpp>
 #include <unordered_map>
 
@@ -207,6 +208,7 @@ class FAST_EXPORT  Image : public SpatialDataObject {
         OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess::pointer getImageAccess(accessType type);
+        OpenGLTextureAccess::pointer getOpenGLTextureAccess(accessType type, OpenCLDevice::pointer);
 
         ~Image();
 
@@ -283,6 +285,10 @@ class FAST_EXPORT  Image : public SpatialDataObject {
         unique_pixel_ptr mHostData;
         bool mHostHasData;
         bool mHostDataIsUpToDate;
+
+        // OpenGL data
+        uint m_GLtextureID = 0;
+        bool m_GLtextureUpToDate = false;
 
         void setAllDataToOutOfDate();
         bool isInitialized() const;

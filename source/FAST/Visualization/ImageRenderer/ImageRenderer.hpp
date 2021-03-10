@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class FAST_EXPORT  ImageRenderer : public Renderer {
+class FAST_EXPORT  ImageRenderer : public virtual Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
         void loadAttributes() override;

@@ -19,22 +19,8 @@ BoundingBoxRenderer::BoundingBoxRenderer() {
         Config::getKernelSourcePath() + "Visualization/BoundingBoxRenderer/BoundingBoxRenderer.frag",
     });
 
-    m_labelColors = {
-        {0, Color::Green()},
-        {1, Color::Blue()},
-        {2, Color::Red()},
-        {3, Color::Yellow()},
-        {4, Color::Cyan()},
-        {5, Color::Magenta()},
-        {6, Color::Brown()},
-        {255, Color::Cyan()},
-    };
 }
 
-void BoundingBoxRenderer::setLabelColor(int label, Color color) {
-    m_labelColors[label] = color;
-    m_colorsModified = true;
-}
 
 BoundingBoxRenderer::~BoundingBoxRenderer() {
 	glDeleteBuffers(1, &m_colorsUBO);
@@ -46,33 +32,7 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
     if(!mode2D)
         throw Exception("BoundingBoxRenderer has only been implemented for 2D so far");
 
-    if(m_colorsModified) {
-        // Create UBO for colors
-        glDeleteBuffers(1, &m_colorsUBO);
-        glGenBuffers(1, &m_colorsUBO);
-        int maxLabel = 0;
-        for(auto&& labelColor : m_labelColors) {
-            if(labelColor.first > maxLabel)
-                maxLabel = labelColor.first;
-        }
-        auto colorData = std::make_unique<float[]>((maxLabel + 1) * 4);
-        for(int i = 0; i <= maxLabel; ++i) {
-            if(m_labelColors.count(i) > 0) {
-                colorData[i * 4 + 0] = m_labelColors[i].getRedValue();
-                colorData[i * 4 + 1] = m_labelColors[i].getGreenValue();
-                colorData[i * 4 + 2] = m_labelColors[i].getBlueValue();
-            } else {
-                colorData[i * 4 + 0] = m_defaultColor.getRedValue();
-                colorData[i * 4 + 1] = m_defaultColor.getGreenValue();
-                colorData[i * 4 + 2] = m_defaultColor.getBlueValue();
-            }
-			colorData[i * 4 + 3] = 1.0f;
-        }
-        glBindBuffer(GL_UNIFORM_BUFFER, m_colorsUBO);
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 4 * (maxLabel+1), colorData.get(), GL_STATIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        m_colorsModified = false;
-    }
+
 
 	glDisable(GL_DEPTH_TEST);
     activateShader();

@@ -18,6 +18,8 @@ fast_add_sources(
     TensorAccess.hpp
     BoundingBoxSetAccess.cpp
     BoundingBoxSetAccess.hpp
+    OpenGLTextureAccess.cpp
+    OpenGLTextureAccess.hpp
 )
 fast_add_python_interfaces(MeshAccess.hpp MeshOpenCLAccess.hpp VertexBufferObjectAccess.hpp TensorAccess.hpp)
 if(FAST_MODULE_WholeSlideImaging)

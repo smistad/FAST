@@ -33,8 +33,18 @@ ImageRenderer::ImageRenderer() : Renderer() {
     createFloatAttribute("level", "Intensity level", "Intensity level", -1);
     createShaderProgram({
         Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.vert",
-        Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.frag",
-    });
+        Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRendererUINT.frag",
+    }, "unsigned-integer");
+
+    createShaderProgram({
+        Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.vert",
+        Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRendererINT.frag",
+    }, "signed-integer");
+
+    createShaderProgram({
+        Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.vert",
+        Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRendererFLOAT.frag",
+    }, "float");
 }
 
 ImageRenderer::~ImageRenderer() {
@@ -113,10 +123,6 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
 
         OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
-        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-        cl::Image2D *clImage = access->get2DImage();
-
-        mKernel = cl::Kernel(getOpenCLProgram(device, "3D"), "renderToTexture");
         // Run kernel to fill the texture
         cl::CommandQueue queue = device->getCommandQueue();
 
@@ -134,83 +140,8 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
             //}
         }
 
-        cl::Image2D image;
-        cl::ImageGL imageGL;
-        std::vector<cl::Memory> v;
-        GLuint textureID;
-        if(device->isOpenGLInteropSupported()) {
-            // Create OpenGL texture
-            glGenTextures(1, &textureID);
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            // TODO Why is this needed:
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
-
-            // Create CL-GL image
-            imageGL = cl::ImageGL(
-                    device->getContext(),
-                    CL_MEM_READ_WRITE,
-                    GL_TEXTURE_2D,
-                    0,
-                    textureID
-            );
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glFinish();     // Make sure everything is ready for CL to take over the texture
-            v.push_back(imageGL);
-            queue.enqueueAcquireGLObjects(&v);
-            mKernel.setArg(1, imageGL);
-        } else {
-            image = cl::Image2D(
-                    device->getContext(),
-                    CL_MEM_READ_WRITE,
-                    cl::ImageFormat(CL_RGBA, CL_FLOAT),
-                    input->getWidth(), input->getHeight()
-            );
-            mKernel.setArg(1, image);
-        }
-
-        mKernel.setArg(0, *clImage);
-        mKernel.setArg(2, level);
-        mKernel.setArg(3, window);
-        queue.enqueueNDRangeKernel(
-                mKernel,
-                cl::NullRange,
-                cl::NDRange(input->getWidth(), input->getHeight()),
-                cl::NullRange
-        );
-
-        if(device->isOpenGLInteropSupported()) {
-            queue.enqueueReleaseGLObjects(&v);
-            queue.finish(); // This is needed, otherwise seg fault can occur when doing GL stuff with this texture
-        } else {
-            // Copy data from CL image to CPU
-            auto data = make_uninitialized_unique<float[]>(input->getWidth() * input->getHeight() * 4);
-            queue.finish();
-            queue.enqueueReadImage(
-                    image,
-                    CL_TRUE,
-                    createOrigoRegion(),
-                    createRegion(input->getWidth(), input->getHeight(), 1),
-                    0, 0,
-                    data.get()
-            );
-            // Copy data from CPU to GL texture
-            glGenTextures(1, &textureID);
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            // TODO Why is this needed:
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data.get());
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glFinish();
-        }
+        auto access = input->getOpenGLTextureAccess(ACCESS_READ, device);
+        auto textureID = access->get();
 
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
@@ -276,10 +207,19 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
 
     }
     
-    activateShader();
 
     // This is the actual rendering
     for(auto it : mImageUsed) {
+        const auto type = it.second->getDataType();
+        std::string shaderName;
+        if(type == TYPE_UINT8 || type == TYPE_UINT16) {
+            shaderName = "unsigned-integer";
+        } else if(type == TYPE_INT8 || type == TYPE_INT16) {
+            shaderName = "signed-integer";
+        } else {
+            shaderName = "float";
+        }
+        activateShader(shaderName);
         AffineTransformation::pointer transform;
         if(mode2D) {
             // If rendering is in 2D mode we skip any transformations
@@ -290,11 +230,12 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
 
         transform->getTransform().scale(it.second->getSpacing());
 
-        uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
+        // TODO create/use functions for this
+        uint transformLoc = glGetUniformLocation(getShaderProgram(shaderName), "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
-        transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
+        transformLoc = glGetUniformLocation(getShaderProgram(shaderName), "perspectiveTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
-        transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
+        transformLoc = glGetUniformLocation(getShaderProgram(shaderName), "viewTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it.first]);
@@ -302,9 +243,8 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindVertexArray(0);
+        deactivateShader();
     }
-
-    deactivateShader();
 }
 
 

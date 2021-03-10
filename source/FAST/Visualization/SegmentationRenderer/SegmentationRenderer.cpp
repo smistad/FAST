@@ -39,6 +39,11 @@ SegmentationRenderer::SegmentationRenderer() {
     createFloatAttribute("opacity", "Segmentation Opacity", "", mOpacity);
     createStringAttribute("label-colors", "Label color", "Label color set as <label1> <color1> <label2> <color2>", "");
 
+    createShaderProgram({
+                                Config::getKernelSourcePath() + "/Visualization/SegmentationRenderer/SegmentationRenderer.vert",
+                                Config::getKernelSourcePath() + "/Visualization/SegmentationRenderer/SegmentationRenderer.frag",
+                        }, "unsigned-integer");
+
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
     mIsModified = false;
     mColorsModified = true;
@@ -70,52 +75,12 @@ SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
     GLuint filterMethod = mUseInterpolation ? GL_LINEAR : GL_NEAREST;
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
+    createColorUniformBufferObject();
 
-    if(mColorsModified) {
-        // Transfer colors to device (this doesn't have to happen every render call..)
-        std::unique_ptr<float[]> colorData(new float[3*mLabelColors.size()]);
-        std::unordered_map<int, Color>::iterator it;
-        for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
-            colorData[it->first*3] = it->second.getRedValue();
-            colorData[it->first*3+1] = it->second.getGreenValue();
-            colorData[it->first*3+2] = it->second.getBlueValue();
-        }
-
-        mColorBuffer = cl::Buffer(
-                device->getContext(),
-                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                sizeof(float)*3*mLabelColors.size(),
-                colorData.get()
-        );
-    }
-
-    if(mFillAreaModified) {
-        // Transfer colors to device (this doesn't have to happen every render call..)
-        std::unique_ptr<char[]> fillAreaData(new char[mLabelColors.size()]);
-        std::unordered_map<int, Color>::iterator it;
-        for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
-            if(mLabelFillArea.count(it->first) == 0) {
-                // Use default value
-                fillAreaData[it->first] = mFillArea;
-            } else {
-                fillAreaData[it->first] = mLabelFillArea[it->first];
-            }
-        }
-
-        mFillAreaBuffer = cl::Buffer(
-                device->getContext(),
-                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                sizeof(char)*mLabelColors.size(),
-                fillAreaData.get()
-        );
-    }
-
-    mKernel = cl::Kernel(getOpenCLProgram(device), "renderToTexture");
-    mKernel.setArg(2, mColorBuffer);
-    mKernel.setArg(3, mFillAreaBuffer);
-    mKernel.setArg(4, mBorderRadius);
-    mKernel.setArg(5, mOpacity);
-
+    // TODO move to func?
+    auto colorsIndex = glGetUniformBlockIndex(getShaderProgram("unsigned-integer"), "Colors");
+    glUniformBlockBinding(getShaderProgram("unsigned-integer"), colorsIndex, 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_colorsUBO);
 
     for(auto it : mDataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
@@ -132,14 +97,7 @@ SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
             continue; // If it has already been created, skip it
 
         // If it has not been created, create the texture
-
-        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-        cl::Image2D *clImage = access->get2DImage();
-
-        // Run kernel to fill the texture
-        cl::CommandQueue queue = device->getCommandQueue();
-
-        if (mTexturesToRender.count(inputNr) > 0) {
+        if(mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
             glDeleteTextures(1, &mTexturesToRender[inputNr]);
             mTexturesToRender.erase(inputNr);
@@ -147,81 +105,15 @@ SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
             mVAO.erase(inputNr);
         }
 
-        cl::Image2D image;
-        cl::ImageGL imageGL;
-        std::vector<cl::Memory> v;
-        GLuint textureID;
-        // TODO The GL-CL interop here is causing glClear to not work on AMD systems and therefore disabled
-        /*
-        if(device->isOpenGLInteropSupported()) {
-            // Create OpenGL texture
-            glGenTextures(1, &textureID);
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, 0);
-
-            // Create CL-GL image
-            imageGL = cl::ImageGL(
-                    device->getContext(),
-                    CL_MEM_READ_WRITE,
-                    GL_TEXTURE_2D,
-                    0,
-                    textureID
-            );
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glFinish();
-            mKernel.setArg(1, imageGL);
-            v.push_back(imageGL);
-            queue.enqueueAcquireGLObjects(&v);
-        } else {
-         */
-        image = cl::Image2D(
-                device->getContext(),
-                CL_MEM_READ_WRITE,
-                cl::ImageFormat(CL_RGBA, CL_FLOAT),
-                input->getWidth(), input->getHeight()
-        );
-        mKernel.setArg(1, image);
-        //}
-
-
-        mKernel.setArg(0, *clImage);
-        queue.enqueueNDRangeKernel(
-                mKernel,
-                cl::NullRange,
-                cl::NDRange(input->getWidth(), input->getHeight()),
-                cl::NullRange
-        );
-
-        /*if(device->isOpenGLInteropSupported()) {
-            queue.enqueueReleaseGLObjects(&v);
-        } else {*/
-        // Copy data from CL image to CPU
-        auto data = make_uninitialized_unique<float[]>(input->getWidth() * input->getHeight() * 4);
-        queue.enqueueReadImage(
-                image,
-                CL_TRUE,
-                createOrigoRegion(),
-                createRegion(input->getWidth(), input->getHeight(), 1),
-                0, 0,
-                data.get()
-        );
-        // Copy data from CPU to GL texture
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMethod);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMethod);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data.get());
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glFinish();
-        //}
-
+        auto access = input->getOpenGLTextureAccess(ACCESS_READ, device);
+        auto textureID = access->get();
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
         mDataTimestamp[inputNr] = input->getTimestamp();
-        queue.finish();
     }
+
+    activateShader("unsigned-integer");
+    setShaderUniform("opacity", mOpacity, "unsigned-integer");
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

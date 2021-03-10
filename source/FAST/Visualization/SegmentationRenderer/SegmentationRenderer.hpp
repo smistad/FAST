@@ -6,10 +6,11 @@
 #include "FAST/Utility.hpp"
 #include <unordered_map>
 #include <mutex>
+#include <FAST/Visualization/LabelColorRenderer.hpp>
 
 namespace fast {
 
-class FAST_EXPORT  SegmentationRenderer : public ImageRenderer {
+class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColorRenderer {
     FAST_OBJECT(SegmentationRenderer)
     public:
         void setColor(Segmentation::LabelType, Color);

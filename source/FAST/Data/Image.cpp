@@ -5,7 +5,21 @@
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 #include "FAST/Config.hpp"
+#include <FAST/Visualization/Window.hpp>
 #include <eigen3/unsupported/Eigen/CXX11/Tensor>
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/cl_gl.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/OpenGL.h>
+#else
+#if _WIN32
+#include <GL/gl.h>
+#include <CL/cl_gl.h>
+#else
+#include <CL/cl_gl.h>
+
+#endif
+#endif
 
 namespace fast {
 
@@ -1236,6 +1250,133 @@ int Image::getNrOfVoxels() const {
 
 Image::~Image() {
     freeAll();
+}
+
+OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, OpenCLDevice::pointer device) {
+    if(type == ACCESS_READ_WRITE)
+        throw Exception("Read-only access to OpenGL texture for now");
+    if(mDimensions != 2)
+        throw Exception("Only 2D access for OpenGL texture");
+
+    {
+        std::lock_guard<std::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
+    if(!m_GLtextureUpToDate) {
+        std::map<int, std::vector<GLint>> mChannelsToSwizzle = {
+                {1, {GL_RED, GL_RED, GL_RED, GL_ONE}},
+                {2, {GL_RED, GL_GREEN, GL_ZERO, GL_ONE}},
+                {3, {GL_RED, GL_GREEN, GL_BLUE, GL_ONE}},
+                {4, {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA}}
+        };
+        std::map<DataType, std::map<int, std::pair<GLenum, GLenum>>> mChannelsToFormat = {
+                {TYPE_UINT8,
+                    {
+                        {1, {GL_R8UI, GL_RED_INTEGER}},
+                        {2, {GL_RG8UI, GL_RG_INTEGER}},
+                        {3, {GL_RGB8UI, GL_RGB_INTEGER}},
+                        {4, {GL_RGBA8UI, GL_RGBA_INTEGER}}
+                    }
+                },
+                {TYPE_INT8,
+                    {
+                        {1, {GL_R8I, GL_RED_INTEGER}},
+                        {2, {GL_RG8I, GL_RG_INTEGER}},
+                        {3, {GL_RGB8I, GL_RGB_INTEGER}},
+                        {4, {GL_RGBA8I, GL_RGBA_INTEGER}}
+                    }
+                },
+
+                {TYPE_UINT16,
+                        {
+                                {1, {GL_R16UI, GL_RED_INTEGER}},
+                                {2, {GL_RG16UI, GL_RG_INTEGER}},
+                                {3, {GL_RGB16UI, GL_RGB_INTEGER}},
+                                {4, {GL_RGBA16UI, GL_RGBA_INTEGER}}
+                        }
+                },
+                {TYPE_INT16,
+                        {
+                                {1, {GL_R16I, GL_RED_INTEGER}},
+                                {2, {GL_RG16I, GL_RG_INTEGER}},
+                                {3, {GL_RGB16I, GL_RGB_INTEGER}},
+                                {4, {GL_RGBA16I, GL_RGBA_INTEGER}}
+                        }
+                },
+                {TYPE_FLOAT,
+                        {
+                                {1, {GL_R32F, GL_RED}},
+                                {2, {GL_RG32F, GL_RG}},
+                                {3, {GL_RGB32F, GL_RGB}},
+                                {4, {GL_RGBA32F, GL_RGBA}}
+                        }
+                },
+        };
+        std::map<DataType, GLenum> mTypeToType = {
+                {TYPE_UINT8, GL_UNSIGNED_BYTE},
+                {TYPE_INT8, GL_BYTE},
+                {TYPE_UINT16, GL_UNSIGNED_SHORT},
+                {TYPE_INT16, GL_SHORT},
+                {TYPE_FLOAT, GL_FLOAT},
+        };
+        GLint internalFormat = mChannelsToFormat[mType][mChannels].first;
+        GLenum format = mChannelsToFormat[mType][mChannels].second;
+        GLenum GLtype = mTypeToType[mType];
+        GLint* swizzleMask = mChannelsToSwizzle[mChannels].data();
+        /*
+        // TODO check if OpenCL device has data
+        if(device->isOpenGLInteropSupported() && !hasOpenCLDeviceData) {
+            auto access = getOpenCLImageAccess(ACCESS_READ, device);
+            // Create GL texture with correct format
+            glGenTextures(1, &m_GLtextureID);
+            glBindTexture(GL_TEXTURE_2D, m_GLtextureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, format, GLtype, nullptr);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFinish();
+            // Create OpenCL Image from texture
+            try {
+                auto imageGL = cl::ImageGL(
+                        device->getContext(),
+                        CL_MEM_READ_WRITE,
+                        GL_TEXTURE_2D,
+                        0,
+                        m_GLtextureID
+                );
+
+                // Copy OpenCL image to the texture
+                std::vector<cl::Memory> v;
+                v.push_back(imageGL);
+                device->getCommandQueue().enqueueAcquireGLObjects(&v);
+                device->getCommandQueue().enqueueCopyImage(*access->get(), imageGL, createOrigoRegion(), createRegion(getSize()), createRegion(getSize()));
+                device->getCommandQueue().enqueueReleaseGLObjects(&v);
+            } catch(cl::Error &e) {
+                // Most likely the format was not supported
+            }
+            // Copy OpenCL data to the texture, either by image copy, or by kernel
+        } else {*/
+            // Copy data from CPU to GL texture
+            auto access = getImageAccess(ACCESS_READ);
+            glGenTextures(1, &m_GLtextureID);
+            glBindTexture(GL_TEXTURE_2D, m_GLtextureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, format, GLtype, access->get());
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFinish();
+        //}
+        m_GLtextureUpToDate = true;
+    }
+
+    return std::make_unique<OpenGLTextureAccess>(m_GLtextureID, std::dynamic_pointer_cast<Image>(mPtr.lock()));
 }
 
 } // end namespace fast;

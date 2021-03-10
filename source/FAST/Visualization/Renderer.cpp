@@ -231,7 +231,7 @@ void Renderer::setShaderUniform(std::string name, int value, std::string shaderP
 int Renderer::getShaderUniformLocation(std::string name, std::string shaderProgram) {
     int location = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
     if(location == -1)
-        throw Exception("Unable to find location of matrix4f uniform " + name + " in shader program " + shaderProgram);
+        throw Exception("Unable to find location of uniform " + name + " in shader program " + shaderProgram);
     return location;
 }
 
@@ -255,5 +255,6 @@ void Renderer::setSynchronizedRendering(bool synched) {
 bool Renderer::getSynchronizedRendering() const {
     return m_synchedRendering;
 }
+
 
 }
