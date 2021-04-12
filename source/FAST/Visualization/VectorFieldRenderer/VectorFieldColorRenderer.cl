@@ -26,5 +26,5 @@ __kernel void renderToTexture(
     // Use vector magnitude as opacity
     const float opacity = clamp(length(vector)/maxVectorMagnitude, 0.0f, maxOpacity);
 
-    write_imagef(output, (int2)(position.x, get_image_height(output) - position.y - 1), (float4)(color.x, color.y, color.z, opacity));
+    write_imagef(output, position, (float4)(color.x, color.y, color.z, opacity));
 }

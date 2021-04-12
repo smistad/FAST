@@ -46,6 +46,6 @@ __kernel void renderToTexture(
     } else {
         color.w *= maxOpacity;
     }
-    write_imagef(output, (int2)(position.x, get_image_height(output) - position.y - 1), color);
+    write_imagef(output, position, color);
 }
 
