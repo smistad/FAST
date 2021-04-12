@@ -11,7 +11,7 @@ uniform float opacity;
 
 void main()
 {
-    uint in_label = texture(ourTexture, vec2(TexCoord.x, 1.0 - TexCoord.y)).r;
+    uint in_label = texture(ourTexture, vec2(TexCoord.x, TexCoord.y)).r;
     FragColor = in_label < uint(256) && in_label > uint(0) ? color[in_label] : vec4(0.0, 0.0, 0.0, 0.0);
     if(in_label > uint(0))
     FragColor.a = opacity;
