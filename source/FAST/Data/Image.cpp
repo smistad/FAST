@@ -1252,7 +1252,7 @@ Image::~Image() {
     freeAll();
 }
 
-OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, OpenCLDevice::pointer device) {
+OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, OpenCLDevice::pointer device, bool compress) {
     if(type == ACCESS_READ_WRITE)
         throw Exception("Read-only access to OpenGL texture for now");
     if(mDimensions != 2)
@@ -1320,6 +1320,22 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
                 {TYPE_FLOAT, GL_FLOAT},
         };
         GLint internalFormat = mChannelsToFormat[mType][mChannels].first;
+        if(compress) {
+            switch(mChannels) {
+                case 1:
+                    internalFormat = GL_COMPRESSED_RED;
+                    break;
+                case 2:
+                    internalFormat = GL_COMPRESSED_RG;
+                    break;
+                case 3:
+                    internalFormat = GL_COMPRESSED_RGB;
+                    break;
+                case 4:
+                    internalFormat = GL_COMPRESSED_RGBA;
+                    break;
+            }
+        }
         GLenum format = mChannelsToFormat[mType][mChannels].second;
         GLenum GLtype = mTypeToType[mType];
         GLint* swizzleMask = mChannelsToSwizzle[mChannels].data();

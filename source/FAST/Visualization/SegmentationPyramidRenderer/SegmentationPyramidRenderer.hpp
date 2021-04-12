@@ -1,6 +1,7 @@
 #pragma once
 
 #include <FAST/Visualization/Renderer.hpp>
+#include <FAST/Visualization/LabelColorRenderer.hpp>
 #include <deque>
 #include <thread>
 #include <FAST/Data/Color.hpp>
@@ -62,7 +63,7 @@ class UniqueQueue {
 };*/
 
 
-class FAST_EXPORT SegmentationPyramidRenderer : public Renderer {
+class FAST_EXPORT SegmentationPyramidRenderer : public LabelColorRenderer {
     FAST_OBJECT(SegmentationPyramidRenderer)
     public:
         void loadAttributes() override;

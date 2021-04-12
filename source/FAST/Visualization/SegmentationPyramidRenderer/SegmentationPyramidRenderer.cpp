@@ -88,6 +88,13 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     if(mDataToRender.empty())
         return;
 
+    createColorUniformBufferObject();
+
+    // TODO move to func?
+    auto colorsIndex = glGetUniformBlockIndex(getShaderProgram(), "Colors");
+    glUniformBlockBinding(getShaderProgram(), colorsIndex, 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_colorsUBO);
+
     if(!m_bufferThread) {
         // Create thread to load patches
 #ifdef WIN32
@@ -122,50 +129,6 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
             context->makeCurrent();
 #endif
 			OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-			if(mColorsModified) {
-				// Transfer colors to device (this doesn't have to happen every render call..)
-				std::unique_ptr<float[]> colorData(new float[3*mLabelColors.size()]);
-				std::unordered_map<int, Color>::iterator it;
-				for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
-					colorData[it->first*3] = it->second.getRedValue();
-					colorData[it->first*3+1] = it->second.getGreenValue();
-					colorData[it->first*3+2] = it->second.getBlueValue();
-				}
-
-				mColorBuffer = cl::Buffer(
-						device->getContext(),
-						CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-						sizeof(float)*3*mLabelColors.size(),
-						colorData.get()
-				);
-			}
-
-			if(mFillAreaModified) {
-				// Transfer colors to device (this doesn't have to happen every render call..)
-				std::unique_ptr<char[]> fillAreaData(new char[mLabelColors.size()]);
-				std::unordered_map<int, Color>::iterator it;
-				for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
-					if(mLabelFillArea.count(it->first) == 0) {
-						// Use default value
-						fillAreaData[it->first] = mFillArea;
-					} else {
-						fillAreaData[it->first] = mLabelFillArea[it->first];
-					}
-				}
-
-				mFillAreaBuffer = cl::Buffer(
-						device->getContext(),
-						CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-						sizeof(char)*mLabelColors.size(),
-						fillAreaData.get()
-				);
-			}
-
-			auto mKernel = cl::Kernel(getOpenCLProgram(device), "renderToTexture");
-			mKernel.setArg(2, mColorBuffer);
-			mKernel.setArg(3, mFillAreaBuffer);
-			mKernel.setArg(4, mBorderRadius);
-			mKernel.setArg(5, mOpacity);
 
             m_memoryUsage = 0;
             while(true) {
@@ -208,83 +171,14 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                     auto access = m_input->getAccess(ACCESS_READ);
                     patch = access->getPatchAsImage(level, tile_x, tile_y);
                 }
-			    auto patchAccess = patch->getOpenCLImageAccess(ACCESS_READ, device);
-				cl::Image2D *clImage = patchAccess->get2DImage();
+			    auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, false);
+				GLuint textureID = patchAccess->get();
 
-				// Run kernel to fill the texture
-				cl::CommandQueue queue = device->getCommandQueue();
-
-				cl::Image2D image;
-				//cl::ImageGL imageGL;
-				//std::vector<cl::Memory> v;
-				GLuint textureID;
-				// TODO The GL-CL interop here is causing glClear to not work on AMD systems and therefore disabled
-				/*
-				if(device->isOpenGLInteropSupported()) {
-					// Create OpenGL texture
-					glGenTextures(1, &textureID);
-					glBindTexture(GL_TEXTURE_2D, textureID);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, 0);
-
-					// Create CL-GL image
-					imageGL = cl::ImageGL(
-							device->getContext(),
-							CL_MEM_READ_WRITE,
-							GL_TEXTURE_2D,
-							0,
-							textureID
-					);
-					glBindTexture(GL_TEXTURE_2D, 0);
-					glFinish();
-					mKernel.setArg(1, imageGL);
-					v.push_back(imageGL);
-					queue.enqueueAcquireGLObjects(&v);
-				} else {
-				 */
-				image = cl::Image2D(
-						device->getContext(),
-						CL_MEM_READ_WRITE,
-						cl::ImageFormat(CL_RGBA, CL_UNSIGNED_INT8),
-						patch->getWidth(), patch->getHeight()
-				);
-				mKernel.setArg(1, image);
-				//}
-
-
-				mKernel.setArg(0, *clImage);
-				queue.enqueueNDRangeKernel(
-						mKernel,
-						cl::NullRange,
-						cl::NDRange(patch->getWidth(), patch->getHeight()),
-						cl::NullRange
-				);
-
-				/*if(device->isOpenGLInteropSupported()) {
-					queue.enqueueReleaseGLObjects(&v);
-				} else {*/
-				// Copy data from CL image to CPU
-				auto data = make_uninitialized_unique<uchar[]>(patch->getWidth() * patch->getHeight() * 4);
-				queue.enqueueReadImage(
-						image,
-						CL_TRUE,
-						createOrigoRegion(),
-						createRegion(patch->getWidth(), patch->getHeight(), 1),
-						0, 0,
-						data.get()
-				);
-				// Copy data from CPU to GL texture
-				glGenTextures(1, &textureID);
 				glBindTexture(GL_TEXTURE_2D, textureID);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, patch->getWidth(), patch->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
                 GLint compressedImageSize = 0;
                 glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
 				glBindTexture(GL_TEXTURE_2D, 0);
 				glFinish();
-				//}
 
 				if(mTexturesToRender.count(tileID) > 0) {
 				    // Delete old texture
@@ -309,7 +203,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 }
 
                 m_memoryUsage += compressedImageSize;
-                //std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
+                std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
             }
         });
     }
@@ -381,6 +275,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 
     Vector3f spacing = m_input->getSpacing();
     activateShader();
+    setShaderUniform("opacity", mOpacity);
 
     // This is the actual rendering
     AffineTransformation::pointer transform;

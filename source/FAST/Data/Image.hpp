@@ -208,7 +208,7 @@ class FAST_EXPORT  Image : public SpatialDataObject {
         OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess::pointer getImageAccess(accessType type);
-        OpenGLTextureAccess::pointer getOpenGLTextureAccess(accessType type, OpenCLDevice::pointer);
+        OpenGLTextureAccess::pointer getOpenGLTextureAccess(accessType type, OpenCLDevice::pointer, bool compress = false);
 
         ~Image();
 
