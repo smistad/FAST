@@ -15,10 +15,8 @@ class ImagePyramid;
 class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColorRenderer {
     FAST_OBJECT(SegmentationRenderer)
     public:
-        void setFillArea(Segmentation::LabelType, bool);
-        void setFillArea(bool fillArea);
         void setBorderRadius(int radius);
-        void setOpacity(float opacity);
+        void setOpacity(float opacity, float borderOpacity = -1);
         void setInterpolation(bool useInterpolation);
         void loadAttributes() override;
         virtual ~SegmentationRenderer();
@@ -29,15 +27,10 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColo
         void drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) ;
         virtual void deleteAllTextures() override;
 
-        bool mFillAreaModified;
-
-        std::unordered_map<int, bool> mLabelFillArea;
-        bool mFillArea;
         bool mUseInterpolation = true;
-        int mBorderRadius = 1;
-        float mOpacity = 1;
-        cl::Buffer mColorBuffer, mFillAreaBuffer;
-
+        int mBorderRadius = 2;
+        float mOpacity = 0.5;
+        float mBorderOpacity = 0.5;
 
         // Queue of tiles to be loaded
         std::list<std::string> m_tileQueue; // LIFO queue of unique items

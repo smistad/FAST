@@ -36,7 +36,7 @@ class FAST_EXPORT  ImageRenderer : public virtual Renderer {
         float mWindow;
         float mLevel;
 
-        void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);
+        void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation = false);
 };
 
 }

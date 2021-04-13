@@ -75,7 +75,6 @@ TEST_CASE("SegmentationRenderer on a thresholded 3D image with draw contours onl
     imageRenderer->addInputConnection(slicer->getOutputPort());
 
     SegmentationRenderer::pointer renderer = SegmentationRenderer::New();
-    renderer->setFillArea(false);
     renderer->addInputConnection(segmentation->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
@@ -123,7 +122,6 @@ TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images with draw c
 
     SegmentationRenderer::pointer renderer = SegmentationRenderer::New();
     renderer->addInputConnection(segmentation->getOutputPort());
-    renderer->setFillArea(false);
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->set2DMode();

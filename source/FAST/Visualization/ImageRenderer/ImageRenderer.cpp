@@ -152,8 +152,8 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
 
 }
 
-void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
-
+void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation) {
+    GLuint filterMethod = useInterpolation ? GL_LINEAR : GL_NEAREST;
     for(auto it : mDataToRender) {
         auto input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
@@ -232,6 +232,8 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it.first]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMethod);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMethod);
         glBindVertexArray(mVAO[it.first]);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindTexture(GL_TEXTURE_2D, 0);

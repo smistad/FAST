@@ -5,20 +5,13 @@
 
 namespace fast {
 
-void SegmentationRenderer::setFillArea(Segmentation::LabelType labelType,
-        bool fillArea) {
-    mLabelFillArea[labelType] = fillArea;
-    mFillAreaModified = true;
-    deleteAllTextures();
-}
-
-void SegmentationRenderer::setFillArea(bool fillArea) {
-    mFillArea = fillArea;
-    deleteAllTextures();
-}
-
 void SegmentationRenderer::loadAttributes() {
-    setOpacity(getFloatAttribute("opacity"));
+    auto borderOpacity = getFloatAttribute("border-opacity");
+    if(borderOpacity >= 0.0) {
+        setOpacity(getFloatAttribute("opacity"), borderOpacity);
+    } else {
+        setOpacity(getFloatAttribute("opacity"));
+    }
     auto colors = getStringListAttribute("label-colors");
     for(int i = 0; i < colors.size(); i += 2) {
         int label = std::stoi(colors[i]);
@@ -31,6 +24,7 @@ SegmentationRenderer::SegmentationRenderer() {
     createInputPort<Image>(0, false);
 
     createFloatAttribute("opacity", "Segmentation Opacity", "", mOpacity);
+    createFloatAttribute("border-opacity", "Segmentation border opacity", "", -1);
     createStringAttribute("label-colors", "Label color", "Label color set as <label1> <color1> <label2> <color2>", "");
 
     createShaderProgram({
@@ -42,8 +36,6 @@ SegmentationRenderer::SegmentationRenderer() {
                                 Config::getKernelSourcePath() + "/Visualization/SegmentationRenderer/SegmentationPyramidRenderer.frag",
                         }); // Image Pyramid shader
     mIsModified = false;
-    mFillAreaModified = true;
-    mFillArea = true;
 }
 
 void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
@@ -102,10 +94,12 @@ void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewi
 
     activateShader("unsigned-integer");
     setShaderUniform("opacity", mOpacity, "unsigned-integer");
+    setShaderUniform("borderOpacity", mBorderOpacity, "unsigned-integer");
+    setShaderUniform("borderRadius", mBorderRadius, "unsigned-integer");
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
+    drawTextures(perspectiveMatrix, viewingMatrix, mode2D, mUseInterpolation);
     glDisable(GL_BLEND);
 }
 
@@ -298,6 +292,8 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
         Vector3f spacing = m_input->getSpacing();
         activateShader();
         setShaderUniform("opacity", mOpacity);
+        setShaderUniform("borderOpacity", mBorderOpacity);
+        setShaderUniform("borderRadius", mBorderRadius);
 
         // This is the actual rendering
         AffineTransformation::pointer transform;
@@ -313,7 +309,7 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
         transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
-        // Enable transparency
+    // Enable transparency
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -467,11 +463,15 @@ void SegmentationRenderer::setBorderRadius(int radius) {
     deleteAllTextures();
 }
 
-void SegmentationRenderer::setOpacity(float opacity) {
+void SegmentationRenderer::setOpacity(float opacity, float borderOpacity) {
     if(opacity < 0 || opacity > 1)
         throw Exception("SegmentationRenderer opacity has to be >= 0 and <= 1");
     mOpacity = opacity;
-    deleteAllTextures();
+    if(borderOpacity >= 0.0) {
+        mBorderOpacity = borderOpacity;
+    } else {
+        mBorderOpacity = opacity;
+    }
 }
 
 void SegmentationRenderer::setInterpolation(bool useInterpolation) {

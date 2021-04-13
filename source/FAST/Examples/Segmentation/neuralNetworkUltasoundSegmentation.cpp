@@ -67,8 +67,8 @@ int main(int argc, char** argv) {
     auto segmentationRenderer = SegmentationRenderer::New();
     segmentationRenderer->addInputConnection(segmentation->getOutputPort());
     segmentationRenderer->setOpacity(0.25);
-    segmentationRenderer->setColor(Segmentation::LABEL_FOREGROUND, Color::Red());
-    segmentationRenderer->setColor(Segmentation::LABEL_BLOOD, Color::Blue());
+    segmentationRenderer->setColor(1, Color::Red());
+    segmentationRenderer->setColor(2, Color::Blue());
 
     auto labelRenderer = SegmentationLabelRenderer::New();
     labelRenderer->addInputConnection(segmentation->getOutputPort());
