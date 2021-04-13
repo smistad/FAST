@@ -26,6 +26,22 @@ namespace fast {
 
 void ImagePyramidRenderer::clearPyramid() {
     // Clear buffer. Useful when processing a new image
+    // Delete all GL data
+    for(auto item : mVAO) {
+        glDeleteVertexArrays(1, &item.second);
+    }
+    mVAO.clear();
+    for(auto item : mVBO) {
+        glDeleteBuffers(1, &item.second);
+    }
+    mVBO.clear();
+    for(auto item : mEBO) {
+        glDeleteBuffers(1, &item.second);
+    }
+    mEBO.clear();
+    for(auto texture : mTexturesToRender) {
+        glDeleteTextures(1, &texture.second);
+    }
     mTexturesToRender.clear();
     mDataToRender.clear();
 }
@@ -35,12 +51,11 @@ ImagePyramidRenderer::~ImagePyramidRenderer() {
     m_queueEmptyCondition.notify_one();
     m_bufferThread->join();
     reportInfo() << "Buffer thread in ImagePyramidRenderer stopped" << reportEnd();
+    clearPyramid();
 }
 
 ImagePyramidRenderer::ImagePyramidRenderer() : Renderer() {
     createInputPort<ImagePyramid>(0, false);
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.cl", "3D");
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/VeryLargeImageRenderer2D.cl", "2D");
     mIsModified = true;
     m_stop = false;
     mWindow = -1;
@@ -315,56 +330,52 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 }
 
                 // Delete old VAO
-                if(mVAO.count(tileString) > 0)
-                    glDeleteVertexArrays(1, &mVAO[tileString]);
-                // Create VAO
-                uint VAO_ID;
-                glGenVertexArrays(1, &VAO_ID);
-                mVAO[tileString] = VAO_ID;
-                glBindVertexArray(VAO_ID);
+                if(mVAO.count(tileString) == 0) {
+                    // Create VAO
+                    uint VAO_ID;
+                    glGenVertexArrays(1, &VAO_ID);
+                    mVAO[tileString] = VAO_ID;
+                    glBindVertexArray(VAO_ID);
 
-                // Create VBO
-                // Get width and height in mm
-                //std::cout << "Creating vertices for " << tile_x << " " << tile_y << std::endl;
-                //std::cout << "Tile position: " << tile_offset_x*mCurrentTileScale << " " << tile_offset_x*mCurrentTileScale + tile_width*mCurrentTileScale << std::endl;
-                //std::cout << "Tile position: " << tile_offset_y*mCurrentTileScale << " " << tile_offset_y*mCurrentTileScale + tile_height*mCurrentTileScale << std::endl;
-                float vertices[] = {
-                        // vertex: x, y, z; tex coordinates: x, y
-                        tile_offset_x * mCurrentTileScale, (tile_offset_y + tile_height) * mCurrentTileScale, -level,
-                        0.0f, 1.0f,
-                        (tile_offset_x + tile_width) * mCurrentTileScale,
-                        (tile_offset_y + tile_height) * mCurrentTileScale, -level, 1.0f, 1.0f,
-                        (tile_offset_x + tile_width) * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -level, 1.0f,
-                        0.0f,
-                        tile_offset_x * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -level, 0.0f, 0.0f,
-                };
-                // Delete old VBO
-                if(mVBO.count(tileString) > 0)
-                    glDeleteBuffers(1, &mVBO[tileString]);
-                uint VBO;
-                glGenBuffers(1, &VBO);
-                mVBO[tileString] = VBO;
-                glBindBuffer(GL_ARRAY_BUFFER, VBO);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
-                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
-                glEnableVertexAttribArray(0);
-                glEnableVertexAttribArray(1);
+                    // Create VBO
+                    // Get width and height in mm
+                    //std::cout << "Creating vertices for " << tile_x << " " << tile_y << std::endl;
+                    //std::cout << "Tile position: " << tile_offset_x*mCurrentTileScale << " " << tile_offset_x*mCurrentTileScale + tile_width*mCurrentTileScale << std::endl;
+                    //std::cout << "Tile position: " << tile_offset_y*mCurrentTileScale << " " << tile_offset_y*mCurrentTileScale + tile_height*mCurrentTileScale << std::endl;
+                    float vertices[] = {
+                            // vertex: x, y, z; tex coordinates: x, y
+                            tile_offset_x * mCurrentTileScale, (tile_offset_y + tile_height) * mCurrentTileScale,
+                            -level,
+                            0.0f, 1.0f,
+                            (tile_offset_x + tile_width) * mCurrentTileScale,
+                            (tile_offset_y + tile_height) * mCurrentTileScale, -level, 1.0f, 1.0f,
+                            (tile_offset_x + tile_width) * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -level,
+                            1.0f,
+                            0.0f,
+                            tile_offset_x * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -level, 0.0f, 0.0f,
+                    };
+                    uint VBO;
+                    glGenBuffers(1, &VBO);
+                    mVBO[tileString] = VBO;
+                    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+                    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+                    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
+                    glEnableVertexAttribArray(0);
+                    glEnableVertexAttribArray(1);
 
-                // Delete old EBO
-                if(mEBO.count(tileString) > 0)
-                    glDeleteBuffers(1, &mEBO[tileString]);
-                // Create EBO
-                uint EBO;
-                glGenBuffers(1, &EBO);
-                mEBO[tileString] = EBO;
-                uint indices[] = {  // note that we start from 0!
-                        0, 1, 3,   // first triangle
-                        1, 2, 3    // second triangle
-                };
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-                glBindVertexArray(0);
+                    // Create EBO
+                    uint EBO;
+                    glGenBuffers(1, &EBO);
+                    mEBO[tileString] = EBO;
+                    uint indices[] = {  // note that we start from 0!
+                            0, 1, 3,   // first triangle
+                            1, 2, 3    // second triangle
+                    };
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+                    glBindVertexArray(0);
+                }
 
                 //std::cout << "drawing " << tileString << std::endl;
                 glBindTexture(GL_TEXTURE_2D, textureID);

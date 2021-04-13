@@ -36,7 +36,7 @@ void LabelColorRenderer::createColorUniformBufferObject() {
     }
 }
 
-void LabelColorRenderer::setLabelColor(int label, Color color) {
+void LabelColorRenderer::setColor(int label, Color color) {
     m_labelColors[label] = color;
 }
 

@@ -380,6 +380,7 @@ void Image::updateHostData() {
 
 void Image::setAllDataToOutOfDate() {
     mHostDataIsUpToDate = false;
+    m_GLtextureUpToDate = false;
     std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
     for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
             it++) {
@@ -848,7 +849,6 @@ float Image::calculateAverageIntensity() {
     if(!mAverageInitialized || mAverageIntensityTimestamp != getTimestamp()) {
         unsigned int nrOfElements = mWidth*mHeight*mDepth;
         if(mHostHasData && mHostDataIsUpToDate) {
-            reportInfo() << "calculating sum on host" << Reporter::end();
             // Host data is up to date, calculate min and max on host
             ImageAccess::pointer access = getImageAccess(ACCESS_READ);
             void* data = access->get();
@@ -870,7 +870,6 @@ float Image::calculateAverageIntensity() {
                 break;
             }
         } else {
-            reportInfo() << "calculating sum with OpenCL" << Reporter::end();
             // TODO the logic here can be improved. For instance choose the best device
             // Find some OpenCL image data or buffer data that is up to date
             bool found = false;

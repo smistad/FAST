@@ -116,11 +116,13 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
 			m_outputImage = Image::New();
             m_outputImage->create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
         } else {
-            if(fullWidth < 8192 && fullHeight < 8192) {
+            if(fullWidth < 4096 && fullHeight < 4096) {
+                reportInfo() << "Patch stitcher creating image with size " << fullWidth << " " << fullHeight << reportEnd();
 				m_outputImage = Image::New();
                 m_outputImage->create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
             } else {
                 // Large image, create image pyramid instead
+                reportInfo() << "Patch stitcher creating image PYRAMID with size " << fullWidth << " " << fullHeight << reportEnd();
                 m_outputImagePyramid = ImagePyramid::New();
                 m_outputImagePyramid->create(fullWidth, fullHeight, patch->getNrOfChannels());
             }
@@ -152,12 +154,14 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     if(fullDepth == 1) {
-		int startX = std::stoi(patch->getFrameData("patchid-x")) * std::stoi(patch->getFrameData("patch-width"));
-		int startY = std::stoi(patch->getFrameData("patchid-y")) * std::stoi(patch->getFrameData("patch-height"));
-		int endX = startX + patch->getWidth();
-		int endY = startY + patch->getHeight();
 		reportInfo() << "Stitching 2D data " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y")
 			<< reportEnd();
+
+        const int patchOverlapX = std::stoi(patch->getFrameData("patch-overlap-x"));
+        const int patchOverlapY = std::stoi(patch->getFrameData("patch-overlap-y"));
+        // Calculate offset. If this calculation is incorrect. Update in ImagePyramidPatchExporter as well.
+        const int startX = std::stoi(patch->getFrameData("patchid-x")) * (std::stoi(patch->getFrameData("patch-width")) - patchOverlapX*2) + patchOverlapX; // TODO + overlap to compensate for start offset
+        const int startY = std::stoi(patch->getFrameData("patchid-y")) * (std::stoi(patch->getFrameData("patch-height")) - patchOverlapY*2) + patchOverlapY;
         if(m_outputImage) {
             cl::Program program = getOpenCLProgram(device, "2D");
 
@@ -169,6 +173,8 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
             kernel.setArg(1, *outputAccess->get2DImage());
             kernel.setArg(2, startX);
             kernel.setArg(3, startY);
+            kernel.setArg(4, patchOverlapX);
+            kernel.setArg(5, patchOverlapY);
             device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
                 cl::NullRange,
@@ -176,13 +182,8 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 cl::NullRange
             );
         } else {
-            const int patchOverlapX = std::stoi(patch->getFrameData("patch-overlap-x"));
-            const int patchOverlapY = std::stoi(patch->getFrameData("patch-overlap-y"));
-            // Calculate offset. If this calculation is incorrect. Update in ImagePyramidPatchExporter as well.
-            startX = std::stoi(patch->getFrameData("patchid-x")) * (std::stoi(patch->getFrameData("patch-width")) - patchOverlapX*2) + patchOverlapX; // TODO + overlap to compensate for start offset
-            startY = std::stoi(patch->getFrameData("patchid-y")) * (std::stoi(patch->getFrameData("patch-height")) - patchOverlapY*2) + patchOverlapY;
-            endX = startX + patch->getWidth() - patchOverlapX*2;
-            endY = startY + patch->getHeight() - patchOverlapY*2;
+            auto endX = startX + patch->getWidth() - patchOverlapX*2;
+            auto endY = startY + patch->getHeight() - patchOverlapY*2;
             //enableRuntimeMeasurements();
             // Image pyramid, do it on CPU TODO: optimize somehow?
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
@@ -200,6 +201,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         }
     } else {
         // 3D
+        // TODO overlap not implemented for 3D
         const int startX = 0;
         const int startY = 0;
         const int startZ = std::stoi(patch->getFrameData("patch-offset-z"));

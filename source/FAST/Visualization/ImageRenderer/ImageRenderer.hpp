@@ -17,7 +17,7 @@ class FAST_EXPORT  ImageRenderer : public virtual Renderer {
     protected:
         ImageRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
-        void deleteAllTextures();
+        virtual void deleteAllTextures();
 
 
         std::unordered_map<uint, uint> mTexturesToRender;
