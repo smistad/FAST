@@ -158,53 +158,46 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         auto input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
         // Delete old VAO
-        if(mVAO.count(inputNr) > 0)
-            glDeleteVertexArrays(1, &mVAO[inputNr]);
-        // Create VAO
-        uint VAO_ID;
-        glGenVertexArrays(1, &VAO_ID);
-        mVAO[inputNr] = VAO_ID;
-        glBindVertexArray(VAO_ID);
+        if(mVAO.count(inputNr) == 0) {
+            // Create VAO
+            uint VAO_ID;
+            glGenVertexArrays(1, &VAO_ID);
+            mVAO[inputNr] = VAO_ID;
+            glBindVertexArray(VAO_ID);
 
-        // Create VBO
-        // Get width and height in mm
-        float width = input->getWidth();// * input->getSpacing().x();
-        float height = input->getHeight();// * input->getSpacing().y();
-        float vertices[] = {
-                // vertex: x, y, z; tex coordinates: x, y
-                0.0f, height, 0.0f, 0.0f, 0.0f,
-                width, height, 0.0f, 1.0f, 0.0f,
-                width, 0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        };
-        // Delete old VBO
-        if(mVBO.count(inputNr) > 0)
-            glDeleteBuffers(1, &mVBO[inputNr]);
-        uint VBO;
-        glGenBuffers(1, &VBO);
-        mVBO[inputNr] = VBO;
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
+            // Create VBO
+            // Get width and height in mm
+            float width = input->getWidth();// * input->getSpacing().x();
+            float height = input->getHeight();// * input->getSpacing().y();
+            float vertices[] = {
+                    // vertex: x, y, z; tex coordinates: x, y
+                    0.0f, height, 0.0f, 0.0f, 0.0f,
+                    width, height, 0.0f, 1.0f, 0.0f,
+                    width, 0.0f, 0.0f, 1.0f, 1.0f,
+                    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            };
+            uint VBO;
+            glGenBuffers(1, &VBO);
+            mVBO[inputNr] = VBO;
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
+            glEnableVertexAttribArray(0);
+            glEnableVertexAttribArray(1);
 
-        // Delete old EBO
-        if(mEBO.count(inputNr) > 0)
-            glDeleteBuffers(1, &mEBO[inputNr]);
-        // Create EBO
-        uint EBO;
-        glGenBuffers(1, &EBO);
-        mEBO[inputNr] = EBO;
-        uint indices[] = {  // note that we start from 0!
-                0, 1, 3,   // first triangle
-                1, 2, 3    // second triangle
-        };
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-        glBindVertexArray(0);
-
+            // Create EBO
+            uint EBO;
+            glGenBuffers(1, &EBO);
+            mEBO[inputNr] = EBO;
+            uint indices[] = {  // note that we start from 0!
+                    0, 1, 3,   // first triangle
+                    1, 2, 3    // second triangle
+            };
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+            glBindVertexArray(0);
+        }
     }
     
 

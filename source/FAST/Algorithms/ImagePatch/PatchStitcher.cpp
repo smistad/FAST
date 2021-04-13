@@ -116,7 +116,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
 			m_outputImage = Image::New();
             m_outputImage->create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
         } else {
-            if(fullWidth < 4096 && fullHeight < 4096) {
+            if(fullWidth < 8192 && fullHeight < 8192) {
                 reportInfo() << "Patch stitcher creating image with size " << fullWidth << " " << fullHeight << reportEnd();
 				m_outputImage = Image::New();
                 m_outputImage->create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());

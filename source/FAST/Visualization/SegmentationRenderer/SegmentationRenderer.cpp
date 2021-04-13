@@ -80,13 +80,17 @@ void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewi
         if(mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input && mDataTimestamp[inputNr] == input->getTimestamp())
             continue; // If it has already been created, skip it
 
-        // If it has not been created, create the texture
+        // If texture exists, delete the old one
         if(mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
             glDeleteTextures(1, &mTexturesToRender[inputNr]);
             mTexturesToRender.erase(inputNr);
             glDeleteVertexArrays(1, &mVAO[inputNr]);
             mVAO.erase(inputNr);
+            glDeleteBuffers(1, &mVBO[inputNr]);
+            mVBO.erase(inputNr);
+            glDeleteBuffers(1, &mEBO[inputNr]);
+            mEBO.erase(inputNr);
         }
 
         auto access = input->getOpenGLTextureAccess(ACCESS_READ, device);
