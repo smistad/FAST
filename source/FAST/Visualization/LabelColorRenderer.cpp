@@ -4,7 +4,6 @@ namespace fast {
 
 void LabelColorRenderer::createColorUniformBufferObject() {
     if (m_colorsModified) {
-        std::cout << "Uploading UBO.." << std::endl;
         // Create UBO for colors
         glDeleteBuffers(1, &m_colorsUBO);
         glGenBuffers(1, &m_colorsUBO);

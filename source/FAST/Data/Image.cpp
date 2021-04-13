@@ -1345,18 +1345,20 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
         }
         GLenum GLtype = mTypeToType[mType];
         GLint* swizzleMask = mChannelsToSwizzle[mChannels].data();
-        /*
-        // TODO check if OpenCL device has data
-        if(device->isOpenGLInteropSupported() && !hasOpenCLDeviceData) {
+
+        // Create OpenGl texture
+        glGenTextures(1, &m_GLtextureID);
+        glBindTexture(GL_TEXTURE_2D, m_GLtextureID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Fix alignment issues with single channel images..
+        // If OpenGL interop is supported AND OpenCL has the data on the device..
+        if(device->isOpenGLInteropSupported() && (mCLImagesIsUpToDate[device] || mCLBuffersIsUpToDate[device])) {
             auto access = getOpenCLImageAccess(ACCESS_READ, device);
-            // Create GL texture with correct format
-            glGenTextures(1, &m_GLtextureID);
-            glBindTexture(GL_TEXTURE_2D, m_GLtextureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, format, GLtype, nullptr);
             glBindTexture(GL_TEXTURE_2D, 0);
             glFinish();
@@ -1379,23 +1381,13 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
             } catch(cl::Error &e) {
                 // Most likely the format was not supported
             }
-            // Copy OpenCL data to the texture, either by image copy, or by kernel
-        } else {*/
+        } else {
             // Copy data from CPU to GL texture
             auto access = getImageAccess(ACCESS_READ);
-            glGenTextures(1, &m_GLtextureID);
-            glBindTexture(GL_TEXTURE_2D, m_GLtextureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Fix alignment issues with single channel images..
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, format, GLtype, access->get());
-            glBindTexture(GL_TEXTURE_2D, 0);
             glFinish();
-        //}
+        }
+        glBindTexture(GL_TEXTURE_2D, 0);
         m_GLtextureUpToDate = true;
     }
 
