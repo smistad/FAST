@@ -1320,23 +1320,29 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
                 {TYPE_FLOAT, GL_FLOAT},
         };
         GLint internalFormat = mChannelsToFormat[mType][mChannels].first;
+        GLenum format = mChannelsToFormat[mType][mChannels].second;
         if(compress) {
+            if(mType != TYPE_UINT8)
+                throw Exception("OpenGL texture compression only enabled for UINT8 images.");
             switch(mChannels) {
                 case 1:
-                    internalFormat = GL_COMPRESSED_RED;
+                    internalFormat = GL_COMPRESSED_RED_RGTC1;
+                    format = GL_RED;
                     break;
                 case 2:
-                    internalFormat = GL_COMPRESSED_RG;
+                    internalFormat = GL_COMPRESSED_RG_RGTC2;
+                    format = GL_RG;
                     break;
                 case 3:
                     internalFormat = GL_COMPRESSED_RGB;
+                    format = GL_RGB;
                     break;
                 case 4:
                     internalFormat = GL_COMPRESSED_RGBA;
+                    format = GL_RGBA;
                     break;
             }
         }
-        GLenum format = mChannelsToFormat[mType][mChannels].second;
         GLenum GLtype = mTypeToType[mType];
         GLint* swizzleMask = mChannelsToSwizzle[mChannels].data();
         /*

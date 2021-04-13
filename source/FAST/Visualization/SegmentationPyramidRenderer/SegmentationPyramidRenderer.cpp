@@ -171,7 +171,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                     auto access = m_input->getAccess(ACCESS_READ);
                     patch = access->getPatchAsImage(level, tile_x, tile_y);
                 }
-			    auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, false);
+			    auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, true);
 				GLuint textureID = patchAccess->get();
 
 				glBindTexture(GL_TEXTURE_2D, textureID);
@@ -203,7 +203,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 }
 
                 m_memoryUsage += compressedImageSize;
-                std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
+                //std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
             }
         });
     }
