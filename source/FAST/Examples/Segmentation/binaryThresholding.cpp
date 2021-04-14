@@ -27,7 +27,6 @@ int main() {
 
     auto segmentationRenderer = SegmentationRenderer::New();
     segmentationRenderer->addInputConnection(thresholding->getOutputPort());
-    segmentationRenderer->setFillArea(false);
 
     auto window = SimpleWindow::New();
     window->addRenderer(imageRenderer);

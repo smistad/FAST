@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Access.hpp"
-#include "FAST/Object.hpp"
+#include <FAST/Object.hpp>
+#include <FAST/Data/DataTypes.hpp>
 
 
 namespace fast {

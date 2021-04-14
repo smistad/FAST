@@ -115,7 +115,6 @@ KinectTrackingGUI::KinectTrackingGUI() {
 
     SegmentationRenderer::pointer annotationRenderer = SegmentationRenderer::New();
     annotationRenderer->addInputConnection(mTracking->getOutputPort(1));
-    annotationRenderer->setFillArea(false);
     const int menuWidth = 300;
 
     setTitle("FAST - Kinect Object Tracking");
@@ -363,7 +362,6 @@ void KinectTrackingGUI::restart() {
 
     SegmentationRenderer::pointer annotationRenderer = SegmentationRenderer::New();
     annotationRenderer->addInputConnection(mTracking->getOutputPort(1));
-    annotationRenderer->setFillArea(false);
 
     view->set2DMode();
     view->setBackgroundColor(Color::Black());

@@ -1355,6 +1355,7 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Fix alignment issues with single channel images..
+        bool doCPUtransfer = true; // If GPU-GPU transfer is possible do that, but GPU-CPU-GPU transfer is fallback.
         // If OpenGL interop is supported AND OpenCL has the data on the device..
         if(device->isOpenGLInteropSupported() && (mCLImagesIsUpToDate[device] || mCLBuffersIsUpToDate[device])) {
             auto access = getOpenCLImageAccess(ACCESS_READ, device);
@@ -1375,12 +1376,15 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
                 std::vector<cl::Memory> v;
                 v.push_back(imageGL);
                 device->getCommandQueue().enqueueAcquireGLObjects(&v);
-                device->getCommandQueue().enqueueCopyImage(*access->get(), imageGL, createOrigoRegion(), createRegion(getSize()), createRegion(getSize()));
+                device->getCommandQueue().enqueueCopyImage(*access->get(), imageGL, createOrigoRegion(), createOrigoRegion(), createRegion(getSize()));
                 device->getCommandQueue().enqueueReleaseGLObjects(&v);
+                doCPUtransfer = false;
             } catch(cl::Error &e) {
                 // Most likely the format was not supported
+                reportWarning() << "OpenGL interop was supported, but failed to transfer data. Error was: " << e.what() << reportEnd();
             }
-        } else {
+        }
+        if(doCPUtransfer) {
             // Copy data from CPU to GL texture
             auto access = getImageAccess(ACCESS_READ);
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, format, GLtype, access->get());
