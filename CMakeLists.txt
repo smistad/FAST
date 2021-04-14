@@ -99,6 +99,7 @@ endif()
 include(cmake/Depdendencies.cmake)
 
 if(FAST_BUILD_DOCS)
+    include(cmake/ExternalMCSS.cmake)
     include(cmake/Documentation.cmake)
 endif()
 
