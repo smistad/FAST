@@ -7,13 +7,11 @@
 FAST is an open-source cross-platform framework with the main goal of making it easier to do high-performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
 
 ### Get started
-First, make sure you have the [requirements installed](https://github.com/smistad/FAST/wiki/Requirements).   
-Stable binary releases/installers can be [downloaded for Windows and Ubuntu Linux](https://github.com/smistad/FAST/releases/).
+See installation instructions for [Windows](https://github.com/smistad/FAST/wiki/Install-FAST-on-Windows), [Ubuntu Linux](https://github.com/smistad/FAST/wiki/Install-FAST-on-Linux) and [Python](https://github.com/smistad/FAST/wiki/Install-FAST-for-Python).
 
-To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide and [examples](https://github.com/smistad/FAST/wiki/Examples).
+To start using the framework, see the [Getting started guide](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) and [examples](https://github.com/smistad/FAST/wiki/Examples).
 
-FAST is also available for Python 3 through [pip](https://pypi.org/project/pyFAST/): ```pip install pyfast```   
-Python examples can be found [here](https://github.com/smistad/FAST/wiki/Examples#Python).
+More information can be found on the [wiki](https://github.com/smistad/FAST/wiki/).
 
 Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
 
@@ -31,12 +29,12 @@ Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.
 
 FAST has been described in the following research articles. If you use this framework for research please cite them:
 
-*[FAST: framework for heterogeneous medical image computing and visualization](http://www.eriksmistad.no/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf)  
-Erik Smistad, Mohammadmehdi Bozorgi, Frank Lindseth  
+*[FAST: framework for heterogeneous medical image computing and visualization](http://www.eriksmistad.no/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf)
+Erik Smistad, Mohammadmehdi Bozorgi, Frank Lindseth
 International Journal of Computer Assisted Radiology and Surgery 2015*
 
-*[High Performance Neural Network Inference, Streaming, and Visualization of Medical Images Using FAST](https://www.eriksmistad.no/wp-content/uploads/High-Performance-Neural-Network-Inference-Streaming-and-Visualization-of-Medical-Images-Using-FAST.pdf)  
-Erik Smistad, Andreas Østvik, André Pedersen  
+*[High Performance Neural Network Inference, Streaming, and Visualization of Medical Images Using FAST](https://www.eriksmistad.no/wp-content/uploads/High-Performance-Neural-Network-Inference-Streaming-and-Visualization-of-Medical-Images-Using-FAST.pdf)
+Erik Smistad, Andreas Østvik, André Pedersen
 IEEE Access 2019*
 
 ### Build
