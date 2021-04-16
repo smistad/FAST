@@ -9,6 +9,13 @@ namespace fast {
 class View;
 class Text;
 
+/**
+ * @brief Renders Text data
+ *
+ * Renders text data objects.
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT  TextRenderer : public Renderer {
     FAST_OBJECT(TextRenderer)
     public:

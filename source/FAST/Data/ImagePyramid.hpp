@@ -12,9 +12,13 @@ namespace fast {
 class Image;
 
 /**
+ * @brief Image pyramid data object
+ *
  * Data object for storing large images as tiled image pyramids.
  * Storage uses virtual memory enabling the images to be larger than
  * the available RAM.
+ *
+ * @ingroup data
  */
 class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     FAST_OBJECT(ImagePyramid)

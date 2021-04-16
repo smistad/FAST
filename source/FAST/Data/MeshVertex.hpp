@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class FAST_EXPORT  MeshVertex {
+class FAST_EXPORT MeshVertex {
     public:
 		MeshVertex(Vector3f position, Vector3f normal = Vector3f(1, 0, 0), Color color = Color::Green());
 		Vector3f getPosition() const;

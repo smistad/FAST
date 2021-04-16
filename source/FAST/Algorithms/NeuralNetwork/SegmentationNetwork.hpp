@@ -1,15 +1,19 @@
 #pragma once
 
-#include "NeuralNetwork.hpp"
+#include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
 
 namespace fast {
 
 class TensorToSegmentation;
 
 /**
- * This class is a convienence class for a neural network which performs segmentation
+ * @brief Segmentation neural network process object
+ *
+ * This class is a convenience class for a neural network which performs segmentation
  * by having 1 input image, and outputs 1 segmentation image. Internally it uses TensorToSegmentation.
  * If you need multi-input or multi-output support, use NeuralNetwork with TensorToSegmentation instead.
+ *
+ * @ingroup neural-network
  */
 class FAST_EXPORT SegmentationNetwork : public NeuralNetwork {
     FAST_OBJECT(SegmentationNetwork)

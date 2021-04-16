@@ -1,12 +1,17 @@
-#ifndef SEGMENTATION_HPP_
-#define SEGMENTATION_HPP_
+#pragma once
 
 #include "Image.hpp"
 #include "Color.hpp"
 
 namespace fast {
 
-// TODO inheritance here should probably not be public..
+/**
+ * @brief Segmentation image data object
+ *
+ * A segmentation data object is an @ref Image with a single channel and 8 bit unsigned integer data type.
+ *
+ * @ingroup data
+ */
 class FAST_EXPORT  Segmentation : public Image {
     FAST_OBJECT(Segmentation)
     public:
@@ -43,5 +48,3 @@ class FAST_EXPORT  Segmentation : public Image {
 };
 
 }
-
-#endif

@@ -12,6 +12,15 @@ namespace fast {
 
 class ImagePyramid;
 
+/**
+ * @brief Renders 2D segmentation data
+ *
+ * Renders segmentation data using colors and potentially transparency.
+ *
+ * Input can be 2D Segmentation, Image or ImagePyramid (of type TYPE_UINT8) objects.
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColorRenderer {
     FAST_OBJECT(SegmentationRenderer)
     public:

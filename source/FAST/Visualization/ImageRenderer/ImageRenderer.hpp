@@ -5,6 +5,11 @@
 
 namespace fast {
 
+/**
+ * @brief Renders 2D Image data objects, both in 2D and 3D.
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT  ImageRenderer : public virtual Renderer {
     FAST_OBJECT(ImageRenderer)
     public:

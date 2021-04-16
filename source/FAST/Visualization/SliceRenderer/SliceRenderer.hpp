@@ -1,5 +1,4 @@
-#ifndef SLICERENDERER_HPP_
-#define SLICERENDERER_HPP_
+#pragma once
 
 #include <FAST/Visualization/Plane.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
@@ -10,6 +9,14 @@ namespace fast {
 
 class ImageSlicer;
 
+/**
+ * @brief Renders a 2D image slice extracted from a 3D image.
+ *
+ * This renderer uses the ImageSlicer to extract a 2D image slice from a 3D image, and
+ * extends ImageRenderer to render the image slice.
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT  SliceRenderer : public ImageRenderer {
     FAST_OBJECT(SliceRenderer)
     public:
@@ -46,8 +53,3 @@ class FAST_EXPORT  SliceRenderer : public ImageRenderer {
 };
 
 }
-
-
-
-
-#endif /* SLICERENDERER_HPP_ */

@@ -8,6 +8,11 @@
 
 namespace fast {
 
+/**
+ * \brief A 2D bounding box data object.
+ *
+ * \ingroup data
+ */
 class FAST_EXPORT BoundingBox : public SpatialDataObject {
     FAST_OBJECT(BoundingBox)
     public:
@@ -46,6 +51,11 @@ class FAST_EXPORT BoundingBox : public SpatialDataObject {
         std::mutex m_mutex;
 };
 
+/**
+ * \brief A data object representing a (large) set of bounding boxes.
+ *
+ * \ingroup data
+ */
 class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
     FAST_OBJECT(BoundingBoxSet)
     public:

@@ -1,0 +1,170 @@
+namespace fast {
+/** @page cpp-tutorial C++ Tutorial
+@tableofcontents
+
+Set up a CMake project
+-------------------
+Before we can start coding in C++ with FAST we need to set up a CMake
+project with FAST. This will enable you to build a standalone executable
+using FAST.
+
+1. First [install FAST](@ref install) on your machine.
+
+2. Then you need to install some tools (Git, CMake and a C++ compiler) to build your FAST application:
+   On Ubuntu linux you can easily install these tools:
+   ```bash
+   sudo apt install git cmake g++
+   ```
+   On Windows download and install these tools: [git](), [CMake](https://www.cmake.org) and [Visual Studio Community]().
+
+3. Clone the FAST example project repository:
+   ```bash
+   git clone https://github.com/smistad/FAST-example-project.git
+   ```
+4. Setup build environment using CMake:
+   **Linux**
+   ```bash
+   mkdir build
+   cd build
+   cmake .. -DFAST_DIR=/path/to/FAST/cmake/
+   ```
+   **Windows (Visual Studio)**
+   Modify generator -G string to match your Visual studio version. This command will create a visual studio solution in your build folder.
+   ```bash
+   mkdir build
+   cd build
+   cmake .. -DFAST_DIR=C:/path/to/FAST/cmake/ -G "Visual Studio 16 2019" -A x64
+   ```
+5. Build the application:
+   ```bash
+   cmake --build . --config Release --target fastExample
+   ```
+6. Run the application:
+   **Linux**
+   ```bash
+   ./fastExample
+   ```
+   **Windows**
+   ```bash
+   cd Release
+   fastExample.exe
+   ```
+
+Now you should hopefully see this:
+
+![Screenshot of example](https://www.eriksmistad.no/wp-content/uploads/FAST-example-application.png)
+
+Download the test data
+-------------------
+To download the 2~GB FAST test dataset, simply run the downloadTestData executable
+found in your FAST installation directory. With default install locations these are:
+
+**Linux**:
+```bash
+/opt/fast/bin/downloadTestData
+```
+
+**Windows**:
+```bash
+C:/Program Files/FAST/fast/bin/downloadTestData.exe
+```
+
+Importing data
+-------------------
+Now, we are ready to start coding.
+Open the main.cpp file in an editor of your choice.
+Start by removing all the code in the main() function to start from scratch.
+Then add the following code to load an ultrasound image:
+```cpp
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+```
+This code will create an ImageFileImporter process object and
+set the filename of the ultrasound image to load.
+Config::getTestDataPath simply returns the path to where the test data
+you downloaded earlier is located.
+To execute the ImageFileImporter, and thereby loading the image, do the following:
+```cpp
+auto image = importer->updateAndGetOutputData<Image>();
+std::cout << "An image was importer with size: " << image->getSize() << std::endl;
+```
+Use the command `cmake --build . --config Release --target fastExample`
+from before to rebuild the application.
+
+Display the data
+-------------------
+To the display the image data, we need two things: a Window and a Renderer.
+For this example, we will use the ImageRenderer which is used to display images,
+and the SimpleWindow in 2D mode.
+The renderer is connected to the importer using the following statement:
+```cpp
+renderer->setInputConnection(importer->getOutputPort());
+```
+This will form an execution pipeline, so that executing the renderer will
+trigger execute on the importer as well.
+
+Our entire example should now look like this:
+```cpp
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+
+# Set up a renderer and connect it to the importer
+auto renderer = ImageRenderer::New();
+renderer->setInputConnection(importer->getOutputPort());
+
+# Create a window, add the renderer and start the computation/rendering loop.
+auto window = SimpleWindow::New();
+window->set2DMode();
+window->addRenderer(renderer->getOutputPort());
+window->start();
+```
+
+Add an image processing step
+-----------------------------
+We will now add an image processing step to our pipeline.
+For this, we will use the NonLocalMeans filter which is excellent at
+de-noising ultrasound images.
+```cpp
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+
+# Set up the NonLocalMeans processing step and connect it to the importer
+auto filter = NonLocalMeans::New();
+filter->setInputConnection(importer->getOutputPort());
+
+# Set up the renderer and connect it to the NonLocalMeans filter
+auto renderer = ImageRenderer::New();
+renderer->setInputConnection(filter->getOutputPort());
+
+# Create a window, add the renderer and start the computation/rendering loop.
+auto window = SimpleWindow::New();
+window->set2DMode();
+window->addRenderer(renderer->getOutputPort());
+window->start();
+```
+
+Dual view window
+-----------------------------
+
+Data streaming
+-----------------------------
+So far we have only processed a single image, but now we are going to
+process a stream of images. FAST can stream images from disk, videos,
+cameras and even from ultrasound scanners.
+First, we are going to try streaming from disk. To do this, simply
+replace the ImageFileImporter with an ImageFileStreamer.
+```cpp
+auto importer = ImageFileStreamer::New();
+importer->setFilenameFormat(Config::getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd");
+importer->enableLooping();
+```
+You should now see an entire ultrasound recording being played back to you on screen.
+
+@m_class{m-note} @parblock
+If you want to try streaming from a video check out the MovieStreamer, but this requires you to install video codecs.
+If you want to try streaming from your web camera, try out the CameraStreamer.
+@endparblock
+
+
+*/
+}

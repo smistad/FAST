@@ -7,6 +7,11 @@ namespace fast {
 
 class Tensor;
 
+/**
+ * @brief Renders Tensor data objects as heatmaps.
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
     FAST_OBJECT(HeatmapRenderer);
     public:

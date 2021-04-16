@@ -34,6 +34,11 @@ namespace fast {
 
 enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_FRAMES, STREAMING_MODE_PROCESS_ALL_FRAMES };
 
+/**
+ * \brief Base class for all FAST objects.
+ *
+ * This class has some functionality common to all FAST objects.
+ */
 class FAST_EXPORT  Object {
     public:
         typedef std::shared_ptr<Object> pointer;

@@ -11,6 +11,18 @@ namespace fast {
 class View;
 class DataBoundingBox;
 
+/**
+ * @defgroup renderers Renderers
+ * Renderers are process objects which can visualize data in a View, typically using OpenGL.
+ * They should be derived from the Renderer class.
+ */
+
+/**
+ * @brief Abstract base class for @ref renderers
+ *
+ * Renderers are process objects which can visualize data in a View, typically using OpenGL.
+ * They should inherit from this class.
+ */
 class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     public:
         typedef std::shared_ptr<Renderer> pointer;

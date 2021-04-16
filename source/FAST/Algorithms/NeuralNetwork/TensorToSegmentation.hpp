@@ -4,6 +4,11 @@
 
 namespace fast {
 
+/**
+ * @brief A process object which converts a Tensor to a Segmentation object.
+ *
+ * @ingroup neural-network
+ */
 class FAST_EXPORT TensorToSegmentation : public ProcessObject {
     FAST_OBJECT(TensorToSegmentation)
     public:

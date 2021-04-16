@@ -8,6 +8,14 @@ namespace fast {
 class RegionList;
 class Image;
 
+/**
+ * @brief Renders text labels on top of Segmentation data
+ *
+ * Renders text labels (e.g. Blood, Bone, ..) with colors on top of Segmentation data.
+ * A text label is rendered in the center of every segmentation region with an area larger than a given threshold.
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT SegmentationLabelRenderer : public Renderer {
     FAST_OBJECT(SegmentationLabelRenderer)
     public:

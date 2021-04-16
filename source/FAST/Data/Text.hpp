@@ -6,7 +6,13 @@
 
 namespace fast {
 
-// A macro for creating new simple data objects
+/**
+ * @brief Text data object
+ *
+ * A data object which represents a string of text.
+ *
+ * @ingroup data
+ */
 class FAST_EXPORT Text : public SpatialDataObject {
 	FAST_OBJECT(Text)
 public:

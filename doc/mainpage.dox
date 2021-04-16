@@ -1,18 +1,20 @@
-namespace fast {
 /** @mainpage FAST
 
-@image html https://github.com/smistad/FAST/wiki/images/fast_logo.png width=256px
+@image html fast_logo_wide.png
+
 
 [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
 [![GitHub Downloads](https://img.shields.io/github/downloads/smistad/FAST/total?label=GitHub%20downloads&logo=github)](https://github.com/smistad/FAST/releases)
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://pypi.org/project/pyFAST/)
+[![](https://img.shields.io/github/license/smistad/FAST)](https://github.com/smistad/FAST/blob/master/LICENSE)
+[![](https://img.shields.io/static/v1?label=Code%20on&amp;message=GitHub&amp;color=blue&amp;logo=github)](https://github.com/smistad/FAST/)
 
 FAST is an open-source cross-platform framework with the main goal of making it easier to do high-performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
 
 @section get-started Get started
-See installation instructions for [Windows](https://github.com/smistad/FAST/wiki/Install-FAST-on-Windows), [Ubuntu Linux](https://github.com/smistad/FAST/wiki/Install-FAST-on-Linux) and [Python](https://github.com/smistad/FAST/wiki/Install-FAST-for-Python).
+See installation instructions for [Windows](@ref install-windows), [Ubuntu Linux](@ref install-ubuntu-linux) and [Python](@ref install-python).
 
-To start using the framework, see the [Getting started guide](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) and [examples](https://github.com/smistad/FAST/wiki/Examples).
+To start using the framework, check out the [C++ Tutorial](@ref cpp-tutorial) or the [Python Tutorial](@ref python-tutorial).
 
 More information can be found on the [wiki](https://github.com/smistad/FAST/wiki/).
 
@@ -32,13 +34,13 @@ Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.
 
 FAST has been described in the following research articles. If you use this framework for research please cite them:
 
-*[FAST: framework for heterogeneous medical image computing and visualization](http://www.eriksmistad.no/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf)
-Erik Smistad, Mohammadmehdi Bozorgi, Frank Lindseth
-International Journal of Computer Assisted Radiology and Surgery 2015*
+_[FAST: framework for heterogeneous medical image computing and visualization](http://www.eriksmistad.no/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf)<br>
+Erik Smistad, Mohammadmehdi Bozorgi, Frank Lindseth<br>
+International Journal of Computer Assisted Radiology and Surgery 2015_
 
-*[High Performance Neural Network Inference, Streaming, and Visualization of Medical Images Using FAST](https://www.eriksmistad.no/wp-content/uploads/High-Performance-Neural-Network-Inference-Streaming-and-Visualization-of-Medical-Images-Using-FAST.pdf)
-Erik Smistad, Andreas Østvik, André Pedersen
-IEEE Access 2019*
+_[High Performance Neural Network Inference, Streaming, and Visualization of Medical Images Using FAST](https://www.eriksmistad.no/wp-content/uploads/High-Performance-Neural-Network-Inference-Streaming-and-Visualization-of-Medical-Images-Using-FAST.pdf)<br>
+Erik Smistad, Andreas Østvik, André Pedersen<br>
+IEEE Access 2019_
 
 @section build Build
 
@@ -54,5 +56,5 @@ FAST itself is licenced under the permissive BSD 2-clause license, however the b
 ![Surface mesh extracted from a large abdominal CT scan.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Alpha blending ray casting rendering of a thorax CT image.](https://github.com/smistad/FAST/wiki/images/volume_renderer.jpg)
 
 ![Ultrasound image segmentation using neural netwoks.](https://github.com/smistad/FAST/wiki/images/ultrasound_segmentation.jpg)  ![Whole slide microscopy image.](https://github.com/smistad/FAST/wiki/images/wsi.jpg)
+
 */
-}

@@ -6,6 +6,8 @@
 namespace fast {
 
 /**
+ * \brief Defines the extent of a spatial data object.
+ *
  * This 3D BoundingBox class is used to define the extent
  * of a data object, which is used when rendering to determine
  * placement of the view camera

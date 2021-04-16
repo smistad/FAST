@@ -1,6 +1,4 @@
-#ifndef DATAOBJECT_HPP_
-#define DATAOBJECT_HPP_
-
+#pragma once
 
 #include "FAST/Object.hpp"
 #include "FAST/ExecutionDevice.hpp"
@@ -10,6 +8,18 @@
 
 namespace fast {
 
+
+/**
+ * @defgroup data Data objects
+ * FAST data objects are objects which can flow between ProcessObject objects.
+ * They must inherit from @ref DataObject
+*/
+
+/**
+ * @brief Abstract data object class.
+ *
+ * All data which should flow between process objects should derive from this class.
+ */
 class FAST_EXPORT  DataObject : public Object {
     public:
         DataObject();
@@ -71,8 +81,3 @@ class FAST_EXPORT  DataObject : public Object {
 };
 
 }
-
-
-
-
-#endif /* DATAOBJECT_HPP_ */

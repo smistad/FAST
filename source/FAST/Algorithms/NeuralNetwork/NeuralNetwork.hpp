@@ -11,7 +11,9 @@ class Image;
 class Tensor;
 
 /**
- * A class containing a list of data objects for inference, either FAST images or tensors
+ * @brief A class containing a list of data objects for inference, either Image or Tensor objects.
+ *
+ * This is used as a container for Batch and Sequence data objects.
  */
 class FAST_EXPORT InferenceDataList {
     public:
@@ -46,6 +48,14 @@ class FAST_EXPORT InferenceDataList {
         std::vector<std::shared_ptr<Tensor>> m_tensors;
 };
 
+/**
+ * @brief Sequence data object
+ *
+ * A data object used for neural network processing of a sequence of data.
+ * The sequence can consist of Image or Tensor objects.
+ *
+ * @ingroup neural-network
+ */
 class Sequence : public SimpleDataObject<InferenceDataList> {
 	FAST_OBJECT(Sequence)
     public:
@@ -60,6 +70,14 @@ class Sequence : public SimpleDataObject<InferenceDataList> {
         Sequence() {};
 };
 
+/**
+ * @brief Batch data object
+ *
+ * A data object used for batch processing in neural networks.
+ * The batch consists of Image or Tensor objects.
+ *
+ * @ingroup neural-network
+ */
 class Batch : public SimpleDataObject<InferenceDataList> {
 	FAST_OBJECT(Batch)
     public:
@@ -74,6 +92,17 @@ class Batch : public SimpleDataObject<InferenceDataList> {
         Batch() {};
 };
 
+/**
+ * @defgroup neural-network Neural Network
+ * Objects and functions related to Neural Network processing.
+ */
+/**
+ * @brief Neural network process object
+ *
+ * This is the neural network process object base. All other neural network process objects should extend this class.
+ *
+ * @ingroup neural-network
+ */
 class FAST_EXPORT NeuralNetwork : public ProcessObject {
     FAST_OBJECT(NeuralNetwork)
     public:
@@ -81,8 +110,8 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          * Load a given network model file. This takes time. The second argument can be used
          * to specify files for loading custom plugins/operators needed by the network model.
          *
-         * @param filename
-         * @param customPlugins paths to custom plugins/operators which can be libraries (.so/.dll) or in the case of GPU/VPU OpenVINO: .xml files.
+         * @param filename Path to network model file.
+         * @param customPlugins Paths to custom plugins/operators which can be libraries (.so/.dll) or in the case of GPU/VPU OpenVINO: .xml files.
          */
         void load(std::string filename, std::vector<std::string> customPlugins = {});
         /**

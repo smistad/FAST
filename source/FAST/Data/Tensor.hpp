@@ -9,6 +9,15 @@ namespace fast {
 
 class OpenCLBufferAccess;
 
+/**
+ * @brief N-Dimensional tensor data object
+ *
+ * This object represents an N-dimensional tensor.
+ * The data can be stored as a C++ pointer, and as an OpenCL buffer.
+ * The tensor data is stored as 32-bit floats.
+ *
+ * @ingroup data
+ */
 class FAST_EXPORT Tensor : public SpatialDataObject {
     FAST_OBJECT(Tensor)
     public:

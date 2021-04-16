@@ -1,5 +1,4 @@
-#ifndef LINE_RENDERER_HPP_
-#define LINE_RENDERER_HPP_
+#pragma once
 
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/Color.hpp"
@@ -7,6 +6,11 @@
 
 namespace fast {
 
+/**
+ * @brief Renders lines stored in Mesh data objects.
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT  LineRenderer : public Renderer {
     FAST_OBJECT(LineRenderer)
     public:
@@ -34,4 +38,3 @@ class FAST_EXPORT  LineRenderer : public Renderer {
 
 }
 
-#endif

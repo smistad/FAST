@@ -1,5 +1,4 @@
-#ifndef FAST_TRIANGLE_RENDERER_HPP_
-#define FAST_TRIANGLE_RENDERER_HPP_
+#pragma once
 
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Data/Color.hpp"
@@ -7,6 +6,11 @@
 
 namespace fast {
 
+/**
+ * @brief Renders triangle Mesh data
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT TriangleRenderer : public Renderer {
     FAST_OBJECT(TriangleRenderer)
     public:
@@ -50,5 +54,3 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
 };
 
 } // namespace fast
-
-#endif

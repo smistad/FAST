@@ -30,10 +30,20 @@ auto make_unique_pixel(T * ptr) -> unique_pixel_ptr {
 unique_pixel_ptr allocatePixelArray(std::size_t size, DataType type);
 #endif
 
-class FAST_EXPORT  Image : public SpatialDataObject {
+/**
+ * @brief Image data
+ *
+ * Class for image data, represents an image which can be stored in multiple different locations such as OpenCL Image,
+ * Buffer, OpenGL texture and as a C++ pointer on the host.
+ *
+ * @ingroup data
+ */
+class FAST_EXPORT Image : public SpatialDataObject {
     FAST_OBJECT(Image)
     public:
         /**
+         * @brief Create an image with same size and type as another image.
+         *
          * Setup an image object with the same size, data type and pixel spacing as the given image.
          * Does not allocate any memory.
          *

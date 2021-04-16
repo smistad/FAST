@@ -1,3 +1,17 @@
 p {
     text-indent: 0px !important;
 }
+
+.m-image {
+    margin: 0px !important;
+    border-radius: 0px !important;
+    display: inline-block !important;
+}
+
+li {
+    margin-bottom: 4px;
+}
+
+* {
+    text-align: left !important;
+}
