@@ -35,55 +35,55 @@ window->start();
 The FAST text pipeline syntax aims to be simple and is without symbols such as :, (), [] and {} to simplify writing and readability. 
 To start off here is a very simple pipeline which only reads an image from a file and then renders it on screen:
 
-<pre>
-<b>PipelineName</b> "Simple image pipeline"
-<b>PipelineDescription</b> "Import a single image from disk and visualize it on screen"
+```
+PipelineName "Simple image pipeline"
+PipelineDescription "Import a single image from disk and visualize it on screen"
 
-<b>ProcessObject</b> importer ImageFileImporter
-<i>Attribute</i> filename /path/to/some/image.png
+ProcessObject importer ImageFileImporter
+Attribute filename /path/to/some/image.png
 
-<b>Renderer</b> renderer ImageRenderer
-<i>Input</i> 0 importer 0
+Renderer renderer ImageRenderer
+Input 0 importer 0
 
-<b>View</b> view renderer
-<i>Attribute</i> 2Dmode true
-</pre>
+View view renderer
+Attribute 2Dmode true
+```
 
 Here is a more complex pipeline with multiple process objects, renderers and views:
-<pre>
-<b>PipelineName</b> "Non Local Means"
-<b>PipelineDescription</b> "Non Local Means speckle filtering with colormap and reject"
+```
+PipelineName "Non Local Means"
+PipelineDescription "Non Local Means speckle filtering with colormap and reject"
 
-<i># Processing chain</i>
-<b>ProcessObject</b> streamer ImageFileStreamer
-<i>Attribute</i> fileformat /path/to/some/sequence/data/frame_#.mhd
+# Processing chain
+ProcessObject streamer ImageFileStreamer
+Attribute fileformat /path/to/some/sequence/data/frame_#.mhd
 
-<b>ProcessObject</b> filter NonLocalMeans
-<i>Attribute</i> block-size 3
-<i>Attribute</i> search-size 11
-<i>Attribute</i> smoothing 0.15
-<i>Input</i> 0 streamer 0
+ProcessObject filter NonLocalMeans
+Attribute block-size 3
+Attribute search-size 11
+Attribute smoothing 0.15
+Input 0 streamer 0
 
-<b>ProcessObject</b> enhance UltrasoundImageEnhancement
-<i>Attribute</i> reject 25
-<i>Input</i> 0 filter 0
+ProcessObject enhance UltrasoundImageEnhancement
+Attribute reject 25
+Input 0 filter 0
 
-<i># Renderers</i>
-<b>Renderer</b> renderer ImageRenderer
-<i>Input</i> 0 enhance 0
+# Renderers
+Renderer renderer ImageRenderer
+Input 0 enhance 0
 
-<b>Renderer</b> renderer2 ImageRenderer
-<i>Input</i> 0 streamer 0
+Renderer renderer2 ImageRenderer
+Input 0 streamer 0
 
-<i># Define views</i>
-<b>View</b> view renderer
-<i>Attribute</i> 2Dmode true
-<i>Attribute</i> background-color black
+# Define views
+View view renderer
+Attribute 2Dmode true
+Attribute background-color black
 
-<b>View</b> view2 renderer2
-<i>Attribute</i> 2Dmode true
-<i>Attribute</i> background-color black
-</pre>
+View view2 renderer2
+Attribute 2Dmode true
+Attribute background-color black
+```
 
 ### Objects
 There are 3 type of objects: ProcessObject, Renderer and View.   
@@ -100,15 +100,15 @@ Process objects and renderers are connected with the following line:
 ### Parameters
 A pipeline can have parameters that has to be set by a user. Parameters are enclosed by @@. Let's say you want the user to specify which image file to open when running the pipeline, you can do as follows:
 
-<pre>
-<b>ProcessObject</b> importer ImageFileImporter
-<i>Attribute</i> filename @@filename@@
-</pre>
+```
+ProcessObject importer ImageFileImporter
+Attribute filename @@filename@@
+```
 You can also specify a default value `@@parameter-name=default-value@@`:
-<pre>
-<b>ProcessObject</b> importer ImageFileImporter
-<i>Attribute</i> filename @@filename=/path/to/an/image.png@@
-</pre>
+```
+ProcessObject importer ImageFileImporter
+Attribute filename @@filename=/path/to/an/image.png@@
+```
 
 ### Comments
 You can write comments by starting with hash sign #
@@ -123,10 +123,10 @@ Pipeline pipeline("/path/to/pipeline.fpl");
 pipeline.parse({{"objectX", objectX}});
 ```
 In your text pipeline file:
-<pre>
-<b>ProcessObject</b> objectY ObjectY
-<i>Input</i> 0 objectX 0
-</pre>
+```
+ProcessObject objectY ObjectY
+Input 0 objectX 0
+```
 
 ## Specifying parameters
 Parameters can be specified in the Pipeline constructor.

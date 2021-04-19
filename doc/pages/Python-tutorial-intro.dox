@@ -35,7 +35,7 @@ To execute the ImageFileImporter, and thereby loading the image, you can do the 
 
 ```py
 image = importer.updateAndGetOutputImage()
-print("An image was imported with size: ", image.getSize())
+print("An image was imported with size: ", image.getWidth(), image.getHeight())
 ```
 
 Display the image data
@@ -66,9 +66,12 @@ renderer.setInputConnection(importer.getOutputPort())
 # Create a window, add the renderer and start the computation/rendering loop.
 window = fast.SimpleWindow.New()
 window.set2DMode()
-window.addRenderer(renderer.getOutputPort())
+window.addRenderer(renderer)
 window.start()
 @endcode
+
+You should now see this image:
+@image html images/examples/python/left_ventricle.jpg
 
 @par Execution pipeline
     Each process object in FAST has zero or more input and outputs ports.
@@ -104,7 +107,7 @@ renderer.setInputConnection(nlm.getOutputPort())
 # Create a window, add the renderer and start the computation/rendering loop.
 window = fast.SimpleWindow.New()
 window.set2DMode()
-window.addRenderer(renderer.getOutputPort())
+window.addRenderer(renderer)
 window.start()
 @endcode
 
@@ -134,9 +137,10 @@ filterRenderer.setInputConnection(nlm.getOutputPort())
 
 # Create a dual view window, add the renderers and start the computation/rendering loop.
 window = fast.DualViewWindow.New()
-window.set2DMode()
-window.addRendererToTopLeftView(renderer.getOutputPort())
-window.addRendererToBottomRightView(filterRenderer.getOutputPort())
+window.getView(0).set2DMode()
+window.getView(1).set2DMode()
+window.addRendererToTopLeftView(renderer)
+window.addRendererToBottomRightView(filterRenderer)
 window.start()
 @endcode
 
@@ -164,7 +168,7 @@ If you want to iterate through a stream of data manually, you this with a simply
 @code{.py}
 import fast
 streamer = fast.ImageFileStreamer.New()
-streamer.setFilenameFormat(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd);
+streamer.setFilenameFormat(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
 
 nlm = fast.NonLocalMeans.New()
 nlm.setInputConnection(streamer.getOutputPort())
@@ -173,9 +177,9 @@ dataChannel = nlm.getOutputPort()
 # Iterate through all frames in data stream
 frameNr = 0
 while True:
-    nlm->update() # Update the pipeline
+    nlm.update() # Update the pipeline
     image = dataChannel.getNextImage() # Get next frame in data stream of type Image
-    print('Received image frame', frameNr 'with size', image->getWidth(), image->getHeight())
+    print('Received image frame', frameNr, 'with size', image.getWidth(), image.getHeight())
     frameNr += 1
     # Check if image was last frame in stream, if so: stop the loop
     if image.isLastFrame():
@@ -186,20 +190,6 @@ Integration with other Python libraries
 -----------------------------------------
 Images in FAST implements the [Python array interface](https://numpy.org/doc/stable/reference/arrays.interface.html), and may thus be passed onto other Python libraries which
 can read this array interface, e.g. NumPy and Matplotlib.
-
-### Visualize FAST image with Matplotlib
-
-```py
-import fast
-import matplotlib.pyplot as plt
-
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
-image = importer.updateAndGetOutputImage()
-
-plt.imshow(image)
-plt.show()
-```
 
 ### Convert FAST image to NumPy ndarray
 
@@ -228,7 +218,23 @@ numpy_image = np.asarray(image)
 
 # Create FAST image from the NumPy ndarray
 fast_image = fast.Image.New()
-fast_image.create(numpy_image)
+fast_image.createFromArray(numpy_image)
+```
+
+### Visualize FAST image with Matplotlib
+
+```py
+import fast
+import matplotlib.pyplot as plt
+import numpy as np
+
+importer = fast.ImageFileImporter.New()
+importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+fast_image = importer.updateAndGetOutputImage()
+numpy_image = np.asarray(fast_image)
+
+plt.imshow(numpy_image[..., 0], cmap='gray')
+plt.show()
 ```
 
 Exporting data

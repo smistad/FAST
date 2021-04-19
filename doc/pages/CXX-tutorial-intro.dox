@@ -163,7 +163,7 @@ renderer->setInputConnection(importer->getOutputPort());
 // Create a window, add the renderer and start the computation/rendering loop.
 auto window = SimpleWindow::New();
 window->set2DMode();
-window->addRenderer(renderer->getOutputPort());
+window->addRenderer(renderer);
 window->start();
 @endcode
 
@@ -198,7 +198,7 @@ renderer->setInputConnection(filter->getOutputPort());
 // Create a window, add the renderer and start the computation/rendering loop.
 auto window = SimpleWindow::New();
 window->set2DMode();
-window->addRenderer(renderer->getOutputPort());
+window->addRenderer(renderer);
 window->start();
 @endcode
 
@@ -226,9 +226,10 @@ filterRenderer->setInputConnection(filter->getOutputPort());
 
 // Create a dual view window, add the renderers and start the computation/rendering loop.
 auto window = DualViewWindow::New();
-window->set2DMode();
-window->addRendererToTopLeftView(renderer->getOutputPort());
-window->addRendererToBottomRightView(filterRenderer->getOutputPort());
+window->getView(0)->set2DMode();
+window->getView(1)->set2DMode();
+window->addRendererToTopLeftView(renderer);
+window->addRendererToBottomRightView(filterRenderer);
 window->start();
 @endcode
 
