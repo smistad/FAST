@@ -1,3 +1,6 @@
+Projects using FAST {#projects-using-fast}
+==============================================
+
 This page contains a list of current projects and applications using FAST.
 If your project uses FAST, feel free to add it to this wiki page.
 

@@ -1,0 +1,248 @@
+namespace fast {
+/** @page python-tutorial-intro Python Introduction Tutorial
+@tableofcontents
+
+This is an introduction tutorial for FAST in Python.
+To follow this Python FAST tutorial, please [install FAST for Python](@ref install-python) first,
+and verify that your installation is working.
+
+Download test data
+-----------------------------
+To download the ~2 GB FAST test dataset, simply start your Python interpreter
+and execute the following Python code:
+
+```py
+import fast
+fast.downloadTestDataIfNotExists()
+```
+
+Import image data
+-----------------------------
+We will start by importing an ultrasound image from disk stored in the metaimage (mhd) format:
+
+```py
+import fast
+importer = fast.ImageFileImporter.New()
+importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+```
+
+This code will create an ImageFileImporter process object and
+set the filename of the ultrasound image to load.
+This importer can load images stored in many different formats such as MHD, Dicom, JPEG, PNG, BMP.
+Config::getTestDataPath simply returns the path to where the test data
+you downloaded earlier is located.
+To execute the ImageFileImporter, and thereby loading the image, you can do the following:
+
+```py
+image = importer.updateAndGetOutputImage()
+print("An image was imported with size: ", image.getSize())
+```
+
+Display the image data
+-----------------------------
+To display the image data, we need two things: a Window and a Renderer.
+For this example, we will use the ImageRenderer which is used to display images,
+and the SimpleWindow in 2D mode.
+The renderer is connected to the importer using the following statement:
+
+@code{.py}
+renderer.setInputConnection(importer.getOutputPort())
+@endcode
+
+This will form an execution pipeline, so that executing the renderer will
+trigger execute on the importer as well.
+
+Our entire example should now look like this:
+
+@code{.py}
+import fast
+importer = fast.ImageFileImporter.New()
+importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+
+# Set up a renderer and connect it to the importer
+renderer = fast.ImageRenderer.New()
+renderer.setInputConnection(importer.getOutputPort())
+
+# Create a window, add the renderer and start the computation/rendering loop.
+window = fast.SimpleWindow.New()
+window.set2DMode()
+window.addRenderer(renderer.getOutputPort())
+window.start()
+@endcode
+
+@par Execution pipeline
+    Each process object in FAST has zero or more input and outputs ports.
+    Process objects are connected together using the setInputConnection/getOutputPort methods thus forming
+    a pipeline, or a computational graph if you will.
+    The process objects are not executed until update() or updateAndGetOutputData() is called.
+    The update call will recursively call update on all its parent process objects. A process object will execute if
+    it has new/updated input data or if a parameter has changed i.e. it is marked as being modified.
+    In the example above, the computation/rendering loop started by the window will call update() repeatedly on the renderer,
+    thereby triggering execution of the entire pipeline.
+    [Read more about the concepts and glossary used in FAST here.](@ref concepts)
+
+Add an image processing step
+-----------------------------
+
+We will now add an image processing step to our pipeline.
+For this, we will use the NonLocalMeans filter which is excellent at
+de-noising ultrasound images.
+
+@code{.py}
+import fast
+importer = fast.ImageFileImporter.New()
+importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+
+# Set up the NonLocalMeans processing step and connect it to the importer
+nlm = fast.NonLocalMeans.New()
+nlm.setInputConnection(importer.getOutputPort())
+
+# Set up a renderer and connect it to the NLM filter
+renderer = fast.ImageRenderer.New()
+renderer.setInputConnection(nlm.getOutputPort())
+
+# Create a window, add the renderer and start the computation/rendering loop.
+window = fast.SimpleWindow.New()
+window.set2DMode()
+window.addRenderer(renderer.getOutputPort())
+window.start()
+@endcode
+
+
+Dual view window
+-----------------------------
+Now, let's say we want to display the input image and the filtered image side-by-side.
+The SimpleWindow used above only has a single View, to show two images side-by-side we will need two View objects and
+therefore we will use the DualViewWindow instead. We also need an additional ImageRenderer which is connected to the ImageFileImporter.
+Putting this all together, it should look like this:
+@code{.py}
+import fast
+importer = fast.ImageFileImporter.New()
+importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+
+# Set up the NonLocalMeans processing step and connect it to the importer
+nlm = fast.NonLocalMeans.New()
+nlm.setInputConnection(importer.getOutputPort())
+
+# Set a renderer and connect it to importer
+renderer = fast.ImageRenderer.New()
+renderer.setInputConnection(importer.getOutputPort())
+
+# Set a renderer and connect it to the NonLocalMeans filter
+filterRenderer = fast.ImageRenderer.New()
+filterRenderer.setInputConnection(nlm.getOutputPort())
+
+# Create a dual view window, add the renderers and start the computation/rendering loop.
+window = fast.DualViewWindow.New()
+window.set2DMode()
+window.addRendererToTopLeftView(renderer.getOutputPort())
+window.addRendererToBottomRightView(filterRenderer.getOutputPort())
+window.start()
+@endcode
+
+Data streaming
+-----------------------------
+So far we have only processed a single image, but now we are going to
+process a stream of images. FAST can stream images from disk, videos,
+cameras and even from ultrasound scanners.
+First, we are going to try streaming from disk. To do this, simply
+replace the ImageFileImporter with an ImageFileStreamer in the previous code example:
+
+@code{.cpp}
+importer = fast.ImageFileStreamer.New()
+importer.setFilenameFormat(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
+importer.enableLooping()
+@endcode
+
+Compile and run the application, and you should now see an entire ultrasound recording being played back to you on screen.
+
+@par Streamers
+    If you want to try streaming from your web camera, try out the CameraStreamer.
+    If you want to try streaming from a video check out the MovieStreamer, but this requires you to install video codecs.
+
+If you want to iterate through a stream of data manually, you this with a simply loop as follows:
+@code{.py}
+import fast
+streamer = fast.ImageFileStreamer.New()
+streamer.setFilenameFormat(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd);
+
+nlm = fast.NonLocalMeans.New()
+nlm.setInputConnection(streamer.getOutputPort())
+dataChannel = nlm.getOutputPort()
+
+# Iterate through all frames in data stream
+frameNr = 0
+while True:
+    nlm->update() # Update the pipeline
+    image = dataChannel.getNextImage() # Get next frame in data stream of type Image
+    print('Received image frame', frameNr 'with size', image->getWidth(), image->getHeight())
+    frameNr += 1
+    # Check if image was last frame in stream, if so: stop the loop
+    if image.isLastFrame():
+        break
+@endcode
+
+Integration with other Python libraries
+-----------------------------------------
+Images in FAST implements the [Python array interface](https://numpy.org/doc/stable/reference/arrays.interface.html), and may thus be passed onto other Python libraries which
+can read this array interface, e.g. NumPy and Matplotlib.
+
+### Visualize FAST image with Matplotlib
+
+```py
+import fast
+import matplotlib.pyplot as plt
+
+importer = fast.ImageFileImporter.New()
+importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+image = importer.updateAndGetOutputImage()
+
+plt.imshow(image)
+plt.show()
+```
+
+### Convert FAST image to NumPy ndarray
+
+```py
+import fast
+import numpy as np
+
+# Import an image to FAST
+importer = fast.ImageFileImporter.New()
+importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+fast_image = importer.updateAndGetOutputImage()
+
+# Convert the FAST image to a NumPy ndarray
+numpy_image = np.asarray(fast_image)
+```
+
+### Create FAST image from a NumPy ndarray
+
+```py
+import fast
+import numpy as np
+from PIL import Image
+
+image = Image.open(fast.Config.getDocumentationPath() + 'images/FAST_logo_square.png')
+numpy_image = np.asarray(image)
+
+# Create FAST image from the NumPy ndarray
+fast_image = fast.Image.New()
+fast_image.create(numpy_image)
+```
+
+Exporting data
+---------------------
+@todo
+
+Next steps
+---------------------
+
+You have now finished the Python introduction tutorial to FAST.
+
+- See more [Python Tutorials](@ref python-tutorials).
+- Check out some [C++ Examples](@ref python-examples).
+- Review [Concepts & Glossary](@ref concepts) used in FAST.
+*/
+
+}

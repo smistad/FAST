@@ -1,0 +1,350 @@
+namespace fast {
+/** @page cpp-tutorial-intro C++ Introduction Tutorial
+@tableofcontents
+
+This is an introduction tutorial for FAST in C++.
+
+Set up a CMake project
+-------------------
+Before we can start coding in C++ with FAST we need to set up a CMake
+project. This will enable you to build a standalone executable using FAST.
+
+<ol>
+<li>First [install FAST](@ref install) on your machine.</li>
+<li>
+Then you need to install some tools (Git, CMake and a C++ compiler) to build your FAST application:<br>
+<p>
+<b>Windows</b><br>
+Download and install these tools: [Git](https://git-scm.com/download/win), [CMake](https://www.cmake.org) and [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/).
+</p>
+<p>
+<b>Ubuntu Linux</b><br>
+
+```bash
+sudo apt install git cmake g++
+```
+
+</p>
+</li>
+<li>
+Clone the FAST example project repository:<br>
+
+```bash
+git clone https://github.com/smistad/FAST-example-project.git
+cd FAST-example-project
+```
+
+</li>
+<li>
+Setup your build environment using CMake:<br>
+<p>
+<b>Windows (Visual Studio)</b><br>
+Modify generator -G string to match your Visual studio version. This command will create a visual studio solution in your build folder.
+
+```bash
+mkdir build
+cd build
+cmake .. -DFAST_DIR=C:/path/to/FAST/cmake/ -G "Visual Studio 16 2019" -A x64
+```
+
+</p>
+<p>
+<b>Linux</b><br>
+
+```bash
+mkdir build
+cd build
+cmake .. -DFAST_DIR=/path/to/FAST/cmake/
+```
+
+</p>
+</li>
+<li>
+Build the application:<br>
+
+```
+cmake --build . --config Release --target fastExample
+```
+
+</li>
+<li>
+Run the application:
+<p>
+<b>Windows</b><br>
+
+```bash
+cd Release
+fastExample.exe
+```
+
+</p>
+<p>
+<b>Linux</b><br>
+
+```bash
+./fastExample
+```
+
+</p>
+
+Now you should hopefully see this:
+
+@image html https://www.eriksmistad.no/wp-content/uploads/FAST-example-application.png width=300px
+</li>
+</ol>
+
+
+
+Download the test data
+-------------------
+To download the 2~GB FAST test dataset, simply run the downloadTestData executable
+found in your FAST installation directory. With default install locations these are:
+
+<b>Linux:</b>
+```bash
+/opt/fast/bin/downloadTestData
+```
+
+<b>Windows:</b>
+```bash
+C:/Program Files/FAST/fast/bin/downloadTestData.exe
+```
+
+Importing data
+-------------------
+Now we are ready to start coding.
+Open the main.cpp file in an editor of your choice.
+Start by removing all the code in the main() function to start from scratch.
+Then add the following code to load an ultrasound image:
+
+```cpp
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+```
+
+This code will create an ImageFileImporter process object and
+set the filename of the ultrasound image to load.
+Config::getTestDataPath simply returns the path to where the test data
+you downloaded earlier is located.
+To execute the ImageFileImporter, and thereby loading the image, you can do the following:
+
+```cpp
+auto image = importer->updateAndGetOutputData<Image>();
+std::cout << "An image was imported with size: " << image->getSize() << std::endl;
+```
+
+Use the command `cmake --build . --config Release --target fastExample`
+from before to rebuild the application.
+
+Display the data
+-------------------
+To display the image data, we need two things: a Window and a Renderer.
+For this example, we will use the ImageRenderer which is used to display images,
+and the SimpleWindow in 2D mode.
+The renderer is connected to the importer using the following statement:
+
+@code{.cpp}
+renderer->setInputConnection(importer->getOutputPort());
+@endcode
+
+This will form an execution pipeline, so that executing the renderer will
+trigger execute on the importer as well.
+
+Our entire example should now look like this:
+
+@code{.cpp}
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+
+// Set up a renderer and connect it to the importer
+auto renderer = ImageRenderer::New();
+renderer->setInputConnection(importer->getOutputPort());
+
+// Create a window, add the renderer and start the computation/rendering loop.
+auto window = SimpleWindow::New();
+window->set2DMode();
+window->addRenderer(renderer->getOutputPort());
+window->start();
+@endcode
+
+@par Execution pipeline
+    Each process object in FAST has zero or more input and outputs ports.
+    Process objects are connected together using the setInputConnection/getOutputPort methods thus forming
+    a pipeline, or a computational graph if you will.
+    The process objects are not executed until update() or updateAndGetOutputData() is called.
+    The update call will recursively call update on all its parent process objects. A process object will execute if
+    it has new/updated input data or if a parameter has changed i.e. it is marked as being modified.
+    In the example above, the computation/rendering loop started by the window will call update() repeatedly on the renderer,
+    thereby triggering execution of the entire pipeline.
+    [Read more about the concepts and glossary used in FAST here.](@ref concepts)
+
+Add an image processing step
+-----------------------------
+We will now add an image processing step to our pipeline.
+For this, we will use the NonLocalMeans filter which is excellent at
+de-noising ultrasound images.
+@code{.cpp}
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+
+// Set up the NonLocalMeans processing step and connect it to the importer
+auto filter = NonLocalMeans::New();
+filter->setInputConnection(importer->getOutputPort());
+
+// Set up the renderer and connect it to the NonLocalMeans filter
+auto renderer = ImageRenderer::New();
+renderer->setInputConnection(filter->getOutputPort());
+
+// Create a window, add the renderer and start the computation/rendering loop.
+auto window = SimpleWindow::New();
+window->set2DMode();
+window->addRenderer(renderer->getOutputPort());
+window->start();
+@endcode
+
+Dual view window
+-----------------------------
+Now, let's say we want to display the input image and the filtered image side-by-side.
+The SimpleWindow used above only has a single View, to show two images side-by-side we will need two View objects and
+therefore we will use the DualViewWindow instead. We also need an additional ImageRenderer which is connected to the ImageFileImporter.
+Putting this all together, it should look like this:
+@code{.cpp}
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+
+// Set up the NonLocalMeans processing step and connect it to the importer
+auto filter = NonLocalMeans::New();
+filter->setInputConnection(importer->getOutputPort());
+
+// Set a renderer and connect it to importer
+auto renderer = ImageRenderer::New();
+renderer->setInputConnection(importer->getOutputPort());
+
+// Set a renderer and connect it to the NonLocalMeans filter
+auto filterRenderer = ImageRenderer::New();
+filterRenderer->setInputConnection(filter->getOutputPort());
+
+// Create a dual view window, add the renderers and start the computation/rendering loop.
+auto window = DualViewWindow::New();
+window->set2DMode();
+window->addRendererToTopLeftView(renderer->getOutputPort());
+window->addRendererToBottomRightView(filterRenderer->getOutputPort());
+window->start();
+@endcode
+
+Data streaming
+-----------------------------
+So far we have only processed a single image, but now we are going to
+process a stream of images. FAST can stream images from disk, videos,
+cameras and even from ultrasound scanners.
+First, we are going to try streaming from disk. To do this, simply
+replace the ImageFileImporter with an ImageFileStreamer in the previous code example:
+
+@code{.cpp}
+auto importer = ImageFileStreamer::New();
+importer->setFilenameFormat(Config::getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd");
+importer->enableLooping();
+@endcode
+
+Compile and run the application, and you should now see an entire ultrasound recording being played back to you on screen.
+
+@par Streamers
+    If you want to try streaming from your web camera, try out the CameraStreamer.
+    If you want to try streaming from a video check out the MovieStreamer, but this requires you to install video codecs.
+
+If you want to iterate through a stream of data manually, you this with a simply loop as follows:
+@code{.cpp}
+auto streamer = ImageFileStreamer::New();
+streamer->setFilenameFormat(Config::getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd");
+
+auto filter = NonLocalMeans::New();
+filter->setInputConnection(streamer->getOutputPort());
+auto dataChannel = filter->getOutputPort();
+
+// Iterate through all frames in data stream
+int frameNr = 0;
+Image::pointer image;
+do {
+    filter->update(); // Update the pipeline
+    image = dataChannel->getNextFrame<Image>(); // Get next frame in data stream of type Image
+    std::cout << "Received image frame " << frameNr << " with size " << image->getSize() << std::endl;
+    ++frameNr;
+} while(!image->isLastFrame()); // Check if image was last frame in stream
+@endcode
+
+Access pixel data
+---------------------
+
+To access pixel data on the host CPU we have to request access to it through an ImageAccess object.
+This is done by calling Image::getImageAccess. If the image is located on the GPU, it will be copied to the CPU for you.
+The ImageAccess object has several methods to read and write pixel data. Here are some examples:
+
+@code{.cpp}
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+
+// Run importer and get access to pixel data on host with READ and WRITE access.
+auto image = importer->updateAndGetOutputData<Image>();
+auto access = image->getImageAccess(ACCESS_READ_WRITE);
+
+// Retrieve pixel value at x = 10, y = 23
+float intensity = access->getScalar(Vector2i(10, 23));
+
+// Retrieve pixel value at 1D position 1337
+float intensity2 = access->getScalar(1337);
+
+// Write pixel value 42 at x = 10, y = 23
+access->setScalar(Vector2i(10, 23), 42);
+@endcode
+
+If this image was a 3D image, you could simply use the Vector3i to index the volume instead.
+
+@par Lazy data coherency
+    The FAST Image data object represents an image which can be stored on multiple processors and storage areas such
+    as on the host CPU and on the GPU as an OpenCL image, buffer or OpenGL texture.
+    You can request access to the image data on the other storage areas using the
+    Image::getOpenCLImageAccess, Image::getOpenCLBufferAccess and Image::getOpenGLTextureAccess methods.
+    You can have multiple read access to the same image object at a given time, but only one can have write access.
+    Thus if you try to request write access when others have access to it, execution will be blocked until all other access
+    have been released.
+    The image object keeps track of where the image is stored and whether it is up-to-date or not.
+    FAST uses a lazy data coherency principle, meaning that if the image data is changed on one storage area, it is not
+    updated on the other storage areas until next time access on that storage area is requested.
+
+### Faster pixel access
+The code above performs out-of-bounds check and data type conversion between the image true data type (in this case uchar)
+and float. This is slow, and not a good idea in a loop.
+Therefore there are faster versions of these function that doesn't before these kind of operations, but it requires you
+to know that you are within the bounds of the image (otherwise you will get a seg fault crash), and to know the data type
+of your image.
+@code{.cpp}
+// Access pixel data without type conversion and out of bounds check using the Fast methods:
+
+// Retrieve pixel value at x = 10, y = 23
+uchar intensity = access->getScalarFast<uchar>(Vector2i(10, 23));
+
+// Write pixel value 42 at x = 10, y = 23
+access->setScalarFast(Vector2i(10, 23), 42);
+@endcode
+
+### Multi-channel images
+If you have a multi-channel image, every pixel will have a vector, and you can use the same methods as above, by just replacing
+the word scalar with vector. Here are some examples:
+@todo
+
+
+Exporting data
+---------------------
+@todo
+
+Next steps
+---------------------
+
+You have now finished the C++ introduction tutorial to FAST.
+
+- See more [C++ Tutorials](@ref cpp-tutorials).
+- Check out some [C++ Examples](@ref cpp-examples).
+- Review [Concepts & Glossary](@ref concepts) used in FAST.
+
+*/
+}

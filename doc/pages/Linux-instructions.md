@@ -1,3 +1,6 @@
+Build FAST on Ubuntu Linux {#building-on-linux}
+===================================================
+
 These instructions are for building FAST on Ubuntu 18.04 (previous versions, such as 16.04, are no longer supported).  
 For Ubuntu 20.04, please use GCC 8, and not GCC 9 which will cause OpenVINO build failure.  
 
@@ -6,6 +9,7 @@ If you only want to test and use FAST, please [download a release](https://githu
 ## Install dependencies
 
 1. First, make sure you have all the tools necessary to download and compile the code: 
+
 ```bash
 sudo apt install cmake g++ git patchelf
 sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
@@ -27,7 +31,7 @@ sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
 
 *Important: Don't put the FAST code in a path with spaces, this will currently break the build.*  
 
-FAST has several [optional modules](https://github.com/smistad/FAST/wiki/Running-the-tests). These are enabled using cmake options named FAST_MODULE_<Name>.
+FAST has several [optional modules](@ref build-modules). These are enabled using cmake options named FAST_MODULE_<Name>.
 There are also several other options such as whether to build tests (FAST_BUILD_TESTS) or examples (FAST_BUILD_EXAMPLES).
 
 ```bash
@@ -42,6 +46,7 @@ cmake ..
 ## Compile
 
 This will build all configured targets:
+
 ```bash
 make -j8
 ```
@@ -49,14 +54,16 @@ make -j8
 ## Install/Build a release
 Set CMAKE_INSTALL_PREFIX to where you want to install FAST on your drive.
 Then run:
+
 ```bash
 make -j8 install
 ```
+
 To build a debian package run:
+
 ```bash
 make -j8 package
 ```
-By enabling FAST_BUILD_DATA_DEB_PACKAGE, a separate package for the FAST test data set will also be created.
 
 ## Troubleshoot
 
@@ -73,6 +80,3 @@ Note that you for some reason have to delete the folder build_folder/external/qt
 ## Running the tests
 
 Next, you may run the tests to make sure the framework is working properly on your system. Instructions on how to do this can be found [here](https://github.com/smistad/FAST/wiki/Running-the-tests).
-
-## Examples
-[Examples are found here](https://github.com/smistad/FAST/wiki/Examples).

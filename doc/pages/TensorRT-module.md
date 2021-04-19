@@ -1,3 +1,6 @@
+TensorRT module {#tensorrt-module}
+=====================================
+
 This module enables neural network inference in NVIDIA GPUs using the the TensorRT library.
 
 ## Requirements

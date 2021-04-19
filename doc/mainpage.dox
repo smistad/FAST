@@ -4,19 +4,17 @@
 
 
 [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
+[![](https://img.shields.io/static/v1?label=Code%20on&amp;message=GitHub&amp;color=blue&amp;logo=github)](https://github.com/smistad/FAST/)
 [![GitHub Downloads](https://img.shields.io/github/downloads/smistad/FAST/total?label=GitHub%20downloads&logo=github)](https://github.com/smistad/FAST/releases)
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://pypi.org/project/pyFAST/)
 [![](https://img.shields.io/github/license/smistad/FAST)](https://github.com/smistad/FAST/blob/master/LICENSE)
-[![](https://img.shields.io/static/v1?label=Code%20on&amp;message=GitHub&amp;color=blue&amp;logo=github)](https://github.com/smistad/FAST/)
 
 FAST is an open-source cross-platform framework with the main goal of making it easier to do high-performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
 
 @section get-started Get started
 See installation instructions for [Windows](@ref install-windows), [Ubuntu Linux](@ref install-ubuntu-linux) and [Python](@ref install-python).
 
-To start using the framework, check out the [C++ Tutorial](@ref cpp-tutorial) or the [Python Tutorial](@ref python-tutorial).
-
-More information can be found on the [wiki](https://github.com/smistad/FAST/wiki/).
+To start using the framework, check out the [C++ Intro Tutorial](@ref cpp-tutorial-intro) or the [Python Intro Tutorial](@ref python-tutorial-intro).
 
 Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
 
@@ -45,9 +43,9 @@ IEEE Access 2019_
 @section build Build
 
 To setup and build the framework, see the instructions for your operating system:
-- [Linux (Ubuntu)](https://github.com/smistad/FAST/wiki/Linux-instructions)
-- [Windows](https://github.com/smistad/FAST/wiki/Windows-instructions)
-- [Mac OS X](https://github.com/smistad/FAST/wiki/Mac-OS-X-instructions) Note: Mac OS X version is unstable and not actively maintained anymore due to Apple's decision to stop supporting OpenCL and OpenGL.
+- [Linux (Ubuntu)](@ref building-on-linux)
+- [Windows](@ref building-on-windows)
+- [Mac OS X](@ref building-on-mac) Note: Mac OS X version is unstable and not actively maintained anymore due to Apple's decision to stop supporting OpenCL and OpenGL.
 
 @section license License
 

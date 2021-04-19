@@ -1,3 +1,6 @@
+Clarius module {#clarius-module}
+===================================
+
 The Clarius ultrasound module features a ClariusStreamer object which can be used to stream B-mode and Doppler data in real-time from a [Clarius ultrasound scanner](https://clarius.com/). 
 
 FAST uses the [Clarius listen API](https://clarius.com/research-toolkits/) for streaming, and you need a research license from Clarius to use this API.

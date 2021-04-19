@@ -1,3 +1,6 @@
+Python Module {#python-module}
+===============================
+
 FAST has also support for Python. The module, called pyFAST, works with python 3 only. The Python wrapper is generated using [SWIG](http://swig.org/).
 
 pyFAST can be installed using pip as follows, note however that you must have all the [requirements installed for the package to work](https://github.com/smistad/FAST/wiki/Requirements).

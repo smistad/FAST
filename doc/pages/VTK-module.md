@@ -1,3 +1,6 @@
+VTK module {#vtk-module}
+=====================
+
 The VTK module allows connecting VTK and FAST image pipelines.
 
 ## Usage

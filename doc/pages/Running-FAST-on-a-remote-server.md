@@ -1,3 +1,6 @@
+Running FAST on a remote server {#fast-remote-server}
+========================================
+
 FAST can run on a remote Linux server using SSH.
 
 **If you don't want to do any visualization, you don't have to do anything extra.** FAST will detect that there is no display to render and thus disable visualization (i.e. OpenGL) in FAST. If you try to do anything that requires OpenGL (rendering etc.) FAST will crash.

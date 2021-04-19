@@ -1,3 +1,6 @@
+TensorFlow module {#tensorflow-module}
+=============================
+
 To enable this module set FAST_MODULE_TensorFlow in CMake, reconfigure and compile.
 A couple of new CMake options will appear (FAST_BUILD_TensorFlow_*), one for each version of TensorFlow, by default only the TensorFlow CPU version is built. You can build the CUDA and ROCm versions by selecting these in CMake.
 **Please make sure you have the requirements installed before you proceed to build TensorFlow (see below).**

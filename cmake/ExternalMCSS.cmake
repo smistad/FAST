@@ -4,8 +4,9 @@ include(cmake/Externals.cmake)
 ExternalProject_Add(mcss
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/mcss
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/mcss
-        GIT_REPOSITORY "https://github.com/mosra/m.css"
-        GIT_TAG "3a294739e2d351a40b94527eabd7c228d17b56be"
+        GIT_REPOSITORY "https://github.com/smistad/m.css"
+        GIT_TAG "fast"
+        UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""

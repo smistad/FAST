@@ -1,15 +1,26 @@
+Text Pipelines {#text-pipelines}
+==================================
+@tableofcontents
+
 FAST has a system for defining pipelines using simple text files. This enables you to create processing and visualization pipelines without programming and compiling, making it very easy to test pipelines with different parameters and input data.
 
 ## Running text pipelines
 
 ### From the command line
 To run a pipeline use the executable **runPipeline** in FAST like this:
+
 ```bash
 ./runPipeline /path/to/pipeline.fpl [parameters]
 ```
+
+The runPipeline executable should be located in your FAST installation folder. Default locations are:   
+**Linux**: /opt/fast/bin/  
+**Windows**: C:/Program Files/FAST/fast/bin/  
+
 ### From a program
 Here is a minimal example of how you can run a text defined pipeline with a window:
-```C++
+
+```cpp
 Pipeline pipeline("/path/to/pipeline.fpl");
 pipeline.parse();
 
@@ -23,6 +34,7 @@ window->start();
 ## Text pipeline syntax
 The FAST text pipeline syntax aims to be simple and is without symbols such as :, (), [] and {} to simplify writing and readability. 
 To start off here is a very simple pipeline which only reads an image from a file and then renders it on screen:
+
 <pre>
 <b>PipelineName</b> "Simple image pipeline"
 <b>PipelineDescription</b> "Import a single image from disk and visualize it on screen"
@@ -87,6 +99,7 @@ Process objects and renderers are connected with the following line:
 
 ### Parameters
 A pipeline can have parameters that has to be set by a user. Parameters are enclosed by @@. Let's say you want the user to specify which image file to open when running the pipeline, you can do as follows:
+
 <pre>
 <b>ProcessObject</b> importer ImageFileImporter
 <i>Attribute</i> filename @@filename@@
@@ -105,7 +118,7 @@ The variable $TEST_DATA_PATH$ will point to the FAST test data path as specified
 
 ## Connecting pipelines
 If you want to connect an existing pipeline or process object to a text pipeline you can do when parsing the pipeline file using the Pipeline object:
-```C++
+```cpp
 Pipeline pipeline("/path/to/pipeline.fpl");
 pipeline.parse({{"objectX", objectX}});
 ```
@@ -117,10 +130,13 @@ In your text pipeline file:
 
 ## Specifying parameters
 Parameters can be specified in the Pipeline constructor.
-```C++
+
+```cpp
 Pipeline pipeline("/path/to/pipeline.fpl", {{'parameter-name', 'parameter-value'}});
 ```
+
 If you run from the command line you specify parameters after the pipeline file name:
+
 ```bash
 ./runPipeline /path/to/pipeline.fpl --parameter-name parameter-value
 ```
