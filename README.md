@@ -7,11 +7,11 @@
 FAST is an open-source cross-platform framework with the main goal of making it easier to do high-performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
 
 ### Get started
-See installation instructions for [Windows](https://github.com/smistad/FAST/wiki/Install-FAST-on-Windows), [Ubuntu Linux](https://github.com/smistad/FAST/wiki/Install-FAST-on-Linux) and [Python](https://github.com/smistad/FAST/wiki/Install-FAST-for-Python).
+See installation instructions for [Windows](https://fast.eriksmistad.no/install-windows.html), [Ubuntu Linux](https://fast.eriksmistad.no/install-linux.html) and [Python](https://fast.eriksmistad.no/install-python.html).
 
-To start using the framework, see the [Getting started guide](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) and [examples](https://github.com/smistad/FAST/wiki/Examples).
+To start using the framework, check out the [C++ Intro Tutorial](https://fast.eriksmistad.no/cpp-tutorial-intro.html) or the [Python Intro Tutorial](https://fast.eriksmistad.no/python-tutorial-intro.html).
 
-More information can be found on the [wiki](https://github.com/smistad/FAST/wiki/).
+For more examples and documentation, go to [fast.eriksmistad.no](https://fast.eriksmistad.no).
 
 Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
 
@@ -40,9 +40,9 @@ IEEE Access 2019*
 ### Build
 
 To setup and build the framework, see the instructions for your operating system:
-* [Linux (Ubuntu)](https://github.com/smistad/FAST/wiki/Linux-instructions)
-* [Windows](https://github.com/smistad/FAST/wiki/Windows-instructions)
-* [Mac OS X](https://github.com/smistad/FAST/wiki/Mac-OS-X-instructions) Note: Mac OS X version is unstable and not actively maintained anymore due to Apple's decision to stop supporting OpenCL and OpenGL.
+* [Linux (Ubuntu)](https://fast.eriksmistad.no/building-on-linux.html)
+* [Windows](https://fast.eriksmistad.no/building-on-windows.html)
+* [Mac OS X](https://fast.eriksmistad.no/building-on-mac.html) Note: Mac OS X version is unstable and not actively maintained anymore due to Apple's decision to stop supporting OpenCL and OpenGL.
 
 ### License
 
