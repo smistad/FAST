@@ -1,7 +1,6 @@
 /**
- * Examples/DataImport/importImageFromFile.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example importImageFromFile.cpp
+ * An example of importing an image from file using the ImageFileImporter
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Importers/ImageFileImporter.hpp"

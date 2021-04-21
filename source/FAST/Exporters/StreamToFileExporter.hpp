@@ -5,6 +5,15 @@
 
 namespace fast {
 
+/**
+ * @brief Write a stream of Mesh or Image data as a sequence of files.
+ *
+ * <h3>Input ports</h3>
+ * - 0: Image or Mesh
+ *
+ * @todo Supports more data types and formats
+ * @ingroup exporters
+ */
 class FAST_EXPORT StreamToFileExporter : public ProcessObject {
     FAST_OBJECT(StreamToFileExporter)
     public:

@@ -44,7 +44,7 @@ Modify generator -G string to match your Visual studio version. This command wil
 ```bash
 mkdir build
 cd build
-cmake .. -DFAST_DIR=C:/path/to/FAST/cmake/ -G "Visual Studio 16 2019" -A x64
+cmake .. -DFAST_DIR="C:/Program Files/FAST/fast/cmake/" -G "Visual Studio 16 2019" -A x64
 ```
 
 </p>
@@ -54,7 +54,7 @@ cmake .. -DFAST_DIR=C:/path/to/FAST/cmake/ -G "Visual Studio 16 2019" -A x64
 ```bash
 mkdir build
 cd build
-cmake .. -DFAST_DIR=/path/to/FAST/cmake/
+cmake .. -DFAST_DIR=/opt/fast/cmake/
 ```
 
 </p>
@@ -167,6 +167,9 @@ window->addRenderer(renderer);
 window->start();
 @endcode
 
+You should now see this image:
+@image html images/examples/python/left_ventricle.jpg
+
 @par Execution pipeline
     Each process object in FAST has zero or more input and outputs ports.
     Process objects are connected together using the setInputConnection/getOutputPort methods thus forming
@@ -202,6 +205,9 @@ window->addRenderer(renderer);
 window->start();
 @endcode
 
+The results should look like this:
+@image html images/tutorials/left_ventricle_non_local_means.jpg
+
 Dual view window
 -----------------------------
 Now, let's say we want to display the input image and the filtered image side-by-side.
@@ -232,6 +238,9 @@ window->addRendererToTopLeftView(renderer);
 window->addRendererToBottomRightView(filterRenderer);
 window->start();
 @endcode
+
+The result should look like this:
+@image html images/tutorials/left_ventricle_nlm_dual_view.jpg
 
 Data streaming
 -----------------------------

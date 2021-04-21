@@ -5,7 +5,9 @@
 namespace fast {
 
 /**
-* A streamer in which any frame can be accessed at any time through an integer index and playbacked can be paused.
+ * @brief Abstract class of streamer in which any frame can be accessed at any time through an integer index and playbacked can be paused.
+ *
+ * @ingroup streamers
 */
 class FAST_EXPORT RandomAccessStreamer : public Streamer {
 	public:

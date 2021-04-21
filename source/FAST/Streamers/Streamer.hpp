@@ -14,7 +14,14 @@ class FAST_EXPORT  NoMoreFramesException : public Exception {
 };
 
 /**
- * A streamer is a PO that runs a separate thread of execution which produces data
+ * @defgroup streamers Streamers
+ * Process objects which produces a stream of data asynchronously. Must inherit from Streamer.
+ */
+/**
+ * @brief Abstract base class for all @ref streamers
+ *
+ * All @ref streamers must inherit from this class.
+ * @ingroup streamers
  */
 class FAST_EXPORT Streamer : public ProcessObject {
     public:

@@ -1,5 +1,4 @@
-#ifndef MANUAL_IMAGE_STREAMER_HPP
-#define MANUAL_IMAGE_STREAMER_HPP
+#pragma once
 
 
 #include "FAST/Streamers/Streamer.hpp"
@@ -55,5 +54,3 @@ class FAST_EXPORT  ManualImageStreamer : public Streamer {
 };
 
 } // end namespace fast
-
-#endif

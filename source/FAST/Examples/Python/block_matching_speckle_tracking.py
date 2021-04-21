@@ -1,7 +1,6 @@
-"""
-This example demonstrates the use of block matching to do speckle tracking on an ultrasound recording.
-The resulting vector/displacement field can be visualized with both matplotlib and FAST.
-"""
+## @example block_matching_speckle_tracking.py
+# This example demonstrates the use of block matching to do speckle tracking on an ultrasound recording.
+# The resulting vector/displacement field can be visualized with both matplotlib and FAST.
 import fast
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,7 +10,7 @@ visualize_with_matplotlib = True    # Switch between using FAST and matplotlib f
 streamer = fast.ImageFileStreamer.New()
 streamer.setFilenameFormat(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
 
-blockMatching = fast.BlockMatching.New();
+blockMatching = fast.BlockMatching.New()
 blockMatching.setInputConnection(streamer.getOutputPort())
 blockMatching.setMatchingMetric(fast.BlockMatching.MatchingMetric_SUM_OF_ABSOLUTE_DIFFERENCES)
 blockMatching.setBlockSize(13)

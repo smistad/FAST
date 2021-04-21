@@ -4,6 +4,11 @@
 
 namespace fast {
 
+/**
+ * @brief Abstract base class for volume renderers
+ *
+ * @ingroup renderers
+ */
 class VolumeRenderer : public Renderer {
     public:
         typedef std::shared_ptr<VolumeRenderer> pointer;

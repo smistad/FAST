@@ -6,8 +6,12 @@
 namespace fast {
 
 /**
- * Ray-casting based volume rendering using alpha blending.
- * Rays are cast back to front, accumulating color along the way based on a provided transfer function.
+ * @brief Renders 3D images/volumes using ray-casting and alpha blending.
+ *
+ * Rays are cast back to front, accumulating color along the way based on a provided TransferFunction
+ *
+ * @ingroup renderers
+ * @sa TransferFunction
  */
 class FAST_EXPORT AlphaBlendingVolumeRenderer : public VolumeRenderer {
     FAST_OBJECT(AlphaBlendingVolumeRenderer)

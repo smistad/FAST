@@ -4,6 +4,7 @@ LINKS_NAVBAR1 = [
         ('Install FAST', 'install'),
         ('C++ Intro Tutorial', 'cpp-tutorial-intro'),
         ('Python Intro Tutorial', 'python-tutorial-intro'),
+        ('Text Pipelines Tutorial', 'text-pipelines')
     ]),
     ('Learn FAST', 'learn-fast', [
         ('C++ Tutorials', 'cpp-tutorials'),
@@ -13,12 +14,13 @@ LINKS_NAVBAR1 = [
     ])
 ]
 LINKS_NAVBAR2 = [
-    ('API Documentation', 'modules', [
-        ("Classes", 'annotated'),
-        ("Modules", 'modules'),
+    ('<a href="namespacefast.html">API Reference</a>', [
+        ('<a href="namespacefast.html">API Index</a>',),
+        ("API Modules", 'modules'),
+        #('<a href="#search">API Search</a>',),
     ]),
     ('Building FAST', 'building-fast', [
-        ('Build FAST on Ubuntu Linux', 'building-on-linux'),
+        ('Build FAST on Linux', 'building-on-linux'),
         ('Build FAST on Windows', 'building-on-windows'),
         ('Build FAST on Mac OS X', 'building-on-mac'),
         ('Optional build modules', 'build-modules'),

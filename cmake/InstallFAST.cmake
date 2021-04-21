@@ -197,10 +197,17 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/FindOpenCL.cmake
 	COMPONENT fast
 )
 
-# Install docs
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/doc/
-    DESTINATION fast/doc/
+# Install fonts and icons/logo
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/doc/fonts/
+    DESTINATION fast/doc/fonts/
 	COMPONENT fast
+)
+install(FILES
+			${PROJECT_SOURCE_DIR}/doc/images/fast_icon.ico
+			${PROJECT_SOURCE_DIR}/doc/images/fast_icon.png
+			${PROJECT_SOURCE_DIR}/doc/images/FAST_logo_square.png
+		DESTINATION fast/doc/images/
+		COMPONENT fast
 )
 
 # Install pipelines

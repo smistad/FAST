@@ -6,7 +6,16 @@
 namespace fast {
 
 /**
- * Export an image to a normal image format such as PNG, JPEG, BMP etc.
+ * @brief Write an Image to a file using image format such as JPG/PNG/BMP/GIF
+ *
+ * This exporter uses Qt 5 to write an Image to file using common image formats.
+ * Check out [Qt 5 webpage for more details on formats supported](https://doc.qt.io/qt-5/qimage.html#reading-and-writing-image-files)
+ *
+ * <h3>Input ports</h3>
+ * 0: Image
+ *
+ * @ingroup exporters
+ * @sa ImageImporter
  */
 class FAST_EXPORT ImageExporter : public ProcessObject {
     FAST_OBJECT(ImageExporter)

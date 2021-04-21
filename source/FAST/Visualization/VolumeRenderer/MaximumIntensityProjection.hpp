@@ -4,6 +4,13 @@
 
 namespace fast {
 
+/**
+ * @brief Renders 3D images using ray-casting and maximum intensity projection (MIP)
+ *
+ * Uses the highest intensity observed along the ray.
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT MaximumIntensityProjection : public VolumeRenderer {
     FAST_OBJECT(MaximumIntensityProjection)
     public:

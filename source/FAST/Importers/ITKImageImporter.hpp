@@ -1,5 +1,4 @@
-#ifndef ITKIMAGEIMPORTER_HPP_
-#define ITKIMAGEIMPORTER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Image.hpp"
@@ -9,6 +8,12 @@
 
 namespace fast {
 
+/**
+ * @brief Imports and ITK image
+ *
+ * @ingroup importers
+ * @tparam TImage ITK image type
+ */
 template <class TImage>
 class FAST_EXPORT  ITKImageImporter : public ProcessObject {
     FAST_OBJECT(ITKImageImporter)
@@ -108,5 +113,3 @@ void fast::ITKImageImporter<TImage>::execute() {
         throw Exception("The ITKImageImporter only supports 2D and 3D images.");
     }
 }
-
-#endif /* ITKIMAGEIMPORTER_HPP_ */

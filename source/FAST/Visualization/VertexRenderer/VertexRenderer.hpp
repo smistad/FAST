@@ -1,5 +1,4 @@
-#ifndef POINT_RENDERER_HPP_
-#define POINT_RENDERER_HPP_
+#pragma once
 
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/Mesh.hpp"
@@ -8,6 +7,12 @@
 
 namespace fast {
 
+/**
+ * @brief Renders vertices as a circular points
+ *
+ * @ingroup renderers
+ * @sa Mesh
+ */
 class FAST_EXPORT  VertexRenderer : public Renderer {
     FAST_OBJECT(VertexRenderer)
     public:
@@ -44,5 +49,3 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
 };
 
 }
-
-#endif

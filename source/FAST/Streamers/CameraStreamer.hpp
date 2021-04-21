@@ -10,6 +10,17 @@ namespace fast {
 
 class CameraWorker;
 
+/**
+ * @brief Stream images from a (web)camera
+ *
+ * This streamer uses Qt 5 to connect a (web)camera and creates
+ * a stream of FAST images from it.
+ *
+ * <h3>Output ports</h3>
+ * - 0: Image
+ *
+ * @ingroup streamers
+ */
 class FAST_EXPORT CameraStreamer : public Streamer {
 	FAST_OBJECT(CameraStreamer)
 	public:

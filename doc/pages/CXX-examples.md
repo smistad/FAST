@@ -7,7 +7,7 @@ All the C++ examples can be found in the [repository](https://github.com/smistad
 ## Importing and streaming data
 |Example|Result|
 |----|----|
-| [Import image from file](https://github.com/smistad/FAST/wiki/Example:-Import-image-from-file) |  |
+| [Import image from file](@ref importImageFromFile.cpp) |  |
 | [Stream images from disk](https://github.com/smistad/FAST/wiki/Example:-Stream-images-from-disk) | |
 | [Import mesh from file](https://github.com/smistad/FAST/wiki/Example:-Import-Mesh-From-File) | |
 | [Import point set from file](https://github.com/smistad/FAST/wiki/Example:-Import-Point-Set-From-File) | |

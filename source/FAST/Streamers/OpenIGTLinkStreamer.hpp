@@ -15,6 +15,16 @@ namespace fast {
 class Image;
 class IGTLSocketWrapper;
 
+/**
+ * @brief Stream image or transforms from an OpenIGTLink server
+ *
+ * This streamer uses the OpenIGTLink protocol and library to stream data such as images and transforms from a server
+ *
+ * <h3>Output ports</h3>
+ * Multiple ports possible dependeing on number of streams from OpenIGTLink server
+ *
+ * @ingroup streamers
+ */
 class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
     FAST_OBJECT(OpenIGTLinkStreamer)
     public:

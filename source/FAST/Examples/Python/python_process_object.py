@@ -1,3 +1,5 @@
+## @example python_process_object.py
+# An example showing how to make FAST process object in python.
 import fast
 import numpy as np
 fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT) # Show debug info

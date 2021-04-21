@@ -1,5 +1,4 @@
-#ifndef VTKIMAGEIMPORTER_HPP_
-#define VTKIMAGEIMPORTER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include <vtkImageAlgorithm.h>
@@ -21,6 +20,13 @@ class FAST_EXPORT VTKtoFAST : public vtkImageAlgorithm {
 
 };
 
+/**
+ * @brief Loads a VTK image to FAST
+ *
+ * Can be used to connect VTK pipelines with FAST pipelines.
+ *
+ * @ingroup importers
+ */
 class FAST_EXPORT VTKImageImporter : public ProcessObject {
     FAST_OBJECT(VTKImageImporter)
     public:
@@ -34,7 +40,3 @@ class FAST_EXPORT VTKImageImporter : public ProcessObject {
 };
 
 } // end namespace fast
-
-
-
-#endif /* VTKIMAGEIMPORTER_HPP_ */

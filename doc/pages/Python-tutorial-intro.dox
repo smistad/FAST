@@ -111,6 +111,8 @@ window.addRenderer(renderer)
 window.start()
 @endcode
 
+The results should look like this:
+@image html images/tutorials/left_ventricle_non_local_means.jpg
 
 Dual view window
 -----------------------------
@@ -143,6 +145,9 @@ window.addRendererToTopLeftView(renderer)
 window.addRendererToBottomRightView(filterRenderer)
 window.start()
 @endcode
+
+The result should look like this:
+@image html images/tutorials/left_ventricle_nlm_dual_view.jpg
 
 Data streaming
 -----------------------------
@@ -247,7 +252,7 @@ Next steps
 You have now finished the Python introduction tutorial to FAST.
 
 - See more [Python Tutorials](@ref python-tutorials).
-- Check out some [C++ Examples](@ref python-examples).
+- Check out some [Python Examples](@ref python-examples).
 - Review [Concepts & Glossary](@ref concepts) used in FAST.
 */
 

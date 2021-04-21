@@ -4,6 +4,11 @@
 
 namespace fast {
 
+/**
+ * @brief Renders a vector field image using colors
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT VectorFieldColorRenderer : public ImageRenderer {
     FAST_OBJECT(VectorFieldColorRenderer)
     public:

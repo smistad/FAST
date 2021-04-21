@@ -9,6 +9,17 @@ struct _ClariusPosInfo;
 
 namespace fast {
 
+/**
+ * @brief Stream ultrasound images from a Clarius scanner
+ *
+ * Uses the [Clarius cast API](https://github.com/clariusdev/cast) library to stream images
+ * from a Clarius ultrasound scanner in real-time.
+ *
+ * <h3>Output ports</h3>
+ * - 0: Image - Ultrasound image
+ *
+ * @ingroup streamers
+ */
 class FAST_EXPORT ClariusStreamer : public Streamer {
     FAST_OBJECT(ClariusStreamer)
     public:

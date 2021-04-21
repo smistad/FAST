@@ -12,6 +12,16 @@ class Image;
 
 class MovieStreamerWorker;
 
+/**
+ * @brief Stream movie files
+ *
+ * This streamer uses Qt 5 to streams every frame in a movie as an Image.
+ *
+ * <h3>Output ports</h3>
+ * - 0: Image - Movie frame
+ *
+ * @ingroup streamers
+ */
 class FAST_EXPORT MovieStreamer : public Streamer {
     FAST_OBJECT(MovieStreamer)
     public:

@@ -4,6 +4,11 @@
 
 namespace fast {
 
+/**
+ * @brief Renders 3D images using ray-casting and a threshold
+ *
+ * @ingroup renderers
+ */
 class FAST_EXPORT ThresholdVolumeRenderer : public VolumeRenderer {
     FAST_OBJECT(ThresholdVolumeRenderer)
     public:

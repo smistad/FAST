@@ -1,7 +1,6 @@
-"""
-This example show how a FAST image can be converted to a numpy ndarray
-and displayed using matplotlib in python.
-"""
+## @example filter_image_and_display_with_matplotlib.py
+# This example show how a FAST image can be converted to a numpy ndarray
+# and displayed using matplotlib in python.
 import fast
 import numpy as np
 import matplotlib.pyplot as plt

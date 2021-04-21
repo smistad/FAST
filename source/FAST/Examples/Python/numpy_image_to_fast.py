@@ -1,7 +1,6 @@
-"""
-This example demonstrates how a numpy ndarray image can be passed
-on to FAST and visualized using FAST.
-"""
+## @example numpy_image_to_fast.py
+# This example demonstrates how a numpy ndarray image can be passed
+# on to FAST and visualized using FAST.
 import fast
 import numpy as np
 from PIL import Image

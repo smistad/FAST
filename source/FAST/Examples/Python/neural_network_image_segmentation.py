@@ -1,11 +1,9 @@
-"""
-This example process a stream of ultrasound images with a neural network
-for image segmentation and displays the results on screen.
-"""
+## @example neural_network_image_segmentation.py
+# This example process a stream of ultrasound images with a neural network
+# for image segmentation and displays the results on screen.
 import fast
 
 #fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT) # Uncomment to show debug info
-
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
 streamer = fast.ImageFileStreamer.New()
@@ -18,7 +16,6 @@ segmentationNetwork.setInferenceEngine('OpenVINO')
 segmentationNetwork.setScaleFactor(1/255)
 segmentationNetwork.load(fast.Config.getTestDataPath() +
     'NeuralNetworkModels/jugular_vein_segmentation.xml') 
-# + segmentationNetwork.getInferenceEngine().getDefaultFileExtension())
 
 imageRenderer = fast.ImageRenderer.New()
 imageRenderer.addInputConnection(streamer.getOutputPort())

@@ -1,7 +1,5 @@
 /**
- * Examples/GUI/SimpleGUI/SimpleGUI.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example SimpleGUI.cpp
  */
 #include "SimpleGUI.hpp"
 #include <QVBoxLayout>

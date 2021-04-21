@@ -1,7 +1,6 @@
-"""
-This example loads a whole slide image (WSI), and generates a stream of
-patches of tissue in the WSI, and finally displays it using matplotlib
-"""
+## @example generate_tissue_patches_from_wsi.py
+# This example loads a whole slide image (WSI), and generates a stream of
+# patches of tissue in the WSI, and finally displays it using matplotlib
 import fast
 import matplotlib.pyplot as plt
 

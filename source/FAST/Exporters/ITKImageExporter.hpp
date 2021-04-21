@@ -1,5 +1,4 @@
-#ifndef ITKIMAGEEXPORTER_HPP_
-#define ITKIMAGEEXPORTER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Image.hpp"
@@ -9,6 +8,18 @@
 
 namespace fast {
 
+/**
+ * @brief Export a FAST Image to an ITK image
+ *
+ * This can be used to connect a FAST pipeline to an ITK pipeline.
+ * @warning This class is not included in the release builds.
+ *
+ * <h3>Input ports</h3>
+ * 0: Image
+ *
+ * @ingroup exporters
+ * @tparam TImage
+ */
 template<class TImage>
 class FAST_EXPORT  ITKImageExporter: public itk::ImageSource<TImage>, public ProcessObject {
     public:
@@ -115,5 +126,3 @@ void fast::ITKImageExporter<TImage>::GenerateData() {
 
 
 }
-
-#endif // ITKIMAGEEXPORTER_HPP_

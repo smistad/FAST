@@ -6,7 +6,9 @@
 namespace fast {
 
 /**
- * A class for defining a transfer function used in volume rendering.
+ * @brief A class for defining a transfer function used in volume rendering.
+ *
+ * This used in the AlphaBlendingVolumeRenderer.
  * The transfer function contains a set of 5-tuple points (intensity, red, green, blue, alpha).
  */
 class FAST_EXPORT TransferFunction {

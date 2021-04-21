@@ -10,8 +10,15 @@ namespace fast {
 class UFFData;
 
 /**
-* A streamer for reading data stored in the ultrasound file format (UFF)
-* which is essentially and HDF5 file with ultrasound image/beam data.
+ * @brief Stream ultrasound file format (UFF) data
+ *
+ * A streamer for reading data stored in the ultrasound file format (UFF)
+ * which is essentially and HDF5 file with ultrasound image/beam data.
+ *
+ * <h3>Output ports</h3>
+ * - 0: Image
+ *
+ * @ingroup streamers
 */
 class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
     FAST_OBJECT(UFFStreamer)

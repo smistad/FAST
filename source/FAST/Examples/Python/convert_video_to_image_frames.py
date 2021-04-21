@@ -1,11 +1,10 @@
-"""
-This example loads a video and converts to a stream of image frames and display the
-individual frames with matplotlib.
-
-Note that additional depedencies are required to stream videos in FAST:
-Linux: sudo apt install ubuntu-restricted-extras libgstreamer1.0-dev libgstreamer-plugins-bad1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev
-Windows: K-lite codec pack https://codecguide.com/download_kl.htm
-"""
+## @example convert_video_to_image_frames.py
+# This example loads a video and converts to a stream of image frames and display the
+# individual frames with matplotlib.
+#
+# Note that additional dependencies are required to stream videos in FAST:
+# Linux: sudo apt install ubuntu-restricted-extras libgstreamer1.0-dev libgstreamer-plugins-bad1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev
+# Windows: K-lite codec pack https://codecguide.com/download_kl.htm
 import fast
 import matplotlib.pyplot as plt
 import numpy as np

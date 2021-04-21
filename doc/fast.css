@@ -15,3 +15,7 @@ li {
 * {
     text-align: left !important;
 }
+
+img {
+    object-fit: contain;
+}

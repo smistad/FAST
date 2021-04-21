@@ -1,5 +1,4 @@
-#ifndef VTK_SURFACE_FILE_IMPORTER_HPP
-#define VTK_SURFACE_FILE_IMPORTER_HPP
+#pragma once
 
 #include "Importer.hpp"
 #include <string>
@@ -8,6 +7,16 @@
 
 namespace fast {
 
+/**
+ * @brief Reads gemoetry mesh data from a .vtk polydata file.
+ *
+ * This importer reads geometry data such as vertices, lines and triangles from the VTK polydata format (.vtk) and
+ * outputs it as a FAST Mesh.
+ *
+ * - Output 0: Mesh
+ *
+ * @ingroup importers
+ */
 class FAST_EXPORT  VTKMeshFileImporter : public Importer {
     FAST_OBJECT(VTKMeshFileImporter)
     public:
@@ -30,5 +39,3 @@ class FAST_EXPORT  VTKMeshFileImporter : public Importer {
 };
 
 } // end namespace fast
-
-#endif

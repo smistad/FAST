@@ -1,7 +1,5 @@
 /**
- * Examples/GUI/SimpleGUI/SimpleGUI.hpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example SimpleGUI.hpp
  */
 #ifndef SIMPLE_GUI_HPP_
 #define SIMPLE_GUI_HPP_

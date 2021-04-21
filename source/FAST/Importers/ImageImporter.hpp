@@ -5,6 +5,13 @@
 
 namespace fast {
 
+/**
+ * @brief Read JPG/PNG/BMP/TIFF images
+ *
+ * Uses Qt5 to read and output plain JPG/PNG/BMP/GIF images from disk.
+ *
+ * @ingroup importers
+ */
 class FAST_EXPORT ImageImporter : public Importer {
     FAST_OBJECT(ImageImporter)
     public:

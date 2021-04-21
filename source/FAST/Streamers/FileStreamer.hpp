@@ -8,7 +8,12 @@
 namespace fast {
 
 /**
- * Abstract FileStreamer class
+ * @brief Abstract file streamer class
+ *
+ * <h3>Output ports</h3>
+ * - 0: Image
+ *
+ * @ingroup streamers
  */
 class FAST_EXPORT FileStreamer : public Streamer {
     public:
