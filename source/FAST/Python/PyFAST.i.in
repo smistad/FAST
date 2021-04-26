@@ -125,6 +125,7 @@ public
 %include <FAST/ProcessObject.hpp>
 %include <FAST/Config.hpp>
 %include <FAST/Data/DataTypes.hpp>
+%include <FAST/Data/Access/Access.hpp>
 %include <FAST/Data/Color.hpp>
 %include <FAST/Data/DataObject.hpp>
 %include <FAST/Data/SpatialDataObject.hpp>
