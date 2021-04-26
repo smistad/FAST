@@ -11,6 +11,8 @@ namespace fast {
 
 /**
  * @brief Abstract base class for @ref importers
+ *
+ * @ingroup importers
  */
 class FAST_EXPORT  Importer : public ProcessObject {
 

@@ -14,7 +14,7 @@ namespace fast {
  *
  * @ingroup exporters
  */
-class Exporter : public ProcessObject {
+class FAST_EXPORT Exporter : public ProcessObject {
 
 };
 
