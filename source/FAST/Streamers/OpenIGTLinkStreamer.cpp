@@ -244,6 +244,7 @@ void OpenIGTLinkStreamer::generateStream() {
                     AffineTransformation::pointer T = AffineTransformation::New();
                     T->getTransform().matrix() = fastMatrix;
                     T->setCreationTimestamp(timestamp);
+                    addTimestamp(timestamp);
                     addOutputData(mOutputPortDeviceNames[deviceName], T);
                 } catch(NoMoreFramesException &e) {
                     throw e;
@@ -302,6 +303,7 @@ void OpenIGTLinkStreamer::generateStream() {
                 try {
                     Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
                     image->setCreationTimestamp(timestamp);
+                    addTimestamp(timestamp);
                     addOutputData(mOutputPortDeviceNames[deviceName], image);
                 } catch(NoMoreFramesException &e) {
                     throw e;
@@ -395,6 +397,27 @@ void OpenIGTLinkStreamer::execute() {
 
     // Wait here for first frame
     waitForFirstFrame();
+}
+
+void OpenIGTLinkStreamer::addTimestamp(uint64_t timestamp) {
+    m_timestamps.push_back(timestamp);
+    if(m_timestamps.size() == 10)
+        m_timestamps.pop_front();
+}
+
+float OpenIGTLinkStreamer::getCurrentFramerate() {
+    if(m_timestamps.empty())
+        return -1;
+    uint64_t sum = 0;
+    uint64_t previous = m_timestamps[0];
+    int counter = 0;
+    for(int i = 1; i < m_timestamps.size(); ++i) {
+        uint64_t duration = m_timestamps[i] - previous;
+        previous = m_timestamps[i];
+        sum += duration;
+        ++counter;
+    }
+    return 1000.0f/((float)sum / counter); // Timestamps are i milliseconds. get framerate in per second
 }
 
 } // end namespace fast

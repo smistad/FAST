@@ -1,12 +1,12 @@
 #pragma once
 
-//#include <boost/signals2.hpp>
 #include <thread>
 #include <unordered_map>
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
 #include <set>
 #include "FASTExport.hpp"
+#include <deque>
 
 // Forward declare
 
@@ -54,15 +54,20 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
 
         ~OpenIGTLinkStreamer();
         void loadAttributes() override;
+
+        float getCurrentFramerate();
     private:
         OpenIGTLinkStreamer();
 
         // Update the streamer if any parameters have changed
         void execute();
 
+        void addTimestamp(uint64_t timestamp);
+
         uint mNrOfFrames;
         uint mMaximumNrOfFrames;
         bool mMaximumNrOfFramesSet;
+        std::deque<uint64_t> m_timestamps;
 
         bool mInFreezeMode;
 
