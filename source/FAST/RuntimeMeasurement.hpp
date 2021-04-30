@@ -1,5 +1,4 @@
-#ifndef TIMING_HPP_
-#define TIMING_HPP_
+#pragma once
 
 #include <string>
 #include <memory>
@@ -7,7 +6,13 @@
 
 namespace fast {
 /**
- * A class for a runtime measurement
+ * @brief A class for runtime measurement
+ *
+ * Collect multiple runtimes over time, and calculates running average, running standard deviation,
+ * sum, max, min etc.
+ *
+ * All measurements are in milliseconds
+ *
  */
 class FAST_EXPORT  RuntimeMeasurement : public Object {
 public:
@@ -21,8 +26,8 @@ public:
 	double getMin() const;
 	double getStdDeviation() const;
 	std::string print() const;
-	virtual ~RuntimeMeasurement() {};
-
+	void reset();
+	~RuntimeMeasurement() override = default;
 private:
 	RuntimeMeasurement();
 
@@ -36,5 +41,3 @@ private:
 };
 
 }; // end namespace
-
-#endif /* TIMING_HPP_ */

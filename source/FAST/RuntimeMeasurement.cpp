@@ -90,4 +90,11 @@ double RuntimeMeasurement::getMin() const {
 	return mMin;
 }
 
+void RuntimeMeasurement::reset() {
+    mSum = 0.0;
+    mSamples = 0;
+    mRunningMean = 0.0;
+    mRunningVariance = 0.0;
+}
+
 } // end namespace fast
