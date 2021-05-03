@@ -1,13 +1,12 @@
-#ifndef FILE_EXPORTER_HPP_
-#define FILE_EXPORTER_HPP_
+#pragma once
 
-#include "FAST/ProcessObject.hpp"
+#include <FAST/Exporters/Exporter.hpp>
 
 namespace fast {
-    /*
-     * Abstract class for file exporters
-     */
-   class FileExporter : public ProcessObject {
+/**
+ * @brief Abstract class for file exporters
+ */
+class FileExporter : public Exporter {
    public:
        virtual void setFilename(std::string filename);
    protected:
@@ -18,5 +17,3 @@ namespace fast {
 
    };
 }
-
-#endif

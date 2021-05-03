@@ -17,7 +17,7 @@ set(MODULES_TO_EXCLUDE
         -skip qtfeedback
         -skip qtgamepad
         -skip qtgraphicaleffects
-        -skip qtimageformats
+        #-skip qtimageformats
         -skip qtlocation
         -skip qtlottie
         -skip qtmacextras

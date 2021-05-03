@@ -64,6 +64,9 @@ if(FAST_MODULE_WholeSlideImaging)
     fast_add_sources(
         ImagePyramidPatchExporter.cpp
         ImagePyramidPatchExporter.hpp
+        TIFFImagePyramidExporter.cpp
+        TIFFImagePyramidExporter.hpp
     )
     fast_add_process_object(ImagePyramidPatchExporter ImagePyramidPatchExporter.hpp)
+    fast_add_process_object(TIFFImagePyramidExporter TIFFImagePyramidExporter.hpp)
 endif()
