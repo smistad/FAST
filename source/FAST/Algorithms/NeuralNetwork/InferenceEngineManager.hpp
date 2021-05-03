@@ -5,7 +5,7 @@
 namespace fast {
 
 /**
- * A purely static class to dynamically load inference engines at runtime
+ * @brief A purely static class to dynamically load inference engines at runtime
  */
 class FAST_EXPORT InferenceEngineManager {
     public:

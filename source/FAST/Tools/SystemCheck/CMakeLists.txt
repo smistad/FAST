@@ -1,0 +1,1 @@
+fast_add_tool(systemCheck main.cpp)

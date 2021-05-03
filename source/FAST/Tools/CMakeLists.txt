@@ -3,6 +3,7 @@ fast_add_subdirectories(
     OpenIGTLinkServer
     Pipeline
     UFFViewer
+    SystemCheck
 )
 fast_add_sources(
     CommandLineParser.cpp
