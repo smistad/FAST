@@ -9,6 +9,7 @@ namespace fast {
 class FileExporter : public Exporter {
    public:
        virtual void setFilename(std::string filename);
+       void loadAttributes();
    protected:
        std::string mFilename;
    protected:
