@@ -428,8 +428,10 @@ DevicePlatform DeviceManager::getDevicePlatform(std::string platformVendor) {
         retval = DEVICE_PLATFORM_INTEL;
     } else if (platformVendor.find("NVIDIA") != std::string::npos) {
         retval = DEVICE_PLATFORM_NVIDIA;
+    } else if(platformVendor.find("Portable Computing Language") != std::string::npos) {
+        retval = DEVICE_PLATFORM_POCL;
 	} else {
-		throw Exception("Unrecognized device platform vendor " + platformVendor);
+        retval = DEVICE_PLATFORM_UNKNOWN;
 	}
     return retval;
 }
@@ -448,6 +450,9 @@ std::string DeviceManager::getDevicePlatform(DevicePlatform devicePlatform) {
         break;
     case DEVICE_PLATFORM_APPLE:
         retval = "Apple";
+        break;
+    case DEVICE_PLATFORM_POCL:
+        retval = "pocl";
         break;
     case DEVICE_PLATFORM_ANY:
         break;
@@ -595,7 +600,7 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
         try {
             validPlatforms[i].getDevices(deviceType, &devices);
         } catch (cl::Error &error) {
-            throw Exception("There was an error while getting OpenCL devices: " + std::string(error.what()));
+            reportError() << "There was an error while getting OpenCL devices: " + std::string(error.what()) << reportEnd();
         }
         reportInfo() << devices.size() << " selected." << Reporter::end();
 

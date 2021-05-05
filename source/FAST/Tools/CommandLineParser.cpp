@@ -40,6 +40,8 @@ void CommandLineParser::parse(const int argc, char ** const argv) {
                 DeviceManager::setDefaultPlatform(DEVICE_PLATFORM_NVIDIA);
             } else if(value == "amd") {
                 DeviceManager::setDefaultPlatform(DEVICE_PLATFORM_AMD);
+            } else if(value == "pocl") {
+                DeviceManager::setDefaultPlatform(DEVICE_PLATFORM_POCL);
             }
             ++i;
             ++currentPosition;
