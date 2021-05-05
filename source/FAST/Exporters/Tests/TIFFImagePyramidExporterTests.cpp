@@ -1,7 +1,7 @@
 #include <FAST/Exporters/TIFFImagePyramidExporter.hpp>
 #include <FAST/Testing.hpp>
 #include <FAST/Importers/WholeSlideImageImporter.hpp>
-
+#include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Importers/ImagePyramidPatchImporter.hpp>
@@ -9,13 +9,13 @@
 #include <FAST/Algorithms/ImagePatch/PatchGenerator.hpp>
 #include <FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp>
 #include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>
+#include <FAST/Importers/TIFFImagePyramidImporter.hpp>
 
 using namespace fast;
 
-/*
-TEST_CASE("TIFFImagePyramidExporter", "[fast][TIFFImagePyramidExporter]") {
+TEST_CASE("TIFFImagePyramidExporter", "[fast][TIFFImagePyramidExporter][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename("/home/smistad/Downloads/OS-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
     auto exporter = TIFFImagePyramidExporter::New();
     exporter->setFilename("image-pyramid-test.tiff");
@@ -32,49 +32,71 @@ TEST_CASE("TIFFImagePyramidExporter", "[fast][TIFFImagePyramidExporter]") {
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
+    window->setTimeout(2000);
     window->start();
     exporter->getAllRuntimes()->printAll();
 }
 
-TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExporter]") {
+TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExporter][wsi][visual]") {
+    // This test is failing for some strange reason
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename("/home/smistad/Downloads/OS-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
     auto generator = PatchGenerator::New();
     generator->setInputConnection(importer->getOutputPort());
-    generator->setPatchLevel(3);
+    generator->setPatchLevel(1);
     generator->setPatchSize(512, 512);
 
     auto segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(generator->getOutputPort());
-    segmentation->setUpperThreshold(100);
-    segmentation->setLowerThreshold(0);
-
+    segmentation->setLowerThreshold(200);
 
     auto stitcher = PatchStitcher::New();
     stitcher->setInputConnection(segmentation->getOutputPort());
     auto port = stitcher->getOutputPort();
 
-    auto renderer = SegmentationRenderer::New();
-    renderer->setInputConnection(stitcher->getOutputPort());
+    /*
+    {
+        auto renderer = SegmentationRenderer::New();
+        renderer->setInputConnection(stitcher->getOutputPort());
 
-    auto renderer2 = ImagePyramidRenderer::New();
-    renderer2->addInputConnection(importer->getOutputPort());
+        auto window = SimpleWindow::New();
+        window->addRenderer(renderer);
+        window->set2DMode();
+        window->start();
+    }*/
+    // Wait until finished..
+    ImagePyramid::pointer image;
+    do {
+        stitcher->update();
+        image = port->getNextFrame<ImagePyramid>();
+    } while(!image->isLastFrame());
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer2);
-    window->addRenderer(renderer);
-    window->set2DMode();
-    window->start();
-
+    // Export
+    auto result = port->getNextFrame<ImagePyramid>();
     auto exporter = TIFFImagePyramidExporter::New();
     exporter->setFilename("image-pyramid-segmentation-test2.tiff");
-    exporter->setInputData(port->getNextFrame());
+    exporter->setInputData(result);
     exporter->enableRuntimeMeasurements();
     exporter->update();
+    std::cout << "Done calling update.." << std::endl;
+
+    // Then import again and visualize
+    auto importer2 = TIFFImagePyramidImporter::New();
+    importer2->setFilename("image-pyramid-segmentation-test2.tiff");
+
+    auto renderer = SegmentationRenderer::New();
+    renderer->setInputConnection(importer2->getOutputPort());
+
+    auto window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->set2DMode();
+    window->setTimeout(5000);
+    window->start();
     exporter->getAllRuntimes()->printAll();
 }
 
+/*
 TEST_CASE("TIFFImagePyramidExporter segmentation", "[fast][TIFFImagePyramidExporter]") {
     auto importer = ImagePyramidPatchImporter::New();
     importer->setPath("/home/smistad/test_image_pyramid_export_level_0/");
@@ -85,7 +107,7 @@ TEST_CASE("TIFFImagePyramidExporter segmentation", "[fast][TIFFImagePyramidExpor
     exporter->enableRuntimeMeasurements();
     exporter->update();
 
-    auto importer2 = WholeSlideImageImporter::New();
+    auto importer2 = TIFFImagePyramidImporter::New();
     importer2->setFilename("image-pyramid-segmentation-test.tiff");
 
     auto renderer = SegmentationRenderer::New();
@@ -96,5 +118,4 @@ TEST_CASE("TIFFImagePyramidExporter segmentation", "[fast][TIFFImagePyramidExpor
     window->set2DMode();
     window->start();
     exporter->getAllRuntimes()->printAll();
-}
-*/
+}*/
