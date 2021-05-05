@@ -3,7 +3,9 @@
 #include <FAST/Object.hpp>
 #include <FAST/Data/DataTypes.hpp>
 
+// Forward declare
 typedef struct _openslide openslide_t;
+typedef struct tiff TIFF;
 
 namespace fast {
 
@@ -39,7 +41,7 @@ public:
 class FAST_EXPORT ImagePyramidAccess : Object {
 public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
-	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess);
+	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess);
 	void setScalar(uint x, uint y, uint level, uint8_t value, uint channel = 0);
 	void setScalarFast(uint x, uint y, uint level, uint8_t value, uint channel = 0) noexcept;
 	uint8_t getScalar(uint x, uint y, uint level, uint channel = 0);
@@ -56,7 +58,8 @@ private:
 	std::shared_ptr<ImagePyramid> m_image;
 	std::vector<ImagePyramidLevel> m_levels;
 	bool m_write;
-	openslide_t* m_fileHandle;
+	openslide_t* m_fileHandle = nullptr;
+	TIFF* m_tiffHandle = nullptr;
 };
 
 }

@@ -11,17 +11,11 @@
 
 namespace fast {
 
-void WholeSlideImageImporter::execute() {
-    if (mFilename.empty())
-        throw Exception("No filename was supplied to the WholeSlideImageImporter");
-
-    if(!fileExists(mFilename))
-        throw FileNotFoundException(mFilename);
-
-    openslide_t* file = openslide_open(mFilename.c_str());
+void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
+    openslide_t* file = openslide_open(filename.c_str());
     if(file == nullptr) {
         const char * message = openslide_get_error(file);
-        throw Exception("Unable to open file " + mFilename + ". OpenSlide error message: " + message);
+        throw Exception("Unable to open file " + filename + ". OpenSlide error message: " + message);
     }
 
     auto image = ImagePyramid::New();
@@ -70,10 +64,18 @@ void WholeSlideImageImporter::execute() {
     addOutputData(0, image);
 }
 
+void WholeSlideImageImporter::execute() {
+    if(m_filename.empty())
+        throw Exception("No filename was supplied to the WholeSlideImageImporter");
+
+    if(!fileExists(m_filename))
+        throw FileNotFoundException(m_filename);
+
+    //std::string extension = stringToLower(m_filename.substr(m_filename.rfind('.')));
+    readWithOpenSlide(m_filename);
+}
+
 WholeSlideImageImporter::WholeSlideImageImporter() {
-    mFilename = "";
-    mIsModified = true;
-    mGrayscale = false;
     createOutputPort<ImagePyramid>(0);
 
     createStringAttribute("filename", "Filename", "Filename to read", "");
@@ -81,17 +83,7 @@ WholeSlideImageImporter::WholeSlideImageImporter() {
 }
 
 void WholeSlideImageImporter::loadAttributes() {
-    setFilename(getStringAttribute("filename"));
-}
-
-void WholeSlideImageImporter::setGrayscale(bool grayscale) {
-    mGrayscale = grayscale;
-    mIsModified = true;
-}
-
-void WholeSlideImageImporter::setFilename(std::string filename) {
-    mFilename = filename;
-    mIsModified = true;
+    FileImporter::loadAttributes();
 }
 
 }

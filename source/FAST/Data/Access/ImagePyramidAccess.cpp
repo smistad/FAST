@@ -3,17 +3,19 @@
 #include <FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp>
 #include <FAST/Utility.hpp>
 #include <openslide/openslide.h>
+#include <tiffio.h>
 #include <FAST/Data/Image.hpp>
 
 namespace fast {
 
-ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool write) {
+ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool write) {
 	if(levels.size() == 0)
 		throw Exception("Image pyramid has no levels");
 	m_image = imagePyramid;
 	m_levels = levels;
 	m_write = write;
     m_fileHandle = fileHandle;
+    m_tiffHandle = tiffHandle;
 }
 
 void ImagePyramidAccess::release() {
@@ -99,13 +101,39 @@ ImagePyramidPatch ImagePyramidAccess::getPatch(std::string tile) {
     return getPatch(level, tile_x, tile_y);
 }
 
-
 std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int y, int width, int height) {
     const int levelWidth = m_image->getLevelWidth(level);
     const int levelHeight = m_image->getLevelHeight(level);
     const int channels = m_image->getNrOfChannels();
     auto data = std::make_unique<uchar[]>(width*height*channels);
-    if(m_fileHandle != nullptr) {
+    if(m_tiffHandle != nullptr) {
+        // Read all tiles within region, then crop
+        const int tileWidth = m_image->getLevelTileWidth(level);
+        const int tileHeight = m_image->getLevelTileHeight(level);
+        if(width == tileWidth && height == tileHeight) {
+            TIFFSetDirectory(m_tiffHandle, level); // TODO Only set if needed?
+            int bytesRead = TIFFReadTile(m_tiffHandle, (void *)data.get(), x, y, 0, 0);
+        } else {
+            throw NotImplementedException();
+            // TODO how to do this fast?
+            /*
+            int startTileX =;
+            int startTileY =;
+            int endTileX =;
+            int endTileY =;
+            auto dataBuffer = std::make_unique<char[]>(tileWidth * tileHeight * channels);
+            int offsetX =;
+            int offsetY =;
+            for (int x = startTileX; x <= endTileX; ++x) {
+                for (int y = startTileY; y <= endTileY; ++y) {
+                    TIFFReadTile(m_tiffHandle, (void *) dataBuffer.get(), x, y, 0, 0);
+                    for (int)
+                }
+            }
+             */
+        }
+
+    } else if(m_fileHandle != nullptr) {
 		int scale = (float)m_image->getFullWidth()/levelWidth;
 #ifndef WIN32
         // HACK for black edge frames on ubuntu linux 20.04. This seems to be an issue with openslide or underlying libraries
@@ -201,7 +229,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     auto image = Image::New();
     auto data = getPatchData(level, offsetX, offsetY, width, height);
     float scale = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
-    image->create(width, height, TYPE_UINT8, 4, std::move(data));
+    image->create(width, height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
     image->setSpacing(Vector3f(
             scale,
             scale,
@@ -210,13 +238,15 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     // TODO Set transformation
     SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
 
-    // Data is stored as BGRA, need to delete alpha channel and reverse it
-    auto channelConverter = ImageChannelConverter::New();
-    channelConverter->setChannelsToRemove(false, false, false, true);
-    channelConverter->setReverseChannels(true);
-    channelConverter->setInputData(image);
-
-    return channelConverter->updateAndGetOutputData<Image>();
+    if(m_fileHandle) {
+        // Data is stored as BGRA, need to delete alpha channel and reverse it
+        auto channelConverter = ImageChannelConverter::New();
+        channelConverter->setChannelsToRemove(false, false, false, true);
+        channelConverter->setReverseChannels(true);
+        channelConverter->setInputData(image);
+        return channelConverter->updateAndGetOutputData<Image>();
+    }
+    return image;
 }
 
 std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX, int tileY) {

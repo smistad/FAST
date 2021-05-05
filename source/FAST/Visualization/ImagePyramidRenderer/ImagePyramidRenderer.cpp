@@ -180,8 +180,21 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
                 // WSI data from openslide is stored as ARGB, need to handle this here: BGRA and reverse
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile.width, tile.height, 0, GL_BGRA, GL_UNSIGNED_BYTE,
-                             tile.data.get());
+                if(m_input->isBGRA()) {
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile.width, tile.height, 0, GL_BGRA,
+                                 GL_UNSIGNED_BYTE,
+                                 tile.data.get());
+                } else {
+                    if(m_input->getNrOfChannels() == 3) {
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB, tile.width, tile.height, 0, GL_RGB,
+                                     GL_UNSIGNED_BYTE,
+                                     tile.data.get());
+                    } else if(m_input->getNrOfChannels() == 4) {
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile.width, tile.height, 0, GL_RGBA,
+                                     GL_UNSIGNED_BYTE,
+                                     tile.data.get());
+                    }
+                }
                 GLint compressedImageSize = 0;
                 glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
                 glBindTexture(GL_TEXTURE_2D, 0);

@@ -1,5 +1,6 @@
 #include "ImagePyramid.hpp"
 #include <openslide/openslide.h>
+#include <tiffio.h>
 #include <FAST/Utility.hpp>
 #include <FAST/Data/Image.hpp>
 #include <FAST/Data/Access/ImagePyramidAccess.hpp>
@@ -204,6 +205,9 @@ void ImagePyramid::freeAll() {
     if(m_fileHandle != nullptr) {
         m_levels.clear();
         openslide_close(m_fileHandle);
+    } else if(m_tiffHandle != nullptr) {
+        m_levels.clear();
+        TIFFClose(m_tiffHandle);
     } else {
 		for(auto& item : m_levels) {
 			if(item.memoryMapped) {
@@ -220,6 +224,7 @@ void ImagePyramid::freeAll() {
 		}
         m_levels.clear();
     }
+
 	m_initialized = false;
 	m_fileHandle = nullptr;
 }
@@ -252,7 +257,7 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE);
+    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE);
 }
 
 void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {
@@ -284,6 +289,23 @@ void ImagePyramid::setSpacing(Vector3f spacing) {
 
 Vector3f ImagePyramid::getSpacing() const {
 	return m_spacing;
+}
+
+void ImagePyramid::create(TIFF *fileHandle, std::vector<ImagePyramidLevel> levels, int channels) {
+    m_tiffHandle = fileHandle;
+    m_levels = levels;
+    m_channels = channels;
+    for(int i = 0; i < m_levels.size(); ++i) {
+        m_levels[i].tilesX = std::ceil(m_levels[i].width / m_levels[i].tileWidth);
+        m_levels[i].tilesY = std::ceil(m_levels[i].height / m_levels[i].tileHeight);
+    }
+    mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
+    m_initialized = true;
+    m_counter += 1;
+}
+
+bool ImagePyramid::isBGRA() const {
+    return m_fileHandle != nullptr;
 }
 
 }

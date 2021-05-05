@@ -26,7 +26,7 @@ void TIFFImagePyramidExporter::execute() {
         } else if(imagePyramid->getNrOfChannels() == 3 || imagePyramid->getNrOfChannels() == 4) {
             compression = ImageCompression::JPEG;
         } else {
-            throw Exception("Unexpected nr of channels in ImagePyramid");
+            throw Exception("Unexpected nr of channels in ImagePyramid: " + std::to_string(imagePyramid->getNrOfChannels()));
         }
     }
     uint photometric = PHOTOMETRIC_RGB;
@@ -130,7 +130,7 @@ void TIFFImagePyramidExporter::execute() {
             std::size_t byteSize = getSizeOfDataType(image->getDataType(), image->getNrOfChannels())*image->getNrOfVoxels();
             mRuntimeManager->startRegularTimer("TIFF write");
             TIFFWriteEncodedTile(tiff, counter, data, byteSize);
-            mRuntimeManager->startRegularTimer("TIFF stop");
+            mRuntimeManager->stopRegularTimer("TIFF write");
             ++counter;
         } while(!image->isLastFrame());
 

@@ -5,7 +5,6 @@
 #include <FAST/Data/Access/ImagePyramidAccess.hpp>
 #include <set>
 
-// Forward declare
 
 namespace fast {
 
@@ -25,6 +24,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     public:
         void create(int width, int height, int channels, int levels = -1);
         void create(openslide_t* fileHandle, std::vector<ImagePyramidLevel> levels);
+        void create(TIFF* fileHandle, std::vector<ImagePyramidLevel> levels, int channels);
         int getNrOfLevels();
         int getLevelWidth(int level);
         int getLevelHeight(int level);
@@ -35,6 +35,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;
+        bool isBGRA() const;
         void setSpacing(Vector3f spacing);
         Vector3f getSpacing() const;
         ImagePyramidAccess::pointer getAccess(accessType type);
@@ -51,6 +52,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         ImagePyramidLevel getLevelInfo(int level);
 
         openslide_t* m_fileHandle = nullptr;
+        TIFF* m_tiffHandle = nullptr;
 
         int m_channels;
         bool m_initialized;

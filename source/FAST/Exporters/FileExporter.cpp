@@ -4,6 +4,7 @@ namespace fast {
 
 void FileExporter::setFilename(std::string filename) {
     mFilename = filename;
+    setModified(true);
 }
 
 FileExporter::FileExporter() {

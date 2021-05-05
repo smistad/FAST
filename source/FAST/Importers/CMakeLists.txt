@@ -59,12 +59,15 @@ if(FAST_MODULE_WholeSlideImaging)
         WholeSlideImageImporter.hpp
         ImagePyramidPatchImporter.cpp
         ImagePyramidPatchImporter.hpp
+        TIFFImagePyramidImporter.cpp
+        TIFFImagePyramidImporter.hpp
     )
     fast_add_test_sources(
         Tests/WholeSlideImageImporterTests.cpp
     )
     fast_add_process_object(WholeSlideImageImporter WholeSlideImageImporter.hpp)
     fast_add_process_object(ImagePyramidPatchImporter ImagePyramidPatchImporter.hpp)
+    fast_add_process_object(TIFFImagePyramidImporter TIFFImagePyramidImporter.hpp)
 endif()
 if(FAST_MODULE_HDF5)
     fast_add_sources(
