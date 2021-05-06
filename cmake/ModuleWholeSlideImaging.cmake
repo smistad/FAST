@@ -2,24 +2,17 @@ if(FAST_MODULE_WholeSlideImaging)
     message("-- Whole slide imaging module enabled")
     include(cmake/ExternalOpenSlide.cmake)
     if(WIN32)
-        list(APPEND LIBRARIES libopenslide.lib)
-        list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openslide/)
-
         # Build TIFF
         include(cmake/ExternalTIFF.cmake)
-        set(TIFF_LIBRARY tiff.lib)
+        list(APPEND LIBRARIES libopenslide.lib tiff.lib)
+        list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openslide/ ${TIFF_INCLUDE_DIRS})
     else()
+        # Get OpenSlide and TIFF from OS
         find_package(OpenSlide REQUIRED)
+        find_package(TIFF REQUIRED)
 
-        list(APPEND FAST_INCLUDE_DIRS ${OPENSLIDE_INCLUDE_DIRS})
-        list(APPEND LIBRARIES ${OPENSLIDE_LIBRARIES})
-
-        # Use TIFF from Qt
-        set(TIFF_INCLUDE_DIRS ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/qtimageformats/src/3rdparty/libtiff/libtiff/)
-        set(TIFF_LIBRARY libtiff.so)
+        list(APPEND LIBRARIES ${OPENSLIDE_LIBRARIES} ${TIFF_LIBRARIES})
+        list(APPEND FAST_INCLUDE_DIRS ${OPENSLIDE_INCLUDE_DIRS} ${TIFF_INCLUDE_DIRS})
      endif()
-    message(STATUS "TIFF FOUND: ${TIFF_LIBRARY} ${TIFF_INCLUDE_DIRS}")
-    list(APPEND FAST_INCLUDE_DIRS ${TIFF_INCLUDE_DIRS})
-    list(APPEND FAST_LIBRARY_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/plugins/imageformats/)
-    list(APPEND LIBRARIES ${TIFF_LIBRARY})
+    message(STATUS "TIFF FOUND: ${TIFF_LIBRARY} ${TIFF_LIBRARIES} ${TIFF_INCLUDE_DIRS}")
 endif()
