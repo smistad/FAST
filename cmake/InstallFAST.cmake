@@ -374,13 +374,6 @@ if(FAST_MODULE_Clarius)
 	)
 endif()
 
-if(FAST_BUILD_DOCS)
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
-        DESTINATION fast/doc
-		COMPONENT fast
-    )
-endif()
-
 # Create empty kernel_binaries folder for caching
 install(DIRECTORY
 	DESTINATION fast/kernel_binaries
