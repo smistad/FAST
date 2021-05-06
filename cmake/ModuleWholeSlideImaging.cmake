@@ -1,7 +1,7 @@
 if(FAST_MODULE_WholeSlideImaging)
     message("-- Whole slide imaging module enabled")
     include(cmake/ExternalOpenSlide.cmake)
-    set(TIFF_INCLUDE_DIRS ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/qtimageformats/src/3rdparty/libtiff/)
+    set(TIFF_INCLUDE_DIRS ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/qtimageformats/src/3rdparty/libtiff/libtiff/)
     if(WIN32)
         list(APPEND LIBRARIES libopenslide.lib)
         list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openslide/)
