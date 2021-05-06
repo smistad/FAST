@@ -17,7 +17,7 @@ enum class ImageCompression {
 /**
  * @brief Export an ImagePyramid to disk in the tiled pyramid TIFF format.
  */
-class TIFFImagePyramidExporter : public FileExporter {
+class FAST_EXPORT TIFFImagePyramidExporter : public FileExporter {
     FAST_OBJECT(TIFFImagePyramidExporter)
 public:
     void setCompression(ImageCompression compression);
