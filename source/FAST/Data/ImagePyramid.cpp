@@ -128,8 +128,8 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
     }
 
     for(int i = 0; i < m_levels.size(); ++i) {
-		m_levels[i].tilesX = std::ceil(m_levels[i].width / m_levels[i].tileWidth);
-        m_levels[i].tilesY = std::ceil(m_levels[i].height / m_levels[i].tileHeight);
+		m_levels[i].tilesX = std::ceil((float)m_levels[i].width / m_levels[i].tileWidth);
+        m_levels[i].tilesY = std::ceil((float)m_levels[i].height / m_levels[i].tileHeight);
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
@@ -141,8 +141,8 @@ void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel
     m_levels = levels;
     m_channels = 4;
     for(int i = 0; i < m_levels.size(); ++i) {
-		m_levels[i].tilesX = std::ceil(m_levels[i].width / m_levels[i].tileWidth);
-        m_levels[i].tilesY = std::ceil(m_levels[i].height / m_levels[i].tileHeight);
+		m_levels[i].tilesX = std::ceil((float)m_levels[i].width / m_levels[i].tileWidth);
+        m_levels[i].tilesY = std::ceil((float)m_levels[i].height / m_levels[i].tileHeight);
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
@@ -296,8 +296,8 @@ void ImagePyramid::create(TIFF *fileHandle, std::vector<ImagePyramidLevel> level
     m_levels = levels;
     m_channels = channels;
     for(int i = 0; i < m_levels.size(); ++i) {
-        m_levels[i].tilesX = std::ceil(m_levels[i].width / m_levels[i].tileWidth);
-        m_levels[i].tilesY = std::ceil(m_levels[i].height / m_levels[i].tileHeight);
+        m_levels[i].tilesX = std::ceil((float)m_levels[i].width / m_levels[i].tileWidth);
+        m_levels[i].tilesY = std::ceil((float)m_levels[i].height / m_levels[i].tileHeight);
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;

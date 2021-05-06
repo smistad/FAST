@@ -42,6 +42,8 @@ class FAST_EXPORT  DataObject : public Object {
         void setLastFrame(std::string streamer);
         bool isLastFrame();
         bool isLastFrame(std::string streamer);
+        void removeLastFrame(std::string streamer);
+        void clearLastFrame();
         std::unordered_set<std::string> getLastFrame();
         void setFrameData(std::string name, std::string value);
         std::string getFrameData(std::string name);

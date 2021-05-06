@@ -22,7 +22,8 @@ void TIFFImagePyramidImporter::execute() {
         TIFFGetField(tiff, TIFFTAG_TILEWIDTH, &tileWidth);
         TIFFGetField(tiff, TIFFTAG_TILELENGTH, &tileHeight);
         TIFFGetField(tiff, TIFFTAG_SAMPLESPERPIXEL, &channels);
-        reportInfo() << "Level " << level <<  " has size " << width << " " << height << reportEnd();
+        reportInfo() << "Level " << level <<  " has size " << width << " " << height <<
+             " and tile size: " << tileWidth << " " << tileHeight << reportEnd();
 
         ImagePyramidLevel levelData;
         levelData.width = width;

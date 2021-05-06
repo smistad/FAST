@@ -109,7 +109,7 @@ void PatchGenerator::generateStream() {
                 mRuntimeManager->stopRegularTimer("create patch");
                 try {
                     if(previousPatch) {
-                        addOutputData(0, previousPatch);
+                        addOutputData(0, previousPatch, false);
                         frameAdded();
                     }
                 } catch(ThreadStopped &e) {
@@ -155,7 +155,7 @@ void PatchGenerator::generateStream() {
             patch->setFrameData("patch-spacing-z", std::to_string(spacing.z()));
             try {
                 if(previousPatch) {
-                    addOutputData(0, previousPatch);
+                    addOutputData(0, previousPatch, false);
                     frameAdded();
                     //std::this_thread::sleep_for(std::chrono::seconds(2));
                 }
@@ -176,7 +176,7 @@ void PatchGenerator::generateStream() {
     // Add final patch, and mark it has last frame
     previousPatch->setLastFrame(getNameOfClass());
     try {
-        addOutputData(0, previousPatch);
+        addOutputData(0, previousPatch, false);
     } catch(ThreadStopped &e) {
 
     }

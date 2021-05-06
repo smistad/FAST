@@ -110,10 +110,25 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
         // Read all tiles within region, then crop
         const int tileWidth = m_image->getLevelTileWidth(level);
         const int tileHeight = m_image->getLevelTileHeight(level);
+        TIFFSetDirectory(m_tiffHandle, level); // TODO Only set if needed?
         if(width == tileWidth && height == tileHeight) {
-            TIFFSetDirectory(m_tiffHandle, level); // TODO Only set if needed?
-            int bytesRead = TIFFReadTile(m_tiffHandle, (void *)data.get(), x, y, 0, 0);
-        } else {
+            int bytesRead = TIFFReadTile(m_tiffHandle, (void *) data.get(), x, y, 0, 0);
+        } else if(width < tileWidth || height < tileHeight) {
+            // In TIFF all tiles have the same size, thus they are padded..
+            auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
+            int bytesRead = TIFFReadTile(m_tiffHandle, (void *)tileData.get(), x, y, 0, 0);
+            // Remove padding
+            for(int dy = 0; dy < height; ++dy) {
+                for(int dx = 0; dx < width; ++dx) {
+                    data[dx + dy*width] = tileData[dx + dy*tileWidth];
+                }
+            }
+        } else if(width > tileWidth || height > tileHeight) {
+            // TODO implement
+            throw Exception("Encountered unqueal tile and request size. Not implemented. "
+            + std::to_string(width) + " " + std::to_string(tileWidth) + " "
+            + std::to_string(height) + " " + std::to_string(tileHeight)
+            );
             throw NotImplementedException();
             // TODO how to do this fast?
             /*

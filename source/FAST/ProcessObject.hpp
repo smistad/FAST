@@ -99,7 +99,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         std::shared_ptr<DataType> getInputData(uint portID = 0);
         template <class DataType>
         std::shared_ptr<DataType> getOutputData(uint portID = 0);
-        void addOutputData(uint portID, DataObject::pointer data);
+        void addOutputData(uint portID, DataObject::pointer data, bool propagateLastFrameData = true, bool propagateFrameData = true);
 
         bool hasNewInputData(uint portID);
 

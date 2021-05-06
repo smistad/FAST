@@ -79,7 +79,6 @@ TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExpo
     exporter->setInputData(result);
     exporter->enableRuntimeMeasurements();
     exporter->update();
-    std::cout << "Done calling update.." << std::endl;
 
     // Then import again and visualize
     auto importer2 = TIFFImagePyramidImporter::New();

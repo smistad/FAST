@@ -161,14 +161,16 @@ void ProcessObject::setInputConnection(DataChannel::pointer port) {
     setInputConnection(0, port);
 }
 
-void ProcessObject::addOutputData(uint portID, DataObject::pointer data) {
+void ProcessObject::addOutputData(uint portID, DataObject::pointer data, bool propagateLastFrameData, bool propagateFrameData) {
     validateOutputPortExists(portID);
 
     // Copy frame data from input data
-    for(auto&& lastFrame : m_lastFrame)
-        data->setLastFrame(lastFrame);
-    for(auto&& frameData : m_frameData)
-        data->setFrameData(frameData.first, frameData.second);
+    if(propagateLastFrameData)
+        for(auto&& lastFrame : m_lastFrame)
+            data->setLastFrame(lastFrame);
+    if(propagateFrameData)
+        for(auto&& frameData : m_frameData)
+            data->setFrameData(frameData.first, frameData.second);
 
     // Add it to all output connections, if any connections exist
     if(mOutputConnections.count(portID) > 0) {

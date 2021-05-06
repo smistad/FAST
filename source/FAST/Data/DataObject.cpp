@@ -108,4 +108,12 @@ std::unordered_map<std::string, std::string> DataObject::getFrameData() {
     return m_frameData;
 }
 
+void DataObject::removeLastFrame(std::string streamer) {
+    m_lastFrame.erase(streamer);
+}
+
+void DataObject::clearLastFrame() {
+    m_lastFrame.clear();
+}
+
 } // end namespace fast
