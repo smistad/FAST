@@ -12,3 +12,5 @@ fast_add_sources(
 )
 fast_add_test_sources(Tests.cpp)
 fast_add_process_object(AlphaBlendingVolumeRenderer AlphaBlendingVolumeRenderer.hpp)
+fast_add_process_object(ThresholdVolumeRenderer ThresholdVolumeRenderer.hpp)
+fast_add_process_object(MaximumIntensityProjection MaximumIntensityProjection.hpp)

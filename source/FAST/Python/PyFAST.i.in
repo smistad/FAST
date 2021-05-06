@@ -56,6 +56,19 @@ using namespace fast;
 %template(vectorc) std::vector<char>;
 %template(vectoruc) std::vector<uchar>;
 %template(vectors) std::vector<std::string>;
+// This avoids the no default constructor available problem for this vector types:
+%ignore std::vector<fast::MeshVertex>::vector(size_type);
+%ignore std::vector<fast::MeshVertex>::resize;
+%ignore std::vector<fast::MeshVertex>::pop;
+%ignore std::vector<fast::MeshLine>::vector(size_type);
+%ignore std::vector<fast::MeshLine>::resize;
+%ignore std::vector<fast::MeshLine>::pop;
+%ignore std::vector<fast::MeshTriangle>::vector(size_type);
+%ignore std::vector<fast::MeshTriangle>::resize;
+%ignore std::vector<fast::MeshTriangle>::pop;
+%template(vectormeshvertex) std::vector<fast::MeshVertex>;
+%template(vectormeshline) std::vector<fast::MeshLine>;
+%template(vectormeshtriangle) std::vector<fast::MeshTriangle>;
 
 // FAST CORE LIBRARY
 
