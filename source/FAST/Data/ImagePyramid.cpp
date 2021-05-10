@@ -32,7 +32,11 @@ void ImagePyramid::create(int width, int height, int channels, int patchWidth, i
     int currentHeight = height;
     m_channels = channels;
 
+#ifdef WIN32
+    m_tiffPath = "C:/windows/temp/fast_image_pyramid_" + std::to_string(m_counter) + ".tiff";
+#else
     m_tiffPath = "/tmp/fast_image_pyramid_" + std::to_string(m_counter) + ".tiff";
+#endif
     m_tiffHandle = TIFFOpen(m_tiffPath.c_str(), "w8");
     auto tiff = m_tiffHandle;
     m_counter += 1;
