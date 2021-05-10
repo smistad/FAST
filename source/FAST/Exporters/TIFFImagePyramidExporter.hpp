@@ -1,18 +1,9 @@
 #pragma once
 
 #include <FAST/Exporters/FileExporter.hpp>
+#include <FAST/Data/ImagePyramid.hpp>
 
 namespace fast {
-
-/**
- * @brief Image compression types for TIFF exporter
- */
-enum class ImageCompression {
-    RAW,
-    JPEG,
-    JPEG2000,
-    LZW // Lossless compression
-};
 
 /**
  * @brief Export an ImagePyramid to disk in the tiled pyramid TIFF format.

@@ -11,6 +11,16 @@ namespace fast {
 class Image;
 
 /**
+ * @brief Image compression types for ImagePyramids (TIFF)
+ */
+enum class ImageCompression {
+    RAW,
+    JPEG,
+    JPEG2000,
+    LZW // Lossless compression
+};
+
+/**
  * @brief Image pyramid data object
  *
  * Data object for storing large images as tiled image pyramids.
