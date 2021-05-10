@@ -48,20 +48,23 @@ void PatchGenerator::generateStream() {
     Image::pointer previousPatch;
 
     if(m_inputImagePyramid) {
+        if(m_width % 2 != 0 || m_height % 2 != 0)
+            throw Exception("Patch size must be dividable by 2");
         const int levelWidth = m_inputImagePyramid->getLevelWidth(m_level);
         const int levelHeight = m_inputImagePyramid->getLevelHeight(m_level);
         int overlapInPixelsX = (int) std::round(m_overlapPercent * (float) m_width);
         int overlapInPixelsY = (int) std::round(m_overlapPercent * (float) m_height);
         int patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
         int patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
-        if(patchWidthWithoutOverlap % 16 > 0 || patchHeightWithoutOverlap % 16 > 0) {
+        const int TIFFmultiplumCriteria = 16;
+        if(patchWidthWithoutOverlap % TIFFmultiplumCriteria > 0 || patchHeightWithoutOverlap % TIFFmultiplumCriteria > 0) {
             // Resulting patch size must be a multiple of 16
-            overlapInPixelsX = overlapInPixelsX + (patchWidthWithoutOverlap % 16)/2;
-            overlapInPixelsY = overlapInPixelsY + (patchHeightWithoutOverlap % 16)/2;
-            reportWarning() << "Patch size must be a multiple of 16 (TIFF limitation). Adding some overlap (" << overlapInPixelsX << ", " << overlapInPixelsY << ") to fix." << reportEnd();
+            overlapInPixelsX = overlapInPixelsX + (patchWidthWithoutOverlap % TIFFmultiplumCriteria)/2;
+            overlapInPixelsY = overlapInPixelsY + (patchHeightWithoutOverlap % TIFFmultiplumCriteria)/2;
+            reportWarning() << "Patch size must be a multiple of " << TIFFmultiplumCriteria << " (TIFF limitation). Adding some overlap (" << overlapInPixelsX << ", " << overlapInPixelsY << ") to fix." << reportEnd();
             patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
             patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
-            if(patchWidthWithoutOverlap % 16 > 0 || patchHeightWithoutOverlap % 16 > 0)
+            if(patchWidthWithoutOverlap % TIFFmultiplumCriteria > 0 || patchHeightWithoutOverlap % TIFFmultiplumCriteria > 0)
                 throw Exception("Error in compensation of patch size..");
         }
         const int patchesX = std::ceil((float) levelWidth / (float) patchWidthWithoutOverlap);
@@ -102,7 +105,6 @@ void PatchGenerator::generateStream() {
                 // TODO handle edge cases
                 if(patchWidth < overlapInPixelsX*2 || patchHeight < overlapInPixelsY*2)
                     continue;
-                std::cout << "Patch sizes: " << patchX*patchWidthWithoutOverlap << " " << patchWidth << std::endl;
                 auto patch = access->getPatchAsImage(m_level, patchX * patchWidthWithoutOverlap - overlapInPixelsX, patchY * patchHeightWithoutOverlap - overlapInPixelsY,
                                                                   patchWidth,
                                                                   patchHeight);

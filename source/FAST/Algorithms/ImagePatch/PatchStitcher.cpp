@@ -189,13 +189,11 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 return;
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
             mRuntimeManager->startRegularTimer("copy patch");
-            std::cout << "patch overlap: " << patchOverlapX << " " << patchOverlapY << std::endl;
             if(patchOverlapX > 0 || patchOverlapY > 0) {
                 patch = patch->crop(
                         Vector2i(patchOverlapX, patchOverlapY),
                         Vector2i(patch->getWidth() - patchOverlapX * 2, patch->getHeight() - patchOverlapY * 2)
                 );
-                std::cout << "Patch size: " << patch->getSize().transpose() << std::endl;
             }
             outputAccess->setPatch(0, startX, startY, patch);
             mRuntimeManager->stopRegularTimer("copy patch");

@@ -10,6 +10,7 @@
 #include <FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp>
 #include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>
 #include <FAST/Importers/TIFFImagePyramidImporter.hpp>
+#include <FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp>
 
 using namespace fast;
 
@@ -40,12 +41,17 @@ TEST_CASE("TIFFImagePyramidExporter", "[fast][TIFFImagePyramidExporter][wsi][vis
 TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExporter][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    //importer->setFilename("/home/smistad/Downloads/OS-1.tiff");
+
+    auto tissue = TissueSegmentation::New();
+    tissue->setInputConnection(importer->getOutputPort());
 
     auto generator = PatchGenerator::New();
     generator->setInputConnection(importer->getOutputPort());
     generator->setPatchLevel(1);
     generator->setPatchSize(256, 256);
-    generator->setOverlap(0.15);
+    generator->setInputConnection(1, tissue->getOutputPort());
+    //generator->setOverlap(0.1);
 
     auto segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(generator->getOutputPort());
@@ -68,13 +74,13 @@ TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExpo
         window->addRenderer(renderer);
         window->set2DMode();
         window->start();
-    }
+    }/*
     // Wait until finished..
     ImagePyramid::pointer image;
     do {
         stitcher->update();
         image = port->getNextFrame<ImagePyramid>();
-    } while(!image->isLastFrame());
+    } while(!image->isLastFrame());*/
 
     // Export
     auto result = port->getNextFrame<ImagePyramid>();

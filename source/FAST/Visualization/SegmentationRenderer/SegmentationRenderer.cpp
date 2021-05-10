@@ -186,8 +186,9 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                     Image::pointer patch;
                     {
                         auto access = m_input->getAccess(ACCESS_READ);
-                        if(!access->isPatchInitialized(level, tile_x, tile_y))
-                            continue;
+                        // TODO This is causing issues, why?
+                        //if(!access->isPatchInitialized(level, tile_x*m_input->getLevelTileWidth(level), tile_y*m_input->getLevelTileHeight(level)))
+                        //    continue;
                         patch = access->getPatchAsImage(level, tile_x, tile_y);
                     }
                     auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, true);

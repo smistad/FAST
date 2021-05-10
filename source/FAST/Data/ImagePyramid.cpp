@@ -67,6 +67,8 @@ void ImagePyramid::create(int width, int height, int channels, int patchWidth, i
 		levelData.height = currentHeight;
 		levelData.tileWidth = patchWidth;
         levelData.tileHeight = patchHeight;
+        levelData.tilesX = std::ceil((float)levelData.width / levelData.tileWidth);
+        levelData.tilesY = std::ceil((float)levelData.height / levelData.tileHeight);
 
         // Write base tags
         TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, photometric);
@@ -102,13 +104,20 @@ void ImagePyramid::create(int width, int height, int channels, int patchWidth, i
         TIFFSetField(tiff, TIFFTAG_IMAGEWIDTH, levelData.width);
         TIFFSetField(tiff, TIFFTAG_IMAGELENGTH, levelData.height);
 
-        // TODO need to initialize somehow?
-
 		m_levels.push_back(levelData);
+
+        // TODO need to initialize somehow?
 		// We need to write the first tile for some reason... or we will get an error saying it is missing required
 		// TileOffsets
-		auto data = std::make_unique<uchar[]>(levelData.tileWidth*levelData.tileHeight*samplesPerPixel);
-		TIFFWriteEncodedTile(tiff, 0, data.get(), levelData.tileWidth*levelData.tileHeight*samplesPerPixel);
+		auto data = std::make_unique<uchar[]>(levelData.tileWidth*levelData.tileHeight*samplesPerPixel); // Is initialized to zeros
+        TIFFWriteTile(tiff, data.get(), 0, 0, 0, 0);
+        /*
+        // TODO Do we really need to inititalize all tiles? This takes time..
+        for(int y = 0; y < levelData.tilesY; ++y) {
+            for(int x = 0; x < levelData.tilesX; ++x) {
+                TIFFWriteTile(tiff, data.get(), x*levelData.tileWidth, y*levelData.tileHeight, 0, 0);
+            }
+		}*/
         // END
 
 		reportInfo() << "Done creating level " << currentLevel << reportEnd();
@@ -117,8 +126,6 @@ void ImagePyramid::create(int width, int height, int channels, int patchWidth, i
     }
 
     for(int i = 0; i < m_levels.size(); ++i) {
-		m_levels[i].tilesX = std::ceil((float)m_levels[i].width / m_levels[i].tileWidth);
-        m_levels[i].tilesY = std::ceil((float)m_levels[i].height / m_levels[i].tileHeight);
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;

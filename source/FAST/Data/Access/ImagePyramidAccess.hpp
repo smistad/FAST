@@ -60,6 +60,7 @@ private:
 	openslide_t* m_fileHandle = nullptr;
 	TIFF* m_tiffHandle = nullptr;
     std::unordered_set<std::string>& m_initializedPatchList; // Keep a list of initialized patches, for tiff backend
+    std::mutex m_tiffMutex;
 };
 
 }
