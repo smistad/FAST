@@ -67,15 +67,17 @@ void PatchGenerator::generateStream() {
         const int patchesX = std::ceil((float) levelWidth / (float) patchWidthWithoutOverlap);
         const int patchesY = std::ceil((float) levelHeight / (float) patchHeightWithoutOverlap);
 
-        for(int patchY = 0; patchY < patchesY; ++patchY) {
-            for(int patchX = 0; patchX < patchesX; ++patchX) {
+        for(int patchY = 1; patchY < patchesY; ++patchY) {
+            for(int patchX = 1; patchX < patchesX; ++patchX) {
                 mRuntimeManager->startRegularTimer("create patch");
                 int patchWidth = m_width;
-                if(patchX == patchesX - 1)
-                    patchWidth = levelWidth - patchX * patchWidthWithoutOverlap - 1;
+                if(patchX*patchWidthWithoutOverlap + patchWidth - overlapInPixelsX >= levelWidth) {
+                    patchWidth = levelWidth - patchX * patchWidthWithoutOverlap + overlapInPixelsX - 1;
+                }
                 int patchHeight = m_height;
-                if(patchY == patchesY - 1)
-                    patchHeight = levelHeight - patchY * patchHeightWithoutOverlap - 1;
+                if(patchY*patchHeightWithoutOverlap + patchHeight - overlapInPixelsY >= levelHeight) {
+                    patchHeight = levelHeight - patchY * patchHeightWithoutOverlap + overlapInPixelsY - 1;
+                }
 
                 if(m_inputMask) {
                     // If a mask exist, check if this patch should be included or not
@@ -98,7 +100,10 @@ void PatchGenerator::generateStream() {
                 reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
                 auto access = m_inputImagePyramid->getAccess(ACCESS_READ);
                 // TODO handle edge cases
-                auto patch = access->getPatchAsImage(m_level, patchX * patchWidthWithoutOverlap, patchY * patchHeightWithoutOverlap,
+                if(patchWidth < overlapInPixelsX*2 || patchHeight < overlapInPixelsY*2)
+                    continue;
+                std::cout << "Patch sizes: " << patchX*patchWidthWithoutOverlap << " " << patchWidth << std::endl;
+                auto patch = access->getPatchAsImage(m_level, patchX * patchWidthWithoutOverlap - overlapInPixelsX, patchY * patchHeightWithoutOverlap - overlapInPixelsY,
                                                                   patchWidth,
                                                                   patchHeight);
 

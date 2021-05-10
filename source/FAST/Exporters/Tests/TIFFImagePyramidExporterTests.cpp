@@ -45,7 +45,7 @@ TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExpo
     generator->setInputConnection(importer->getOutputPort());
     generator->setPatchLevel(1);
     generator->setPatchSize(256, 256);
-    //generator->setOverlap(0.15);
+    generator->setOverlap(0.15);
 
     auto segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(generator->getOutputPort());

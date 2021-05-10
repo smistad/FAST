@@ -163,8 +163,8 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         const int patchOverlapX = std::stoi(patch->getFrameData("patch-overlap-x"));
         const int patchOverlapY = std::stoi(patch->getFrameData("patch-overlap-y"));
         // Calculate offset. If this calculation is incorrect. Update in ImagePyramidPatchExporter as well.
-        const int startX = std::stoi(patch->getFrameData("patchid-x")) * (std::stoi(patch->getFrameData("patch-width")) - patchOverlapX*2) + patchOverlapX; // TODO + overlap to compensate for start offset
-        const int startY = std::stoi(patch->getFrameData("patchid-y")) * (std::stoi(patch->getFrameData("patch-height")) - patchOverlapY*2) + patchOverlapY;
+        const int startX = std::stoi(patch->getFrameData("patchid-x")) * (std::stoi(patch->getFrameData("patch-width")) - patchOverlapX*2); // TODO + overlap to compensate for start offset
+        const int startY = std::stoi(patch->getFrameData("patchid-y")) * (std::stoi(patch->getFrameData("patch-height")) - patchOverlapY*2);
         if(m_outputImage) {
             cl::Program program = getOpenCLProgram(device, "2D");
 
@@ -185,6 +185,8 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 cl::NullRange
             );
         } else {
+            if(patch->getWidth() <= patchOverlapX*2 || patch->getHeight() <= patchOverlapY*2) // Image to small..
+                return;
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
             mRuntimeManager->startRegularTimer("copy patch");
             std::cout << "patch overlap: " << patchOverlapX << " " << patchOverlapY << std::endl;
