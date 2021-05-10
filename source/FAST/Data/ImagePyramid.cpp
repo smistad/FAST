@@ -14,13 +14,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ProcessObjectList.hpp>
+
 #endif
 
 namespace fast {
 
 int ImagePyramid::m_counter = 0;
 
-void ImagePyramid::create(int width, int height, int channels, int levels) {
+void ImagePyramid::create(int width, int height, int channels, int patchWidth, int patchHeight) {
     if(channels <= 0 || channels > 4)
         throw Exception("Nr of channels must be between 1 and 4");
 
@@ -29,6 +31,22 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
     int currentWidth = width;
     int currentHeight = height;
     m_channels = channels;
+
+    m_tiffPath = "/tmp/fast_image_pyramid_" + std::to_string(m_counter) + ".tiff";
+    m_tiffHandle = TIFFOpen(m_tiffPath.c_str(), "w8");
+    auto tiff = m_tiffHandle;
+    m_counter += 1;
+
+    ImageCompression compression = ImageCompression::LZW;
+
+    uint photometric = PHOTOMETRIC_RGB;
+    uint bitsPerSample = 8;
+    uint samplesPerPixel = 3; // RGBA image pyramid is converted to RGB with getPatchAsImage
+    if(channels == 1) {
+        photometric = PHOTOMETRIC_MINISBLACK; // Photometric mask causes crash..
+        samplesPerPixel = 1;
+    }
+
     while(true) {
 		currentWidth = width / std::pow(2, currentLevel);
 		currentHeight = height / std::pow(2, currentLevel);
@@ -47,84 +65,55 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
 		ImagePyramidLevel levelData;
 		levelData.width = currentWidth;
 		levelData.height = currentHeight;
+		levelData.tileWidth = patchWidth;
+        levelData.tileHeight = patchHeight;
 
-		if(sizeInMB < 512) {
-			// If level is less than X MBs, use system memory
-			levelData.data = new uint8_t[bytes];
-			levelData.memoryMapped = false;
-		} else {
-			reportInfo() << "Using memory mapping.." << reportEnd();
-			uint8_t* data;
-#ifdef WIN32
-			HANDLE hFile = CreateFile(("C:/windows/temp/fast_mmap_" + std::to_string(currentLevel) + "_" + std::to_string(m_counter) + ".bin").c_str(),
-				GENERIC_WRITE | GENERIC_READ,FILE_SHARE_READ | FILE_SHARE_WRITE,
-				NULL, OPEN_ALWAYS, NULL, NULL);
-			if(hFile == nullptr) {
-				throw Exception("Error creating memory mapped file: " + std::to_string(GetLastError()));
-			}
+        // Write base tags
+        TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, photometric);
+        TIFFSetField(tiff, TIFFTAG_BITSPERSAMPLE, bitsPerSample);
+        TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
+        TIFFSetField(tiff, TIFFTAG_SAMPLESPERPIXEL, samplesPerPixel);
+        TIFFSetField(tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+        TIFFSetField(tiff, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 
-			levelData.fileHandle = hFile;
+        if(currentLevel > 0) {
+            // All levels except highest res level should have this tag?
+            TIFFSetField(tiff, TIFFTAG_SUBFILETYPE, FILETYPE_REDUCEDIMAGE);
+        }
+        switch(compression) {
+            case ImageCompression::RAW:
+                TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
+                break;
+            case ImageCompression::LZW:
+                TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_LZW);
+                break;
+            case ImageCompression::JPEG:
+                TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JPEG);
+                break;
+            case ImageCompression::JPEG2000:
+                // TODO NOT IMPLEMENTED
+                throw NotImplementedException();
+                TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JP2000);
+                break;
+        }
 
-			HANDLE hMapFile = CreateFileMappingA(
-				//INVALID_HANDLE_VALUE,    // use paging file, Creating Named Shared Memory
-				hFile,
-				NULL,                    // default security
-				PAGE_READWRITE,          // read/write access
-				bytes >> 32,                       // buffer size (high part of 64 bit nr)
-				bytes,                // buffer size (low part of 64 bit nr)
-				("fast_mmap_" + std::to_string(currentLevel)).c_str());                 // name of mapping object
+        TIFFSetField(tiff, TIFFTAG_TILEWIDTH, levelData.tileWidth);
+        TIFFSetField(tiff, TIFFTAG_TILELENGTH, levelData.tileHeight);
+        TIFFSetField(tiff, TIFFTAG_IMAGEWIDTH, levelData.width);
+        TIFFSetField(tiff, TIFFTAG_IMAGELENGTH, levelData.height);
 
-			if(hMapFile == NULL || hMapFile == INVALID_HANDLE_VALUE) {
-				throw Exception("Error opening memory mapped file");
-			}
+        // TODO need to initialize somehow?
 
-			data = (uint8_t*) MapViewOfFile(hMapFile,   // handle to map object
-				FILE_MAP_ALL_ACCESS, // read/write permission
-				0,
-				0,
-				bytes);
-			if(data == nullptr) {
-			  throw Exception("Failed to create map view of file: " + std::to_string(GetLastError()));
-			}
-#else
-			int fd = open(("/tmp/fast_mmap_" + std::to_string(currentLevel) + "_" + std::to_string(m_counter) + ".bin").c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
-			if (fd == -1) {
-				perror("Error opening file for writing");
-				exit(EXIT_FAILURE);
-			}
-
-			// Stretch the file size to the size of the (mmapped) array of ints
-			int result = lseek(fd, bytes-1, SEEK_SET);
-			if (result == -1) {
-				close(fd);
-				perror("Error calling lseek() to 'stretch' the file");
-				exit(EXIT_FAILURE);
-			}
-			result = write(fd, "", 1);
-			if (result != 1) {
-				close(fd);
-				perror("Error writing last byte of the file");
-				exit(EXIT_FAILURE);
-			}
-
-			// Now the file is ready to be mmapped.
-			data = (uint8_t*)mmap64(0, bytes-1, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-			if (data == MAP_FAILED) {
-				close(fd);
-				throw Exception("Erro mmapinng the file for image pyramid creation.");
-			}
-			levelData.fileHandle = fd;
-#endif
-
-			levelData.data = data;
-			levelData.memoryMapped = true;
-		}
-        // Initialize data to all zeros
-        std::memset(levelData.data, 0, bytes);
 		m_levels.push_back(levelData);
+		// We need to write the first tile for some reason... or we will get an error saying it is missing required
+		// TileOffsets
+		auto data = std::make_unique<uchar[]>(levelData.tileWidth*levelData.tileHeight*samplesPerPixel);
+		TIFFWriteEncodedTile(tiff, 0, data.get(), levelData.tileWidth*levelData.tileHeight*samplesPerPixel);
+        // END
 
 		reportInfo() << "Done creating level " << currentLevel << reportEnd();
 		++currentLevel;
+		TIFFWriteDirectory(m_tiffHandle);
     }
 
     for(int i = 0; i < m_levels.size(); ++i) {
@@ -133,6 +122,7 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
+    m_pyramidFullyInitialized = false;
 	m_counter += 1;
 }
 
@@ -146,11 +136,13 @@ void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
+    m_pyramidFullyInitialized = true;
 	m_counter += 1;
 }
 
 ImagePyramid::ImagePyramid() {
     m_initialized = false;
+    m_pyramidFullyInitialized = false;
 }
 
 ImagePyramidLevel ImagePyramid::getLevelInfo(int level) {
@@ -257,7 +249,7 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE);
+    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList);
 }
 
 void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {
@@ -301,11 +293,28 @@ void ImagePyramid::create(TIFF *fileHandle, std::vector<ImagePyramidLevel> level
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
+    m_pyramidFullyInitialized = true;
     m_counter += 1;
 }
 
 bool ImagePyramid::isBGRA() const {
     return m_fileHandle != nullptr;
+}
+
+bool ImagePyramid::usesTIFF() const {
+    return m_tiffHandle != nullptr;
+}
+
+std::string ImagePyramid::getTIFFPath() const {
+    return m_tiffPath;
+}
+
+bool ImagePyramid::usesOpenSlide() const {
+    return m_fileHandle != nullptr;
+}
+
+bool ImagePyramid::isPyramidFullyInitialized() const {
+    return m_pyramidFullyInitialized;
 }
 
 }

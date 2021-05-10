@@ -11,7 +11,7 @@ enum class ImageCompression {
     RAW,
     JPEG,
     JPEG2000,
-    LZW
+    LZW // Lossless compression
 };
 
 /**

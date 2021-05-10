@@ -50,10 +50,20 @@ void PatchGenerator::generateStream() {
     if(m_inputImagePyramid) {
         const int levelWidth = m_inputImagePyramid->getLevelWidth(m_level);
         const int levelHeight = m_inputImagePyramid->getLevelHeight(m_level);
-        const int overlapInPixelsX = (int) std::round(m_overlapPercent * (float) m_width);
-        const int overlapInPixelsY = (int) std::round(m_overlapPercent * (float) m_height);
-        const int patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
-        const int patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
+        int overlapInPixelsX = (int) std::round(m_overlapPercent * (float) m_width);
+        int overlapInPixelsY = (int) std::round(m_overlapPercent * (float) m_height);
+        int patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
+        int patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
+        if(patchWidthWithoutOverlap % 16 > 0 || patchHeightWithoutOverlap % 16 > 0) {
+            // Resulting patch size must be a multiple of 16
+            overlapInPixelsX = overlapInPixelsX + (patchWidthWithoutOverlap % 16)/2;
+            overlapInPixelsY = overlapInPixelsY + (patchHeightWithoutOverlap % 16)/2;
+            reportWarning() << "Patch size must be a multiple of 16 (TIFF limitation). Adding some overlap (" << overlapInPixelsX << ", " << overlapInPixelsY << ") to fix." << reportEnd();
+            patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
+            patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
+            if(patchWidthWithoutOverlap % 16 > 0 || patchHeightWithoutOverlap % 16 > 0)
+                throw Exception("Error in compensation of patch size..");
+        }
         const int patchesX = std::ceil((float) levelWidth / (float) patchWidthWithoutOverlap);
         const int patchesY = std::ceil((float) levelHeight / (float) patchHeightWithoutOverlap);
 

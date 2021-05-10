@@ -8,7 +8,7 @@
 
 namespace fast {
 
-ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool write) {
+ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool write, std::unordered_set<std::string>& initializedPatchList) : m_initializedPatchList(initializedPatchList) {
 	if(levels.size() == 0)
 		throw Exception("Image pyramid has no levels");
 	m_image = imagePyramid;
@@ -25,69 +25,6 @@ void ImagePyramidAccess::release() {
 ImagePyramidAccess::~ImagePyramidAccess() {
 	release();
 }
-
-void ImagePyramidAccess::setScalarFast(uint x, uint y, uint level, uint8_t value, uint channel) noexcept {
-    if(!m_write)
-        return;
-	auto levelData = m_levels[level];
-    std::size_t pos = (x + (std::size_t)y * levelData.width) * m_image->getNrOfChannels() + channel;
-	levelData.data[pos] = value;
-
-    // add patch to list of dirty patches
-    int levelWidth = m_image->getLevelWidth(level);
-    int levelHeight = m_image->getLevelHeight(level);
-    const int tilesX = m_image->getLevelTilesX(level);
-    const int tilesY = m_image->getLevelTilesY(level);
-    int patchIdX = std::floor(((float)x / levelWidth)* tilesX);
-    int patchIdY = std::floor(((float)y / levelHeight)* tilesY);
-    m_image->setDirtyPatch(level, patchIdX, patchIdY);
-
-    // Propagate change upwards recursively
-    if(level != m_levels.size() - 1) {
-        int nx = x / 2;
-        int ny = y / 2;
-        // Calculate new average:
-        float sum = getScalarFast(nx*2, ny*2, level, channel);
-        int counter = 1;
-        if(nx * 2 + 1 < levelWidth) {
-            sum += getScalarFast(nx * 2 + 1, ny * 2, level, channel);
-            ++counter;
-        }
-        if(ny * 2 + 1 < levelHeight) {
-            sum += getScalarFast(nx * 2, ny * 2 + 1, level, channel);
-            ++counter;
-        }
-        if(nx * 2 + 1 < levelWidth && ny * 2 + 1 < levelHeight) {
-            sum += getScalarFast(nx * 2 + 1, ny * 2 + 1, level, channel);
-            ++counter;
-        }
-        setScalarFast(nx, ny, level + 1, std::round(sum / counter), channel);
-    }
-}
-
-void ImagePyramidAccess::setScalar(uint x, uint y, uint level, uint8_t value, uint channel) {
-	// Make sure it has write rights
-	if(!m_write)
-		throw Exception("ImagePyramidAccess has not write rights, but tried to write a value");
-	auto levelData = m_levels[level];
-	if(x >= levelData.width || y >= levelData.height)
-		throw OutOfBoundsException();
-
-    setScalarFast(x, y, level, value, channel);
-}
-
-uint8_t ImagePyramidAccess::getScalar(uint x, uint y, uint level, uint channel) {
-	auto levelData = m_levels[level];
-	if(x >= levelData.width || y >= levelData.height)
-		throw OutOfBoundsException();
-	return levelData.data[(x + y * levelData.width) * m_image->getNrOfChannels() + channel];
-}
-
-uint8_t ImagePyramidAccess::getScalarFast(uint x, uint y, uint level, uint channel) noexcept {
-	auto levelData = m_levels[level];
-	return levelData.data[(x + y * levelData.width) * m_image->getNrOfChannels() + channel];
-}
-
 
 ImagePyramidPatch ImagePyramidAccess::getPatch(std::string tile) {
     auto parts = split(tile, "_");
@@ -107,10 +44,18 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
     const int channels = m_image->getNrOfChannels();
     auto data = std::make_unique<uchar[]>(width*height*channels);
     if(m_tiffHandle != nullptr) {
+        std::cout << "Getting tile..." << std::endl;
         // Read all tiles within region, then crop
         const int tileWidth = m_image->getLevelTileWidth(level);
         const int tileHeight = m_image->getLevelTileHeight(level);
         TIFFSetDirectory(m_tiffHandle, level); // TODO Only set if needed?
+        auto tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+        if(!isPatchInitialized(level, x, y)) {
+            // Tile has not be initialized, fill with zeros and return..
+            // TODO Do not try render these patches..
+            std::memset(data.get(), 0, width*height*channels);
+            return data;
+        }
         if(width == tileWidth && height == tileHeight) {
             int bytesRead = TIFFReadTile(m_tiffHandle, (void *) data.get(), x, y, 0, 0);
         } else if(width < tileWidth || height < tileHeight) {
@@ -148,6 +93,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
              */
         }
 
+        std::cout << "Got tile..." << std::endl;
     } else if(m_fileHandle != nullptr) {
 		int scale = (float)m_image->getFullWidth()/levelWidth;
 #ifndef WIN32
@@ -307,14 +253,113 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     } else {
         return image;
     }
-    /*
-    auto t = Image::New();
-    t->create(512, 512, TYPE_UINT8, 1);
-    t->fill(0);
-    return t;
-    */
 }
 
+void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch) {
+    if(m_tiffHandle == nullptr)
+        throw Exception("setPatch only available for TIFF backend ImagePyramids");
+
+    std::cout << "Setting data .. size: " <<  patch->getSize().transpose() << std::endl;
+    TIFFSetDirectory(m_tiffHandle, level);
+    if(m_image->getLevelTileWidth(level) > patch->getWidth() || m_image->getLevelTileHeight(level) > patch->getHeight()) {
+        std::cout << "padding.." << std::endl;
+        // Padding needed
+        auto paddedImage = Image::New();
+        paddedImage->create(m_image->getLevelTileWidth(level), m_image->getLevelTileHeight(level), patch->getDataType(), m_image->getNrOfChannels());
+        if(m_image->getNrOfChannels() >= 3) {
+            paddedImage->fill(255);
+        } else {
+            paddedImage->fill(0);
+        }
+        auto device = std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultDevice());
+        {
+            auto dest = paddedImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            auto src = patch->getOpenCLImageAccess(ACCESS_READ, device);
+            device->getCommandQueue().enqueueCopyImage(*src->get2DImage(), *dest->get2DImage(),
+                                                       createOrigoRegion(), createOrigoRegion(),
+                                                       createRegion(patch->getSize()));
+            device->getCommandQueue().finish();
+        }
+        patch = paddedImage;
+    }
+    auto patchAccess = patch->getImageAccess(ACCESS_READ);
+    auto data = (uchar*)patchAccess->get();
+    std::cout << "writing to " << x << " " << y << std::endl;
+    TIFFWriteTile(m_tiffHandle, (void*)data, x, y, 0, 0);
+    TIFFCheckpointDirectory(m_tiffHandle);
+    std::cout << "done" << std::endl;
+    auto tile = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    m_initializedPatchList.insert(std::to_string(level) + "-" + std::to_string(tile));
+    std::cout << "Done setting data.." << std::endl;
+
+    // Add patch to list of dirty patches, so the renderer can update it if needed
+    int levelWidth = m_image->getLevelWidth(level);
+    int levelHeight = m_image->getLevelHeight(level);
+    const int tilesX = m_image->getLevelTilesX(level);
+    const int tilesY = m_image->getLevelTilesY(level);
+    int patchIdX = std::floor(((float)x / levelWidth) * tilesX);
+    int patchIdY = std::floor(((float)y / levelHeight) * tilesY);
+    m_image->setDirtyPatch(level, patchIdX, patchIdY);
+
+    // TODO Propagate upwards
+    auto previousData = std::make_unique<uchar[]>(patch->getNrOfVoxels()*patch->getNrOfChannels());
+    std::memcpy(previousData.get(), data, patch->getNrOfVoxels()*patch->getNrOfChannels());
+    const auto channels = m_image->getNrOfChannels();
+    while(level < m_image->getNrOfLevels()-1) {
+        const auto previousTileWidth = m_image->getLevelTileWidth(level);
+        const auto previousTileHeight = m_image->getLevelTileHeight(level);
+        ++level;
+        x /= 2;
+        y /= 2;
+        std::cout << "PROCESSSING LEVEL " << level << std::endl;
+        std::cout << x << " " << y << std::endl;
+        const auto tileWidth = m_image->getLevelTileWidth(level);
+        const auto tileHeight = m_image->getLevelTileHeight(level);
+        int offsetX = x % tileWidth > 0 ? 1 : 0;
+        int offsetY = y % tileHeight > 0 ? 1 : 0;
+        x -= offsetX*tileWidth/2;
+        y -= offsetY*tileHeight/2;
+        //x = std::max(0, x);
+        //y = std::max(0, y);
+        std::cout << offsetX << " " << offsetY << std::endl;
+        std::cout << x << " " << y << std::endl;
+
+        // Get existing tile. This gets the tile in which x, y is contained in, not where it starts..
+        auto newData = getPatchData(level, x, y, tileWidth, tileHeight);
+
+        // Downsample tile from previous level and add it to existing tile
+        for(int dy = 0; dy < tileHeight/2; ++dy) {
+            for(int dx = 0; dx < tileWidth/2; ++dx) {
+                newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] =
+                        (uchar)round((float)(previousData[dx*2 + dy*2*previousTileWidth] +
+                        previousData[dx*2 + 1 + dy*2*previousTileWidth] +
+                        previousData[dx*2 + 1 + (dy*2+1)*previousTileWidth] +
+                        previousData[dx*2 + (dy*2+1)*previousTileWidth])/4);
+            }
+        }
+        TIFFWriteTile(m_tiffHandle, (void*)newData.get(), x, y, 0, 0);
+        TIFFCheckpointDirectory(m_tiffHandle);
+        previousData = std::move(newData);
+
+        int levelWidth = m_image->getLevelWidth(level);
+        int levelHeight = m_image->getLevelHeight(level);
+        const int tilesX = m_image->getLevelTilesX(level);
+        const int tilesY = m_image->getLevelTilesY(level);
+        int patchIdX = std::floor(((float)x / levelWidth) * tilesX);
+        int patchIdY = std::floor(((float)y / levelHeight) * tilesY);
+        m_image->setDirtyPatch(level, patchIdX, patchIdY);
+        auto tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+        m_initializedPatchList.insert(std::to_string(level) + "-" + std::to_string(tile_id));
+    }
+}
+
+bool ImagePyramidAccess::isPatchInitialized(uint level, uint x, uint y) {
+    if(m_image->isPyramidFullyInitialized())
+        return true;
+    TIFFSetDirectory(m_tiffHandle, level);
+    auto tile = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    return m_initializedPatchList.count(std::to_string(level) + "-" + std::to_string(tile)) > 0;
+}
 
 
 }

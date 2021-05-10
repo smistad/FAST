@@ -66,12 +66,7 @@ void ImagePyramidPatchImporter::execute() {
         const auto startY = std::stoi(parts[5]);
         const auto endX = startX + patch->getWidth();
         const auto endY = startY + patch->getHeight();
-        // This is slow:
-        for(int y = startY; y < endY; ++y) {
-            for(int x = startX; x < endX; ++x) {
-                outputAccess->setScalarFast(x, y, 0, patchAccess->getScalarFast<uchar>(Vector2i(x - startX, y - startY)));
-            }
-        }
+        outputAccess->setPatch(0, startX, startY, patch);
     }
 
     addOutputData(0, pyramid);

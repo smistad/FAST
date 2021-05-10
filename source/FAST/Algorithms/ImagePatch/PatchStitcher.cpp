@@ -122,9 +122,12 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 m_outputImage->create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
             } else {
                 // Large image, create image pyramid instead
-                reportInfo() << "Patch stitcher creating image PYRAMID with size " << fullWidth << " " << fullHeight << reportEnd();
                 m_outputImagePyramid = ImagePyramid::New();
-                m_outputImagePyramid->create(fullWidth, fullHeight, patch->getNrOfChannels());
+                int patchWidth = std::stoi(patch->getFrameData("patch-width")) - 2*std::stoi(patch->getFrameData("patch-overlap-x"));
+                int patchHeight = std::stoi(patch->getFrameData("patch-height")) - 2*std::stoi(patch->getFrameData("patch-overlap-y"));
+                m_outputImagePyramid->create(fullWidth, fullHeight, patch->getNrOfChannels(), patchWidth, patchHeight);
+                reportInfo() << "Patch stitcher creating image PYRAMID with size " << fullWidth << " " << fullHeight << ", patch size: " <<
+                    patchWidth << " " << patchHeight << " Levels: " << m_outputImagePyramid->getNrOfLevels() << reportEnd();
             }
         }
         if(m_outputImage) {
@@ -182,22 +185,18 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 cl::NullRange
             );
         } else {
-            auto endX = startX + patch->getWidth() - patchOverlapX*2;
-            auto endY = startY + patch->getHeight() - patchOverlapY*2;
-            //enableRuntimeMeasurements();
-            // Image pyramid, do it on CPU TODO: optimize somehow?
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
-            auto patchAccess = patch->getImageAccess(ACCESS_READ);
-            //mRuntimeManager->startRegularTimer("copy patch");
-            const int maxY = std::min(endY, fullHeight);
-            const int maxX = std::min(endX, fullWidth);
-            for(int y = startY; y < maxY; ++y) {
-                for(int x = startX; x < maxX; ++x) {
-                    outputAccess->setScalarFast(x, y, 0, patchAccess->getScalarFast<uchar>(Vector2i(x - startX + patchOverlapX, y - startY + patchOverlapY)));
-                }
+            mRuntimeManager->startRegularTimer("copy patch");
+            std::cout << "patch overlap: " << patchOverlapX << " " << patchOverlapY << std::endl;
+            if(patchOverlapX > 0 || patchOverlapY > 0) {
+                patch = patch->crop(
+                        Vector2i(patchOverlapX, patchOverlapY),
+                        Vector2i(patch->getWidth() - patchOverlapX * 2, patch->getHeight() - patchOverlapY * 2)
+                );
+                std::cout << "Patch size: " << patch->getSize().transpose() << std::endl;
             }
-            //mRuntimeManager->stopRegularTimer("copy patch");
-            //mRuntimeManager->getTiming("copy patch")->print();
+            outputAccess->setPatch(0, startX, startY, patch);
+            mRuntimeManager->stopRegularTimer("copy patch");
         }
     } else {
         // 3D

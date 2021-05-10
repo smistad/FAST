@@ -38,14 +38,14 @@ TEST_CASE("TIFFImagePyramidExporter", "[fast][TIFFImagePyramidExporter][wsi][vis
 }
 
 TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExporter][wsi][visual]") {
-    // This test is failing for some strange reason
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
     auto generator = PatchGenerator::New();
     generator->setInputConnection(importer->getOutputPort());
     generator->setPatchLevel(1);
-    generator->setPatchSize(512, 512);
+    generator->setPatchSize(256, 256);
+    //generator->setOverlap(0.15);
 
     auto segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(generator->getOutputPort());
@@ -53,18 +53,22 @@ TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExpo
 
     auto stitcher = PatchStitcher::New();
     stitcher->setInputConnection(segmentation->getOutputPort());
+    stitcher->enableRuntimeMeasurements();
     auto port = stitcher->getOutputPort();
 
-    /*
     {
+        auto renderer1 = ImagePyramidRenderer::New();
+        renderer1->setInputConnection(importer->getOutputPort());
+
         auto renderer = SegmentationRenderer::New();
         renderer->setInputConnection(stitcher->getOutputPort());
 
         auto window = SimpleWindow::New();
+        window->addRenderer(renderer1);
         window->addRenderer(renderer);
         window->set2DMode();
         window->start();
-    }*/
+    }
     // Wait until finished..
     ImagePyramid::pointer image;
     do {
@@ -90,9 +94,9 @@ TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExpo
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
-    window->setTimeout(5000);
+    //window->setTimeout(5000);
     window->start();
-    exporter->getAllRuntimes()->printAll();
+    //exporter->getAllRuntimes()->printAll();
 }
 
 /*

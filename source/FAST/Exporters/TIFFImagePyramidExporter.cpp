@@ -2,6 +2,7 @@
 #include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Data/Image.hpp>
 #include <FAST/Algorithms/ImagePatch/PatchGenerator.hpp>
+#include <QFile>
 #include "TIFFImagePyramidExporter.hpp"
 
 
@@ -16,6 +17,18 @@ void TIFFImagePyramidExporter::execute() {
         throw Exception("Must set filename in TIFFImagePyramidExporter");
 
     auto imagePyramid = getInputData<ImagePyramid>();
+
+    if(imagePyramid->usesTIFF()) {
+        // If image pyramid is using TIFF backend. It is already stored on disk, we just need to copy it..
+        if(fileExists(mFilename)) {
+            // If destination file already exists, we have to remove the existing file, or copy will not run.
+            QFile::remove(mFilename.c_str());
+        }
+        QFile::copy(imagePyramid->getTIFFPath().c_str(), mFilename.c_str());
+        return;
+    }
+    // If not, we need to do a patch based copy
+
     const Vector3f spacing = imagePyramid->getSpacing();
 
     ImageCompression compression = m_compression;
@@ -29,6 +42,7 @@ void TIFFImagePyramidExporter::execute() {
             throw Exception("Unexpected nr of channels in ImagePyramid: " + std::to_string(imagePyramid->getNrOfChannels()));
         }
     }
+
     uint photometric = PHOTOMETRIC_RGB;
     uint bitsPerSample = 8;
     uint samplesPerPixel = 3; // RGBA image pyramid is converted to RGB with getPatchAsImage
@@ -132,6 +146,7 @@ void TIFFImagePyramidExporter::execute() {
             TIFFWriteEncodedTile(tiff, counter, data, byteSize);
             mRuntimeManager->stopRegularTimer("TIFF write");
             ++counter;
+            mRuntimeManager->printAll();
         } while(!image->isLastFrame());
 
         TIFFWriteDirectory(tiff);

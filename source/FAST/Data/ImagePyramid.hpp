@@ -22,7 +22,7 @@ class Image;
 class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     FAST_OBJECT(ImagePyramid)
     public:
-        void create(int width, int height, int channels, int levels = -1);
+        void create(int width, int height, int channels, int patchWidth = 256, int patchHeight = 256);
         void create(openslide_t* fileHandle, std::vector<ImagePyramidLevel> levels);
         void create(TIFF* fileHandle, std::vector<ImagePyramidLevel> levels, int channels);
         int getNrOfLevels();
@@ -36,6 +36,13 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getFullHeight();
         int getNrOfChannels() const;
         bool isBGRA() const;
+        bool usesTIFF() const;
+        /**
+         * Whether all patches in entire pyramid has been initialized.
+         */
+        bool isPyramidFullyInitialized() const;
+        bool usesOpenSlide() const;
+        std::string getTIFFPath() const;
         void setSpacing(Vector3f spacing);
         Vector3f getSpacing() const;
         ImagePyramidAccess::pointer getAccess(accessType type);
@@ -53,14 +60,20 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
 
         openslide_t* m_fileHandle = nullptr;
         TIFF* m_tiffHandle = nullptr;
+        std::string m_tiffPath;
 
         int m_channels;
         bool m_initialized;
+        /**
+         * Whether all patches in entire pyramid has been initialized.
+         */
+        bool m_pyramidFullyInitialized;
 
         std::unordered_set<std::string> m_dirtyPatches;
         static int m_counter;
         std::mutex m_dirtyPatchMutex;
         Vector3f m_spacing = Vector3f::Ones();
+        std::unordered_set<std::string> m_initializedPatchList; // Keep a list of initialized patches, for tiff backend
 };
 
 }
