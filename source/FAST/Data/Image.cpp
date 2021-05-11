@@ -1357,7 +1357,8 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Fix alignment issues with single channel images..
         bool doCPUtransfer = true; // If GPU-GPU transfer is possible do that, but GPU-CPU-GPU transfer is fallback.
         // If OpenGL interop is supported AND OpenCL has the data on the device..
-        if(device->isOpenGLInteropSupported() && (mCLImagesIsUpToDate[device] || mCLBuffersIsUpToDate[device])) {
+        // GL interop on compressed textures doesn't work
+        if(!compress && device->isOpenGLInteropSupported() && (mCLImagesIsUpToDate[device] || mCLBuffersIsUpToDate[device])) {
             auto access = getOpenCLImageAccess(ACCESS_READ, device);
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, format, GLtype, nullptr);
             glBindTexture(GL_TEXTURE_2D, 0);
