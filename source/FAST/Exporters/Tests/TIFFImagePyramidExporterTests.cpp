@@ -49,7 +49,7 @@ TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExpo
     auto generator = PatchGenerator::New();
     generator->setInputConnection(importer->getOutputPort());
     generator->setPatchLevel(1);
-    generator->setPatchSize(256, 256);
+    generator->setPatchSize(512, 512);
     generator->setInputConnection(1, tissue->getOutputPort());
     //generator->setOverlap(0.1);
 

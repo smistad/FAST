@@ -286,6 +286,22 @@ void ImagePyramid::clearDirtyPatches(std::set<std::string> patches) {
 
 void ImagePyramid::setSpacing(Vector3f spacing) {
 	m_spacing = spacing;
+    if(m_tiffHandle != nullptr) {
+        // Write spacing to TIFF file
+		if(spacing.x() != 1 && spacing.y() != 1) { // Spacing == 1 means not set.
+            auto access = getAccess(ACCESS_READ_WRITE); // Ensure we have exclusive access to TIFF
+            for(int level = 0; level < getNrOfLevels(); ++level) {
+                TIFFSetDirectory(m_tiffHandle, level);
+                TIFFSetField(m_tiffHandle, TIFFTAG_RESOLUTIONUNIT, RESUNIT_CENTIMETER);
+                float scaleX = (float)getFullWidth() / getLevelWidth(level);
+                float scaleY = (float)getFullHeight() / getLevelHeight(level);
+                TIFFSetField(m_tiffHandle, TIFFTAG_XRESOLUTION,
+                    1.0f / (spacing.x() / 10) * scaleX); // Convert to cm, and adjust for level
+                TIFFSetField(m_tiffHandle, TIFFTAG_YRESOLUTION,
+                    1.0f / (spacing.y() / 10) * scaleY); // Convert to cm, and adjust for level
+            }
+        }
+    }
 }
 
 Vector3f ImagePyramid::getSpacing() const {
