@@ -15,7 +15,7 @@ fast_add_sources(
     StreamToFileExporter.hpp
     Exporter.hpp
 )
-fast_add_python_interfaces(FileExporter.hpp)
+fast_add_python_interfaces(Exporter.hpp FileExporter.hpp)
 fast_add_python_shared_pointers(Exporter FileExporter)
 fast_add_process_object(ImageExporter ImageExporter.hpp)
 fast_add_process_object(MetaImageExporter MetaImageExporter.hpp)

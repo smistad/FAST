@@ -35,6 +35,16 @@ void ImagePyramid::create(int width, int height, int channels, int patchWidth, i
 #else
     m_tiffPath = "/tmp/fast_image_pyramid_" + std::to_string(m_counter) + ".tiff";
 #endif
+    TIFFSetErrorHandler([](const char* module, const char* fmt, va_list ap) {
+        auto str = make_uninitialized_unique<char[]>(512);
+        sprintf(str.get(), fmt, ap);
+        Reporter::warning() << "TIFF: " << module << ": " << str.get() << Reporter::end();
+    });
+    TIFFSetWarningHandler([](const char* module, const char* fmt, va_list ap) {
+        auto str = make_uninitialized_unique<char[]>(512);
+        sprintf(str.get(), fmt, ap);
+        Reporter::warning() << "TIFF: " << module << ": " << str.get() << Reporter::end();
+    });
     m_tiffHandle = TIFFOpen(m_tiffPath.c_str(), "w8");
     auto tiff = m_tiffHandle;
     m_counter += 1;

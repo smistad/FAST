@@ -6,6 +6,16 @@ namespace fast {
 
 void TIFFImagePyramidImporter::execute() {
     reportInfo() << "Reading WSI with TIFF" << reportEnd();
+    TIFFSetErrorHandler([](const char* module, const char* fmt, va_list ap) {
+        auto str = make_uninitialized_unique<char[]>(512);
+        sprintf(str.get(), fmt, ap);
+        Reporter::warning() << "TIFF: " << module << ": " << str.get() << Reporter::end();
+    });
+    TIFFSetWarningHandler([](const char* module, const char* fmt, va_list ap) {
+        auto str = make_uninitialized_unique<char[]>(512);
+        sprintf(str.get(), fmt, ap);
+        Reporter::warning() << "TIFF: " << module << ": " << str.get() << Reporter::end();
+    });
     TIFF* tiff = TIFFOpen(m_filename.c_str(), "rm");
     if(tiff == nullptr) {
         throw Exception("Failed to open file " + m_filename);

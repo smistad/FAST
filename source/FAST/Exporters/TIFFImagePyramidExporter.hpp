@@ -7,6 +7,8 @@ namespace fast {
 
 /**
  * @brief Export an ImagePyramid to disk in the tiled pyramid TIFF format.
+ *
+ * @sa TIFFImagePyramidImporter
  */
 class FAST_EXPORT TIFFImagePyramidExporter : public FileExporter {
     FAST_OBJECT(TIFFImagePyramidExporter)
