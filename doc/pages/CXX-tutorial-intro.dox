@@ -339,13 +339,24 @@ access->setScalarFast(Vector2i(10, 23), 42);
 
 ### Multi-channel images
 If you have a multi-channel image, every pixel will have a vector, and you can use the same methods as above, by just replacing
-the word scalar with vector. Here are some examples:
-@todo
-
+the word scalar with vector, see Image::getVector.
 
 Exporting data
 ---------------------
-@todo
+To export an image, we can use the ImageFileExporter process object. The following example simply imports a metaimage (.mhd)
+and exports it to disk as a jpeg image. There are many other exporters available for different kinds of data and formats,
+see the [exporter API module page](@ref exporters) for an overview.
+
+@code{.cpp}
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+
+auto exporter = ImageFileExporter::New();
+exporter->setFilename("exported_image.jpg");
+exporter->setInputConnection(importer->getOutputPort());
+
+exporter->update(); // Run the pipeline
+@endcode
 
 Next steps
 ---------------------
