@@ -1,10 +1,8 @@
 namespace fast {
-/** @page cpp-tutorial-wsi C++ Whole Slide Image (WSI) Processing Tutorial
+/** @page python-tutorial-wsi Python Whole Slide Image (WSI) Processing Tutorial
 @tableofcontents
 
-This is a tutorial for whole slide image (WSI) processing in FAST with C++.
-Make sure you already have looked at the [introduction tutorial](@ref cpp-tutorial-intro),
-especially the part about setting up a cmake project, compiling and running the test application.
+This is a tutorial for whole slide image (WSI) processing in FAST with Python.
 
 Whole-slide images (WSI)
 ---------------------
@@ -30,17 +28,17 @@ To open a WSI, use the WholeSlideImageImporter process object which uses the [Op
 Displaying a WSI is done with the ImagePyramidRenderer. The example below shows how to load the A05 WSI included
 in the test dataset.
 
-@code{.cpp}
-auto importer = WholeSlideImageImporter::New();
-importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+@code{.py}
+importer = fast.WholeSlideImageImporter.New()
+importer.setFilename(fast.Config.getTestDataPath() + "/WSI/A05.svs")
 
-auto renderer = ImagePyramidRenderer::New();
-renderer.setInputConnection(importer.getOutputPort());
+renderer = fast.ImagePyramidRenderer.New()
+renderer.setInputConnection(importer.getOutputPort())
 
-auto window = SimpleWindow::New();
-window->set2DMode()
-window->addRenderer(renderer);
-window->start();
+window = fast.SimpleWindow.New()
+window.set2DMode()
+window.addRenderer(renderer)
+window.start()
 @endcode
 
 Patch-wise processing
@@ -53,8 +51,8 @@ Export high-resolution segmentations
 Next steps
 ---------------------
 
-- See more [C++ Tutorials](@ref cpp-tutorials).
-- Check out some [C++ Examples](@ref cpp-examples).
+- See more [Python Tutorials](@ref python-tutorials).
+- Check out some [Python Examples](@ref python-examples).
 - Review [Concepts & Glossary](@ref concepts) used in FAST.
 
 */
