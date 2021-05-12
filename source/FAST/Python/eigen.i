@@ -216,8 +216,8 @@
   };
 
   template<> int NumPyType<float>() {return NPY_FLOAT;};
-  template<> int NumPyType<int>() {return NPY_INT;};
-  template<> int NumPyType<unsigned int>() {return NPY_UINT;};
+  template<> int NumPyType<int>() {return NPY_INT32;};
+  template<> int NumPyType<unsigned int>() {return NPY_UINT32;};
 %}
 
 // ----------------------------------------------------------------------------
