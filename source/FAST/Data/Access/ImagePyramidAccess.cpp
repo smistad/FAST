@@ -194,9 +194,10 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     float scale = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
     auto spacing = m_image->getSpacing();
     image->create(width, height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
+    // TODO, we should have added spacing here to scale, but then rendering doesn't work
     image->setSpacing(Vector3f(
-            scale*spacing.x(),
-            scale*spacing.y(),
+            scale,
+            scale,
             1.0f
     ));
     // TODO Set transformation

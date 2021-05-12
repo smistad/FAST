@@ -12,10 +12,6 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
     FAST_OBJECT(ImagePyramidRenderer)
     public:
         void loadAttributes() override;
-        void setIntensityLevel(float level);
-        float getIntensityLevel();
-        void setIntensityWindow(float window);
-        float getIntensityWindow();
         ~ImagePyramidRenderer() override;
         void clearPyramid();
     private:
@@ -43,10 +39,6 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         cl::Kernel mKernel;
 
         std::shared_ptr<ImagePyramid> m_input;
-
-        // Level and window intensities
-        float mWindow;
-        float mLevel;
 
         void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);
 };

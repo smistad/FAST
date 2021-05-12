@@ -58,8 +58,6 @@ ImagePyramidRenderer::ImagePyramidRenderer() : Renderer() {
     createInputPort<ImagePyramid>(0, false);
     mIsModified = true;
     m_stop = false;
-    mWindow = -1;
-    mLevel = -1;
     m_currentLevel = -1;
     createFloatAttribute("window", "Intensity window", "Intensity window", -1);
     createFloatAttribute("level", "Intensity level", "Intensity level", -1);
@@ -70,27 +68,8 @@ ImagePyramidRenderer::ImagePyramidRenderer() : Renderer() {
 
 }
 
-void ImagePyramidRenderer::setIntensityLevel(float level) {
-    mLevel = level;
-}
-
-float ImagePyramidRenderer::getIntensityLevel() {
-    return mLevel;
-}
-
-void ImagePyramidRenderer::setIntensityWindow(float window) {
-    if (window <= 0)
-        throw Exception("Intensity window has to be above 0.");
-    mWindow = window;
-}
-
-float ImagePyramidRenderer::getIntensityWindow() {
-    return mWindow;
-}
 
 void ImagePyramidRenderer::loadAttributes() {
-    mWindow = getFloatAttribute("window");
-    mLevel = (getFloatAttribute("level"));
 }
 
 void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
@@ -255,6 +234,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     }
     m_currentLevel = levelToUse;
 
+    const Vector3f spacing = m_input->getSpacing();
     activateShader();
 
     // This is the actual rendering
@@ -285,15 +265,20 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 const std::string tileString =
                         std::to_string(level) + "_" + std::to_string(tile_x) + "_" + std::to_string(tile_y);
 
-                int tile_offset_x = tile_x * tileWidth;
-                int tile_offset_y = tile_y * tileHeight;
+                float tile_offset_x = tile_x * tileWidth;
+                float tile_offset_y = tile_y * tileHeight;
 
-                int tile_width = tileWidth;
+                float tile_width = tileWidth;
                 if(tile_x == mTilesX - 1)
                     tile_width = levelWidth - tile_offset_x;
-                int tile_height = tileHeight;
+                float tile_height = tileHeight;
                 if(tile_y == mTilesY - 1)
                     tile_height = levelHeight - tile_offset_y;
+
+                //tile_width *= spacing.x();
+                //tile_height *= spacing.y();
+                //tile_offset_x *= spacing.x();
+                //tile_offset_y *= spacing.y();
 
                 // Only process visible patches
                 // Fully contained and partly
@@ -319,6 +304,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                          offset_y + height < (tile_offset_y + tile_height) * mCurrentTileScale)
                 ))
                     continue;
+
 
                 // Is patch in cache?
                 bool textureReady = false;

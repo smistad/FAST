@@ -332,15 +332,16 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                 const std::string tileString =
                         std::to_string(level) + "_" + std::to_string(tile_x) + "_" + std::to_string(tile_y);
 
-                int tile_offset_x = tile_x * tileWidth;
-                int tile_offset_y = tile_y * tileHeight;
+                float tile_offset_x = tile_x * tileWidth;
+                float tile_offset_y = tile_y * tileHeight;
 
-                int tile_width = tileWidth;
+                float tile_width = tileWidth;
                 if(tile_x == mTilesX - 1)
                     tile_width = levelWidth - tile_offset_x;
-                int tile_height = tileHeight;
+                float tile_height = tileHeight;
                 if(tile_y == mTilesY - 1)
                     tile_height = levelHeight - tile_offset_y;
+
                 tile_width *= spacing.x();
                 tile_height *= spacing.y();
                 tile_offset_x *= spacing.x();
@@ -370,6 +371,7 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                          offset_y + height < (tile_offset_y + tile_height) * mCurrentTileScale)
                 ))
                     continue;
+
 
                 // Is patch in cache?
                 bool textureReady = false;
@@ -406,8 +408,8 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                     // Create VBO
                     // Get width and height in mm
                     //std::cout << "Creating vertices for " << tile_x << " " << tile_y << std::endl;
-                    //std::cout << "Tile position: " << tile_offset_x*mCurrentTileScale << " " << tile_offset_x*mCurrentTileScale + tile_width*mCurrentTileScale << std::endl;
-                    //std::cout << "Tile position: " << tile_offset_y*mCurrentTileScale << " " << tile_offset_y*mCurrentTileScale + tile_height*mCurrentTileScale << std::endl;
+                    //std::cout << "STile position: " << tile_offset_x*mCurrentTileScale << " " << tile_offset_x*mCurrentTileScale + tile_width*mCurrentTileScale << std::endl;
+                    //std::cout << "STile position: " << tile_offset_y*mCurrentTileScale << " " << tile_offset_y*mCurrentTileScale + tile_height*mCurrentTileScale << std::endl;
                     float vertices[] = {
                             // vertex: x, y, z; tex coordinates: x, y
                             tile_offset_x * mCurrentTileScale, (tile_offset_y + tile_height) * mCurrentTileScale, 1.0f,

@@ -4,6 +4,7 @@
 #include <FAST/Utility.hpp>
 #include <FAST/Data/Image.hpp>
 #include <FAST/Data/Access/ImagePyramidAccess.hpp>
+#include <utility>
 #ifdef WIN32
 #include <winbase.h>
 #else
@@ -137,8 +138,6 @@ void ImagePyramid::create(int width, int height, int channels, int patchWidth, i
 		TIFFWriteDirectory(m_tiffHandle);
     }
 
-    for(int i = 0; i < m_levels.size(); ++i) {
-    }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
     m_pyramidFullyInitialized = false;
@@ -147,7 +146,7 @@ void ImagePyramid::create(int width, int height, int channels, int patchWidth, i
 
 void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel> levels) {
     m_fileHandle = fileHandle;
-    m_levels = levels;
+    m_levels = std::move(levels);
     m_channels = 4;
     for(int i = 0; i < m_levels.size(); ++i) {
 		m_levels[i].tilesX = std::ceil((float)m_levels[i].width / m_levels[i].tileWidth);

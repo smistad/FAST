@@ -100,7 +100,7 @@ TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExpo
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
-    //window->setTimeout(5000);
+    window->setTimeout(5000);
     window->start();
     //exporter->getAllRuntimes()->printAll();
 }
