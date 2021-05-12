@@ -126,7 +126,6 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 int patchWidth = std::stoi(patch->getFrameData("patch-width")) - 2*std::stoi(patch->getFrameData("patch-overlap-x"));
                 int patchHeight = std::stoi(patch->getFrameData("patch-height")) - 2*std::stoi(patch->getFrameData("patch-overlap-y"));
                 m_outputImagePyramid->create(fullWidth, fullHeight, patch->getNrOfChannels(), patchWidth, patchHeight);
-                m_outputImagePyramid->setSpacing(Vector3f(patchSpacingX, patchSpacingY, 1.0f));
                 reportInfo() << "Patch stitcher creating image PYRAMID with size " << fullWidth << " " << fullHeight << ", patch size: " <<
                     patchWidth << " " << patchHeight << " Levels: " << m_outputImagePyramid->getNrOfLevels() << reportEnd();
             }

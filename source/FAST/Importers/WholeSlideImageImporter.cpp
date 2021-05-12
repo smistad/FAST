@@ -61,6 +61,30 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
         }
     }
     image->create(file, levelList);
+
+    try {
+        // Try to get spacing in microns from openslide, and convert to millimeters.
+        float spacingX = std::stof(image->getMetadata("openslide.mpp-x")) / 1000.0f;
+        float spacingY = std::stof(image->getMetadata("openslide.mpp-y")) / 1000.0f;
+        image->setSpacing(Vector3f(spacingX, spacingY, 1.0f));
+    } catch(Exception &e) {
+        // Try TIFF resolution instead
+        float resX = std::stof(image->getMetadata("tiff.XResolution")); // Nr of pixels per unit
+        float resY = std::stof(image->getMetadata("tiff.YResolution"));
+        std::string unit = image->getMetadata("tiff.ResolutionUnit");
+        // Convert to millimeters
+        if(unit == "centimeter") {
+            resX *= 10.0f;
+            resY *= 10.0f;
+        } else if(unit == "inch") {
+            resX *= 25.5f;
+            resY *= 25.5f;
+        } else {
+            // No unit specified, use as is..
+        }
+        image->setSpacing(Vector3f(1.0f / resX, 1.0f / resY, 1.0f));
+    }
+
     addOutputData(0, image);
 }
 
