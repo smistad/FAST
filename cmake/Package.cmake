@@ -22,6 +22,8 @@ if(WIN32 AND NOT UNIX)
     set(CPACK_NSIS_MODIFY_PATH ON)
     # Start menu items
     set(CPACK_NSIS_MENU_LINKS
+        "fast\\\\bin\\\\systemCheck"
+        "System Check"
         "fast\\\\bin\\\\UFFviewer"
         "Ultrasound File Format Viewer"
         "fast\\\\bin\\\\runPipeline"
