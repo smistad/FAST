@@ -1,29 +1,40 @@
 Install FAST for Ubuntu Linux {#install-ubuntu-linux}
 ===========================
 
-To install FAST on Ubuntu Linux (18.04 or newer), first make sure you have all the necessary [requirements installed](@ref requirements).
+Requirements
+-----------------
+To install FAST on Ubuntu Linux (18.04 or newer) make sure you have installed the requirements:
+- OpenGL: Usually installed along with your graphics driver.
+- OpenCL: To install OpenCL on Linux, download an implementation depending on the CPU/GPU you have:    
+    - **NVIDIA** - Install [CUDA](https://developer.nvidia.com/cuda-downloads)  
+    - **Intel** - Install the [OpenCL NEO driver](https://github.com/intel/compute-runtime/releases)  
+    - **AMD** - Install the [ROCm stack](https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html)
+    - If none of the above fits, you might want to check out the open source OpenCL implementation [Portable Computing Lanauge (PCOL)](http://portablecl.org), although reduced performance is likely.
 
-Then, download the debian installer (fast_ubuntu18.04_X.X.X.deb) from the [release page](https://github.com/smistad/FAST/releases).
-Install the package:
+Some [optional requirements](@ref requirements) are needed for video streaming and GPU neural network inference, this can be installed later.
+
+Download and install
+-----------------
+Then, download the debian installer (fast_ubuntu18.04_X.X.X.deb) from the [release page](https://github.com/smistad/FAST/releases) and install the package as follows:
 
 ```bash
 sudo dpkg -i fast_ubuntu18.04_X.X.X.deb
 ```
 
-FAST will then be installed to */opt/fast/*
+This will install FAST in the directory <b>/opt/fast/</b>.
 
+Test
+-----------------
 To test if your FAST installation works, you can the following:
 
 ```bash
-# Download the test data (~2GB), it will be downloaded to /home/<your username>/FAST/data/
 cd /opt/fast/bin/
-./downloadTestData
-# Run an example
-./importImageFromFile
+./systemCheck
 ```
 
-An ultrasound image should now appear on your screen.
-To start learning FAST, you should take a look at the [C++ introduction tutorial](@ref cpp-tutorial-intro).
+You should now see the FAST logo on your screen along with some technical information on OpenCL.
+To start using FAST, you might want to look at the [C++ introduction tutorial](@ref cpp-tutorial-intro)
+and the [C++ examples page](@ref cpp-examples).
 
 @m_class{m-block m-warning}
 

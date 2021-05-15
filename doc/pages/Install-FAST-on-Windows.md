@@ -1,20 +1,32 @@
 Install FAST on Windows {#install-windows}
 ======================
 
-To install FAST on windows, first make sure you have all the necessary [requirements installed](@ref requirements).
+Requirements
+-----------------
+To install FAST on Windows, first make sure you have all the necessary requirements installed:
+- **OpenCL and OpenGL**: These are usually installed along with your graphics driver.
+- [Microsoft Visual C++ Redistributable 2015-2019 (64bit/x64)](https://aka.ms/vs/16/release/vc_redist.x64.exe)
 
-Then, download a windows installer (fast_windows_X.X.X.exe) from the [release page](https://github.com/smistad/FAST/releases).
-The installer will install FAST on your computer. The default location is C:/Program Files/FAST/.
+Some [optional requirements](@ref requirements) are needed for video streaming and GPU neural network inference, this can be installed later. 
+
+Download and install
+-----------------
+Download a Windows installer (fast_windows_X.X.X.exe) from the [FAST release page](https://github.com/smistad/FAST/releases).
+The installer will install FAST on your computer and the default location is **C:/Program Files/FAST/**.
 The installer will also add start menu shortcuts.
 
-To test if your FAST installation works, you can the following:
-* Download the test data (~2GB), the data will be downloaded to C:/ProgramData/FAST/. By **either** 
-    * Start menu -> FAST -> Download Test Data.
-    * Running the downloadTestData.exe executable in the C:/Program Files/FAST/fast/bin folder.
-* Run an example:
-    * Go to the folder C:/Program Files/FAST/fast/bin/
-    * Run the importImageFromDisk.exe example which should display and ultrasound image on your screen.
-    * If this works, run the other examples as well.
+Test
+-----------------
+To test if your FAST installation works, you can the following from your terminal:
+```bash
+cd 'C:/Program Files/FAST/fast/bin/'
+./systemCheck.exe
+```
+<b>Or</b> go the Start menu -> FAST -> System Check
+
+You should now see the FAST logo on your screen along with some technical information on OpenCL.
+To start using FAST, you might want to look at the [C++ introduction tutorial](@ref cpp-tutorial-intro)
+and the [C++ examples page](@ref cpp-examples).
 
 Troubleshoot
 -------------------
