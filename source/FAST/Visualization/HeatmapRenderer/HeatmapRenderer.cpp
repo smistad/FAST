@@ -21,7 +21,7 @@ HeatmapRenderer::HeatmapRenderer() {
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/HeatmapRenderer/HeatmapRenderer.cl");
     createShaderProgram({
                                 Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.vert",
-                                Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.frag",
+                                Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRendererFLOAT.frag",
                         });
     mIsModified = false;
     mColorsModified = true;
