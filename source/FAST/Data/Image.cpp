@@ -1361,7 +1361,6 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
         if(!compress && device->isOpenGLInteropSupported() && (mCLImagesIsUpToDate[device] || mCLBuffersIsUpToDate[device])) {
             auto access = getOpenCLImageAccess(ACCESS_READ, device);
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, format, GLtype, nullptr);
-            glBindTexture(GL_TEXTURE_2D, 0);
             glFinish();
             // Create OpenCL Image from texture
             try {
