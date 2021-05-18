@@ -1,0 +1,78 @@
+namespace fast {
+/** @page cpp-tutorial-neural-networks C++ Neural Networks Tutorial
+@tableofcontents
+
+This is a tutorial for neural network processing in FAST with C++.
+Make sure you already have looked at the [introduction tutorial](@ref cpp-tutorial-intro),
+especially the part about setting up a cmake project, compiling and running the test application.
+
+Load and run a neural network
+-----------------------------
+
+The input and output data of neural networks are called tensors, which are essentialy N-dimensional arrays.
+FAST will automatically convert input Image objects to Tensor data objects and feed that
+to the neural network.
+
+@code{.cpp}
+// Set up image importer to load an ultrasound image
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
+
+// Load neural network from a file
+auto network = NeuralNetwork::New();
+network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx");
+
+// Connect neural network to image importer
+network->setInputConnection(importer.getOutputPort());
+
+// Run the pipeline and get the resulting tensor
+auto tensor = network->updateAndGetOutputData<Tensor>();
+std::cout << "Shape of output tensor is " << tensor->getShape()->toString() << std::endl;
+@endcode
+
+Inference engines
+-----------------------------
+
+FAST includes three different inference engines, Google's TensorFlow, Intel's OpenVINO and
+NVIDIA's TensorRT. GPU processing with TensorFlow and TensorRT [requires CUDA and cuDNN](@ref requirements).
+
+Depending on the file format of the neural network you load, FAST will select the "best" inference engine
+which supports that format. Currently the following formats are supported:
+* ONNX -> OpenVINO, TensorRT
+* Protobuf (.pb) -> TensorFlow
+* SavedModel -> TensorFlow
+* OpenVINO Intermediate Representation (IR) -> OpenVINO
+
+You can also manually specify which inference engine you want to use:
+@code{.py}
+network->setInferenceEngine("OpenVINO");
+network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx");
+@endcode
+
+Image segmentation
+-----------------------------
+
+Image classification
+-----------------------------
+
+Multi-input and multi-output networks
+-----------------------------
+
+Batch processing
+-----------------------------
+
+Sequence processing
+-----------------------------
+
+Access tensor data
+-----------------------------
+
+Next steps
+---------------------
+
+- See more [C++ Tutorials](@ref cpp-tutorials).
+- Check out some [C++ Examples](@ref cpp-examples).
+- Review [Concepts & Glossary](@ref concepts) used in FAST.
+
+*/
+}

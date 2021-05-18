@@ -1,0 +1,61 @@
+namespace fast {
+/** @page cpp-tutorial-wsi C++ Whole Slide Image (WSI) Processing Tutorial
+@tableofcontents
+
+This is a tutorial for whole slide image (WSI) processing in FAST with C++.
+Make sure you already have looked at the [introduction tutorial](@ref cpp-tutorial-intro),
+especially the part about setting up a cmake project, compiling and running the test application.
+
+Whole-slide images (WSI)
+---------------------
+WSIs are digitized microscopy images, for instance of cross-section tissue samples
+of cancer tumours. Depending on the magnification used, these images are ofte gigantic,
+and may have sizes up to 200,000 x 200,000 pixels.
+This poses several memory and processing challenges, as the entire image typically
+can't fit into RAM nor the GPU RAM.
+These images are therefore usually stored as a tiled image pyramid.
+In FAST, such an image is represented by the ImagePyramid data object.
+Level 0 in the pyramid is the full resolution image W x H, while the next level 1 is
+the same image but with a reduced size, typically half the width and height of the previous
+level (W/2 x H/2). A large image can have many of these levels.
+In addition, every level image is divided into patches, or tiles, where each patch
+has a typical size around 256 x 256 pixels.
+When rendering, the appropriate level is used for the current zoom, and only patches
+which are visible in the viewport are loaded into memory.
+
+
+Open and display a WSI
+---------------------
+To open a WSI, use the WholeSlideImageImporter process object which uses the [OpenSlide](https://openslide.org) library.
+Displaying a WSI is done with the ImagePyramidRenderer. The example below shows how to load the A05 WSI included
+in the test dataset.
+
+@code{.cpp}
+auto importer = WholeSlideImageImporter::New();
+importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+
+auto renderer = ImagePyramidRenderer::New();
+renderer.setInputConnection(importer.getOutputPort());
+
+auto window = SimpleWindow::New();
+window->set2DMode()
+window->addRenderer(renderer);
+window->start();
+@endcode
+
+Patch-wise processing
+---------------------
+
+Export high-resolution segmentations
+------------------------------------
+
+
+Next steps
+---------------------
+
+- See more [C++ Tutorials](@ref cpp-tutorials).
+- Check out some [C++ Examples](@ref cpp-examples).
+- Review [Concepts & Glossary](@ref concepts) used in FAST.
+
+*/
+}

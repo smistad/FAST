@@ -3,8 +3,8 @@ fast_add_sources(
     Plane.hpp
 )
 if(FAST_MODULE_Visualization)
-fast_add_python_interfaces(Renderer.hpp View.hpp Window.hpp SimpleWindow.hpp DualViewWindow.hpp MultiViewWindow.hpp)
-fast_add_python_shared_pointers(Window SimpleWindow DualViewWindow MultiViewWindow Renderer View)
+fast_add_python_interfaces(Renderer.hpp View.hpp Window.hpp SimpleWindow.hpp DualViewWindow.hpp MultiViewWindow.hpp LabelColorRenderer.hpp)
+fast_add_python_shared_pointers(Window SimpleWindow DualViewWindow MultiViewWindow Renderer View LabelColorRenderer)
 fast_add_sources(
     Window.cpp
     Window.hpp

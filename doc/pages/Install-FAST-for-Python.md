@@ -39,7 +39,8 @@ window.addRenderer(renderer)
 window.start()
 ```
 
-To start learning FAST, you should take a look at the [Python introduction tutorial](@ref python-tutorial-intro).
+To start using FAST, you might want to look at the [Python introduction tutorial](@ref python-tutorial-intro)
+and the [Python examples page](@ref python-examples).
 
 @m_class{m-block m-warning}
 
