@@ -9,7 +9,7 @@ especially the part about setting up a cmake project, compiling and running the 
 Load and run a neural network
 -----------------------------
 
-The input and output data of neural networks are called tensors, which are essentialy N-dimensional arrays.
+The input and output data of neural networks are called tensors, which are essentially N-dimensional arrays.
 FAST will automatically convert input Image objects to Tensor data objects and feed that
 to the neural network.
 
@@ -23,7 +23,7 @@ auto network = NeuralNetwork::New();
 network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx");
 
 // Connect neural network to image importer
-network->setInputConnection(importer.getOutputPort());
+network->setInputConnection(importer->getOutputPort());
 
 // Run the pipeline and get the resulting tensor
 auto tensor = network->updateAndGetOutputData<Tensor>();
@@ -38,10 +38,10 @@ NVIDIA's TensorRT. GPU processing with TensorFlow and TensorRT [requires CUDA an
 
 Depending on the file format of the neural network you load, FAST will select the "best" inference engine
 which supports that format. Currently the following formats are supported:
-* ONNX -> OpenVINO, TensorRT
-* Protobuf (.pb) -> TensorFlow
-* SavedModel -> TensorFlow
-* OpenVINO Intermediate Representation (IR) -> OpenVINO
+- ONNX -> OpenVINO, TensorRT
+- Protobuf (.pb) -> TensorFlow
+- SavedModel -> TensorFlow
+- OpenVINO Intermediate Representation (IR) -> OpenVINO
 
 You can also manually specify which inference engine you want to use:
 @code{.py}
@@ -51,21 +51,191 @@ network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentat
 
 Image segmentation
 -----------------------------
+The output data of the NeuralNetwork process object is tensors. In the case of image segmentation, the shape
+of the output tensor is often H x W x C, where H and W are the height and width of the output segmentation, and
+C is the number of segmentation classes.
+It is possible to visualize this raw segmentation tensor directly as a heatmap using the HeatmapRenderer, but usually you
+want to convert this tensor to a Segmentation image.
+When converting a segmentation tensor to a segmentation image, it is common
+to select the class with maximum confidence with or without a threshold.
+In FAST you can convert from a segmentation tensor to a Segmentation image data object, by using the TensorToSegmentation
+process object, then you can visualize the Segmentation using the SegmentationRenderer, here is a complete example of this:
+
+@code{.cpp}
+// Set up image importer to load an ultrasound image
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
+
+// Load neural network from a file
+auto network = NeuralNetwork::New();
+network->setScaleFactor(1.0f/255.0f); // Add a preprocessing step: multiply each pixel with 1/255, thus normalizing the intensity
+network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx");
+network->setInputConnection(importer->getOutputPort());
+
+// Convert tensor to segmentation
+auto tensor2seg = TensorToSegmentation::New();
+tensor2seg->setInputConnection(network->getOutputPort());
+
+// Setup visualization
+auto renderer = ImageRenderer::New();
+renderer->addInputConnection(importer->getOutputPort());
+
+auto segRenderer = SegmentationRenderer::New();
+segRenderer->addInputConnection(tensor2seg->getOutputPort());
+segRenderer->setColor(1, Color::Red()); // Set color for class 1
+segRenderer->setColor(2, Color::Blue()); // Set color for class 2
+
+auto window = SimpleWindow::New();
+window->addRenderer(renderer);
+window->addRenderer(segRenderer);
+window->set2DMode();
+window->start();
+@endcode
+
+For convenience you can also use the SegmentationNetwork process object, which extends NeuralNetwork by applying TensorToSegmentation
+on the output as shown here:
+
+@code{.cpp}
+// Set up image importer to load an ultrasound image
+auto importer = ImageFileImporter::New();
+importer->setFilename(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
+
+// Use SegmentationNetwork instead of NeuralNetwork which applies TensorToSegmentation
+auto network = SegmentationNetwork::New();
+network->setScaleFactor(1.0f/255.0f); // Add a preprocessing step: multiply each pixel with 1/255, thus normalizing the intensity
+network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx");
+network->setInputConnection(importer->getOutputPort());
+
+// Setup visualization
+auto renderer = ImageRenderer::New();
+renderer->addInputConnection(importer->getOutputPort());
+
+auto segRenderer = SegmentationRenderer::New();
+segRenderer->addInputConnection(network->getOutputPort());
+segRenderer->setColor(1, Color::Red()); // Set color for class 1
+segRenderer->setColor(2, Color::Blue()); // Set color for class 2
+
+auto window = SimpleWindow::New();
+window->addRenderer(renderer);
+window->addRenderer(segRenderer);
+window->set2DMode();
+window->start();
+@endcode
+
 
 Image classification
 -----------------------------
 
+For image classification you may use the ImageClassificationNetwork convenience class which converts the output tensor to
+a list of class names and confidence values.
+
+Optical flow
+-----------------------------
+
+For optical flow motion estimation you may use the FlowNetwork convenience class which will convert the output tensor to
+a 2 channel Image object. Optical flow networks typically needs 2 consecutive image frames as input, this can be achieved
+using the ImagesToSequence process object.
+You can then visualize the flow image using the VectorFieldRenderer or the VectorFieldColorRenderer.
+Here is an example showing how a streaming pipeline with an optical flow network can look:
+
+@code{.cpp}
+// Setup image stream
+auto streamer = ImageFileStreamer::New();
+streamer->setFilenameFormat("path/to/image/sequence/frame_#.mhd");
+
+// Convert image stream to a stream of sequences with length 2
+auto sequence = ImagesToSequence::New();
+sequence->setLength(2);
+sequence->setInputConnection(streamer->getOutputPort());
+
+// Setup neural network
+auto flowNetwork = FlowNetwork::New();
+flowNetwork->load("some-flow-network.onnx");
+flowNetwork->setInputConnection(sequence->getOutputPort());
+
+// Setup visualization
+auto imageRenderer = ImageRenderer::New();
+imageRenderer->setInputConnection(streamer->getOutputPort());
+
+auto flowRenderer = VectorFieldColorRenderer::New();
+flowRenderer->setInputConnection(flowNetwork->getOutputPort());
+
+auto window = SimpleWindow::New();
+window->set2DMode();
+window->addRenderer(imageRenderer);
+window->addRenderer(flowRenderer);
+window->start();
+@endcode
+
+Bounding box detection
+-----------------------------
+
+For bounding box detection you may use the BoundingBoxNetwork convenience class which converts the output tensor
+to a BoundingBoxSet data object.
+The BoundingBoxSet can be visualized using the BoundingBoxRenderer.
+
 Multi-input and multi-output networks
 -----------------------------
+
+When you load a neural network from file in FAST, it will create an input port and output port for every input and output node in the neural network.
+This enables you to create complex processing pipelines with multi-input and multi-output neural networks.
+
+For example, if you have a NeuralNetwork which takes an image and a tensor as inputs, and provides two output tensors, it may look something like this:
+@code{.cpp}
+auto importer = ImageFileImporter::New();
+importer->setFilename("someimage.jpg");
+
+auto tensor = Tensor::New();
+tensor->create({1.0f, 0.0f, 3.0f}, TensorShape({1, 3}));
+
+auto network = NeuralNetwork::New();
+network->load("some-multi-input-output-network.onnx");
+network->setInputConnection(0, importer->getOutputPort());
+network->setInputData(1, tensor);
+
+auto port1 = network->getOutputPort(0);
+auto port2 = network->getOutputPort(1);
+network->update(); // Run neural network
+
+auto tensor1 = port1->getNextFrame<Tensor>();
+auto tensor2 = port2->getNextFrame<Tensor>();
+@endcode
 
 Batch processing
 -----------------------------
 
+With batch processing of neural networks, you can process several samples at a time.
+This may give a speedup with a GPU, as the samples may processed in parallel and thus utilize the processor more
+efficiently.
+To do batch neural network processing in FAST use the Batch data object, and add your Image or Tensor data objects to it.
+Then give this Batch data object to the NeuralNetwork instead.
+
+@code{.cpp}
+// Assuming we have 3 image data objects stored in variables image1, image2, image3:
+// Create batch data object, and add the 3 images
+auto batch = Batch::New();
+batch->create({image1, image2, image3});
+
+// Give the batch to your neural network
+auto neuralNetwork = NeuralNetwork::New();
+neuralNetwork->load("some-neural-network.onnx");
+neuralNetwork->setInputData(batch);
+
+// The output will be a Batch object as well, consisting of one output tensor for each input sample
+auto outputBatch = neuralNetwork->updateAndGetOutputData<Batch>();
+@endcode
+
 Sequence processing
 -----------------------------
+If you have a neural network which process a sequence of images or tensors, you may, in similar way as with batch
+processing, add your Image or Tensor data objects to a Sequence data object.
+
+To create a pipeline which converts an image stream to a stream of sequences with a specific length you can use the
+ImagesToSequence process object as shown in the optical flow example above.
 
 Access tensor data
 -----------------------------
+@todo
 
 Next steps
 ---------------------

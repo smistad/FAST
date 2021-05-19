@@ -10,10 +10,22 @@ namespace fast {
 // Create the data object used as output from the ImageClassificationNetwork
 
 typedef std::map<std::string, float> classifications;
+
+/**
+ * @brief Image classification data object
+ *
+ * @ingroup neural-network
+ */
 FAST_SIMPLE_DATA_OBJECT(ImageClassification, classifications)
 
 /**
- * Neural network image classification
+ * @brief Image classification neural network
+ *
+ * This class is a convenience class for a neural network which performs image classification.
+ * Use setLabels method to define the class names. The output is then ImageClassification
+ * which is a map from class names to confidence values.
+ *
+ * @ingroup neural-network
  */
 class FAST_EXPORT ImageClassificationNetwork : public NeuralNetwork {
 	FAST_OBJECT(ImageClassificationNetwork)

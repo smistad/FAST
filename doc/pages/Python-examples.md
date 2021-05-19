@@ -15,4 +15,4 @@ All the Python examples can be found in the [repository](https://github.com/smis
 |[Block matching based ultrasound speckle tracking](@ref block_matching_speckle_tracking.py)| @image html images/examples/python/block_matching_tracking.jpg width=350px; |
 |[Stream images from webcamera and apply edge detection](@ref stream_from_webcamera.py)| @image html images/examples/python/webcamera.jpg width=350px; |
 |[Stream images from Clarius ultrasound scanner and apply a non-local means (NLM) filter](@ref stream_from_clarius_ultrasound_scanner.py)| @image html images/examples/python/clarius_streaming.jpg width=350px; |
-|[Extract surface mesh from CT volume and render using GPU-based Marching Cubes algorithm](@ref extrat_surface_mesh.py)| |
+|[Extract surface mesh from CT volume and render using GPU-based Marching Cubes algorithm](@ref extract_surface_mesh.py)| |
