@@ -11,6 +11,8 @@ fast_add_sources(
     InferenceEngineManager.hpp
     TensorToSegmentation.cpp
     TensorToSegmentation.hpp
+    TensorToImage.cpp
+    TensorToImage.hpp
     BoundingBoxNetwork.cpp
     BoundingBoxNetwork.hpp
     FlowNetwork.cpp
@@ -26,6 +28,7 @@ fast_add_process_object(BoundingBoxNetwork BoundingBoxNetwork.hpp)
 fast_add_process_object(FlowNetwork FlowNetwork.hpp)
 fast_add_process_object(ImagesToSequence FlowNetwork.hpp)
 fast_add_process_object(TensorToSegmentation TensorToSegmentation.hpp)
+fast_add_process_object(TensorToImage TensorToImage.hpp)
 
 if(FAST_MODULE_Visualization)
     fast_add_test_sources(
