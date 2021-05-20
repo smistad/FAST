@@ -30,28 +30,24 @@ install(FILES ${PROJECT_BINARY_DIR}/FASTExport.hpp
 	COMPONENT fast
 )
 if(WIN32)
-	file(GLOB DLLs ${PROJECT_BINARY_DIR}/bin/*.dll)
-	install(FILES ${DLLs}
-		DESTINATION fast/bin
-		COMPONENT fast
-	)
-	file(GLOB DLLs ${PROJECT_BINARY_DIR}/lib/*.lib)
-	install(FILES ${DLLs}
-		DESTINATION fast/lib
-		COMPONENT fast
-	)
+	install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
+			DESTINATION fast/bin/
+			COMPONENT fast
+			FILES_MATCHING PATTERN "*.dll")
+	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
+			DESTINATION fast/lib/
+			COMPONENT fast
+			FILES_MATCHING PATTERN "*.lib")
 elseif(APPLE)
-	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.dylib)
-	install(FILES ${SOs}
-        DESTINATION fast/lib
-		COMPONENT fast
-    )
+	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
+			DESTINATION fast/lib/
+			COMPONENT fast
+			FILES_MATCHING PATTERN "*.dylib")
 else()
-	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.so*)
-	install(FILES ${SOs}
-        DESTINATION fast/lib
-		COMPONENT fast
-    )
+	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
+			DESTINATION fast/lib/
+			COMPONENT fast
+			FILES_MATCHING PATTERN "*.so*")
 	# Fix RPaths on install
     install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
 endif()
@@ -255,18 +251,22 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
 
 # Install license files for depedencies
 # Qt5
-file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/LICENSE.*)
-install(FILES ${LICENSE_FILES}
-		DESTINATION fast/licenses/qt5/
-		COMPONENT fast
-)
+install(CODE "
+		file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/LICENSE.*)
+		file(INSTALL
+			DESTINATION \"$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/licences/qt5/\"
+			FILES ${LICENSE_FILES}
+		)
+	" COMPONENT fast)
 
 # Eigen
-file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/eigen/src/eigen/COPYING.*)
-install(FILES ${LICENSE_FILES}
-		DESTINATION fast/licenses/eigen/
-		COMPONENT fast
-)
+install(CODE "
+		file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/eigen/src/eigen/COPYING.*)
+		file(INSTALL
+			DESTINATION \"$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/licences/eigen/\"
+			FILES ${LICENSE_FILES}
+		)
+	" COMPONENT fast)
 # zlib
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/zlib/src/zlib/README
 		DESTINATION fast/licenses/zlib/
