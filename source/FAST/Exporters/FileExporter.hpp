@@ -6,7 +6,7 @@ namespace fast {
 /**
  * @brief Abstract class for file exporters
  */
-class FileExporter : public Exporter {
+class FAST_EXPORT FileExporter : public Exporter {
    public:
        virtual void setFilename(std::string filename);
        void loadAttributes();

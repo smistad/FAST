@@ -9,7 +9,7 @@ namespace fast {
  *
  * @ingroup neural-network
  */
-class TensorToImage : public ProcessObject {
+class FAST_EXPORT TensorToImage : public ProcessObject {
     FAST_OBJECT(TensorToImage)
     public:
     protected:

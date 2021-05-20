@@ -88,12 +88,15 @@ endif()
 # Set FAST include dirs
 set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/source/ ${CMAKE_CURRENT_BINARY_DIR})
 
-# Some extra build settings (C++14 and OpenMP)
+# Some extra build settings
 set(CMAKE_CXX_STANDARD 17)
 if(CMAKE_COMPILER_IS_GNUCXX)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-attributes") # Remove ignored attritubes on template argument warnings from cl.hpp
 endif()
+# GCC doesn't hide symbols by default, while MSVC does. Let's be consistent and always hide:
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # This will setup all of FAST's dependencies
 include(cmake/Depdendencies.cmake)

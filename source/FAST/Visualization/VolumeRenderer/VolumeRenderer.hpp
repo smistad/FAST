@@ -9,7 +9,7 @@ namespace fast {
  *
  * @ingroup renderers
  */
-class VolumeRenderer : public Renderer {
+class FAST_EXPORT VolumeRenderer : public Renderer {
     public:
         typedef std::shared_ptr<VolumeRenderer> pointer;
         ~VolumeRenderer();
