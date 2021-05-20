@@ -233,6 +233,17 @@ processing, add your Image or Tensor data objects to a Sequence data object.
 To create a pipeline which converts an image stream to a stream of sequences with a specific length you can use the
 ImagesToSequence process object as shown in the optical flow example above.
 
+Custom operators and plugins
+-----------------------------
+If your model needs a custom operator, layer or plugin, you can specify these in the NeuralNetwork::load function
+when you load your model. Specify the full path to your plugin/operator files (.so/.dll/.xml files), like so:
+
+@code{.cpp}
+auto network = NeuralNetwork::New();
+network->load("some-network-model.pb", {"path/to/plugin1.so", "path/to/plugin2.so"});
+@endcode
+
+
 Access tensor data
 -----------------------------
 @todo

@@ -2,7 +2,15 @@ C++ Examples {#cpp-examples}
 =============================
 @tableofcontents
 
-All the C++ examples can be found in the [repository](https://github.com/smistad/FAST/tree/master/source/FAST/Examples).
+
+All C++ examples are included in the release fast/bin folder, the source code for all examples can be found in the [repository](https://github.com/smistad/FAST/tree/master/source/FAST/Examples).
+Many of the examples include command line options which can you can discover by appending `--help to the command line when running the executable.
+
+@m_class{m-block m-warning}
+
+@par Example data
+    Most of the examples below use data from an example dataset from FAST which you
+    can download using the downloadTestData executable in your fast/bin/ folder.
 
 ## Importing and streaming data
 |Example|Result|

@@ -16,3 +16,4 @@ All the Python examples can be found in the [repository](https://github.com/smis
 |[Stream images from webcamera and apply edge detection](@ref stream_from_webcamera.py)| @image html images/examples/python/webcamera.jpg width=350px; |
 |[Stream images from Clarius ultrasound scanner and apply a non-local means (NLM) filter](@ref stream_from_clarius_ultrasound_scanner.py)| @image html images/examples/python/clarius_streaming.jpg width=350px; |
 |[Extract surface mesh from CT volume and render using GPU-based Marching Cubes algorithm](@ref extract_surface_mesh.py)| |
+|[Inject Python code into a FAST pipeline by creating a custom Python process object](@ref python_process_object.py)||
