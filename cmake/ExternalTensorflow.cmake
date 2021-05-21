@@ -118,18 +118,23 @@ else(WIN32)
 endif(WIN32)
 else(FAST_BUILD_ALL_DEPENDENCIES)
 if(WIN32)
+  set(FILENAME windows/tensorflow_2.4.0_msvc14.2.tar.xz)
+  set(SHA 3a2c512e8cabc36b830e4b14204c74dc5b2d342cfea0b1a38e4f1cc28eb4c699)
 else()
-    ExternalProject_Add(tensorflow
-            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
-            URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/tensorflow_2.4.0_glibc2.27.tar.xz
-            URL_HASH SHA256=32ae6a6b5da58d2bc550fbbce402c0963cd73b94fb36ec891c0c3ffbb88436c7
-            UPDATE_COMMAND ""
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            # On install: Copy contents of each subfolder to the build folder
-            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
-        )
+  set(FILENAME linux/tensorflow_2.4.0_glibc2.27.tar.xz)
+  set(SHA 32235fef0d0b236e19646d42164b92432692ffb653ff6bbb79783b9c5ef83b8c)
 endif()
+ExternalProject_Add(tensorflow
+        PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
+        URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/${FILENAME}
+        URL_HASH SHA256=${SHA}
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        # On install: Copy contents of each subfolder to the build folder
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+    )
 endif(FAST_BUILD_ALL_DEPENDENCIES)

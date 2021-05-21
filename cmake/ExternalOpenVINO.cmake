@@ -2,6 +2,7 @@
 
 include(${PROJECT_SOURCE_DIR}/cmake/Externals.cmake)
 
+if(FAST_BUILD_ALL_DEPENDENCIES)
 if(WIN32)
 ExternalProject_Add(OpenVINO
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO
@@ -57,7 +58,6 @@ ExternalProject_Add(OpenVINO
 			${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/ngraph/core/include/ngraph/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ngraph/
 		)
 else()
-if(FAST_BUILD_ALL_DEPENDENCIES)
 ExternalProject_Add(OpenVINO
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO
         GIT_REPOSITORY "https://github.com/openvinotoolkit/openvino.git"
@@ -106,20 +106,28 @@ ExternalProject_Add(OpenVINO
             ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/inference-engine/include/ ${FAST_EXTERNAL_INSTALL_DIR}/include/openvino/ COMMAND
 			${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/ngraph/core/include/ngraph/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ngraph/
 		)
+endif()
 else(FAST_BUILD_ALL_DEPENDENCIES)
+if(WIN32)
+  set(FILENAME windows/openvino_2021.1_msvc14.2.tar.xz)
+  set(SHA 3526f46aa835a6aca389052c6c43876210f06dcdf9454aac6dfcb72f26c4cc76)
+else()
+  set(FILENAME linux/openvino_2021.1_glibc2.27.tar.xz)
+  set(SHA fdd445522248eeaf4d19a9ac4de84885d77dac9ba6ec365a73c2cf38458ab2d4)
+endif()
 	ExternalProject_Add(OpenVINO
 		PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO
-		URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/openvino_2021.1_glibc2.27.tar.xz
-		URL_HASH SHA256=60aa72b3dcd95fec4cfd6020cb16804018e682006114e8ddaa5602313ebc20b4
+		URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/${FILENAME}
+		URL_HASH SHA256=${SHA}
 		UPDATE_COMMAND ""
 		CONFIGURE_COMMAND ""
 		BUILD_COMMAND ""
 		# On install: Copy contents of each subfolder to the build folder
 		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+						${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
 						${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
 						${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
 	)
 endif(FAST_BUILD_ALL_DEPENDENCIES)
-endif()
 
 list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openvino/)

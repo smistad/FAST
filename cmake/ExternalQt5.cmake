@@ -142,22 +142,26 @@ ExternalProject_Add(qt5
 )
 else(FAST_BUILD_ALL_DEPENDENCIES)
 if(WIN32)
+  set(FILENAME windows/qt_5.14.0_msvc14.2.tar.xz)
+  set(SHA 8d1c8b4e6f7f575d9c25acd6a3e0a621319b2c91d6c63ec5efb88b105cbcac78)
 else()
-    ExternalProject_Add(qt5
-            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/qt5
-            URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/qt_5.14.0_glibc2.27.tar.xz
-            URL_HASH SHA256=a1cbc0f57ada1149c09f2503c772d16b59f4fefa147a98b242bd6e9289fca54f
-            UPDATE_COMMAND ""
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            # On install: Copy contents of each subfolder to the build folder
-            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/plugins ${FAST_EXTERNAL_INSTALL_DIR}/plugins COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
-            )
+  set(FILENAME linux/qt_5.14.0_glibc2.27.tar.xz)
+  set(SHA a1cbc0f57ada1149c09f2503c772d16b59f4fefa147a98b242bd6e9289fca54f)
 endif()
+ExternalProject_Add(qt5
+        PREFIX ${FAST_EXTERNAL_BUILD_DIR}/qt5
+        URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/${FILENAME}
+        URL_HASH SHA256=${SHA}
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        # On install: Copy contents of each subfolder to the build folder
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/plugins ${FAST_EXTERNAL_INSTALL_DIR}/plugins COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+)
 endif(FAST_BUILD_ALL_DEPENDENCIES)
 
 if(WIN32)

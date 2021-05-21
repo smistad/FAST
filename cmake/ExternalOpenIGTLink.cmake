@@ -23,20 +23,25 @@ ExternalProject_Add(OpenIGTLink
 )
 else(FAST_BUILD_ALL_DEPENDENCIES)
 if(WIN32)
+  set(FILENAME windows/openigtlink_2.1.0_msvc14.2.tar.xz)
+  set(SHA c93fec0ba9fc6a20b321f79b59af2af82b2364d3e54b33c6967ee81f09b50e0a)
 else()
-    ExternalProject_Add(OpenIGTLink
-            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/hdf5
-            URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/openigtlink_2.1.0_glibc2.27.tar.xz
-            URL_HASH SHA256=234ce9db9cfe60a0a96c9e4ea59f1f67ca72e7a7459a9302370e70b5ce9db711
-            UPDATE_COMMAND ""
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            # On install: Copy contents of each subfolder to the build folder
-            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
-    )
+  set(FILENAME linux/openigtlink_2.1.0_glibc2.27.tar.xz)
+  set(SHA 15c1987df275d26628f36fe25b316bad097f0903f5dfe1891db362e4926d7e29)
 endif()
+ExternalProject_Add(OpenIGTLink
+        PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink
+        URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/${FILENAME}
+        URL_HASH SHA256=${SHA}
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        # On install: Copy contents of each subfolder to the build folder
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+)
 endif(FAST_BUILD_ALL_DEPENDENCIES)
 
 if(WIN32)

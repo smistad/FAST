@@ -25,20 +25,25 @@ ExternalProject_Add(hdf5
         )
 else(FAST_BUILD_ALL_DEPENDENCIES)
 if(WIN32)
+  set(FILENAME windows/hdf5_1.10.6_msvc14.2.tar.xz)
+  set(SHA 02b52e481994850b762666870fac2979d5f8bff1d20e5f050fe3a8f200c44041)
 else()
-    ExternalProject_Add(hdf5
-          PREFIX ${FAST_EXTERNAL_BUILD_DIR}/hdf5
-          URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/hdf5_1.10.6_glibc2.27.tar.xz
-          URL_HASH SHA256=364225c97e0f16067e8012a3bf5c82a7569db31039aa219f8825636084662124
-          UPDATE_COMMAND ""
-          CONFIGURE_COMMAND ""
-          BUILD_COMMAND ""
-          # On install: Copy contents of each subfolder to the build folder
-          INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
-              ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
-              ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
-      )
+  set(FILENAME linux/hdf5_1.10.6_glibc2.27.tar.xz)
+  set(SHA 640d2d924bb26a2f5bad5cfed62a54c724ec1130a0f4ffb163d2aa7de027ba74)
 endif()
+ExternalProject_Add(hdf5
+      PREFIX ${FAST_EXTERNAL_BUILD_DIR}/hdf5
+      URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/${FILENAME}
+      URL_HASH SHA256=${SHA}
+      UPDATE_COMMAND ""
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ""
+      # On install: Copy contents of each subfolder to the build folder
+      INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+          ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
+          ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+          ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+  )
 endif(FAST_BUILD_ALL_DEPENDENCIES)
 
 if(WIN32)

@@ -23,20 +23,25 @@ ExternalProject_Add(jkqtplotter
   )
 else()
 if(WIN32)
+  set(FILENAME windows/jkqtplotter_2020.10_msvc14.2.tar.xz)
+  set(SHA 5b2667e457ada09157cbd200027f0341bb9b861c27acb917ea0dcfe9cf7adc1b)
 else()
-  ExternalProject_Add(jkqtplotter
-          PREFIX ${FAST_EXTERNAL_BUILD_DIR}/jkqtplotter
-          URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/jkqtplotter_2020.10_glibc2.27.tar.xz
-          URL_HASH SHA256=08618b4a56b20c98b352c3edd2e80d899d270bbfa86648326730b0881a3a3f6e
-          UPDATE_COMMAND ""
-          CONFIGURE_COMMAND ""
-          BUILD_COMMAND ""
-          # On install: Copy contents of each subfolder to the build folder
-          INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
-            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
-            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
-  )
+  set(FILENAME linux/jkqtplotter_2020.10_glibc2.27.tar.xz)
+  set(SHA 4cf004d0c6269883bccf381030de7690f36293d1858a0e1cf987dc2face9dec4)
 endif()
+ExternalProject_Add(jkqtplotter
+        PREFIX ${FAST_EXTERNAL_BUILD_DIR}/jkqtplotter
+        URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/${FILENAME}
+        URL_HASH SHA256=${SHA}
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        # On install: Copy contents of each subfolder to the build folder
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+          ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
+          ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+          ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+)
 endif()
 
 if(WIN32)
