@@ -73,8 +73,6 @@ foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
 endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
 
 #### Paths
-set(FAST_TEST_DATA_DIR "" CACHE PATH "Directory of test data. Default is ROOT/data/.")
-set(FAST_OPENCL_KERNEL_BINARY_PATH "" CACHE PATH "Directory to put kernel binaries in. Default is build dir.")
 set(FAST_SOURCE_DIR "${PROJECT_SOURCE_DIR}/source/FAST/")
 
 #### Module path
