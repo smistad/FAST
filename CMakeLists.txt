@@ -38,9 +38,10 @@ option(FAST_MODULE_HDF5 "Build HDF5 module" OFF)
 option(FAST_MODULE_Plotting "Build plotting module (JKQTPlotter)" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 option(FAST_BUILD_QT5 "Download and build Qt 5. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
+option(FAST_BUILD_ALL_DEPENDENCIES "Download and build all dependencies" OFF)
 
-# Python version
-set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
+# Base URL for downloading prebuilt dependencies
+set(FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL "http://fast.eriksmistad.no/download/third_party_libraries/")
 
 #### Set build type
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

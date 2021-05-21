@@ -251,6 +251,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
 
 # Install license files for depedencies
 # Qt5
+if(FAST_BUILD_ALL_DEPENDENCIES)
 install(CODE "
 		file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/LICENSE.*)
 		file(INSTALL
@@ -258,6 +259,7 @@ install(CODE "
 			FILES ${LICENSE_FILES}
 		)
 	" COMPONENT fast)
+endif()
 
 # Eigen
 install(CODE "
@@ -278,14 +280,15 @@ install(FILES ${FAST_EXTERNAL_BUILD_DIR}/zip/src/zip/UNLICENSE
 		COMPONENT fast
 )
 # OpenIGTLink
-if(FAST_MODULE_OpenIGTLink)
+if(FAST_BUILD_ALL_DEPENDENCIES AND FAST_MODULE_OpenIGTLink)
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink/src/OpenIGTLink/LICENSE.txt
 		DESTINATION fast/licenses/OpenIGTLink/
 		COMPONENT fast
 )
 endif()
+
 # DCMTK
-if(FAST_MODULE_Dicom)
+if(FAST_BUILD_ALL_DEPENDENCIES AND FAST_MODULE_Dicom)
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/dcmtk/src/dcmtk/COPYRIGHT
 		DESTINATION fast/licenses/dcmtk/
 		COMPONENT fast
@@ -306,19 +309,25 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 		DESTINATION fast/licenses/semaphore/
 		COMPONENT fast
 )
-
+# Install licences
+install(DIRECTORY ${PROJECT_BINARY_DIR}/licences
+		DESTINATION fast/licences
+        COMPONENT fast
+)
 # Tensorflow license
-if(FAST_MODULE_TensorFlow)
+if(FAST_BUILD_ALL_DEPENDENCIES AND FAST_MODULE_TensorFlow)
 	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/LICENSE
         DESTINATION fast/licenses/tensorflow/
 		COMPONENT fast
     )
 endif()
 if(FAST_MODULE_OpenVINO)
-	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/LICENSE
-		DESTINATION fast/licenses/openvino/
-		COMPONENT fast
-	)
+    if(FAST_BUILD_ALL_DEPENDENCIES)
+		install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/LICENSE
+			DESTINATION fast/licenses/openvino/
+			COMPONENT fast
+		)
+    endif()
 	if(WIN32)
 		install(FILES ${PROJECT_BINARY_DIR}/bin/plugins.xml
 		  DESTINATION fast/bin/
@@ -332,7 +341,7 @@ if(FAST_MODULE_OpenVINO)
 	endif()
 endif()
 
-if(FAST_MODULE_RealSense)
+if(FAST_BUILD_ALL_DEPENDENCIES AND FAST_MODULE_RealSense)
 	install(FILES
         ${FAST_EXTERNAL_BUILD_DIR}/realsense/src/realsense/LICENSE
         ${FAST_EXTERNAL_BUILD_DIR}/realsense/src/realsense/NOTICE
@@ -341,7 +350,7 @@ if(FAST_MODULE_RealSense)
     )
 endif()
 
-if(FAST_MODULE_WholeSlideImaging AND WIN32)
+if(FAST_BUILD_ALL_DEPENDENCIES AND FAST_MODULE_WholeSlideImaging AND WIN32)
     # Install openslide and related licences
     install(DIRECTORY
         ${FAST_EXTERNAL_BUILD_DIR}/openslide/src/openslide/licenses/
@@ -350,7 +359,7 @@ if(FAST_MODULE_WholeSlideImaging AND WIN32)
     )
 endif()
 
-if(FAST_MODULE_HDF5)
+if(FAST_BUILD_ALL_DEPENDENCIES AND FAST_MODULE_HDF5)
 	install(FILES
 		${FAST_EXTERNAL_BUILD_DIR}/hdf5/src/hdf5/COPYING
 		DESTINATION fast/licenses/hdf5/
@@ -358,7 +367,7 @@ if(FAST_MODULE_HDF5)
 	)
 endif()
 
-if(FAST_MODULE_Plotting)
+if(FAST_BUILD_ALL_DEPENDENCIES AND FAST_MODULE_Plotting)
 		install(FILES
 				${FAST_EXTERNAL_BUILD_DIR}/jkqtplotter/src/jkqtplotter/LICENSE
 				DESTINATION fast/licenses/jkqtplotter/
@@ -373,10 +382,3 @@ if(FAST_MODULE_Clarius)
 		COMPONENT fast
 	)
 endif()
-
-# Create empty kernel_binaries folder for caching
-install(DIRECTORY
-	DESTINATION fast/kernel_binaries
-	DIRECTORY_PERMISSIONS OWNER_READ OWNER_EXECUTE OWNER_WRITE GROUP_READ GROUP_EXECUTE GROUP_WRITE WORLD_READ WORLD_WRITE WORLD_EXECUTE
-	COMPONENT fast
-)

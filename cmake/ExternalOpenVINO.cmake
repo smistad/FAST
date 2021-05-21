@@ -57,6 +57,7 @@ ExternalProject_Add(OpenVINO
 			${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/ngraph/core/include/ngraph/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ngraph/
 		)
 else()
+if(FAST_BUILD_ALL_DEPENDENCIES)
 ExternalProject_Add(OpenVINO
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO
         GIT_REPOSITORY "https://github.com/openvinotoolkit/openvino.git"
@@ -105,6 +106,20 @@ ExternalProject_Add(OpenVINO
             ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/inference-engine/include/ ${FAST_EXTERNAL_INSTALL_DIR}/include/openvino/ COMMAND
 			${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/ngraph/core/include/ngraph/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ngraph/
 		)
+else(FAST_BUILD_ALL_DEPENDENCIES)
+	ExternalProject_Add(OpenVINO
+		PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO
+		URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/openvino_2021.1_glibc2.27.tar.xz
+		URL_HASH SHA256=60aa72b3dcd95fec4cfd6020cb16804018e682006114e8ddaa5602313ebc20b4
+		UPDATE_COMMAND ""
+		CONFIGURE_COMMAND ""
+		BUILD_COMMAND ""
+		# On install: Copy contents of each subfolder to the build folder
+		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+						${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+						${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+	)
+endif(FAST_BUILD_ALL_DEPENDENCIES)
 endif()
 
 list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openvino/)

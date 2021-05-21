@@ -2,6 +2,7 @@
 
 include(cmake/Externals.cmake)
 
+if(FAST_BUILD_ALL_DEPENDENCIES)
 if(WIN32)
 ExternalProject_Add(realsense
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/realsense
@@ -40,6 +41,23 @@ ExternalProject_Add(realsense
         -DCMAKE_INSTALL_PREFIX:STRING=${FAST_EXTERNAL_INSTALL_DIR}
         )
 endif()
+else(FAST_BUILD_ALL_DEPENDENCIES)
+if(WIN32)
+else()
+    ExternalProject_Add(realsense
+            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/realsense
+            URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/realsense_2.40.0_glibc2.27.tar.xz
+            URL_HASH SHA256=824f19b032d8e64de3a32bbaf7258a7db69e646db217fe752e6ce7c25923ec3f
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            # On install: Copy contents of each subfolder to the build folder
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+    )
+endif()
+endif(FAST_BUILD_ALL_DEPENDENCIES)
 
 list(APPEND LIBRARIES ${CMAKE_SHARED_LIBRARY_PREFIX}realsense2${CMAKE_SHARED_LIBRARY_SUFFIX})
 list(APPEND FAST_EXTERNAL_DEPENDENCIES realsense)

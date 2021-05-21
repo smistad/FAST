@@ -2,6 +2,7 @@
 
 include(cmake/Externals.cmake)
 
+if(FAST_BUILD_ALL_DEPENDENCIES)
 ExternalProject_Add(hdf5
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/hdf5
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/hdf5
@@ -22,6 +23,23 @@ ExternalProject_Add(hdf5
           -DCMAKE_INSTALL_MESSAGE:BOOL=LAZY
           -DCMAKE_INSTALL_PREFIX:STRING=${FAST_EXTERNAL_INSTALL_DIR}
         )
+else(FAST_BUILD_ALL_DEPENDENCIES)
+if(WIN32)
+else()
+    ExternalProject_Add(hdf5
+          PREFIX ${FAST_EXTERNAL_BUILD_DIR}/hdf5
+          URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/hdf5_1.10.6_glibc2.27.tar.xz
+          URL_HASH SHA256=364225c97e0f16067e8012a3bf5c82a7569db31039aa219f8825636084662124
+          UPDATE_COMMAND ""
+          CONFIGURE_COMMAND ""
+          BUILD_COMMAND ""
+          # On install: Copy contents of each subfolder to the build folder
+          INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+              ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+              ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+      )
+endif()
+endif(FAST_BUILD_ALL_DEPENDENCIES)
 
 if(WIN32)
   list(APPEND LIBRARIES hdf5.lib hdf5_cpp.lib)

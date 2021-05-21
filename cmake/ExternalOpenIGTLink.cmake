@@ -2,6 +2,7 @@
 
 include(cmake/Externals.cmake)
 
+if(FAST_BUILD_ALL_DEPENDENCIES)
 ExternalProject_Add(OpenIGTLink
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink
@@ -20,6 +21,23 @@ ExternalProject_Add(OpenIGTLink
             -DCMAKE_INSTALL_MESSAGE:BOOL=LAZY
             -DCMAKE_INSTALL_PREFIX:STRING=${FAST_EXTERNAL_INSTALL_DIR}
 )
+else(FAST_BUILD_ALL_DEPENDENCIES)
+if(WIN32)
+else()
+    ExternalProject_Add(OpenIGTLink
+            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/hdf5
+            URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/openigtlink_2.1.0_glibc2.27.tar.xz
+            URL_HASH SHA256=234ce9db9cfe60a0a96c9e4ea59f1f67ca72e7a7459a9302370e70b5ce9db711
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            # On install: Copy contents of each subfolder to the build folder
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+    )
+endif()
+endif(FAST_BUILD_ALL_DEPENDENCIES)
 
 if(WIN32)
 set(OpenIGTLink_LIBRARY OpenIGTLink.lib)

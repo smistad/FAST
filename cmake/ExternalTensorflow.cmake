@@ -2,6 +2,7 @@
 
 include(${PROJECT_SOURCE_DIR}/cmake/Externals.cmake)
 
+if(FAST_BUILD_ALL_DEPENDENCIES)
 ExternalProject_Add(tensorflow_download
     PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
     BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
@@ -115,3 +116,20 @@ else(WIN32)
                 bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-out/)/../../../external/com_google_absl/absl/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf"
     )
 endif(WIN32)
+else(FAST_BUILD_ALL_DEPENDENCIES)
+if(WIN32)
+else()
+    ExternalProject_Add(tensorflow
+            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
+            URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/tensorflow_2.4.0_glibc2.27.tar.xz
+            URL_HASH SHA256=32ae6a6b5da58d2bc550fbbce402c0963cd73b94fb36ec891c0c3ffbb88436c7
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            # On install: Copy contents of each subfolder to the build folder
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+        )
+endif()
+endif(FAST_BUILD_ALL_DEPENDENCIES)

@@ -2,6 +2,7 @@
 
 include(cmake/Externals.cmake)
 
+if(FAST_BUILD_ALL_DEPENDENCIES)
 # List of modules can be found in git repo here: github.com/qt/qt5
 set(MODULES_TO_EXCLUDE
         -skip qt3d
@@ -139,6 +140,26 @@ ExternalProject_Add(qt5
             ${BUILD_COMMAND} install
 
 )
+else(FAST_BUILD_ALL_DEPENDENCIES)
+if(WIN32)
+else()
+    ExternalProject_Add(qt5
+            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/qt5
+            URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL}/linux/qt_5.14.0_glibc2.27.tar.xz
+            URL_HASH SHA256=a1cbc0f57ada1149c09f2503c772d16b59f4fefa147a98b242bd6e9289fca54f
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            # On install: Copy contents of each subfolder to the build folder
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/plugins ${FAST_EXTERNAL_INSTALL_DIR}/plugins COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+            )
+endif()
+endif(FAST_BUILD_ALL_DEPENDENCIES)
+
 if(WIN32)
     set(Qt5Gui_LIBRARY Qt5Gui.lib)
     set(Qt5Core_LIBRARY Qt5Core.lib)
