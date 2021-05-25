@@ -102,7 +102,7 @@ void UltrasoundImageCropper::execute() {
         }
     }
 
-    Image::pointer outputImage = getOutputData<Image>();
+    auto outputImage = Image::New();
     outputImage->create(m_width, m_height, image->getDataType(), image->getNrOfChannels());
     outputImage->setSpacing(m_spacing);
     outputImage->setCreationTimestamp(image->getCreationTimestamp());
@@ -119,6 +119,7 @@ void UltrasoundImageCropper::execute() {
             createRegion(m_width, m_height, 1)
     );
 
+    addOutputData(0, outputImage);
 }
 
 void UltrasoundImageCropper::setPhysicalWidth(float width) {

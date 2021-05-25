@@ -89,7 +89,7 @@ void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
     }
 
     std::vector<Vector3i> neighborhood;
-    if(output->getDimensions() == 2) {
+    if(output->getDimensions() == 3) {
         for(int a = -1; a < 2; a++) {
             for(int b = -1; b < 2; b++) {
                 for(int c = -1; c < 2; c++) {
@@ -147,7 +147,7 @@ void SeededRegionGrowing::execute() {
     if(input->getNrOfChannels() != 1)
         throw Exception("Seeded region growing currently doesn't support images with several components.");
 
-    Segmentation::pointer output = getOutputData<Segmentation>();
+    auto output = Segmentation::New();
 
     // Initialize output image
     output->createFromImage(input);
@@ -223,6 +223,7 @@ void SeededRegionGrowing::execute() {
         } while(!stopGrowing);
     }
 
+    addOutputData(0, output);
 }
 
 void SeededRegionGrowing::waitToFinish() {

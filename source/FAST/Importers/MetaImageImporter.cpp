@@ -142,7 +142,7 @@ void MetaImageImporter::execute() {
     VectorXui size;
     unsigned int nrOfComponents = 1;
     uint64_t timestamp = 0;
-    Image::pointer output = getOutputData<Image>(0);
+    auto output = Image::New();
 
     Vector3f spacing(1,1,1), offset(0,0,0), centerOfRotation(0,0,0);
     Matrix3f transformMatrix = Matrix3f::Identity();
@@ -400,4 +400,5 @@ void MetaImageImporter::execute() {
 	AffineTransformation::pointer T = AffineTransformation::New();
 	T->setTransform(matrix);
     output->getSceneGraphNode()->setTransformation(T);
+    addOutputData(0, output);
 }

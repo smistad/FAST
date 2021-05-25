@@ -38,7 +38,7 @@ void ImageWeightedMovingAverage::loadAttributes() {
 
 void ImageWeightedMovingAverage::execute() {
     auto input = getInputData<Image>(0);
-    auto output = getOutputData<Image>(0);
+    auto output = Image::New();
     m_buffer.push_back(input);
 
     if(input->getDimensions() != 2)
@@ -91,6 +91,7 @@ void ImageWeightedMovingAverage::execute() {
         );
 
         m_buffer.pop_front();
+        addOutputData(0, output);
 
         return;
     }
@@ -119,6 +120,7 @@ void ImageWeightedMovingAverage::execute() {
 
     m_buffer.pop_front();
     m_memory = memoryOut;
+    addOutputData(0, output);
 }
 
 }

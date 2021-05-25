@@ -31,7 +31,7 @@ void MeshToSegmentation::execute() {
         is2D = mResolution.z() == 1;
     }
 
-    Segmentation::pointer segmentation = getOutputData<Segmentation>();
+    auto segmentation = Segmentation::New();
 	// Initialize output segmentation image and size
     if(mResolution == Vector3i::Zero()) {
         // If resolution is not specified, use input image resolution
@@ -109,6 +109,7 @@ void MeshToSegmentation::execute() {
 		);
 	}
     queue.finish();
+	addOutputData(0, segmentation);
 }
 
 }

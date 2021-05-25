@@ -25,7 +25,7 @@ void ImageClassificationNetwork::execute() {
     std::cout << tensor->getShape().toString() << std::endl;
 
     auto data = access->getData<1>();
-    auto output = getOutputData<ImageClassification>(0);
+    auto output = ImageClassification::New();
 	std::map<std::string, float> mapResult;
 	for(int j = 0; j < data.dimension(0); ++j) { // for each class
 		mapResult[mLabels[j]] = data(j);
@@ -33,6 +33,7 @@ void ImageClassificationNetwork::execute() {
 	}
 
 	output->create(mapResult);
+	addOutputData(0, output);
 }
 
 void ImageClassificationNetwork::loadAttributes() {
@@ -51,10 +52,10 @@ void ClassificationToText::loadAttributes() {
 }
 
 void ClassificationToText::execute() {
-    ImageClassification::pointer classification = getInputData<ImageClassification>();
-    Text::pointer text = getOutputData<Text>();
+    auto classification = getInputData<ImageClassification>();
+    auto text = Text::New();
 
-    ImageClassification::access access = classification->getAccess(ACCESS_READ);
+    auto access = classification->getAccess(ACCESS_READ);
     std::map<std::string, float> values = access->getData();
 
     // Add to buffer
@@ -93,6 +94,7 @@ void ClassificationToText::execute() {
     std::sprintf(buffer, "%.2f", max);
     std::string result = label + ": " + buffer;
     text->setText(result);
+    addOutputData(0, text);
 }
 
 }

@@ -30,7 +30,7 @@ void UltrasoundImageEnhancement::execute() {
         mColormapUploaded = true;
     }
 
-    Image::pointer output = getOutputData<Image>(0);
+    auto output = Image::New();
     output->create(input->getSize(), TYPE_UINT8, 3); // Make color image
     output->setSpacing(input->getSpacing());
 
@@ -50,6 +50,7 @@ void UltrasoundImageEnhancement::execute() {
             cl::NDRange(input->getWidth(), input->getHeight()),
             cl::NullRange
     );
+    addOutputData(0, output);
 }
 
 void UltrasoundImageEnhancement::loadAttributes() {

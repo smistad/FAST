@@ -316,12 +316,12 @@ void AirwaySegmentation::execute() {
 	reportInfo() << "Using seed point: " << seed.transpose() << reportEnd();
 
 	// Do the region growing
-	Segmentation::pointer segmentation = getOutputData<Segmentation>();
+	auto segmentation = Segmentation::New();
 	regionGrowing(image, segmentation, seed);
 
 	// Do morphological closing to remove holes in segmentation
 	morphologicalClosing(segmentation);
-
+    addOutputData(0, segmentation);
 }
 
 void AirwaySegmentation::setSeedPoint(int x, int y, int z) {

@@ -197,8 +197,8 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, const f
 }
 
 void GaussianSmoothingFilter::execute() {
-    Image::pointer input = getInputData<Image>(0);
-    Image::pointer output = getOutputData<Image>(0);
+    auto input = getInputData<Image>(0);
+    auto output = Image::New();
 
     char maskSize = mMaskSize;
     if(maskSize <= 0) // If mask size is not set calculate it instead
@@ -302,6 +302,7 @@ void GaussianSmoothingFilter::execute() {
 
         }
     }
+    addOutputData(0, output);
 }
 
 void GaussianSmoothingFilter::waitToFinish() {

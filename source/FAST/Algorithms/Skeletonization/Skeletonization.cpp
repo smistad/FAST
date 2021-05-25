@@ -12,8 +12,8 @@ Skeletonization::Skeletonization() {
 }
 
 void Skeletonization::execute() {
-    Segmentation::pointer input = getInputData<Segmentation>();
-    Image::pointer output = getOutputData<Image>();
+    auto input = getInputData<Segmentation>();
+    auto output = Image::New();
     SceneGraph::setParentNode(output, input);
 
     if(input->getDimensions() != 2)
@@ -88,7 +88,7 @@ void Skeletonization::execute() {
         if(stopGrowingResult == 1)
             stopGrowing = true;
     } while(!stopGrowing);
-    reportInfo() << "SKELETONIZATION EXECUTED" << Reporter::end();
+    addOutputData(0, output);
 }
 
 } // end namespace fast

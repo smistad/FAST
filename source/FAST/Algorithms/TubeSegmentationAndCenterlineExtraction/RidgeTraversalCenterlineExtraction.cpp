@@ -545,7 +545,7 @@ void extractCenterlines(
 
 void RidgeTraversalCenterlineExtraction::execute() {
 
-    Segmentation::pointer centerlineVolumeOutput = getOutputData<Segmentation>(1);
+    auto centerlineVolumeOutput = Segmentation::New();
 
     Image::pointer TDF = getInputData<Image>(0);
     Vector3ui size = TDF->getSize();
@@ -591,6 +591,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
     if(centerlineDistances.size() == 0) {
         reportWarning() << "No centerlines were extracted" << reportEnd();
         delete[] centerlines;
+        addOutputData(1, centerlineVolumeOutput);
         return;
     }
     reportInfo() << centerlineDistances.size() << " centerline extracted" << reportEnd();
@@ -644,13 +645,15 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     delete[] centerlines;
 
-    Mesh::pointer centerlineOutput = getOutputData<Mesh>(0);
+    auto centerlineOutput = Mesh::New();
     centerlineOutput->create(vertices, lines);
     centerlineVolumeOutput->create(size.x(), size.y(), size.z(), TYPE_UINT8, 1, getMainDevice(), returnCenterlines);
     delete[] returnCenterlines;
     centerlineVolumeOutput->setSpacing(TDF->getSpacing());
     SceneGraph::setParentNode(centerlineVolumeOutput, TDF);
     SceneGraph::setParentNode(centerlineOutput, TDF);
+    addOutputData(0, centerlineOutput);
+    addOutputData(1, centerlineVolumeOutput);
 }
 
 }

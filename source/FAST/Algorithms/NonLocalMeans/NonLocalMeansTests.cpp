@@ -7,7 +7,7 @@
 
 using namespace fast;
 
-TEST_CASE("Non local means", "[fast][nlm]") {
+TEST_CASE("Non local means", "[fast][nlm][visual]") {
     auto streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd");
     streamer->enableLooping();

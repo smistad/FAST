@@ -20,8 +20,8 @@ void ImageSlicer::setArbitrarySlicePlane(Plane slicePlane) {
 }
 
 ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
-	createInputPort<Image>(0);
-	createOutputPort<Image>(0);
+	createInputPort(0);
+	createOutputPort(0);
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSlicer/ImageSlicer.cl");
 
 	mArbitrarySlicing = false;
@@ -29,8 +29,8 @@ ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
 }
 
 void ImageSlicer::execute() {
-	Image::pointer input = getInputData<Image>();
-	Image::pointer output = getOutputData<Image>();
+	auto input = getInputData<Image>();
+	auto output = Image::New();
 
 	if(input->getDimensions() != 3)
 		throw Exception("Image slicer can only be used for 3D images");
@@ -38,12 +38,12 @@ void ImageSlicer::execute() {
 	if(!mArbitrarySlicing && !mOrthogonalSlicing)
 		throw Exception("No slice plane given to the ImageSlicer");
 
-	// TODO
 	if(mOrthogonalSlicing) {
 		orthogonalSlicing(input, output);
 	} else {
 		arbitrarySlicing(input, output);
 	}
+	addOutputData(0, output);
 }
 
 void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output) {

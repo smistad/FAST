@@ -7,7 +7,7 @@
 
 using namespace fast;
 
-TEST_CASE("Import whole slide image", "[fast][WholeSlideImageImporter][wsi]") {
+TEST_CASE("Import whole slide image", "[fast][WholeSlideImageImporter][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
@@ -16,11 +16,11 @@ TEST_CASE("Import whole slide image", "[fast][WholeSlideImageImporter][wsi]") {
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
-    //window->setTimeout(1000);
+    window->setTimeout(3000);
     window->start();
 }
 
-TEST_CASE("Import whole slide image and display highest level", "[fast][WholeSlideImageImporter][wsi]") {
+TEST_CASE("Import whole slide image and display highest level", "[fast][WholeSlideImageImporter][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
     auto port = importer->getOutputPort();
@@ -39,7 +39,7 @@ TEST_CASE("Import whole slide image and display highest level", "[fast][WholeSli
 }
 
 
-TEST_CASE("Import whole slide image and display a tile at level 0", "[fast][WholeSlideImageImporter][wsi]") {
+TEST_CASE("Import whole slide image and display a tile at level 0", "[fast][WholeSlideImageImporter][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
     auto port = importer->getOutputPort();

@@ -13,7 +13,7 @@ void ImageChannelConverter::setChannelsToRemove(bool channel1, bool channel2, bo
 void ImageChannelConverter::execute() {
     auto input = getInputData<Image>();
     //std::cout << "IN converter, PATCH: " << input->getFrameData("patchid-x") << " " << input->getFrameData("patchid-y") << std::endl;
-    auto output = getOutputData<Image>();
+    auto output = Image::New();
 
     int existingChannels = input->getNrOfChannels();
     int nrOfChannelsToRemove = 0;
@@ -64,12 +64,12 @@ void ImageChannelConverter::execute() {
                 cl::NullRange
         );
     }
-    //addOutputData(0, output);
+    addOutputData(0, output);
 }
 
 ImageChannelConverter::ImageChannelConverter() {
-    createInputPort<Image>(0);
-    createOutputPort<Image>(0);
+    createInputPort(0, "input_image");
+    createOutputPort(0, "output_image");
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImageChannelConverter/ImageChannelConverter.cl");
 

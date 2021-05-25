@@ -26,7 +26,7 @@ void ImageSharpening::execute() {
     if(input->getDimensions() != 2)
         throw Exception("ImageSharpening only supports 2D images");
 
-    auto output = getOutputData<Image>(0);
+    auto output = Image::New();
 
     char maskSize = mMaskSize;
     if(maskSize <= 0) // If mask size is not set calculate it instead
@@ -65,6 +65,7 @@ void ImageSharpening::execute() {
         globalSize,
         cl::NullRange
 	);
+    addOutputData(0, output);
 }
 
 }

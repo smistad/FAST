@@ -12,8 +12,8 @@ ImageGradient::ImageGradient() {
 }
 
 void ImageGradient::execute() {
-    Image::pointer input = getInputData<Image>(0);
-    Image::pointer output = getOutputData<Image>(0);
+    auto input = getInputData<Image>(0);
+    auto output = Image::New();
 
     std::string buildOptions = "";
     DataType type = TYPE_FLOAT;
@@ -73,6 +73,7 @@ void ImageGradient::execute() {
                 cl::NullRange
         );
     }
+    addOutputData(0, output);
 }
 
 void ImageGradient::set16bitStorageFormat() {

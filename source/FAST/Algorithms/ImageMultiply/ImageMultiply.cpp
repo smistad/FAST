@@ -4,16 +4,16 @@
 namespace fast {
 
 ImageMultiply::ImageMultiply() {
-    createInputPort<Image>(0);
-    createInputPort<Image>(1);
-    createOutputPort<Image>(0);
+    createInputPort(0);
+    createInputPort(1);
+    createOutputPort(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageMultiply/ImageMultiply.cl");
 }
 
 void ImageMultiply::execute() {
-    Image::pointer input1 = getInputData<Image>(0);
-    Image::pointer input2 = getInputData<Image>(1);
-    Image::pointer output = getOutputData<Image>();
+    auto input1 = getInputData<Image>(0);
+    auto input2 = getInputData<Image>(1);
+    auto output = Image::New();
 
     if(input1->getSize() != input2->getSize())
         throw Exception("Size of both input images to ImageMultiply must be equal");
@@ -66,6 +66,7 @@ void ImageMultiply::execute() {
                 cl::NullRange
         );
     }
+    addOutputData(0, output);
 }
 
 }

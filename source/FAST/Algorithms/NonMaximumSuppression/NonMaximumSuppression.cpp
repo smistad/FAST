@@ -20,7 +20,7 @@ void NonMaximumSuppression::setThreshold(float threshold) {
 
 void NonMaximumSuppression::execute() {
 	auto input = getInputData<BoundingBoxSet>();
-	auto output = getOutputData<BoundingBoxSet>();
+	auto output = BoundingBoxSet::New();
 	output->create();
 
 	auto compare = [](BoundingBox::pointer a, BoundingBox::pointer b) {
@@ -70,6 +70,7 @@ void NonMaximumSuppression::execute() {
 		}
 	}
 
+	addOutputData(0, output);
 }
 
 }

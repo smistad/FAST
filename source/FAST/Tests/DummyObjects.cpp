@@ -75,8 +75,9 @@ void DummyProcessObject2::execute() {
     DummyDataObject::pointer staticInput = getInputData<DummyDataObject>(1);
     mStaticID = staticInput->getID();
 
-    DummyDataObject::pointer output = getOutputData<DummyDataObject>(0);
+    auto output = DummyDataObject::New();
     output->create(dyanmicInput->getID());
+    addOutputData(0, output);
 }
 
 int DummyProcessObject2::getStaticDataID() const {
@@ -90,10 +91,11 @@ DummyImporter::DummyImporter() {
 }
 
 void DummyImporter::execute() {
-    auto output = getOutputData<DummyDataObject>(0);
+    auto output = DummyDataObject::New();
     std::cout << "Executing importer to create new object: " << output << std::endl;
     output->create(mExecuted);
     mExecuted++;
+    addOutputData(0, output);
 }
 
 void DummyImporter::setModified() {

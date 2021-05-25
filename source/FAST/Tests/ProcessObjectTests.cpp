@@ -1,7 +1,7 @@
-#include "catch.hpp"
+#include <FAST/Testing.hpp>
 #include "DummyObjects.hpp"
 
-namespace fast {
+using namespace fast;
 
 // Stream data only tests
 TEST_CASE("Simple pipeline with stream", "[process_all_frames][ProcessObject][fast]") {
@@ -579,4 +579,26 @@ TEST_CASE("Trying to set input connection to self throws exception", "[ProcessOb
     CHECK_THROWS(po->setInputConnection(po->getOutputPort()));
 }
 
+TEST_CASE("Output port should have last data object after update", "[ProcessObject][fast]") {
+    auto data = DummyDataObject::New();
+    data->create(0);
+
+    auto po = DummyProcessObject::New();
+    po->setInputData(data);
+    po->update();
+
+    auto port = po->getOutputPort();
+    CHECK_NOTHROW(port->getFrame());
+}
+
+TEST_CASE("getOutputData after update should return last output data object", "[ProcessObject][fast]") {
+    auto data = DummyDataObject::New();
+    data->create(0);
+
+    auto po = DummyProcessObject::New();
+    po->setInputData(data);
+    po->update();
+
+    CHECK_NOTHROW(po->getOutputData());
+    CHECK(po->getOutputData<DummyDataObject>()->getID() == data->getID());
 }

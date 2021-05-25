@@ -19,7 +19,7 @@ void VectorMedianFilter::loadAttributes() {
 
 void VectorMedianFilter::execute() {
     auto input = getInputData<Image>(0);
-    auto output = getOutputData<Image>(0);
+    auto output = Image::New();
     output->createFromImage(input);
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
@@ -38,6 +38,7 @@ void VectorMedianFilter::execute() {
         cl::NDRange(input->getWidth(), input->getHeight()),
         cl::NullRange
     );
+    addOutputData(0, output);
 }
 
 void VectorMedianFilter::setWindowSize(int size) {

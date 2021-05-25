@@ -279,7 +279,7 @@ void SurfaceExtraction::execute() {
         totalSum = std::accumulate(sum.begin(), sum.end(), 0);
     }
 
-    Mesh::pointer output = getOutputData<Mesh>(0);
+    auto output = Mesh::New();
     SceneGraph::setParentNode(output, input);
     DataBoundingBox box = input->getBoundingBox();
     output->create(totalSum*3, 0, totalSum, false, true, false);
@@ -390,6 +390,7 @@ void SurfaceExtraction::execute() {
     images.clear();
     buffers.clear();
     mHPSize = 0;
+    addOutputData(0, output);
 }
 
 SurfaceExtraction::SurfaceExtraction() {

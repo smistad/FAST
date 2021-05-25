@@ -48,7 +48,7 @@ void BlockMatching::execute() {
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
-    auto output = getOutputData<Image>(0);
+    auto output = Image::New();
     output->create(currentFrame->getSize(), TYPE_FLOAT, 2);
     output->setSpacing(currentFrame->getSpacing());
     m_frameBuffer.push_back(currentFrame);
@@ -56,6 +56,7 @@ void BlockMatching::execute() {
     if(m_frameBuffer.size() < m_timeLag+1) {
         // If previous frame is not available, just fill it with zeros and stop
         output->fill(0);
+        addOutputData(0, output);
         return;
     }
 
@@ -101,11 +102,11 @@ void BlockMatching::execute() {
         );
     }
     queue.finish();
-
     m_frameBuffer.pop_front();
+    addOutputData(0, output);
 }
 
-void BlockMatching::setMatchingMetric(BlockMatching::MatchingMetric type) {
+    void BlockMatching::setMatchingMetric(BlockMatching::MatchingMetric type) {
     m_type = type;
 }
 

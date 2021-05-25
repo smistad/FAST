@@ -46,8 +46,8 @@ void ImageResizer::loadAttributes() {
 }
 
 ImageResizer::ImageResizer() {
-	createInputPort<Image>(0);
-	createOutputPort<Image>(0);
+	createInputPort(0);
+	createOutputPort(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResizer/ImageResizer.cl");
 
@@ -60,8 +60,8 @@ ImageResizer::ImageResizer() {
 }
 
 void ImageResizer::execute() {
-    Image::pointer input = getInputData<Image>();
-    Image::pointer output = getOutputData<Image>();
+    auto input = getInputData<Image>();
+    auto output = Image::New();
 
     if(mSize.x() <= 0 || mSize.y() <= 0)
     	throw Exception("Desired size must be provided to ImageResizer");
@@ -153,6 +153,7 @@ void ImageResizer::execute() {
                 cl::NullRange
         );
     }
+    addOutputData(0, output);
 }
 
 }

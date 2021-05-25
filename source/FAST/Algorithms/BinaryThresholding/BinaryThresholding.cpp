@@ -41,8 +41,8 @@ void BinaryThresholding::execute() {
         throw Exception("BinaryThresholding need at least one threshold to be set.");
     }
 
-    Image::pointer input = getInputData<Image>(0);
-    Segmentation::pointer output = getOutputData<Segmentation>(0);
+    auto input = getInputData<Image>(0);
+    auto output = Segmentation::New();
 
     output->createFromImage(input);
 
@@ -92,6 +92,7 @@ void BinaryThresholding::execute() {
                 cl::NullRange
         );
     }
+    addOutputData(0, output);
 }
 
 void BinaryThresholding::waitToFinish() {

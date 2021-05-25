@@ -175,7 +175,7 @@ void VTKMeshFileImporter::execute() {
     if(!file.is_open()) {
         throw FileNotFoundException(mFilename);
     }
-    Mesh::pointer output = getOutputData<Mesh>(0);
+    auto output = Mesh::New();
 
     getline(file, line);
     while(!file.eof()) {
@@ -200,6 +200,7 @@ void VTKMeshFileImporter::execute() {
 
     output->create(mVertices, mLines, mTriangles);
     reportInfo() << "MESH IMPORTED: vertices " << mVertices.size() << " lines " << mLines.size() << " triangles " << mTriangles.size() << Reporter::end();
+    addOutputData(0, output);
 }
 
 } // end namespace fast

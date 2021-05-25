@@ -27,8 +27,8 @@ void LaplacianOfGaussian::setStandardDeviation(float stdDev) {
 }
 
 LaplacianOfGaussian::LaplacianOfGaussian() {
-    createInputPort<Image>(0);
-    createOutputPort<Image>(0);
+    createInputPort(0);
+    createOutputPort(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian2D.cl", "2D");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian3D.cl", "3D");
     mStdDev = 1.0f;
@@ -192,8 +192,8 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
 }
 
 void LaplacianOfGaussian::execute() {
-    Image::pointer input = getInputData<Image>(0);
-    Image::pointer output = getOutputData<Image>(0);
+    auto input = getInputData<Image>(0);
+    auto output = Image::New();
 
     if(input->getDimensions() != 2) {
         throw Exception("The LaplacianOfGaussian filter currently only accept 2D images");
@@ -249,6 +249,8 @@ void LaplacianOfGaussian::execute() {
                 cl::NullRange
         );
     }
+
+    addOutputData(0, output);
 }
 
 void LaplacianOfGaussian::waitToFinish() {

@@ -38,7 +38,7 @@ void ImageMovingAverage::loadAttributes() {
 
 void ImageMovingAverage::execute() {
     auto input = getInputData<Image>(0);
-    auto output = getOutputData<Image>(0);
+    auto output = Image::New();
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto program = getOpenCLProgram(device);
@@ -78,6 +78,7 @@ void ImageMovingAverage::execute() {
         while(m_buffer.size() < m_frameCount)
             m_buffer.push_back(input);
 
+        addOutputData(0, output);
         return;
     }
 
@@ -121,6 +122,7 @@ void ImageMovingAverage::execute() {
         m_buffer.pop_front();
 
     m_memory = memoryOut;
+    addOutputData(0, output);
 }
 
 }

@@ -23,8 +23,8 @@ void ScaleImage::execute() {
     if(mHigh <= mLow)
         throw Exception("The high value must be higher than the low value in ScaleImage.");
 
-    Image::pointer input = getInputData<Image>();
-    Image::pointer output = getOutputData<Image>();
+    auto input = getInputData<Image>();
+    auto output = Image::New();
 
     const uint width = input->getWidth();
     const uint height = input->getHeight();
@@ -76,6 +76,8 @@ void ScaleImage::execute() {
             globalSize,
             cl::NullRange
     );
+
+    addOutputData(0, output);
 }
 
 } // end namespace fast

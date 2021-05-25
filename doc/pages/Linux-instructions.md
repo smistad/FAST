@@ -50,7 +50,7 @@ cd build
 cmake ..
 ```
 
-FAST has several [optional modules](@ref build-modules) on build options. These are enabled using cmake options named FAST_MODULE_<Name> and FAST_BUILD_<Name>.
+FAST has several [optional modules](@ref build-modules) and build options. These are enabled using cmake options named FAST_MODULE_<Name> and FAST_BUILD_<Name>.
 Here is a list of some options which might be useful:
 * FAST_BUILD_TOOLS
 * FAST_BUILD_EXAMPLES

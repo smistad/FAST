@@ -22,12 +22,12 @@ InverseGradientSegmentation::InverseGradientSegmentation() {
 }
 
 void InverseGradientSegmentation::execute() {
-    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
+    auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
-    Segmentation::pointer centerline = getInputData<Segmentation>(0);
+    auto centerline = getInputData<Segmentation>(0);
     Vector3ui size = centerline->getSize();
-    Image::pointer vectorField = getInputData<Image>(1);
-    Segmentation::pointer segmentation = getOutputData<Segmentation>(0);
+    auto vectorField = getInputData<Image>(1);
+    auto segmentation = Segmentation::New();
     segmentation->createFromImage(centerline);
     SceneGraph::setParentNode(segmentation, centerline);
     Segmentation::pointer segmentation2 = Segmentation::New();
@@ -232,6 +232,7 @@ void InverseGradientSegmentation::execute() {
         );
     }
 
+    addOutputData(0, segmentation);
 }
 
 

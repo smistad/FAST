@@ -585,7 +585,7 @@ void MultigridGradientVectorFlow::execute() {
     }
 
     // Create output, currently only type float is output, not normalized 16 bit
-    Image::pointer output = getOutputData<Image>();
+    auto output = Image::New();
     output->create(input->getSize(), TYPE_FLOAT, input->getNrOfChannels());
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
@@ -601,6 +601,7 @@ void MultigridGradientVectorFlow::execute() {
         }
         execute3DGVF(input, output, mIterations);
     }
+    addOutputData(0, output);
 }
 
 void MultigridGradientVectorFlow::execute3DGVF(std::shared_ptr<Image> input,

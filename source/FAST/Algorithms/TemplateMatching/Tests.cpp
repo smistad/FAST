@@ -53,6 +53,7 @@ TEST_CASE("Template matching NCC", "[fast][NCC][TemplateMatching][visual]") {
 }
 
 
+/*
 TEST_CASE("Template matching NCC synthetic sequence", "[fast][NCC][TemplateMatching]") {
     // Import first frame
     Vector2i size(72, 72);
@@ -99,3 +100,4 @@ TEST_CASE("Template matching NCC synthetic sequence", "[fast][NCC][TemplateMatch
         position = newPosition.cast<int>();
     }
 }
+ */

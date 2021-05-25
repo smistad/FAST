@@ -23,7 +23,11 @@ class FAST_EXPORT  ProcessObject : public Object {
     public:
         virtual ~ProcessObject();
         /**
-         * Do update on this PO, which will trigger update on all connected POs.
+         * @brief Update/Run the pipeline up to this process object.
+         *
+         * Do update on this PO, which will trigger update on all connected POs
+         * thus running the entire pipeline.
+         *
          * An optional executeToken can be used to synchronize updating to avoid
          * duplicate execution for the same frames when using streaming.
          * Increment the token for every timestep with a positive value.
@@ -54,6 +58,20 @@ class FAST_EXPORT  ProcessObject : public Object {
         virtual void setInputConnection(uint portID, DataChannel::pointer port);
         virtual void setInputData(DataObject::pointer data);
         virtual void setInputData(uint portID, DataObject::pointer data);
+        /**
+         * Get current output data for a given port
+         * @param portID
+         * @return
+         */
+        DataObject::pointer getOutputData(uint portID = 0);
+        /**
+         * Get current output data for a given port
+         * @tparam DataType data type to convert to
+         * @param portID
+         * @return
+         */
+        template <class DataType>
+        std::shared_ptr<DataType> getOutputData(uint portID = 0);
         int getNrOfInputConnections() const;
         int getNrOfOutputPorts() const;
 
@@ -67,10 +85,16 @@ class FAST_EXPORT  ProcessObject : public Object {
         void setAttributes(std::vector<std::shared_ptr<Attribute>> attributes);
 
         /**
-         * Used to stop a pipeline.
+         * @brief Stop a pipeline.
          */
         void stopPipeline();
 
+        /**
+         * @brief Mark this process object as modified or not.
+         * A modified PO will execute next time it is updated.
+         *
+         * @param modified
+         */
         void setModified(bool modified);
 
         template <class DataType>
@@ -90,15 +114,18 @@ class FAST_EXPORT  ProcessObject : public Object {
         virtual void preExecute();
         virtual void postExecute();
 
+        void createInputPort(uint portID, std::string name = "", std::string description = "", bool required = true);
+        void createOutputPort(uint portID, std::string name = "", std::string description = "");
         template <class DataType>
+        [[deprecated("Replaced by non templated createInputPort(uint portID, std::string name, std::string description, bool required)")]]
         void createInputPort(uint portID, bool required = true);
         template <class DataType>
+        [[deprecated("Replaced by non templated createOutputPort(uint portID, std::string name, std::string description)")]]
         void createOutputPort(uint portID);
 
         template <class DataType>
         std::shared_ptr<DataType> getInputData(uint portID = 0);
-        template <class DataType>
-        std::shared_ptr<DataType> getOutputData(uint portID = 0);
+        void addOutputData(DataObject::pointer data, bool propagateLastFrameData = true, bool propagateFrameData = true);
         void addOutputData(uint portID, DataObject::pointer data, bool propagateLastFrameData = true, bool propagateFrameData = true);
 
         bool hasNewInputData(uint portID);
@@ -138,9 +165,19 @@ class FAST_EXPORT  ProcessObject : public Object {
         // New pipeline
         std::unordered_map<uint, DataChannel::pointer> mInputConnections;
         std::unordered_map<uint, std::vector<std::weak_ptr<DataChannel>>> mOutputConnections;
-        std::unordered_map<uint, bool> mInputPorts;
-        std::unordered_set<uint> mOutputPorts;
-        // <port id, timestep>, register the last timestep of data which this PO executed with
+        struct InputPort {
+            std::string name;
+            std::string description;
+            bool required = true;
+        };
+        std::unordered_map<uint, InputPort> mInputPorts;
+        struct OutputPort {
+            std::string name;
+            std::string description;
+            DataObject::pointer currentData = nullptr;
+        };
+        std::unordered_map<uint, OutputPort> mOutputPorts;
+        // <port id, timestep>, register the last timestep of input data which this PO executed with
         std::unordered_map<uint, std::pair<DataObject::pointer, uint64_t>> mLastProcessed;
 
         void validateInputPortExists(uint portID);
@@ -162,16 +199,17 @@ class FAST_EXPORT  ProcessObject : public Object {
 
 };
 
-
 template<class DataType>
 void ProcessObject::createInputPort(uint portID, bool required) {
-    mInputPorts[portID] = required;
+    InputPort inputPort;
+    inputPort.required = required;
+    mInputPorts[portID] = inputPort;
 }
-
 
 template<class DataType>
 void ProcessObject::createOutputPort(uint portID) {
-    mOutputPorts.insert(portID);
+    OutputPort outputPort;
+    mOutputPorts[portID] = outputPort;
 }
 
 template<class DataType>
@@ -196,16 +234,14 @@ std::shared_ptr<DataType> ProcessObject::getInputData(uint portID) {
 
 template<class DataType>
 std::shared_ptr<DataType> ProcessObject::getOutputData(uint portID) {
-    validateOutputPortExists(portID);
-    // Generate a new output data object
-    std::shared_ptr<DataType> returnData = DataType::New();
+    auto data = getOutputData(portID);
+    auto convertedData = std::dynamic_pointer_cast<DataType>(data);
+    // Check if the conversion went ok
+    if(!convertedData)
+        throw BadCastException(data->getNameOfClass(), DataType::getStaticNameOfClass());
 
-    addOutputData(portID, returnData);
-
-    // Return it
-    return returnData;
+    return convertedData;
 }
-
 
 template<class DataType>
 std::shared_ptr<DataType> ProcessObject::updateAndGetOutputData(uint portID) {

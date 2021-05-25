@@ -137,6 +137,10 @@ DataChannel::pointer ProcessObject::getOutputPort(uint portID) {
     }
     dataChannel->setProcessObject(std::static_pointer_cast<ProcessObject>(mPtr.lock()));
 
+    // If this output port has current data, add it to the data channel:
+    if(mOutputPorts[portID].currentData)
+        dataChannel->addFrame(mOutputPorts[portID].currentData);
+
     if(mOutputConnections.count(portID) == 0)
         mOutputConnections[portID] = std::vector<std::weak_ptr<DataChannel>>();
 
@@ -171,6 +175,9 @@ void ProcessObject::addOutputData(uint portID, DataObject::pointer data, bool pr
     if(propagateFrameData)
         for(auto&& frameData : m_frameData)
             data->setFrameData(frameData.first, frameData.second);
+
+    // Add to current data for this port
+    mOutputPorts[portID].currentData = data;
 
     // Add it to all output connections, if any connections exist
     if(mOutputConnections.count(portID) > 0) {
@@ -215,7 +222,7 @@ void ProcessObject::setInputData(uint portID, DataObject::pointer data) {
 void ProcessObject::preExecute() {
     // Validate that all required input connections have been set
     for(auto input : mInputPorts) {
-        if(input.second) { // if required
+        if(input.second.required) { // if required
             if(mInputConnections.count(input.first) == 0) {
                 throw Exception("Input port " + std::to_string(input.first) + " on process object " + getNameOfClass() + " is missing its required connection.");
             }
@@ -523,5 +530,33 @@ void ProcessObject::setModified(bool modified) {
 
 }
 
+void ProcessObject::createInputPort(uint portID, std::string name, std::string description, bool required) {
+    InputPort inputPort;
+    inputPort.required = required;
+    inputPort.name = name;
+    inputPort.description = description;
+    mInputPorts[portID] = inputPort;
+}
+
+void ProcessObject::createOutputPort(uint portID, std::string name, std::string description) {
+    OutputPort outputPort;
+    outputPort.name = name;
+    outputPort.description = description;
+    mOutputPorts[portID] = outputPort;
+}
+
+void ProcessObject::addOutputData(DataObject::pointer data, bool propagateLastFrameData, bool propagateFrameData) {
+    addOutputData(0, data, propagateLastFrameData, propagateFrameData);
+}
+
+DataObject::pointer ProcessObject::getOutputData(uint portID) {
+    validateOutputPortExists(portID);
+
+    auto data = mOutputPorts[portID].currentData;
+    if(!data)
+        throw Exception("Error in getOutputData: Process object has not produced any output data");
+
+    return data;
+}
 
 } // namespace fast

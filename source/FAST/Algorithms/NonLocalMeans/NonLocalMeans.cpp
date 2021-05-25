@@ -26,7 +26,7 @@ void NonLocalMeans::loadAttributes() {
 
 void NonLocalMeans::execute() {
     auto input = getInputData<Image>(0);
-    auto output = getOutputData<Image>(0);
+    auto output = Image::New();
     output->createFromImage(input);
     auto auxImage = Image::New();
     auxImage->createFromImage(input);
@@ -95,6 +95,7 @@ void NonLocalMeans::execute() {
         bufferOut = tmp;
     }
     queue.finish();
+    addOutputData(0, output);
 }
 
 void NonLocalMeans::setSmoothingAmount(float parameterH) {

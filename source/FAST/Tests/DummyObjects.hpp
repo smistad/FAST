@@ -52,9 +52,10 @@ class DummyProcessObject : public ProcessObject {
         };
         void execute() {
             mHasExecuted = true;
-            DummyDataObject::pointer input = getInputData<DummyDataObject>(0);
-            DummyDataObject::pointer output = getOutputData<DummyDataObject>(0);
+            auto input = getInputData<DummyDataObject>(0);
+            auto output = DummyDataObject::New();
             output->create(input->getID());
+            addOutputData(0, output);
         };
         bool mHasExecuted;
 };

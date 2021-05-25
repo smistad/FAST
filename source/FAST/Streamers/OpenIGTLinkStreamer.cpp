@@ -33,7 +33,7 @@ DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(uint portID) {
 	if (mOutputPortDeviceNames.count("") == 0) {
 		portID = getNrOfOutputPorts();
 		createOutputPort<Image>(portID);
-		getOutputData<Image>(portID); // This initializes the output data
+		//getOutputData<Image>(portID); // This initializes the output data
 		mOutputPortDeviceNames[""] = portID;
 	}
 	else {

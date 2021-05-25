@@ -27,12 +27,12 @@ void Dilation::setStructuringElementSize(int size) {
 }
 
 void Dilation::execute() {
-    Image::pointer input = getInputData<Image>();
+    auto input = getInputData<Image>();
     if(input->getDataType() != TYPE_UINT8) {
         throw Exception("Data type of image given to Dilation must be UINT8");
     }
 
-    Image::pointer output = getOutputData<Image>();
+    auto output = Image::New();
     output->createFromImage(input);
     SceneGraph::setParentNode(output, input);
     output->fill(0);
@@ -88,6 +88,7 @@ void Dilation::execute() {
                 cl::NullRange
         );
     }
+    addOutputData(0, output);
 
 }
 

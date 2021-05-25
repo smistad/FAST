@@ -28,7 +28,7 @@ void LabelModifier::execute() {
     if(input->getDimensions() != 2 || input->getDataType() != TYPE_UINT8)
         throw Exception("Input to LabelModifier must be 2D image of type uint8");
 
-    auto output = getOutputData<Image>();
+    auto output = Image::New();
     output->createFromImage(input);
 
     auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -48,6 +48,7 @@ void LabelModifier::execute() {
         cl::NullRange
     );
 
+    addOutputData(0, output);
 }
 
 void LabelModifier::setLabelChange(uchar oldLabel, uchar newLabel) {

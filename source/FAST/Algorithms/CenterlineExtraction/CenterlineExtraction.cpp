@@ -500,9 +500,10 @@ void CenterlineExtraction::execute() {
 		}
 	}
 
-	Mesh::pointer output = getOutputData<Mesh>();
+	auto output = Mesh::New();
     output->create(vertices, lines);
 	SceneGraph::setParentNode(output, input);
+	addOutputData(0, output);
 }
 
 

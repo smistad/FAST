@@ -113,10 +113,11 @@ void VTKtoFAST::setFASTImage(Image::pointer image) {
 
 
 void VTKImageImporter::execute() {
-    Image::pointer image = getOutputData<Image>();
+    auto image = Image::New();
     mVTKProcessObject->setFASTImage(image);
     // Run VTK pipeline
     mVTKProcessObject->Update();
+    addOutputData(0, image);
 }
 
 VTKtoFAST *VTKImageImporter::getVTKProcessObject() {
