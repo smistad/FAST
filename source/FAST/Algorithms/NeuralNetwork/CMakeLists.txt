@@ -13,6 +13,8 @@ fast_add_sources(
     TensorToSegmentation.hpp
     TensorToImage.cpp
     TensorToImage.hpp
+    TensorToBoundingBoxSet.cpp
+    TensorToBoundingBoxSet.hpp
     BoundingBoxNetwork.cpp
     BoundingBoxNetwork.hpp
     FlowNetwork.cpp
@@ -29,6 +31,7 @@ fast_add_process_object(FlowNetwork FlowNetwork.hpp)
 fast_add_process_object(ImagesToSequence FlowNetwork.hpp)
 fast_add_process_object(TensorToSegmentation TensorToSegmentation.hpp)
 fast_add_process_object(TensorToImage TensorToImage.hpp)
+fast_add_process_object(TensorToBoundingBoxSet TensorToBoundingBoxSet.hpp)
 
 if(FAST_MODULE_Visualization)
     fast_add_test_sources(
