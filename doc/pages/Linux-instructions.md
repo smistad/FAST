@@ -15,7 +15,8 @@ Install requirements
 
 1. First, make sure you have all the tools necessary to download and compile the code: 
 ```bash
-sudo apt install cmake g++ git patchelf
+sudo snap install cmake --classic # Use snap to get more recent version of cmake on Ubuntu 18.04
+sudo apt install g++ git patchelf
 sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
 sudo apt install libopenslide-dev # Needed for WSI module
 sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
@@ -37,7 +38,7 @@ Clone and Configure
 @m_class{m-block m-warning}
 
 @par Warning
-Don't put the FAST code in a path with spaces, this will currently break the build.
+    Don't put the FAST code in a path with spaces, this will currently break the build.
 
 Clone the code using Git and configure the project using CMake:
 ```bash
