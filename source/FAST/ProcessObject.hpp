@@ -74,6 +74,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         std::shared_ptr<DataType> getOutputData(uint portID = 0);
         int getNrOfInputConnections() const;
         int getNrOfOutputPorts() const;
+        int getNrOfInputPorts() const;
 
         virtual std::string getNameOfClass() const = 0;
         static std::string getStaticNameOfClass() {

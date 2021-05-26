@@ -1,5 +1,6 @@
 #include "BoundingBoxNetwork.hpp"
 #include <FAST/Data/BoundingBox.hpp>
+#include "TensorToBoundingBoxSet.hpp"
 
 namespace fast {
 
@@ -22,35 +23,38 @@ void BoundingBoxNetwork::loadAttributes() {
 }
 
 void BoundingBoxNetwork::setAnchors(std::vector<std::vector<Vector2f>> anchors) {
-    m_anchors = anchors;
+    m_tensorToBoundingBoxSet->setAnchors(anchors);
 }
 
 BoundingBoxNetwork::BoundingBoxNetwork() {
     createInputPort<Image>(0);
     createOutputPort<BoundingBoxSet>(0);
-    
-    m_threshold = 0.5;
 
-    createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", m_threshold);
+    m_tensorToBoundingBoxSet = TensorToBoundingBoxSet::New();
+
+    createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", 0.5f);
     createStringAttribute("anchors", "Anchors", "Should be formatted like: x1,y1,x2,y2;x1,y1,x2,y2", "");
 }
 
 
 
 void BoundingBoxNetwork::execute() {
-    if(m_anchors.empty())
-        throw Exception("No anchors was given to the bouding box network");
-
     run();
 
     mRuntimeManager->startRegularTimer("output_processing");
-
+    std::cout << "Size of nr of input nodes: " <<m_processedOutputData.size() << std::endl;
+    m_tensorToBoundingBoxSet->setNrOfInputNodes(m_processedOutputData.size());
+    for(auto node : m_processedOutputData) {
+        auto tensor = std::dynamic_pointer_cast<Tensor>(node.second);
+        m_tensorToBoundingBoxSet->setInputData(node.first, tensor);
+    }
+    addOutputData(m_tensorToBoundingBoxSet->updateAndGetOutputData<BoundingBoxSet>());
     mRuntimeManager->stopRegularTimer("output_processing");
 }
 
 
 void BoundingBoxNetwork::setThreshold(float threshold) {
-    m_threshold = threshold;
+    m_tensorToBoundingBoxSet->setThreshold(threshold);
 }
 
 }

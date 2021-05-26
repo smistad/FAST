@@ -549,6 +549,10 @@ void ProcessObject::addOutputData(DataObject::pointer data, bool propagateLastFr
     addOutputData(0, data, propagateLastFrameData, propagateFrameData);
 }
 
+int ProcessObject::getNrOfInputPorts() const {
+    return mInputPorts.size();
+}
+
 DataObject::pointer ProcessObject::getOutputData(uint portID) {
     validateOutputPortExists(portID);
 

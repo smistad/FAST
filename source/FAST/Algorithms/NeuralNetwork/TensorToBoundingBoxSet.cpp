@@ -1,11 +1,31 @@
+#include <FAST/Data/Tensor.hpp>
+#include <ProcessObjectList.hpp>
 #include "TensorToBoundingBoxSet.hpp"
 
 namespace fast {
 
+void TensorToBoundingBoxSet::loadAttributes() {
+    setThreshold(getFloatAttribute("threshold"));
+
+    // Duplicate of BoundingBoxNetwork
+    std::vector<std::vector<Vector2f>> anchors;
+    const auto level = split(getStringAttribute("anchors"), ";");
+    for(auto&& part : level) {
+        const auto parts = split(part, ",");
+        std::vector<Vector2f> levelAnchors;
+        for(int i = 0; i < parts.size(); i += 2) {
+            levelAnchors.push_back(Vector2f(std::stof(parts[i]), std::stof(parts[i+1])));
+        }
+        anchors.push_back(levelAnchors);
+    }
+    setAnchors(anchors);
+}
+
 TensorToBoundingBoxSet::TensorToBoundingBoxSet() {
-    createInputPort(0, "Tensor");
     createOutputPort(0, "BoundingBoxSet");
 
+    createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", 0.5f);
+    createStringAttribute("anchors", "Anchors", "Should be formatted like: x1,y1,x2,y2;x1,y1,x2,y2", "");
 }
 
 /**
@@ -26,25 +46,21 @@ inline float sigmoid(float x) {
 }
 void TensorToBoundingBoxSet::execute() {
 
-    const auto outputNodes = m_engine->getOutputNodes();
-
-    int inputHeight;
-    int inputWidth;
-    auto inputShape = m_engine->getInputNodes().begin()->second.shape;
-    if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelLast) {
-        inputHeight = inputShape[1];
-        inputWidth = inputShape[2];
-    } else {
-        inputHeight = inputShape[2];
-        inputWidth = inputShape[3];
+    std::map<int, Tensor::pointer> outputNodes; // Neural network output nodes
+    for(int i = 0; i < getNrOfInputConnections(); ++i) {
+        outputNodes[i] = getInputData<Tensor>(i);
     }
+
+    //auto inputShape = outputNodes.begin()->second->getShape(); // TODO this should be size of input to network
+    int inputHeight = 256;//inputShape[0]; // TODO fix
+    int inputWidth = 256;//inputShape[1]; // TODO fix
 
     const auto ordering = ImageOrdering::ChannelLast;
     auto bbset = BoundingBoxSet::New();
     bbset->create();
     auto outputAccess = bbset->getAccess(ACCESS_READ_WRITE);
     int nodeIdx = 0;
-    for(auto node : m_processedOutputData) {
+    for(auto node : outputNodes) {
         auto tensor = std::dynamic_pointer_cast<Tensor>(node.second);
         if(!tensor)
             throw Exception("Output data " + std::to_string(node.first) + " was not a tensor");
@@ -62,7 +78,7 @@ void TensorToBoundingBoxSet::execute() {
         channels = shape[2];
         float* tensorData = access->getRawData();
         // Output tensor is 8x8x18, or 8x8x Anchors x (classes + 5)
-        const int classes = channels / m_anchors[nodeIdx].size() - 5;
+        const int classes = channels / (int)m_anchors[nodeIdx].size() - 5;
 
         // Loop over grid
         for(int y = 0; y < outputHeight; ++y) {
@@ -105,6 +121,36 @@ void TensorToBoundingBoxSet::execute() {
 
 void TensorToBoundingBoxSet::setType(BoundingBoxNetworkType type) {
     m_type = type;
+}
+
+void TensorToBoundingBoxSet::setInputConnection(DataChannel::pointer channel) {
+    // This is hack to connect all output ports to this PO:
+    // For each output port of parent: create an input port and connect it to parent.
+    for(int i = 0; i < channel->getProcessObject()->getNrOfOutputPorts(); ++i) {
+        createInputPort(i, "Tensor");
+        ProcessObject::setInputConnection(i, channel->getProcessObject()->getOutputPort(i));
+    }
+}
+
+void TensorToBoundingBoxSet::setInputConnection(uint portID, DataChannel::pointer channel) {
+    if(getNrOfInputPorts() == 0) { // Only once
+        setInputConnection(channel);
+    } else {
+        ProcessObject::setInputConnection(portID, channel);
+    }
+}
+
+void TensorToBoundingBoxSet::setThreshold(float threshold) {
+    m_threshold = threshold;
+}
+
+void TensorToBoundingBoxSet::setAnchors(std::vector<std::vector<Vector2f>> anchors) {
+    m_anchors = anchors;
+}
+
+void TensorToBoundingBoxSet::setNrOfInputNodes(int nr) {
+    for(int i = 0; i < nr; ++i)
+        createInputPort(i, "Tensor");
 }
 
 

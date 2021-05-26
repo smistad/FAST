@@ -5,6 +5,8 @@
 
 namespace fast {
 
+class TensorToBoundingBoxSet;
+
 /**
  * @brief Neural network process object for bounding box detection
  *
@@ -23,10 +25,7 @@ class FAST_EXPORT BoundingBoxNetwork : public NeuralNetwork {
         BoundingBoxNetwork();
         void execute() override;
 
-        float m_threshold;
-        std::vector<std::vector<Vector2f>> m_anchors;
-        BoundingBoxNetworkType m_type;
-
+        std::shared_ptr<TensorToBoundingBoxSet> m_tensorToBoundingBoxSet;
 };
 
 }
