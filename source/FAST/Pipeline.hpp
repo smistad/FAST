@@ -22,7 +22,13 @@ class FAST_EXPORT  Pipeline : public Object {
         std::string getDescription() const;
         std::string getFilename() const;
         /**
-         * Parse the pipeline file
+         * @brief Get pipeline attribute
+         * @param attribute name
+         * @return attribute value
+         */
+        std::string getPipelineAttribute(std::string name) const;
+        /**
+         * @brief Parse the pipeline file
          */
         void parse(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects = {});
 
@@ -34,6 +40,7 @@ class FAST_EXPORT  Pipeline : public Object {
         std::unordered_map<std::string, View*> m_views;
         std::vector<std::string> mRenderers;
         std::vector<std::string> m_lines;
+        std::unordered_map<std::string, std::string> m_attributes;
 
         void parseProcessObject(
             std::string objectName,

@@ -2,37 +2,107 @@ Build FAST on Windows {#building-on-windows}
 ===========================================
 @tableofcontents
 
-These instructions are for building FAST on Windows using Visual Studio. If you only want to test and use FAST, please [download a release](https://github.com/smistad/FAST/releases) instead.
+These instructions are for building FAST on Windows using Visual Studio. 
+If you only want to test and use FAST, please [download a release](https://github.com/smistad/FAST/releases) instead.
 
 This is tested on Windows 10 with [Visual Studio 2019 Community Edition which can be downloaded for free.](https://www.visualstudio.com/downloads/)
 
-**Install dependencies**
+Install requirements
+-------------------------
+1. Download and install these tools: 
+   - [Git](https://git-scm.com/download/win) 
+   - [CMake](https://www.cmake.org)
+   - [Visual Studio Community 2019](https://visualstudio.microsoft.com/vs/community/). **Do not use older version than 2019.**
 
-1. Download and install these tools: [Git](https://git-scm.com/download/win), [CMake](https://www.cmake.org) and [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/).
+2. Install OpenCL and OpenGL.
+   - OpenGL: Usually installed along with your graphics driver.
+   - OpenCL: To install OpenCL on Windows, download an implementation depending on the CPU/GPU you have and want to use:
+      - **NVIDIA** - Install [CUDA](https://developer.nvidia.com/cuda-downloads)
+      - **Intel** - Install the [Intel OpenCL SDK](https://software.intel.com/content/www/us/en/develop/tools/opencl-sdk/choose-download.html)
 
-2. Install OpenCL by downloading the latest display drivers and, depending on which GPU/CPU you have and want to use, install: [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) **or** [AMD APP SDK](http://developer.amd.com/tools-and-sdks/opencl-zone/amd-accelerated-parallel-processing-app-sdk/) **or** [Intel OpenCL SDK](https://software.intel.com/en-us/opencl-sdk) .
+3. FAST will download all other dependencies (Qt5, eigen, zlib, DCMTK, OpenVINO, tensorflow, +++) automatically. Note that some [optional requirements](@ref requirements) are needed for video streaming and GPU neural network inference, this can be installed later.
 
-3. FAST will download and build all other dependencies (Qt5, eigen, zlib, DCMTK) automatically when you build.
+Clone and Configure
+--------------------
 
-**Compile**
+@m_class{m-block m-warning}
 
-1. Download the FAST source code using git:
+@par Warning
+    Don't put the FAST code in a path with spaces, this will currently break the build.
+
+
+Clone the code using Git and configure the project using CMake:
 ```bash
-git clone https://github.com/smistad/FAST
+git clone https://github.com/smistad/FAST.git
+cd FAST
+mkdir build
+cd build
+# Default cmake configuration. Options may be added like so: 
+# cmake.exe .. -DFAST_BUILD_TESTS=OFF -DFAST_BUILD_EXAMPLES=ON -DFAST_MODULE_TensorFlow=ON
+cmake.exe ..
 ```
-2. Open CMake and set the source directory to the C:/path/to/FAST/ directory. 
-   Then set the build directory to where you want to create your visual studio project. 
-   Press configure and choose Visual Studio 16 2019 **Win64** as the generator if you use Visual Studio 2019. 
-   You may now enable and disable different [modules](@ref build-modules) and options in CMake.
-   Note that these modules can have additional requirements. When done, press generate.
-3. The Visual studio project will be located in the build directory. 
-   You can now compile and run the project from inside Visual Studio. 
-   **Remember to select Release before you build.**
+This will create a Visual Studio solution in your build folder.
 
-**Troubleshoot**
+FAST has several [optional modules](@ref build-modules) and build options. These are enabled using cmake options named FAST_MODULE_<Name> and FAST_BUILD_<Name>.
+Here is a list of some options which might be useful:
+* FAST_BUILD_TOOLS
+* FAST_BUILD_EXAMPLES
+* FAST_BUILD_TESTS
+* FAST_BUILD_DOCS
+* FAST_MODULE_TensorFlow
+* FAST_MODULE_TensorRT
+* FAST_MODULE_OpenVINO
+* FAST_MODULE_Dicom
+* FAST_MODULE_WholeSlideImaging
+* FAST_MODULE_OpenIGTLink
+* FAST_MODULE_Clarius
+* FAST_MODULE_Python
+* FAST_MODULE_HDF5
+* FAST_MODULE_Plotting
+* FAST_MODULE_RealSense
 
-If you get an error while FAST is building Qt5 and qtconfig.h: delete the folder external/qt5 in your build folder and try to build FAST again.
+Compile
+-----------------------
+You can now compile FAST from Visual Studio by opening the FAST.sln file in the build folder 
+(Remember to select Release config) **OR** you can compile FAST from the command line:
 
-**Running the tests**
+```bash
+cmake.exe --build . --config Release --target ALL_BUILD -j 8
+```
 
-Next, you should run the tests to make sure the framework is working properly on your system. Instructions on how to do this can be found [here](https://github.com/smistad/FAST/wiki/Running-the-tests).
+Test
+----------------------
+
+To test that your build was successful, run the systemCheck application:
+
+```bash
+./bin/systemCheck.exe
+```
+
+This should display the FAST logo and some FAST+OpenCL information.
+
+Troubleshoot
+----------------------
+
+Still stuck? Get help at [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
+
+Install
+----------------------
+Set CMAKE_INSTALL_PREFIX to where you want to install FAST on your drive.
+Then run:
+
+```bash
+cmake.exe --build . --config Release --target INSTALL -j 8
+```
+
+Build Windows installer
+--------------------------
+To build a Windows executable installer run:
+
+```bash
+cmake.exe --build . --config Release --target package -j 8
+```
+
+Build the Python bindings (pyFAST)
+-----------------------
+@todo

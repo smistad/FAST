@@ -249,6 +249,13 @@ void Pipeline::parse(std::unordered_map<std::string, std::shared_ptr<ProcessObje
             }
             parseView(id, lineNr);
             lineNr--;
+        } else if(key == "Attribute") {
+            // Custom field/attribute/metadata..
+            std::string value = line.substr(line.find(tokens[1]) + tokens[1].size());
+            trim(value);
+            value = replace(value, "\"", "");
+            reportInfo() << "Found pipeline attribute " << tokens[1] << " in pipeline file with value " << value << reportEnd();
+            m_attributes[tokens[1]] = value;
         }
     }
 }
@@ -318,6 +325,11 @@ std::unordered_map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getPro
     return mProcessObjects;
 }
 
+std::string Pipeline::getPipelineAttribute(std::string key) const {
+    if(m_attributes.count(key) == 0)
+        throw Exception("Attribute " + key + " was not found in the pipeline text file");
+    return m_attributes.at(key);
+}
 
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {
     auto processObjects = pipeline.getProcessObjects();

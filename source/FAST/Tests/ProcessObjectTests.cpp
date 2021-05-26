@@ -579,6 +579,16 @@ TEST_CASE("Trying to set input connection to self throws exception", "[ProcessOb
     CHECK_THROWS(po->setInputConnection(po->getOutputPort()));
 }
 
+TEST_CASE("getOutputData should throw if there is no output data at all", "[ProcessObject][fast]") {
+    auto data = DummyDataObject::New();
+    data->create(0);
+
+    auto po = DummyProcessObject::New();
+    po->setInputData(data);
+
+    CHECK_THROWS(po->getOutputData());
+}
+
 TEST_CASE("Output port should have last data object after update", "[ProcessObject][fast]") {
     auto data = DummyDataObject::New();
     data->create(0);
