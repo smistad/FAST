@@ -2,13 +2,6 @@
 #include "FAST/Data/BoundingBox.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
 
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
 namespace fast {
 
 BoundingBoxRenderer::BoundingBoxRenderer() {
@@ -32,7 +25,7 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
     if(!mode2D)
         throw Exception("BoundingBoxRenderer has only been implemented for 2D so far");
 
-
+    createColorUniformBufferObject();
 
 	glDisable(GL_DEPTH_TEST);
     activateShader();
@@ -86,12 +79,12 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
         // Label data
         GLuint labelVBO = access->getLabelVBO();
 		glBindBuffer(GL_ARRAY_BUFFER, labelVBO);
-		glVertexAttribIPointer(1, 1, GL_UNSIGNED_BYTE, sizeof(uchar), (void*)0);
+		glVertexAttribIPointer(1, 1, GL_UNSIGNED_BYTE, sizeof(uchar), nullptr);
         glEnableVertexAttribArray(1);
 
 		GLuint EBO = access->getLinesEBO();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glDrawElements(GL_LINES, boxes->getNrOfLines() * 2, GL_UNSIGNED_INT, NULL); 
+		glDrawElements(GL_LINES, boxes->getNrOfLines() * 2, GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
     }
     deactivateShader();

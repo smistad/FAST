@@ -37,8 +37,8 @@ TensorToBoundingBoxSet::TensorToBoundingBoxSet() {
  * @param ordering
  * @return
  */
-inline int getPosition(int x, int y, int nrOfClasses, int j, int width, int height, ImageOrdering ordering) {
-    return ordering == ImageOrdering::ChannelLast ? j + y*nrOfClasses + x*nrOfClasses*height : x + y*width + j*width*height;
+inline int getPosition(int x, int y, int nrOfClasses, int j, int width, int height) {
+    return j + x*nrOfClasses + y*nrOfClasses*width;
 }
 
 inline float sigmoid(float x) {
@@ -55,7 +55,6 @@ void TensorToBoundingBoxSet::execute() {
     int inputHeight = 256;//inputShape[0]; // TODO fix
     int inputWidth = 256;//inputShape[1]; // TODO fix
 
-    const auto ordering = ImageOrdering::ChannelLast;
     auto bbset = BoundingBoxSet::New();
     bbset->create();
     auto outputAccess = bbset->getAccess(ACCESS_READ_WRITE);
@@ -87,9 +86,9 @@ void TensorToBoundingBoxSet::execute() {
                     float bestScore = 0.0f;
                     uchar bestClass = 0;
                     // Find best class
-                    float objectness = sigmoid(tensorData[getPosition(x, y, channels, a * 6 + 4, outputWidth, outputHeight, ordering)]);
+                    float objectness = sigmoid(tensorData[getPosition(x, y, channels, a * 6 + 4, outputWidth, outputHeight)]);
                     for(int classIdx = 0; classIdx < classes; ++classIdx) {
-                        float classPrediction = tensorData[getPosition(x, y, channels, a * 6 + 5 + classIdx, outputWidth, outputHeight, ordering)];
+                        float classPrediction = tensorData[getPosition(x, y, channels, a * 6 + 5 + classIdx, outputWidth, outputHeight)];
                         float score = objectness * sigmoid(classPrediction);
                         if(score >= m_threshold && score > bestScore) {
                             bestClass = classIdx;
@@ -97,10 +96,10 @@ void TensorToBoundingBoxSet::execute() {
                         }
                     }
 
-                    float t_x = tensorData[getPosition(x, y, channels, a * 6 + 0, outputWidth, outputHeight, ordering)];
-                    float t_y = tensorData[getPosition(x, y, channels, a * 6 + 1, outputWidth, outputHeight, ordering)];
-                    float t_w = tensorData[getPosition(x, y, channels, a * 6 + 2, outputWidth, outputHeight, ordering)];
-                    float t_h = tensorData[getPosition(x, y, channels, a * 6 + 3, outputWidth, outputHeight, ordering)];
+                    float t_x = tensorData[getPosition(x, y, channels, a * 6 + 0, outputWidth, outputHeight)];
+                    float t_y = tensorData[getPosition(x, y, channels, a * 6 + 1, outputWidth, outputHeight)];
+                    float t_w = tensorData[getPosition(x, y, channels, a * 6 + 2, outputWidth, outputHeight)];
+                    float t_h = tensorData[getPosition(x, y, channels, a * 6 + 3, outputWidth, outputHeight)];
                     float b_w = m_anchors[nodeIdx][a].x() * std::exp(t_w);
                     float b_h = m_anchors[nodeIdx][a].y() * std::exp(t_h);
                     // Position is center
@@ -108,8 +107,8 @@ void TensorToBoundingBoxSet::execute() {
                     float b_y = ((sigmoid(t_y) + y) / outputHeight) * inputHeight - 0.5f * b_h;
                     // Check if the bbox is properly inside the patch (at least 0.5 should be inside patch)
                     //float intersectionArea = (std::min(b_x + b_w, (float)inputWidth) - std::max(b_x, 0.0f)) * (std::min(b_y + b_h, (float)inputHeight) - std::max(b_y, 0.0f));
-                    if(bestScore >= m_threshold/* && intersectionArea/(b_w*b_h) >= 0.5*/) {
-                        outputAccess->addBoundingBox(Vector2f(b_x, b_y), Vector2f(b_w, b_h), bestClass, bestScore);
+                    if (bestScore >= m_threshold/* && intersectionArea/(b_w*b_h) >= 0.5*/) {
+                        outputAccess->addBoundingBox(Vector2f(b_x, b_y), Vector2f(b_w, b_h), bestClass + 1, bestScore);
                     }
                 }
             }
