@@ -121,8 +121,10 @@ if(WIN32)
   set(FILENAME windows/tensorflow_2.4.0_msvc14.2.tar.xz)
   set(SHA 3a2c512e8cabc36b830e4b14204c74dc5b2d342cfea0b1a38e4f1cc28eb4c699)
 else()
-  set(FILENAME linux/tensorflow_2.4.0_glibc2.27.tar.xz)
-  set(SHA 32235fef0d0b236e19646d42164b92432692ffb653ff6bbb79783b9c5ef83b8c)
+  #set(FILENAME linux/tensorflow_2.4.0_glibc2.27.tar.xz)
+  #set(SHA 32235fef0d0b236e19646d42164b92432692ffb653ff6bbb79783b9c5ef83b8c)
+  set(FILENAME linux/tensorflow_full_2.4.0_glibc2.27.tar.xz)
+  set(SHA 92155ee33501e45c2ce1d8e8988758f259f338bea586c961c904c774009b22c1)
 endif()
 ExternalProject_Add(tensorflow
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
