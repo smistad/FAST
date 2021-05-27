@@ -69,4 +69,20 @@ void DualViewWindow::createLayout() {
     }
 }
 
+void DualViewWindow::addRendererToLeftView(Renderer::pointer renderer) {
+    addRendererToTopLeftView(renderer);
+}
+
+void DualViewWindow::addRendererToRightView(Renderer::pointer renderer) {
+    addRendererToBottomRightView(renderer);
+}
+
+void DualViewWindow::addRendererToTopView(Renderer::pointer renderer) {
+    addRendererToTopLeftView(renderer);
+}
+
+void DualViewWindow::addRendererToBottomView(Renderer::pointer renderer) {
+    addRendererToBottomRightView(renderer);
+}
+
 } // end namespace fast

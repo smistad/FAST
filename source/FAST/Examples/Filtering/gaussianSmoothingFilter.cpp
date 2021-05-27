@@ -27,6 +27,7 @@ int main() {
     renderer->addInputConnection(filter->getOutputPort());
 
     auto window = SimpleWindow::New();
+    window->set2DMode();
     window->addRenderer(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing

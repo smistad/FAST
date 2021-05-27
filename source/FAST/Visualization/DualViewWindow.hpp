@@ -12,6 +12,10 @@ class FAST_EXPORT  DualViewWindow : public Window {
     public:
         void addRendererToTopLeftView(Renderer::pointer renderer);
         void addRendererToBottomRightView(Renderer::pointer renderer);
+        void addRendererToLeftView(Renderer::pointer renderer);
+        void addRendererToRightView(Renderer::pointer renderer);
+        void addRendererToTopView(Renderer::pointer renderer);
+        void addRendererToBottomView(Renderer::pointer renderer);
         void removeAllRenderers();
         View* getTopLeftView();
         View* getBottomRightView();

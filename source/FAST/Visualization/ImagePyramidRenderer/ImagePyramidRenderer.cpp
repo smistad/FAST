@@ -7,20 +7,6 @@
 #include <QGLContext>
 #include <FAST/Visualization/Window.hpp>
 #include <FAST/Visualization/View.hpp>
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl_gl.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/OpenGL.h>
-#else
-#if _WIN32
-#include <GL/gl.h>
-#include <CL/cl_gl.h>
-#else
-#include <CL/cl_gl.h>
-
-#endif
-#endif
-
 
 namespace fast {
 
@@ -55,7 +41,8 @@ ImagePyramidRenderer::~ImagePyramidRenderer() {
 }
 
 ImagePyramidRenderer::ImagePyramidRenderer() : Renderer() {
-    createInputPort<ImagePyramid>(0, false);
+    createInputPort(0, "ImagePyramid", "", false);
+    m_2Donly = true;
     mIsModified = true;
     m_stop = false;
     m_currentLevel = -1;

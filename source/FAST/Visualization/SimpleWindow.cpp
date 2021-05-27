@@ -28,14 +28,6 @@ SimpleWindow::SimpleWindow() {
     mainLayout->setContentsMargins(0, 0, 0, 0);
 }
 
-void SimpleWindow::set2DMode() {
-    getView()->set2DMode();
-}
-
-void SimpleWindow::set3DMode() {
-    getView()->set3DMode();
-}
-
 View* SimpleWindow::getView() {
     return Window::getView(0);
 }

@@ -72,8 +72,16 @@ class FAST_EXPORT  Window : public QObject, public Object {
          * Clear the process objects to be updated by the computation thread.
          */
         void clearProcessObjects();
-    protected:
-        void startComputationThread();
+        /**
+         * @brief Set 2D mode for all views in this window
+         */
+        void set2DMode();
+        /**
+         * @brief Set 3D mode for all views in this window
+         */
+        void set3DMode();
+protected:
+    void startComputationThread();
         void stopComputationThread();
         Window();
         View* createView();

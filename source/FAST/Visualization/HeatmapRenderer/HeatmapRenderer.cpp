@@ -17,6 +17,7 @@ void HeatmapRenderer::loadAttributes() {
 }
 
 HeatmapRenderer::HeatmapRenderer() {
+    m_2Donly = true;
     createInputPort<Tensor>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/HeatmapRenderer/HeatmapRenderer.cl");
     createShaderProgram({

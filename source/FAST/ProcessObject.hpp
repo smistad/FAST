@@ -118,10 +118,14 @@ class FAST_EXPORT  ProcessObject : public Object {
         void createInputPort(uint portID, std::string name = "", std::string description = "", bool required = true);
         void createOutputPort(uint portID, std::string name = "", std::string description = "");
         template <class DataType>
+#ifndef SWIG
         [[deprecated("Replaced by non templated createInputPort(uint portID, std::string name, std::string description, bool required)")]]
+#endif
         void createInputPort(uint portID, bool required = true);
         template <class DataType>
+#ifndef SWIG
         [[deprecated("Replaced by non templated createOutputPort(uint portID, std::string name, std::string description)")]]
+#endif
         void createOutputPort(uint portID);
 
         template <class DataType>

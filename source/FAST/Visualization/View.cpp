@@ -8,31 +8,18 @@
 #include "FAST/Utility.hpp"
 #include <QGLFunctions>
 #include <algorithm>
-
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl_gl.h>
-#include <OpenGL/OpenGL.h>
-#else
-#if _WIN32
-#include <GL/gl.h>
-
-#include <CL/cl_gl.h>
-#else
-#include <GL/glx.h>
-#include <CL/cl_gl.h>
-#endif
-#endif
-
 #include <QCursor>
-#include <QThread>
 #include <FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp>
-#include <set>
 
 namespace fast {
 
 void View::addRenderer(Renderer::pointer renderer) {
     std::lock_guard<std::mutex> lock(m_mutex);
     renderer->setView(this);
+    if(renderer->is2DOnly())
+        mIsIn2DMode = true;
+    if(renderer->is3DOnly())
+        mIsIn2DMode = false;
     // Can renderer be casted to volume renderer test:
     auto test = std::dynamic_pointer_cast<VolumeRenderer>(renderer);
     bool thisIsAVolumeRenderer = (bool)test;

@@ -14,8 +14,6 @@ class FAST_EXPORT  SimpleWindow : public Window {
         void setMaximumFramerate(unsigned int framerate);
         View* getView();
         ~SimpleWindow();
-        void set2DMode();
-        void set3DMode();
         SimpleWindow();
     protected:
 

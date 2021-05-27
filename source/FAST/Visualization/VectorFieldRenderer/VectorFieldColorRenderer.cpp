@@ -3,7 +3,8 @@
 namespace fast {
 
 VectorFieldColorRenderer::VectorFieldColorRenderer() {
-    createInputPort<Image>(0, false);
+    m_2Donly = true;
+    createInputPort(0, "Image", "", false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VectorFieldRenderer/VectorFieldColorRenderer.cl");
     mIsModified = false;
 }

@@ -367,4 +367,17 @@ void Window::clearProcessObjects() {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_processObjects.clear();
 }
+
+void Window::set2DMode() {
+    for(auto view : getViews()) {
+        view->set2DMode();
+    }
+}
+
+void Window::set3DMode() {
+    for(auto view : getViews()) {
+        view->set3DMode();
+    }
+}
+
 } // end namespace fast

@@ -256,5 +256,12 @@ bool Renderer::getSynchronizedRendering() const {
     return m_synchedRendering;
 }
 
+bool Renderer::is2DOnly() const {
+    return m_2Donly;
+}
+
+bool Renderer::is3DOnly() const {
+    return m_3Donly;
+}
 
 }

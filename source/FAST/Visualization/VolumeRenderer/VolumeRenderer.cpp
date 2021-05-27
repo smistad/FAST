@@ -78,7 +78,8 @@ VolumeRenderer::~VolumeRenderer() {
 }
 
 VolumeRenderer::VolumeRenderer() {
-    createInputPort<Image>(0);
+    createInputPort(0);
+    m_3Donly = true;
 
 }
 

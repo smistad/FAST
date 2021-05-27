@@ -25,7 +25,8 @@ void SegmentationLabelRenderer::setAreaThreshold(float threshold) {
 }
 
 SegmentationLabelRenderer::SegmentationLabelRenderer() {
-    createInputPort<Image>(0);
+    createInputPort(0, "Image");
+    m_2Donly = true;
     mFontSize = 28;
     m_areaThreshold = 1.0f;
 

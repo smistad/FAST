@@ -56,6 +56,8 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         void setView(View* view);
         void setSynchronizedRendering(bool synched);
         bool getSynchronizedRendering() const;
+        bool is2DOnly() const;
+        bool is3DOnly() const;
     protected:
         Renderer();
         virtual void execute() override;
@@ -89,6 +91,15 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          * A disabled renderer will not draw
          */
         bool m_disabled = false;
+
+        /**
+         * Whether this renderer is only capable of 2D rendering
+         */
+        bool m_2Donly = false;
+        /**
+         * Whether this renderer is only capable of 3D rendering
+         */
+        bool m_3Donly = false;
 
         /**
          * This holds the current data to render for each input connection

@@ -5,6 +5,7 @@
 namespace fast {
 
 BoundingBoxRenderer::BoundingBoxRenderer() {
+    m_2Donly = true;
     createInputPort<BoundingBoxSet>(0, false);
 
     createShaderProgram({
