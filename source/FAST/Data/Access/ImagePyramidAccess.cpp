@@ -179,7 +179,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getLevelAsImage(int level) {
     return channelConverter->updateAndGetOutputData<Image>();
 }
 
-std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offsetX, int offsetY, int width, int height) {
+std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offsetX, int offsetY, int width, int height, bool convertToRGB) {
     if(width > 16384 || height > 16384)
         throw Exception("Image level is too large to convert into a FAST image");
 
@@ -203,7 +203,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     // TODO Set transformation
     SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
 
-    if(m_fileHandle) {
+    if(m_fileHandle != nullptr && convertToRGB) {
         // Data is stored as BGRA, need to delete alpha channel and reverse it
         auto channelConverter = ImageChannelConverter::New();
         channelConverter->setChannelsToRemove(false, false, false, true);
@@ -214,7 +214,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     return image;
 }
 
-std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX, int tileY) {
+std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX, int tileY, bool convertToRGB) {
     int levelWidth = m_image->getLevelWidth(level);
     int levelHeight = m_image->getLevelHeight(level);
     int tilesX = m_image->getLevelTilesX(level);
@@ -246,7 +246,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     // TODO Set transformation
     SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
 
-    if(m_fileHandle != nullptr) {
+    if(m_fileHandle != nullptr && convertToRGB) {
         // Data is stored as BGRA, need to delete alpha channel and reverse it
         auto channelConverter = ImageChannelConverter::New();
         channelConverter->setChannelsToRemove(false, false, false, true);

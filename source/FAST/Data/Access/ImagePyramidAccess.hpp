@@ -49,8 +49,8 @@ public:
 	ImagePyramidPatch getPatch(std::string tile);
 	ImagePyramidPatch getPatch(int level, int patchX, int patchY);
 	std::shared_ptr<Image> getLevelAsImage(int level);
-	std::shared_ptr<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height);
-	std::shared_ptr<Image> getPatchAsImage(int level, int patchIdX, int patchIdY);
+	std::shared_ptr<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height, bool convertToRGB = true);
+	std::shared_ptr<Image> getPatchAsImage(int level, int patchIdX, int patchIdY, bool convertToRGB = true);
 	void release();
 	~ImagePyramidAccess();
 private:

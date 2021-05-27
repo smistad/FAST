@@ -7,10 +7,13 @@
 namespace fast {
 
 class ImagePyramid;
+class ImageSharpening;
 
 class FAST_EXPORT ImagePyramidRenderer : public Renderer {
     FAST_OBJECT(ImagePyramidRenderer)
     public:
+        void setSharpening(bool sharpening);
+        bool getSharpening() const;
         void loadAttributes() override;
         ~ImagePyramidRenderer() override;
         void clearPyramid();
@@ -36,7 +39,8 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
 
         int m_currentLevel = -1;
 
-        cl::Kernel mKernel;
+        bool m_postProcessingSharpening = true;
+        std::shared_ptr<ImageSharpening> m_sharpening;
 
         std::shared_ptr<ImagePyramid> m_input;
 

@@ -7,6 +7,7 @@
 #include <QGLContext>
 #include <FAST/Visualization/Window.hpp>
 #include <FAST/Visualization/View.hpp>
+#include <FAST/Algorithms/ImageSharpening/ImageSharpening.hpp>
 
 namespace fast {
 
@@ -46,17 +47,19 @@ ImagePyramidRenderer::ImagePyramidRenderer() : Renderer() {
     mIsModified = true;
     m_stop = false;
     m_currentLevel = -1;
-    createFloatAttribute("window", "Intensity window", "Intensity window", -1);
-    createFloatAttribute("level", "Intensity level", "Intensity level", -1);
+    createBooleanAttribute("sharpening", "Sharpening", "Post processing using image sharpening", m_postProcessingSharpening);
     createShaderProgram({
                                 Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.vert",
                                 Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.frag",
                         });
 
+    m_sharpening = ImageSharpening::New();
+    m_sharpening->setStandardDeviation(1.5f);
 }
 
 
 void ImagePyramidRenderer::loadAttributes() {
+    setSharpening(getBooleanAttribute("sharpening"));
 }
 
 void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
@@ -128,11 +131,16 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 int tile_x = std::stoi(parts[1]);
                 int tile_y = std::stoi(parts[2]);
                 //std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
-                ImagePyramidPatch tile;
+                Image::pointer tile;
                 {
                     auto access = m_input->getAccess(ACCESS_READ);
-                    tile = access->getPatch(level, tile_x, tile_y);
+                    tile = access->getPatchAsImage(level, tile_x, tile_y, false);
+                    if(m_postProcessingSharpening) {
+                        m_sharpening->setInputData(tile);
+                        tile = m_sharpening->updateAndGetOutputData<Image>();
+                    }
                 }
+                auto tileAccess = tile->getImageAccess(ACCESS_READ);
                 // Copy data from CPU to GL texture
                 GLuint textureID;
                 glGenTextures(1, &textureID);
@@ -147,18 +155,18 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
 
                 // WSI data from openslide is stored as ARGB, need to handle this here: BGRA and reverse
                 if(m_input->isBGRA()) {
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile.width, tile.height, 0, GL_BGRA,
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile->getWidth(), tile->getHeight(), 0, GL_BGRA,
                                  GL_UNSIGNED_BYTE,
-                                 tile.data.get());
+                                 tileAccess->get());
                 } else {
-                    if(m_input->getNrOfChannels() == 3) {
-                        glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB, tile.width, tile.height, 0, GL_RGB,
+                    if(tile->getNrOfChannels() == 3) {
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB, tile->getWidth(), tile->getHeight(), 0, GL_RGB,
                                      GL_UNSIGNED_BYTE,
-                                     tile.data.get());
-                    } else if(m_input->getNrOfChannels() == 4) {
-                        glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile.width, tile.height, 0, GL_RGBA,
+                                     tileAccess->get());
+                    } else if(tile->getNrOfChannels() == 4) {
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile->getWidth(), tile->getHeight(), 0, GL_RGBA,
                                      GL_UNSIGNED_BYTE,
-                                     tile.data.get());
+                                     tileAccess->get());
                     }
                 }
                 GLint compressedImageSize = 0;
@@ -315,7 +323,6 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                     textureID = mTexturesToRender[tileString];
                 }
 
-                // Delete old VAO
                 if(mVAO.count(tileString) == 0) {
                     // Create VAO
                     uint VAO_ID;
@@ -331,14 +338,14 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                     float vertices[] = {
                             // vertex: x, y, z; tex coordinates: x, y
                             tile_offset_x * mCurrentTileScale, (tile_offset_y + tile_height) * mCurrentTileScale,
-                            -level,
+                            -(float)level,
                             0.0f, 1.0f,
                             (tile_offset_x + tile_width) * mCurrentTileScale,
-                            (tile_offset_y + tile_height) * mCurrentTileScale, -level, 1.0f, 1.0f,
-                            (tile_offset_x + tile_width) * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -level,
+                            (tile_offset_y + tile_height) * mCurrentTileScale, -(float)level, 1.0f, 1.0f,
+                            (tile_offset_x + tile_width) * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -(float)level,
                             1.0f,
                             0.0f,
-                            tile_offset_x * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -level, 0.0f, 0.0f,
+                            tile_offset_x * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -(float)level, 0.0f, 0.0f,
                     };
                     uint VBO;
                     glGenBuffers(1, &VBO);
@@ -363,7 +370,6 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                     glBindVertexArray(0);
                 }
 
-                //std::cout << "drawing " << tileString << std::endl;
                 glBindTexture(GL_TEXTURE_2D, textureID);
                 glBindVertexArray(mVAO[tileString]);
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -380,5 +386,12 @@ void ImagePyramidRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &v
 
 }
 
+void ImagePyramidRenderer::setSharpening(bool sharpening) {
+    m_postProcessingSharpening = sharpening;
+}
+
+bool ImagePyramidRenderer::getSharpening() const {
+    return m_postProcessingSharpening;
+}
 
 } // end namespace fast
