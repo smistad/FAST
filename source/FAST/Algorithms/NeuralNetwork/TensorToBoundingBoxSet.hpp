@@ -8,7 +8,7 @@ enum class BoundingBoxNetworkType {
     YOLOv3,
 };
 
-class TensorToBoundingBoxSet : public ProcessObject {
+class FAST_EXPORT TensorToBoundingBoxSet : public ProcessObject {
     FAST_OBJECT(TensorToBoundingBoxSet)
     public:
         void setType(BoundingBoxNetworkType type);
