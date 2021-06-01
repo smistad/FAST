@@ -24,6 +24,7 @@ void BoundingBoxNetwork::loadAttributes() {
 
 void BoundingBoxNetwork::setAnchors(std::vector<std::vector<Vector2f>> anchors) {
     m_tensorToBoundingBoxSet->setAnchors(anchors);
+    setModified(true);
 }
 
 BoundingBoxNetwork::BoundingBoxNetwork() {
@@ -55,6 +56,12 @@ void BoundingBoxNetwork::execute() {
 
 void BoundingBoxNetwork::setThreshold(float threshold) {
     m_tensorToBoundingBoxSet->setThreshold(threshold);
+    setModified(true);
+}
+
+void BoundingBoxNetwork::setType(BoundingBoxNetworkType type) {
+    m_tensorToBoundingBoxSet->setType(type);
+    setModified(true);
 }
 
 }
