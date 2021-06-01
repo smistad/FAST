@@ -101,6 +101,11 @@ class FAST_EXPORT  ProcessObject : public Object {
         template <class DataType>
         std::shared_ptr<DataType> updateAndGetOutputData(uint portID = 0);
 
+
+        //// NEW V4 PO SEMANTICS
+        void run(int executeToken = -1);
+        std::shared_ptr<ProcessObject> connect(std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0);
+        std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0);
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified

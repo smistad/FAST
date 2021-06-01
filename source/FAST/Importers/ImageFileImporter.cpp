@@ -12,9 +12,10 @@
 
 namespace fast {
 
-void ImageFileImporter::setFilename(std::string filename) {
+ImageFileImporter::pointer ImageFileImporter::setFilename(std::string filename) {
     mFilename = std::move(filename);
-    mIsModified = true;
+    setModified(true);
+    return getSharedPtr();
 }
 
 ImageFileImporter::ImageFileImporter() {
@@ -23,6 +24,10 @@ ImageFileImporter::ImageFileImporter() {
     setMainDevice(Host::getInstance()); // Default is to put image on host
 
     createStringAttribute("filename", "Filename", "Filename", "");
+}
+
+ImageFileImporter::ImageFileImporter(std::string filename) : ImageFileImporter() {
+    setFilename(filename);
 }
 
 inline bool matchExtension(std::string extension, std::string extension2) {

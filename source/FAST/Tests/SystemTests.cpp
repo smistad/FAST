@@ -9,6 +9,8 @@
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Config.hpp"
+#include <FAST/Importers/ImageFileImporter.hpp>
+#include <FAST/Algorithms/NonLocalMeans/NonLocalMeans.hpp>
 
 using namespace fast;
 TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and ImageRenderer", "[fast][SystemTests][visual]") {
@@ -98,4 +100,10 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     CHECK_NOTHROW(
     window->start();
     );
+}
+
+TEST_CASE("v4 semantics", "[fast]") {
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/US-2D.jpg");
+
+    auto nonLocalMeans = NonLocalMeans::create(5, 9, 0.2)->connect(importer);
 }

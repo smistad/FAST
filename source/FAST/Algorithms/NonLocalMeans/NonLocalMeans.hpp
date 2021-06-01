@@ -4,8 +4,9 @@
 
 namespace fast {
     class FAST_EXPORT NonLocalMeans : public ProcessObject {
-        FAST_OBJECT(NonLocalMeans);
+        FAST_PROCESS_OBJECT(NonLocalMeans);
     public:
+        FAST_CONSTRUCTOR13(NonLocalMeans, int, filterSize, = 3, int, searchSize, = 11, float, smoothingAmount, = 0.15, int, multiScaleIterations, = 3)
         void setSmoothingAmount(float parameterH);
         void setPreProcess(bool preProcess);
         void setMultiscaleIterations(int iterations);
@@ -13,7 +14,7 @@ namespace fast {
         void setFilterSize(int filterSize);
         void loadAttributes() override;
     private:
-        NonLocalMeans();
+        void init();
         void execute() override;
 
         float m_parameterH = 0.15f;

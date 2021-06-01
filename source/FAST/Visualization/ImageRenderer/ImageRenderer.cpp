@@ -3,32 +3,17 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl_gl.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/OpenGL.h>
-#else
-#if _WIN32
-#include <GL/gl.h>
-#include <CL/cl_gl.h>
-#else
-#include <CL/cl_gl.h>
-#endif
-#endif
 
 
 namespace fast {
 
-
-
-
-ImageRenderer::ImageRenderer() : Renderer() {
+ImageRenderer::ImageRenderer(float window, float level) : Renderer() {
     createInputPort<Image>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.cl", "3D");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer2D.cl", "2D");
     mIsModified = true;
-    mWindow = -1;
-    mLevel = -1;
+    mWindow = window;
+    mLevel = level;
     createFloatAttribute("window", "Intensity window", "Intensity window", -1);
     createFloatAttribute("level", "Intensity level", "Intensity level", -1);
     createShaderProgram({

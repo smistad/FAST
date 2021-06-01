@@ -3,7 +3,7 @@
 
 namespace fast {
 
-NonLocalMeans::NonLocalMeans() {
+void NonLocalMeans::init() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
 
@@ -14,6 +14,14 @@ NonLocalMeans::NonLocalMeans() {
     createIntegerAttribute("filter-size", "Filter size", "Filter size", 3);
     createIntegerAttribute("iterations", "Iterations", "Number of multiscale iterations", 3);
     createBooleanAttribute("preprocess", "Preprocess", "Apply preprocessing (5x5 median filter) or not", true);
+}
+
+NonLocalMeans::NonLocalMeans(int filterSize, int searchSize, float smoothingAmount, int multiScaleIterations) {
+    init();
+    setFilterSize(filterSize);
+    setSearchSize(searchSize);
+    setSmoothingAmount(smoothingAmount);
+    setMultiscaleIterations(multiScaleIterations);
 }
 
 void NonLocalMeans::loadAttributes() {

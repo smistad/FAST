@@ -553,6 +553,20 @@ int ProcessObject::getNrOfInputPorts() const {
     return mInputPorts.size();
 }
 
+void ProcessObject::run(int executeToken) {
+    update(executeToken);
+}
+
+std::shared_ptr<ProcessObject> ProcessObject::connect(std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID) {
+    return connect(0, std::move(parentProcessObject), outputPortID);
+}
+
+std::shared_ptr<ProcessObject> ProcessObject::connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID) {
+    setInputConnection(inputPortID, parentProcessObject->getOutputPort(outputPortID));
+    return std::static_pointer_cast<ProcessObject>(mPtr.lock());
+}
+
+
 DataObject::pointer ProcessObject::getOutputData(uint portID) {
     validateOutputPortExists(portID);
 

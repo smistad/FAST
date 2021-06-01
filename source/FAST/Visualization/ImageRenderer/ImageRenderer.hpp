@@ -11,8 +11,9 @@ namespace fast {
  * @ingroup renderers
  */
 class FAST_EXPORT  ImageRenderer : public virtual Renderer {
-    FAST_OBJECT(ImageRenderer)
+    FAST_PROCESS_OBJECT(ImageRenderer)
     public:
+        FAST_CONSTRUCTOR(ImageRenderer, float, level,= -1, float, window, = -1)
         void loadAttributes() override;
         void setIntensityLevel(float level);
         float getIntensityLevel();
@@ -20,7 +21,6 @@ class FAST_EXPORT  ImageRenderer : public virtual Renderer {
         float getIntensityWindow();
         ~ImageRenderer();
     protected:
-        ImageRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
         virtual void deleteAllTextures();
 

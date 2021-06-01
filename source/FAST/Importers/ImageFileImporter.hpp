@@ -18,9 +18,10 @@ namespace fast {
  * @ingroup importers
  */
 class FAST_EXPORT  ImageFileImporter : public ProcessObject {
-    FAST_OBJECT(ImageFileImporter)
+    FAST_PROCESS_OBJECT(ImageFileImporter)
     public:
-        void setFilename(std::string filename);
+        FAST_CONSTRUCTOR4(ImageFileImporter, std::string, filename,);
+        ImageFileImporter::pointer setFilename(std::string filename);
         void loadAttributes() override;
     private:
         ImageFileImporter();
