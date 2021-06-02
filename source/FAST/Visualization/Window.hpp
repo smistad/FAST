@@ -31,6 +31,10 @@ class FAST_EXPORT  Window : public QObject, public Object {
          * Starts an update loop on all renderers attached to each view in this window.
          */
         virtual void start();
+        /**
+         * @brief Opens window and starts pipeline on all renderers
+         */
+        virtual void run();
         void setWidth(uint width);
         void setHeight(uint height);
         void setSize(uint width, uint height);

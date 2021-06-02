@@ -19,6 +19,23 @@ SimpleWindow::~SimpleWindow() {
 }
 
 SimpleWindow::SimpleWindow() {
+    init();
+}
+
+SimpleWindow::SimpleWindow(bool mode2D, Color bgcolor, uint width, uint height) {
+    init();
+    if(mode2D) {
+        set2DMode();
+    } else {
+        set3DMode();
+    }
+    getView()->setBackgroundColor(std::move(bgcolor));
+    setWidth(width);
+    setHeight(height);
+}
+
+void SimpleWindow::init() {
+
     View* view = createView();
 
     QHBoxLayout* mainLayout = new QHBoxLayout;

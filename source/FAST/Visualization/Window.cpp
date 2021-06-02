@@ -380,4 +380,8 @@ void Window::set3DMode() {
     }
 }
 
+void Window::run() {
+    start();
+}
+
 } // end namespace fast

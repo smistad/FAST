@@ -20,7 +20,13 @@ namespace fast {
 class FAST_EXPORT  ImageFileImporter : public ProcessObject {
     FAST_PROCESS_OBJECT(ImageFileImporter)
     public:
-        FAST_CONSTRUCTOR4(ImageFileImporter, std::string, filename,);
+        /**
+         * Creates an instance of this process object
+         *
+         * @param filename Path to image file to load
+         * @return smart pointer to instance
+         */
+        FAST_CONSTRUCTOR(ImageFileImporter, std::string, filename,);
         ImageFileImporter::pointer setFilename(std::string filename);
         void loadAttributes() override;
     private:

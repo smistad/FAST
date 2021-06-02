@@ -6,7 +6,15 @@ namespace fast {
     class FAST_EXPORT NonLocalMeans : public ProcessObject {
         FAST_PROCESS_OBJECT(NonLocalMeans);
     public:
-        FAST_CONSTRUCTOR13(NonLocalMeans, int, filterSize, = 3, int, searchSize, = 11, float, smoothingAmount, = 0.15, int, multiScaleIterations, = 3)
+        /**
+         * Creates instance of this process object
+         * @param filterSize Size in pixels of the filter region to search for. Must be odd.
+         * @param searchSize How many pixels to search in each direction. Must be odd.
+         * @param smoothingAmount Parameter to control the amount of smoothing.
+         * @param multiScaleIterations Number of multiscale iterations to perform
+         * @return smart pointer to instance
+         */
+        FAST_CONSTRUCTOR(NonLocalMeans, int, filterSize, = 3, int, searchSize, = 11, float, smoothingAmount, = 0.15, int, multiScaleIterations, = 3)
         void setSmoothingAmount(float parameterH);
         void setPreProcess(bool preProcess);
         void setMultiscaleIterations(int iterations);
