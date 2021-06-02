@@ -66,4 +66,12 @@ void SegmentationNetwork::setThreshold(float threshold) {
     m_tensorToSegmentation->setThreshold(threshold);
 }
 
+float SegmentationNetwork::getThreshold() const {
+    return m_tensorToSegmentation->getThreshold();
+}
+
+void SegmentationNetwork::setBackgroundClass(bool hasBackgroundClass) {
+    m_tensorToSegmentation->setBackgroundClass(hasBackgroundClass);
+}
+
 }

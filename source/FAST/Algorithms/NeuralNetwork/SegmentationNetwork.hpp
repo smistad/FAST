@@ -20,7 +20,20 @@ class FAST_EXPORT SegmentationNetwork : public NeuralNetwork {
     public:
         void setHeatmapOutput();
         void setSegmentationOutput();
+        /**
+         * Threshold to accept a channel X as being class X.
+         *
+         * @param threshold
+         */
         void setThreshold(float threshold);
+        float getThreshold() const;
+        /**
+         * Set whether channel 0 of segmentation tensor is the "background" class, thereby getting the label 0 in the
+         * resulting Segmentation.
+         *
+         * @param hasBackgroundClass
+         */
+        void setBackgroundClass(bool hasBackgroundClass);
         void loadAttributes();
         void setResizeBackToOriginalSize(bool resize);
     private:
