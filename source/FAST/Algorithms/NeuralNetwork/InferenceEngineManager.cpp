@@ -187,6 +187,8 @@ private:
         std::vector<std::array<int, 4>> extdata_;
     };
 };
+// Initialize static member data
+const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
 }
 #else
 #include <dlfcn.h>
