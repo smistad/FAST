@@ -21,7 +21,7 @@ namespace fast {
 
 int ImagePyramid::m_counter = 0;
 
-void ImagePyramid::create(int width, int height, int channels, int patchWidth, int patchHeight) {
+ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, int patchHeight) {
     if(channels <= 0 || channels > 4)
         throw Exception("Nr of channels must be between 1 and 4");
 
@@ -144,7 +144,7 @@ void ImagePyramid::create(int width, int height, int channels, int patchWidth, i
 	m_counter += 1;
 }
 
-void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel> levels) {
+ImagePyramid::ImagePyramid(openslide_t *fileHandle, std::vector<ImagePyramidLevel> levels) {
     m_fileHandle = fileHandle;
     m_levels = std::move(levels);
     m_channels = 4;
@@ -317,7 +317,7 @@ Vector3f ImagePyramid::getSpacing() const {
 	return m_spacing;
 }
 
-void ImagePyramid::create(TIFF *fileHandle, std::vector<ImagePyramidLevel> levels, int channels) {
+ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> levels, int channels) {
     m_tiffHandle = fileHandle;
     m_levels = levels;
     m_channels = channels;

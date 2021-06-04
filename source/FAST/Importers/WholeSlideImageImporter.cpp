@@ -18,17 +18,17 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
         throw Exception("Unable to open file " + filename + ". OpenSlide error message: " + message);
     }
 
-    auto image = ImagePyramid::New();
 
     // Read metainformation
     auto names = openslide_get_property_names(file);
     int i = 0;
+    std::unordered_map<std::string, std::string> metadata;
     while(names[i] != nullptr) {
         std::string name = names[i];
         std::string value = openslide_get_property_value(file, names[i]);
         i++;
         reportInfo() << "Metadata: " << name << " = " << value << reportEnd();
-        image->setMetadata(name, value);
+        metadata[name] = value;
     }
 
     std::vector<ImagePyramidLevel> levelList;
@@ -49,8 +49,8 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
             levelData.width = fullWidth;
             levelData.height = fullHeight;
             try {
-                levelData.tileWidth = std::stoi(image->getMetadata("openslide.level[" + std::to_string(level) + "].tile-width"));
-                levelData.tileHeight = std::stoi(image->getMetadata("openslide.level[" + std::to_string(level) + "].tile-height"));
+                levelData.tileWidth = std::stoi(metadata.at("openslide.level[" + std::to_string(level) + "].tile-width"));
+                levelData.tileHeight = std::stoi(metadata.at("openslide.level[" + std::to_string(level) + "].tile-height"));
                 reportInfo() << "Setting tile width and height to " << levelData.tileWidth << " " << levelData.tileHeight << reportEnd();
             } catch(...) {
             }
@@ -60,7 +60,8 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
             break;
         }
     }
-    image->create(file, levelList);
+    auto image = ImagePyramid::create(file, levelList);
+    image->setMetadata(metadata);
 
     try {
         // Try to get spacing in microns from openslide, and convert to millimeters.

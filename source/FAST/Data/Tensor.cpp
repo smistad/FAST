@@ -4,7 +4,7 @@
 
 namespace fast {
 
-void Tensor::create(std::unique_ptr<float[]> data, TensorShape shape) {
+Tensor::Tensor(std::unique_ptr<float[]> data, TensorShape shape) {
     if(shape.empty())
         throw Exception("Shape can't be empty");
     if(shape.getUnknownDimensions() > 0)
@@ -20,7 +20,7 @@ void Tensor::create(std::unique_ptr<float[]> data, TensorShape shape) {
     }
 }
 
-void Tensor::create(const float* const data, TensorShape shape) {
+Tensor::Tensor(const float* const data, TensorShape shape) {
     if(shape.empty())
         throw Exception("Shape can't be empty");
     if(shape.getUnknownDimensions() > 0)
@@ -31,7 +31,7 @@ void Tensor::create(const float* const data, TensorShape shape) {
 }
 
 
-void Tensor::create(TensorShape shape) {
+Tensor::Tensor(TensorShape shape) {
     if(shape.empty())
         throw Exception("Shape can't be empty");
     if(shape.getUnknownDimensions() > 0)
@@ -40,7 +40,7 @@ void Tensor::create(TensorShape shape) {
     create(std::move(newData), shape);
 }
 
-void Tensor::create(std::initializer_list<float> data) {
+Tensor::Tensor(std::initializer_list<float> data) {
     if(data.size() == 0)
         throw Exception("Shape can't be empty");
 

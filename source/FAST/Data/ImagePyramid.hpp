@@ -30,11 +30,11 @@ enum class ImageCompression {
  * @ingroup data
  */
 class FAST_EXPORT ImagePyramid : public SpatialDataObject {
-    FAST_OBJECT(ImagePyramid)
+    FAST_OBJECT_V4(ImagePyramid)
     public:
-        void create(int width, int height, int channels, int patchWidth = 256, int patchHeight = 256);
-        void create(openslide_t* fileHandle, std::vector<ImagePyramidLevel> levels);
-        void create(TIFF* fileHandle, std::vector<ImagePyramidLevel> levels, int channels);
+        FAST_CONSTRUCTOR(ImagePyramid, int, width,, int, height,, int, channels,, int, patchWidth, = 256, int, patchHeight, = 256);
+        FAST_CONSTRUCTOR(ImagePyramid, openslide_t*, fileHandle,, std::vector<ImagePyramidLevel>, levels,);
+        FAST_CONSTRUCTOR(ImagePyramid, TIFF*, fileHandle,, std::vector<ImagePyramidLevel>, levels,, int, channels,);
         int getNrOfLevels();
         int getLevelWidth(int level);
         int getLevelHeight(int level);

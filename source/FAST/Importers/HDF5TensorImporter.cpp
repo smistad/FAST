@@ -33,7 +33,6 @@ void HDF5TensorImporter::execute() {
 	if(m_datasetName.empty())
 		throw Exception("HDF5TensorImporter needs a dataset name to be set.");
 
-	auto tensor = Tensor::New();
 
 	// Open file
 	H5::H5File file(m_filename.c_str(), H5F_ACC_RDONLY);
@@ -50,7 +49,7 @@ void HDF5TensorImporter::execute() {
 	auto data = std::make_unique<float[]>(shape.getTotalSize());
 	dataset.read(data.get(), H5::PredType::NATIVE_FLOAT, dataspace, dataspace);
 	file.close();
-	tensor->create(std::move(data), shape);
+    auto tensor = Tensor::create(std::move(data), shape);
 	addOutputData(0, tensor);
 }
 

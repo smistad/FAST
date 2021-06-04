@@ -47,8 +47,7 @@ void ImagePyramidPatchImporter::execute() {
         throw Exception("ImagePyramidPatchImporter only supports 1 channel image pyramids of type uint8 atm");
 
     // Create image pyramid using size given in filename
-    auto pyramid = ImagePyramid::New();
-    pyramid->create(width, height, channels);
+    auto pyramid = ImagePyramid::create(width, height, channels);
     pyramid->setSpacing(Vector3f(spacingX, spacingY, 1.0f));
 
     auto outputAccess = pyramid->getAccess(ACCESS_READ_WRITE);

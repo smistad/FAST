@@ -42,8 +42,7 @@ void TIFFImagePyramidImporter::execute() {
         levelData.tileHeight = tileHeight;
         levelList.push_back(levelData);
     }
-    auto image = ImagePyramid::New();
-    image->create(tiff, levelList, channels);
+    auto image = ImagePyramid::create(tiff, levelList, channels);
     addOutputData(0, image);
 }
 

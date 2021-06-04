@@ -26,6 +26,22 @@
             mPtr = ptr;                                         \
         }                                                       \
 
+
+#define FAST_OBJECT_V4(className)                                  \
+    public:                                                     \
+        typedef std::shared_ptr<className> pointer;               \
+        virtual std::string getNameOfClass() const {            \
+            return std::string(#className);                     \
+        };                                                      \
+        static std::string getStaticNameOfClass() {             \
+            return std::string(#className);                     \
+        };                                                      \
+    private:                                                    \
+        void setPtr(className::pointer ptr) {                   \
+            mPtr = ptr;                                         \
+        }                                                       \
+        std::shared_ptr<className> getSharedPtr() { return std::dynamic_pointer_cast<className>(mPtr.lock()); }                                 \
+
 #define FAST_PROCESS_OBJECT(className) \
     FAST_OBJECT(className)             \
     private:                           \
@@ -76,7 +92,7 @@
 // FAST constructor macros, not pretty and very repetitive, but it works.
 #define FAST_CONSTRUCTOR4(className, TYPE1, NAME1, VAL1) \
     static std::shared_ptr<className> create(TYPE1 NAME1 VAL1) {\
-        std::shared_ptr<className> ptr(new className(NAME1));   \
+        std::shared_ptr<className> ptr(new className(std::move(NAME1)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
@@ -87,7 +103,7 @@
 
 #define FAST_CONSTRUCTOR7(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2) \
     static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2) {\
-        std::shared_ptr<className> ptr(new className(NAME1, NAME2));   \
+        std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
@@ -97,7 +113,7 @@
 
 #define FAST_CONSTRUCTOR10(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3) \
     static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3) {\
-        std::shared_ptr<className> ptr(new className(NAME1, NAME2, NAME3));   \
+        std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
@@ -107,7 +123,7 @@
 
 #define FAST_CONSTRUCTOR13(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3, TYPE4, NAME4, VAL4) \
     static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4) {\
-        std::shared_ptr<className> ptr(new className(NAME1, NAME2, NAME3, NAME4));   \
+        std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3), std::move(NAME4)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
@@ -117,7 +133,7 @@
 
 #define FAST_CONSTRUCTOR16(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3, TYPE4, NAME4, VAL4, TYPE5, NAME5, VAL5) \
     static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5) {\
-        std::shared_ptr<className> ptr(new className(NAME1, NAME2, NAME3, NAME4, NAME5));   \
+        std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3), std::move(NAME4), std::move(NAME5)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
@@ -127,7 +143,7 @@
 
 #define FAST_CONSTRUCTOR19(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3, TYPE4, NAME4, VAL4, TYPE5, NAME5, VAL5, TYPE6, NAME6, VAL6) \
     static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6) {\
-        std::shared_ptr<className> ptr(new className(NAME1, NAME2, NAME3, NAME4, NAME5, NAME6));   \
+        std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3), std::move(NAME4), std::move(NAME5), std::move(NAME6)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \

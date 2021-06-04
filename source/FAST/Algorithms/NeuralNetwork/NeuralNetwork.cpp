@@ -200,8 +200,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 auto shape = inputTensors.front()->getShape();
                 m_batchSize = shape[0];
                 shape.insertDimension(0, inputTensors.size());
-                auto tensor = Tensor::New();
-                tensor->create(shape);
+                auto tensor = Tensor::create(shape);
                 auto access = tensor->getAccess(ACCESS_READ_WRITE);
                 float* data = access->getRawData();
                 for(int i = 0; i < inputTensors.size(); ++i) {
@@ -250,13 +249,12 @@ Tensor::pointer NeuralNetwork::standardizeOutputTensorData(Tensor::pointer tenso
                 newTensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::ChannelLast)] = tensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::ChannelFirst)];
             }
         }
-        auto newTensor = Tensor::New();
         auto oldShape = tensor->getShape();
         TensorShape newShape;
         for(int i = 1; i < oldShape.getDimensions(); ++i)
             newShape.addDimension(oldShape[i]);
         newShape.addDimension(oldShape[0]);
-        newTensor->create(std::move(newTensorData), newShape);
+        auto newTensor = Tensor::create(std::move(newTensorData), newShape);
         newTensor->setSpacing(tensor->getSpacing());
         tensor = newTensor;
     }
@@ -322,10 +320,9 @@ void NeuralNetwork::run() {
             }
 
             for(int i = 0; i < m_batchSize; ++i) {
-                auto newTensor = Tensor::New();
                 auto newData = make_uninitialized_unique<float[]>(size);
                 std::memcpy(newData.get(), &(rawTensorData[i*size]), size*sizeof(float));
-                newTensor->create(std::move(newData), newShape);
+                auto newTensor = Tensor::create(std::move(newData), newShape);
                 newTensor = standardizeOutputTensorData(newTensor, i);
                 tensorList.push_back(newTensor);
             }
@@ -448,8 +445,7 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
                                                     values.get() + i*size);
     }
 
-    auto tensor = Tensor::New();
-    tensor->create(std::move(values), shape);
+    auto tensor = Tensor::create(std::move(values), shape);
     return tensor;
 }
 

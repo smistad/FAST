@@ -19,31 +19,31 @@ class OpenCLBufferAccess;
  * @ingroup data
  */
 class FAST_EXPORT Tensor : public SpatialDataObject {
-    FAST_OBJECT(Tensor)
+    FAST_OBJECT_V4(Tensor)
     public:
         /**
          * Create a tensor using the provided data and shape.
          * @param data
          * @param shape
          */
-        virtual void create(std::unique_ptr<float[]> data, TensorShape shape);
+        FAST_CONSTRUCTOR(Tensor, std::unique_ptr<float[]>, data,, TensorShape, shape,)
 		/**
          * Create a tensor using the provided data and shape. This method will COPY the data.
          * @param data
          * @param shape
          */
-        virtual void create(const float* const data, TensorShape shape);
+        FAST_CONSTRUCTOR(Tensor, const float* const, data,, TensorShape, shape,)
 
         /**
          * Create an unitialized tensor with the provided shape
          * @param shape
          */
-        virtual void create(TensorShape shape);
+        FAST_CONSTRUCTOR(Tensor, TensorShape, shape,)
 		/**
 		 * Create a 1D tensor with the provided data. Its shape will be equal to its length
 		 * @param data
 		 */
-		virtual void create(std::initializer_list<float> data);
+		FAST_CONSTRUCTOR(Tensor, std::initializer_list<float>, data,)
 		/**
 		 * Add a dimension of size 1 at provided position. -1 is last position.
 		 * @param position

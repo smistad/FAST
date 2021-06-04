@@ -70,10 +70,9 @@ void PatchStitcher::processTensor(std::shared_ptr<Tensor> patch) {
 
     if(!m_outputTensor) {
         // Create output tensor
-        m_outputTensor = Tensor::New();
         TensorShape fullShape({(int)std::ceil((float)fullHeight / patchHeight), (int)std::ceil((float)fullWidth / patchWidth), channels});
         auto initializedData = std::make_unique<float[]>(fullShape.getTotalSize());
-        m_outputTensor->create(std::move(initializedData), fullShape);
+        m_outputTensor = Tensor::create(std::move(initializedData), fullShape);
         m_outputTensor->setSpacing(Vector3f(patchHeight*patchSpacingY, patchWidth*patchSpacingX, 1.0f));
     }
     reportInfo() << "Stitching " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y") << reportEnd();
@@ -122,10 +121,9 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 m_outputImage->create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
             } else {
                 // Large image, create image pyramid instead
-                m_outputImagePyramid = ImagePyramid::New();
                 int patchWidth = std::stoi(patch->getFrameData("patch-width")) - 2*std::stoi(patch->getFrameData("patch-overlap-x"));
                 int patchHeight = std::stoi(patch->getFrameData("patch-height")) - 2*std::stoi(patch->getFrameData("patch-overlap-y"));
-                m_outputImagePyramid->create(fullWidth, fullHeight, patch->getNrOfChannels(), patchWidth, patchHeight);
+                m_outputImagePyramid = ImagePyramid::create(fullWidth, fullHeight, patch->getNrOfChannels(), patchWidth, patchHeight);
                 reportInfo() << "Patch stitcher creating image PYRAMID with size " << fullWidth << " " << fullHeight << ", patch size: " <<
                     patchWidth << " " << patchHeight << " Levels: " << m_outputImagePyramid->getNrOfLevels() << reportEnd();
             }

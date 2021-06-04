@@ -22,7 +22,7 @@ namespace fast {
  * @ingroup data
  */
 class FAST_EXPORT Mesh : public SpatialDataObject {
-    FAST_OBJECT(Mesh)
+    FAST_OBJECT_V4(Mesh)
     public:
         /**
          * @brief Create a mesh

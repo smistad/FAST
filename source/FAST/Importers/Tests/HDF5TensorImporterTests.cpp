@@ -7,9 +7,8 @@ using namespace fast;
 
 TEST_CASE("HDF5TensorImporter", "[fast][HDF5][HDF5TensorImporter]") {
 	// Export a file first
-	auto tensor = Tensor::New();
 	TensorShape shape({2, 32, 32, 8});
-	tensor->create(shape);
+    auto tensor = Tensor::create(shape);
 
 	auto exporter = HDF5TensorExporter::New();
 	exporter->setFilename("tensor.hd5");
