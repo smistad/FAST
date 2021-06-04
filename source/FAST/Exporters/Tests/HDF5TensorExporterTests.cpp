@@ -5,9 +5,8 @@
 namespace fast {
 
 TEST_CASE("Write tensor as HDF5", "[fast][HDF5TensorExporter][HDF5]") {
-	auto tensor = Tensor::New();
 	TensorShape shape({32, 32, 8});
-	tensor->create(shape);
+    auto tensor = Tensor::create(shape);
 
 	auto exporter = HDF5TensorExporter::New();
 	exporter->setFilename("tensor.hd5");

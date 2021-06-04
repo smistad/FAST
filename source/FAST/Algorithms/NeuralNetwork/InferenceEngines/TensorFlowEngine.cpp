@@ -41,7 +41,7 @@ class TensorFlowTensorWrapper {
         tensorflow::Tensor tensor;
 };
 
-void TensorFlowTensor::create(TensorFlowTensorWrapper* wrapper) {
+TensorFlowTensor::TensorFlowTensor(TensorFlowTensorWrapper* wrapper) {
     m_tensorflowTensor = wrapper;
     auto shape = m_tensorflowTensor->tensor.shape();
     TensorShape fastShape;
@@ -171,8 +171,7 @@ void TensorFlowEngine::run() {
     for(int j = 0; j < outputNames.size(); ++j) {
         const std::string outputName = outputNames[j];
         const NetworkNode node = mOutputNodes[outputName];
-        auto tensor = TensorFlowTensor::New();
-        tensor->create(new TensorFlowTensorWrapper(std::move(output_tensors[j])));
+        auto tensor = TensorFlowTensor::create(new TensorFlowTensorWrapper(std::move(output_tensors[j])));
         mOutputNodes[outputName].data = tensor;
 	}
 	reportInfo() << "Finished parsing output" << reportEnd();

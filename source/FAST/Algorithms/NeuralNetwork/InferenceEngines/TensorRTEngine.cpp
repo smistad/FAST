@@ -147,15 +147,14 @@ void TensorRTEngine::run() {
                               shape.getTotalSize() * elementSize(dtype),
                               cudaMemcpyDeviceToHost));
 
-        auto outputTensor = Tensor::New();
-        outputNode.second.data = outputTensor;
 
         // Get output shape
         nvinfer1::Dims dims = m_engine->getBindingDimensions(index);
         if(shape.getDimensions() == 0)
             throw Exception("Missing shape for output node");
 
-        outputTensor->create(std::move(outputData), shape);
+        auto outputTensor = Tensor::create(std::move(outputData), shape);
+        outputNode.second.data = outputTensor;
         reportInfo() << "Finished moving data to FAST tensor, TensorRT" << reportEnd();
         reportInfo() << "Finished transfer of output data TensorRT" << reportEnd();
         CUDA_CHECK(cudaFree(buffers[index]));

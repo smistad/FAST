@@ -39,8 +39,7 @@ void OpenVINOEngine::run() {
 			auto outputData = (output->buffer().as<::InferenceEngine::PrecisionTrait<Precision::FP32>::value_type *>());
 			auto copied_data = make_uninitialized_unique<float[]>(output->byteSize());
 			std::memcpy(copied_data.get(), outputData, output->byteSize());
-			auto tensor = Tensor::New();
-			tensor->create(std::move(copied_data), node.second.shape);
+			auto tensor = Tensor::create(std::move(copied_data), node.second.shape);
 			node.second.data = tensor;
 		}
 		reportInfo() << "OpenVINO: Finished processing output nodes." << reportEnd();
