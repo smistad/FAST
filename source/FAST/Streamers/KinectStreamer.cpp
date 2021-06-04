@@ -203,8 +203,7 @@ void KinectStreamer::producerStream() {
                 }
             }
         }
-        auto cloud = Mesh::New();
-        cloud->create(points);
+        auto cloud = Mesh::create(points);
         imageAccess->release();
         depthAccess->release();
 

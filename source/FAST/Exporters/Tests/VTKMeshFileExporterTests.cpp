@@ -5,14 +5,13 @@
 using namespace fast;
 
 TEST_CASE("No filename given to VTKMeshFileExporter", "[fast][VTKMeshFileExporter]") {
-	Mesh::pointer mesh = Mesh::New();
-	VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
+	auto mesh = Mesh::create({});
+	auto exporter = VTKMeshFileExporter::New();
 	exporter->setInputData(mesh);
 	CHECK_THROWS(exporter->update());
 }
 
 TEST_CASE("Export mesh with lines", "[fast][VTKMeshFileExporter]") {
-    Mesh::pointer mesh = Mesh::New();
     std::vector<MeshVertex> vertices = {
             MeshVertex(Vector3f(1, 1, 0)),
             MeshVertex(Vector3f(1, 25, 0)),
@@ -26,7 +25,7 @@ TEST_CASE("Export mesh with lines", "[fast][VTKMeshFileExporter]") {
             MeshLine(3, 0)
     };
 
-    mesh->create(vertices, lines);
+    auto mesh = Mesh::create(vertices, lines);
 
 	VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
 	exporter->setInputData(mesh);
@@ -36,7 +35,6 @@ TEST_CASE("Export mesh with lines", "[fast][VTKMeshFileExporter]") {
 
 TEST_CASE("Export mesh with triangles", "[fast][VTKMeshFileExporter]") {
 
-    Mesh::pointer mesh = Mesh::New();
     std::vector<MeshVertex> vertices = {
             MeshVertex(Vector3f(1, 1, 1)),
             MeshVertex(Vector3f(1, 1, 10)),
@@ -61,7 +59,7 @@ TEST_CASE("Export mesh with triangles", "[fast][VTKMeshFileExporter]") {
             MeshTriangle(9, 10, 11)
     };
 
-    mesh->create(vertices, {}, triangles);
+    auto mesh = Mesh::create(vertices, {}, triangles);
 
 	VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
 	exporter->setInputData(mesh);

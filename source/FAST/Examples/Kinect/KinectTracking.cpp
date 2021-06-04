@@ -22,8 +22,7 @@ KinectTracking::KinectTracking() {
     mAnnotationImage->create(512, 424, TYPE_UINT8, 1);
     mAnnotationImage->fill(0);
 
-    mTargetCloud = Mesh::New();
-    mTargetCloud->create(0, 0, 0, false, false, false);
+    mTargetCloud = Mesh::create(0, 0, 0, false, false, false);
     mTargetCloudExtracted = false;
     getReporter().setReportMethod(Reporter::COUT);
 }
@@ -107,8 +106,7 @@ void KinectTracking::calculateTargetCloud(KinectStreamer::pointer streamer) {
         }
     }
 
-    mTargetCloud = Mesh::New();
-    mTargetCloud->create(outputVertices);
+    mTargetCloud = Mesh::create(outputVertices);
     std::cout << "Created target cloud." << std::endl;
     mTargetCloudExtracted = true;
 }

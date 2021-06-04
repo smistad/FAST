@@ -91,8 +91,7 @@ Shape::pointer CardinalSplineModel::getShape(VectorXf state) {
 		}
 	}
 
-	Mesh::pointer mesh = Mesh::New();
-	mesh->create(vertices, lines);
+	auto mesh = Mesh::create(vertices, lines);
 
 	Shape::pointer shape = Shape::New();
 	shape->setMesh(mesh);

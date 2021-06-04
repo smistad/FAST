@@ -175,7 +175,6 @@ void VTKMeshFileImporter::execute() {
     if(!file.is_open()) {
         throw FileNotFoundException(mFilename);
     }
-    auto output = Mesh::New();
 
     getline(file, line);
     while(!file.eof()) {
@@ -198,7 +197,7 @@ void VTKMeshFileImporter::execute() {
         throw Exception("No points found in file " + mFilename);
     }
 
-    output->create(mVertices, mLines, mTriangles);
+    auto output = Mesh::create(mVertices, mLines, mTriangles);
     reportInfo() << "MESH IMPORTED: vertices " << mVertices.size() << " lines " << mLines.size() << " triangles " << mTriangles.size() << Reporter::end();
     addOutputData(0, output);
 }

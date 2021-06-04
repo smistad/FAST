@@ -645,8 +645,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     delete[] centerlines;
 
-    auto centerlineOutput = Mesh::New();
-    centerlineOutput->create(vertices, lines);
+    auto centerlineOutput = Mesh::create(vertices, lines);
     centerlineVolumeOutput->create(size.x(), size.y(), size.z(), TYPE_UINT8, 1, getMainDevice(), returnCenterlines);
     delete[] returnCenterlines;
     centerlineVolumeOutput->setSpacing(TDF->getSpacing());

@@ -215,8 +215,7 @@ void RealSenseStreamer::generateStream() {
         mDepthImage = depthImage;
 
         // Create mesh
-        Mesh::pointer cloud = Mesh::New();
-        cloud->create(points);
+        auto cloud = Mesh::create(points);
 
         // Create RGB camera image
         std::unique_ptr<uint8_t[]> colorData = std::make_unique<uint8_t[]>(width*height*3);

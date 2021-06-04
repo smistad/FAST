@@ -202,8 +202,7 @@ void TubeSegmentationAndCenterlineExtraction::keepLargestObjects(Segmentation::p
         }
         Reporter::info() << "Size of new centerlines " << vertices.size() << Reporter::end();
     }
-    Mesh::pointer newCenterlines = Mesh::New();
-    newCenterlines->create(vertices, lines);
+    auto newCenterlines = Mesh::create(vertices, lines);
     centerlines = newCenterlines;
     SceneGraph::setParentNode(centerlines, segmentation);
 }

@@ -379,8 +379,7 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
     }
 
     MeshAccess::pointer meshAccess = mSurfaceMesh->getMeshAccess(ACCESS_READ);
-    Mesh::pointer mesh = Mesh::New();
-    mesh->create(result, {}, meshAccess->getTriangles());
+    auto mesh = Mesh::create(result, {}, meshAccess->getTriangles());
 	Shape::pointer shape = Shape::New();
 	shape->setMesh(mesh);
 

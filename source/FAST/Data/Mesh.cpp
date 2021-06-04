@@ -9,22 +9,9 @@
 #include <QOpenGLFunctions_3_3_Core>
 #endif
 
-
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenGL/OpenGL.h>
-#else
-#if _WIN32
-#include <windows.h>
-#include <GL/gl.h>
-#else
-#include <GL/glx.h>
-
-#endif
-#endif
-
 namespace fast {
 
-void Mesh::create(
+Mesh::Mesh(
         std::vector<MeshVertex> vertices,
         std::vector<MeshLine> lines,
         std::vector<MeshTriangle> triangles
@@ -81,7 +68,7 @@ void Mesh::create(
     updateModifiedTimestamp();
 }
 
-void Mesh::create(
+Mesh::Mesh(
         uint nrOfVertices,
         uint nrOfLines,
         uint nrOfTriangles,

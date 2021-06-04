@@ -500,8 +500,7 @@ void CenterlineExtraction::execute() {
 		}
 	}
 
-	auto output = Mesh::New();
-    output->create(vertices, lines);
+	auto output = Mesh::create(vertices, lines);
 	SceneGraph::setParentNode(output, input);
 	addOutputData(0, output);
 }

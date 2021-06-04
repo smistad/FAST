@@ -10,8 +10,7 @@ TEST_CASE("IterativeClosestPoint", "[fast][IterativeClosestPoint][icp]") {
     vertices.push_back(MeshVertex(Vector3f(2,2,1)));
     vertices.push_back(MeshVertex(Vector3f(6,2,2)));
     vertices.push_back(MeshVertex(Vector3f(2,6,1)));
-    Mesh::pointer A = Mesh::New();
-    A->create(vertices);
+    auto A = Mesh::create(vertices);
 
     std::vector<MeshVertex> verticesB;
     verticesB.push_back(MeshVertex(Vector3f(3,2,0)));
@@ -19,8 +18,7 @@ TEST_CASE("IterativeClosestPoint", "[fast][IterativeClosestPoint][icp]") {
     verticesB.push_back(MeshVertex(Vector3f(9,5,0)));
     verticesB.push_back(MeshVertex(Vector3f(2,1,1)));
     verticesB.push_back(MeshVertex(Vector3f(2,1,8)));
-    Mesh::pointer B = Mesh::New();
-    B->create(verticesB);
+    auto B = Mesh::create(verticesB);
 
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
     icp->setInputData(0, B);

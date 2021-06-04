@@ -22,12 +22,11 @@ TEST_CASE("LineRenderer", "[fast][LineRenderer][visual]") {
 
 TEST_CASE("LineRenderer 2D", "[fast][LineRenderer][visual]") {
 
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
-    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+    auto imageRenderer = ImageRenderer::New();
     imageRenderer->addInputConnection(importer->getOutputPort());
 
-    Mesh::pointer mesh = Mesh::New();
     std::vector<MeshVertex> vertices = {
             MeshVertex(Vector3f(1, 5, 0)),
             MeshVertex(Vector3f(10, 10, 0)),
@@ -37,14 +36,14 @@ TEST_CASE("LineRenderer 2D", "[fast][LineRenderer][visual]") {
             MeshLine(0, 1),
             MeshLine(1, 2),
     };
-    mesh->create(vertices, lines);
+    auto mesh = Mesh::create(vertices, lines);
 
-    LineRenderer::pointer renderer = LineRenderer::New();
+    auto renderer = LineRenderer::New();
     renderer->addInputData(mesh);
     renderer->setDefaultLineWidth(10);
     renderer->setColor(0, Color::Red());
 
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(imageRenderer);
     window->addRenderer(renderer);
     window->setTimeout(500);

@@ -125,6 +125,15 @@
         className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5);                 \
     public:
 
+#define FAST_CONSTRUCTOR19(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3, TYPE4, NAME4, VAL4, TYPE5, NAME5, VAL5, TYPE6, NAME6, VAL6) \
+    static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6) {\
+        std::shared_ptr<className> ptr(new className(NAME1, NAME2, NAME3, NAME4, NAME5, NAME6));   \
+        ptr->setPtr(ptr);\
+        return ptr;\
+    };                                             \
+    protected:\
+        className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6);                 \
+    public:
 /** @namespace fast
  *  @brief FAST namespace - All FAST code lives in this namespace.
  */

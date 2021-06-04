@@ -98,8 +98,7 @@ Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
 		}
 	}
 
-	Mesh::pointer output = Mesh::New();
-	output->create(vertices, lines);
+	auto output = Mesh::create(vertices, lines);
 	return output;
 }
 

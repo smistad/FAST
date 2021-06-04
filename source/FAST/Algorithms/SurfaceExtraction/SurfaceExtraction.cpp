@@ -279,10 +279,9 @@ void SurfaceExtraction::execute() {
         totalSum = std::accumulate(sum.begin(), sum.end(), 0);
     }
 
-    auto output = Mesh::New();
+    auto output = Mesh::create(totalSum*3, 0, totalSum, false, true, false);
     SceneGraph::setParentNode(output, input);
     DataBoundingBox box = input->getBoundingBox();
-    output->create(totalSum*3, 0, totalSum, false, true, false);
     output->setBoundingBox(box);
 
     if(totalSum == 0) {

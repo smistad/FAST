@@ -54,8 +54,7 @@ Shape::pointer EllipseModel::getShape(VectorXf state) {
 	MeshLine line(mNrOfNodes-1, 0);
 	connections.push_back(line);
 
-	Mesh::pointer mesh = Mesh::New();
-	mesh->create(vertices, connections);
+	auto mesh = Mesh::create(vertices, connections);
 	Shape::pointer shape = Shape::New();
 	shape->setMesh(mesh);
 	return shape;

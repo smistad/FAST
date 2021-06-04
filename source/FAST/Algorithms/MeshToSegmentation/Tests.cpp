@@ -16,7 +16,6 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
 
-    Mesh::pointer mesh = Mesh::New();
     std::vector<MeshVertex> vertices = {
             MeshVertex(Vector3f(1, 1, 0)),
             MeshVertex(Vector3f(1, 25, 0)),
@@ -30,7 +29,7 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d][visual]") {
             MeshLine(3, 0)
     };
 
-    mesh->create(vertices, lines);
+    auto mesh = Mesh::create(vertices, lines);
 
     MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
     meshToSeg->setInputData(0, mesh);
@@ -57,7 +56,6 @@ TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
 
-    Mesh::pointer mesh = Mesh::New();
     std::vector<MeshVertex> vertices = {
             MeshVertex(Vector3f(1, 1, 1)),
             MeshVertex(Vector3f(1, 1, 10)),
@@ -82,7 +80,7 @@ TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
             MeshTriangle(9, 10, 11)
     };
 
-    mesh->create(vertices, {}, triangles);
+    auto mesh = Mesh::create(vertices, {}, triangles);
 
     MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
     meshToSeg->setInputData(0, mesh);

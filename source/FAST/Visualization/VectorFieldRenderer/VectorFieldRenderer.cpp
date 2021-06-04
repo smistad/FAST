@@ -56,8 +56,7 @@ void VectorFieldRenderer::execute() {
                 counter += 2;
             }
         }
-        auto mesh = Mesh::New();
-        mesh->create(vertices, lines);
+        auto mesh = Mesh::create(vertices, lines);
         mDataToRender[inputNr] = mesh;
     }
 }
