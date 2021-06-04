@@ -27,14 +27,14 @@ class FAST_EXPORT Mesh : public SpatialDataObject {
         /**
          * @brief Create a mesh
          *
-         * Create a mesh
-         *
          * @param vertices
          * @param lines
          * @param triangles
          */
         FAST_CONSTRUCTOR(Mesh, std::vector<MeshVertex>, vertices,, std::vector<MeshLine>, lines, = {}, std::vector<MeshTriangle>, triangles, = {})
+#ifndef SWIG
         FAST_CONSTRUCTOR(Mesh, uint, nrOfVertices,, uint, nrOfLInes,, uint, nrOfTriangles,, bool, useColors,, bool, useNormals,, bool, useEBO,);
+#endif
         VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access);
         MeshAccess::pointer getMeshAccess(accessType access);
         MeshOpenCLAccess::pointer getOpenCLAccess(accessType access, OpenCLDevice::pointer device);

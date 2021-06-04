@@ -47,13 +47,18 @@
     private:                           \
         std::shared_ptr<className> getSharedPtr() { return std::dynamic_pointer_cast<className>(mPtr.lock()); }                                 \
     public:                                   \
-    std::shared_ptr<className> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) { \
+        std::shared_ptr<className> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) { \
             return std::dynamic_pointer_cast<className>(ProcessObject::connect(inputPortID, parentProcessObject, outputPortID));                                                        \
-    };                                                        \
-    std::shared_ptr<className> connect(std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) {                  \
-        return std::dynamic_pointer_cast<className>(ProcessObject::connect(parentProcessObject, outputPortID));                                                \
-    };                                 \
-
+        };                                                        \
+        std::shared_ptr<className> connect(std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) {                  \
+            return className::connect(0, parentProcessObject, outputPortID);                                                \
+        };                             \
+        std::shared_ptr<className> connect(uint inputPortID, std::shared_ptr<DataObject> inputDataObject) {                                     \
+            return std::dynamic_pointer_cast<className>(ProcessObject::connect(inputPortID, inputDataObject));                               \
+        };\
+        std::shared_ptr<className> connect(std::shared_ptr<DataObject> inputDataObject) {                                                       \
+            return className::connect(0, inputDataObject);            \
+        };\
 
 // Macro for counting arguments, add more if needed: From https://stackoverflow.com/questions/2124339/c-preprocessor-va-args-number-of-arguments
 #ifdef _MSC_VER // Microsoft compilers

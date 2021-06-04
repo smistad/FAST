@@ -566,6 +566,14 @@ std::shared_ptr<ProcessObject> ProcessObject::connect(uint inputPortID, std::sha
     return std::static_pointer_cast<ProcessObject>(mPtr.lock());
 }
 
+std::shared_ptr<ProcessObject> ProcessObject::connect(std::shared_ptr<DataObject> inputDataObject) {
+    return connect(0, inputDataObject);
+}
+
+std::shared_ptr<ProcessObject> ProcessObject::connect(uint inputPortID, std::shared_ptr<DataObject> inputDataObject) {
+    setInputData(inputPortID, inputDataObject);
+    return std::static_pointer_cast<ProcessObject>(mPtr.lock());
+}
 
 DataObject::pointer ProcessObject::getOutputData(uint portID) {
     validateOutputPortExists(portID);

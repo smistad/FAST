@@ -106,6 +106,8 @@ class FAST_EXPORT  ProcessObject : public Object {
         void run(int executeToken = -1);
         std::shared_ptr<ProcessObject> connect(std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0);
         std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0);
+        std::shared_ptr<ProcessObject> connect(std::shared_ptr<DataObject> inputDataObject);
+        std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<DataObject> inputDataObject);
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
