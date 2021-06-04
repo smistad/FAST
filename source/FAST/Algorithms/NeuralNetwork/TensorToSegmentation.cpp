@@ -42,18 +42,24 @@ void TensorToSegmentation::execute() {
     }
     const int size = outputWidth*outputHeight*outputDepth;
 
+    // TODO Move this to GPU
     auto data = make_uninitialized_unique<uchar[]>(size);
     const int nrOfClasses = tensor->getShape()[tensor->getShape().getDimensions()-1];
     const auto ordering = ImageOrdering::ChannelLast;
+    const int firstClass = (m_hasBackgroundClass && nrOfClasses > 1) ? 1 : 0;
     for(int x = 0; x < size; ++x) {
         uchar maxClass = 0;
-        for(uchar j = 1; j < nrOfClasses; j++) {
+        bool found = false;
+        for(uchar j = firstClass; j < nrOfClasses; j++) {
             if(tensorData[getPosition(x, nrOfClasses, j, size, ordering)] > m_threshold &&
                tensorData[getPosition(x, nrOfClasses, j, size, ordering)] > tensorData[getPosition(x, nrOfClasses, maxClass, size, ordering)]) {
                 maxClass = j;
+                found = true;
             }
         }
-        data[x] = maxClass;
+        // If no match found: class is background (0).
+        // If a match is found; add (1 - firstClass). Thus if there is no background class, we will add 1 when maxClass is actually 0
+        data[x] = found ? maxClass + (1 - firstClass) : 0;
     }
     if(outputDepth == 1) {
         output->create(outputWidth, outputHeight, TYPE_UINT8, 1, std::move(data));
@@ -75,6 +81,10 @@ float TensorToSegmentation::getThreshold() const {
 
 void TensorToSegmentation::loadAttributes() {
     setThreshold(getFloatAttribute("threshold"));
+}
+
+void TensorToSegmentation::setBackgroundClass(bool hasBackgroundClass) {
+    m_hasBackgroundClass = hasBackgroundClass;
 }
 
 }
