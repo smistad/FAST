@@ -88,7 +88,7 @@ void saveAbdominalSurfaceExtraction(int threshold=-500) {
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
     // Extract surface mesh using a threshold value
-    SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+    SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
     extraction->setInputConnection(importer->getOutputPort());
     extraction->setThreshold(threshold);
 
@@ -105,7 +105,7 @@ void visualizeSurfaceExtraction(int threshold=-500) {
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
     // Extract surface mesh using a threshold value
-    SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+    SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
     extraction->setInputConnection(importer->getOutputPort());
     extraction->setThreshold(threshold);
 

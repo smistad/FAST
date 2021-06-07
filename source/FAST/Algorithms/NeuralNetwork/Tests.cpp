@@ -112,7 +112,7 @@ TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d][visual]") 
     //smoothing->setOutputType(TYPE_FLOAT);
     //smoothing->setStandardDeviation(2.0);
 
-    auto surfaceExtraction = SurfaceExtraction::New();
+    auto surfaceExtraction = SurfaceExtraction::create();
     surfaceExtraction->setInputConnection(segmentation->getOutputPort(0));
     surfaceExtraction->setThreshold(0.1);
 

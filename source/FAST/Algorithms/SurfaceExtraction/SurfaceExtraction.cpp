@@ -392,13 +392,17 @@ void SurfaceExtraction::execute() {
     addOutputData(0, output);
 }
 
-SurfaceExtraction::SurfaceExtraction() {
-    mThreshold = 0.0f;
+SurfaceExtraction::SurfaceExtraction(float threshold) {
     mHPSize = 0;
     createInputPort<Image>(0);
     createOutputPort<Mesh>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/SurfaceExtraction/SurfaceExtraction.cl");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/SurfaceExtraction/SurfaceExtraction_no_3d_write.cl", "no_3d_write");
+    setThreshold(threshold);
+}
+
+float SurfaceExtraction::getThreshold() const {
+    return mThreshold;
 }
 
 

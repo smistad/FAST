@@ -18,10 +18,6 @@ void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
 SimpleWindow::~SimpleWindow() {
 }
 
-SimpleWindow::SimpleWindow() {
-    init();
-}
-
 SimpleWindow::SimpleWindow(bool mode2D, Color bgcolor, uint width, uint height) {
     init();
     if(mode2D) {

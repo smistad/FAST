@@ -24,7 +24,7 @@ TEST_CASE("Level set segmentation", "[fast][levelset][visual]") {
     segmentation->setInputConnection(importer->getOutputPort());
     segmentation->update();
 
-    SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+    SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
     extraction->setInputConnection(segmentation->getOutputPort());
 
     TriangleRenderer::pointer renderer = TriangleRenderer::New();

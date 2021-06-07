@@ -15,14 +15,13 @@ uint TriangleRenderer::addInputConnection(DataChannel::pointer port, Color color
     return nr;
 }
 
-
-TriangleRenderer::TriangleRenderer() : Renderer() {
-    mDefaultOpacity = 1;
-    mDefaultColor = Color::Green();
-    mDefaultSpecularReflection = 0.8f;
+TriangleRenderer::TriangleRenderer(Color color, float opacity, bool wireframe, float specularReflection) : Renderer() {
+    mDefaultOpacity = opacity;
+    mDefaultColor = color;
+    mDefaultSpecularReflection = specularReflection;
     createInputPort<Mesh>(0, false);
     mLineSize = 1;
-    mWireframe = false;
+    mWireframe = wireframe;
     mDefaultColorSet = false;
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/TriangleRenderer/TriangleRenderer.vert",

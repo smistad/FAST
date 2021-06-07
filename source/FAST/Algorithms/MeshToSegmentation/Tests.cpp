@@ -90,7 +90,7 @@ TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
     SliceRenderer::pointer imageRenderer = SliceRenderer::New();
     imageRenderer->setInputConnection(importer->getOutputPort());
 
-    SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+    SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
     extraction->setInputConnection(meshToSeg->getOutputPort());
 
     TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();

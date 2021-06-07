@@ -38,7 +38,7 @@ TEST_CASE("Image slicer arbitrary slice", "[fast][ImageSlicer][visual][asdasd]")
 	ImageRenderer::pointer renderer = ImageRenderer::New();
 	renderer->addInputConnection(slicer->getOutputPort());
 
-	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+	SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
 	extraction->setInputConnection(importer->getOutputPort());
 
 	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
@@ -64,7 +64,7 @@ TEST_CASE("Image slicer, arbitrary slice 2", "[fast][ImageSlicer][visual]") {
 	ImageRenderer::pointer renderer = ImageRenderer::New();
 	renderer->addInputConnection(slicer->getOutputPort());
 
-	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+	SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
 	extraction->setInputConnection(importer->getOutputPort());
 
 	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
@@ -90,7 +90,7 @@ TEST_CASE("Image slicer, arbitrary slice 3", "[fast][ImageSlicer][visual]") {
 	ImageRenderer::pointer renderer = ImageRenderer::New();
 	renderer->addInputConnection(slicer->getOutputPort());
 
-	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+	SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
 	extraction->setInputConnection(importer->getOutputPort());
 
 	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();

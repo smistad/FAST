@@ -28,7 +28,7 @@ TEST_CASE("TriangleRenderer on stream of surfaces", "[fast][TriangleRenderer][vi
     CHECK_NOTHROW(
         ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
         mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
-        SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
+        SurfaceExtraction::pointer extractor = SurfaceExtraction::create();
         extractor->setInputConnection(mhdStreamer->getOutputPort());
         extractor->setThreshold(200);
         TriangleRenderer::pointer renderer = TriangleRenderer::New();
@@ -51,7 +51,7 @@ TEST_CASE("TriangleRenderer in 2D mode", "[fast][TriangleRenderer][visual]") {
 	ImageRenderer::pointer renderer = ImageRenderer::New();
 	renderer->addInputConnection(slicer->getOutputPort());
 
-	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+	SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
 	extraction->setInputConnection(importer->getOutputPort());
 
 	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();

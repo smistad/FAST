@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 		return 0; // Dont render if exporting..
 
 	// Extract surface from segmentation
-	auto extraction = SurfaceExtraction::New();
+	auto extraction = SurfaceExtraction::create();
 	extraction->setInputConnection(segmentation->getOutputPort());
 
 	// Set up renderers and window

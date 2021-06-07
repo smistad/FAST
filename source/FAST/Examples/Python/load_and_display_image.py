@@ -6,13 +6,12 @@ import fast
 # This will download the test data needed to run the example
 fast.downloadTestDataIfNotExists()
 
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
 
-renderer = fast.ImageRenderer.New()
-renderer.setInputConnection(importer.getOutputPort())
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
-window = fast.SimpleWindow.New()
-window.set2DMode()
+renderer = fast.ImageRenderer.New().connect(importer)
+
+window = fast.SimpleWindow.create(True)
 window.addRenderer(renderer)
-window.start()
+window.run()

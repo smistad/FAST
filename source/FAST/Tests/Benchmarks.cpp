@@ -30,7 +30,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     filter->setMaskSize(5);
     filter->setStandardDeviation(2.0);
 
-    SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
+    SurfaceExtraction::pointer extractor = SurfaceExtraction::create();
     extractor->enableRuntimeMeasurements();
     extractor->setInputConnection(filter->getOutputPort());
     extractor->setThreshold(200);
@@ -74,7 +74,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     filter->setStandardDeviation(2.0);
     filter->enableRuntimeMeasurements();
 
-    SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
+    SurfaceExtraction::pointer extractor = SurfaceExtraction::create();
     extractor->setInputConnection(filter->getOutputPort());
     extractor->setThreshold(200);
     extractor->enableRuntimeMeasurements();
@@ -121,7 +121,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     segmentation->setIntensityRange(150, 5000);
     segmentation->enableRuntimeMeasurements();
 
-    SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+    SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
     extraction->setInputConnection(segmentation->getOutputPort());
     extraction->enableRuntimeMeasurements();
 

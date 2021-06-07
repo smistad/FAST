@@ -33,7 +33,7 @@ SimpleGUI::SimpleGUI() {
     mSmoothing->setStandardDeviation(1);
 
     // Set up surface extraction
-    mSurfaceExtraction = SurfaceExtraction::New();
+    mSurfaceExtraction = SurfaceExtraction::create();
     mSurfaceExtraction->setInputConnection(mSmoothing->getOutputPort());
     mSurfaceExtraction->setThreshold(100);
 

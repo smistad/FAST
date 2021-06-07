@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     segmentation->setIntensityRange(parser.get<int>("min-intensity"), parser.get<int>("max-intensity"));
 
     // Extraction surface mesh from segmentation
-    auto extraction = SurfaceExtraction::New();
+    auto extraction = SurfaceExtraction::create();
     extraction->setInputConnection(segmentation->getOutputPort());
 
     // Render and visualize the mesh

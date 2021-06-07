@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
     lineRenderer->addInputConnection(tubeExtraction->getCenterlineOutputPort(), Color::Blue(), 1);
     lineRenderer->setDefaultDrawOnTop(true);
 
-    auto surfaceExtraction = SurfaceExtraction::New();
+    auto surfaceExtraction = SurfaceExtraction::create();
     surfaceExtraction->setInputConnection(tubeExtraction->getSegmentationOutputPort());
 
     auto triangleRenderer = TriangleRenderer::New();

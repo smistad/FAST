@@ -28,7 +28,7 @@ TEST_CASE("Airway segmentation ALL", "[fast][AirwaySegmentation]") {
         centerline->setInputConnection(segmentation->getOutputPort());
         centerline->update();
 
-        SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+        SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
         extraction->setInputConnection(segmentation->getOutputPort());
 
         TriangleRenderer::pointer renderer = TriangleRenderer::New();
@@ -57,7 +57,7 @@ TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation][visual]") {
 	CenterlineExtraction::pointer centerline = CenterlineExtraction::New();
 	centerline->setInputConnection(segmentation->getOutputPort());
 
-	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+	SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
 	extraction->setInputConnection(segmentation->getOutputPort());
 
 	TriangleRenderer::pointer renderer = TriangleRenderer::New();

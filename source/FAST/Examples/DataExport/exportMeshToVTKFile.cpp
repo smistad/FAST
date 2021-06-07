@@ -16,7 +16,7 @@ int main() {
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
     // Extract surface mesh from the CT image
-    auto extraction = SurfaceExtraction::New();
+    auto extraction = SurfaceExtraction::create();
     extraction->setInputConnection(importer->getOutputPort());
     extraction->setThreshold(400);
 

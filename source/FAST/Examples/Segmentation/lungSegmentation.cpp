@@ -64,15 +64,15 @@ int main(int argc, char** argv) {
     } else {
 
         // Extract lung surface
-        auto extraction = SurfaceExtraction::New();
+        auto extraction = SurfaceExtraction::create();
         extraction->setInputConnection(segmentation->getOutputPort());
 
         // Extract airway surface
-        auto extraction2 = SurfaceExtraction::New();
+        auto extraction2 = SurfaceExtraction::create();
         extraction2->setInputConnection(segmentation->getOutputPort(1));
 
         // Extract blood vessel
-        auto extraction3 = SurfaceExtraction::New();
+        auto extraction3 = SurfaceExtraction::create();
         extraction3->setInputConnection(segmentation->getBloodVesselOutputPort());
 
         // Render both surfaces with different color

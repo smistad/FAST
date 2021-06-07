@@ -4,12 +4,9 @@
 # It also shows how you can access the vertex and triangle data directly.
 import fast
 
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + "/CT/CT-Abdomen.mhd")
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + "/CT/CT-Abdomen.mhd")
 
-extraction = fast.SurfaceExtraction.New()
-extraction.setInputConnection(importer.getOutputPort())
-extraction.setThreshold(300)
+extraction = fast.SurfaceExtraction.create(threshold=300).connect(importer)
 
 mesh = extraction.updateAndGetOutputMesh()
 access = mesh.getMeshAccess(fast.ACCESS_READ)
@@ -25,9 +22,9 @@ print(access.getTriangle(0).getEndpoint1(), access.getTriangle(0).getEndpoint2()
 #vertices = access.getVertices()
 #triangles = access.getTriangles()
 
-renderer = fast.TriangleRenderer.New()
-renderer.setInputData(mesh)
+# Visualize the mesh
+renderer = fast.TriangleRenderer.create().connect(mesh)
 
-window = fast.SimpleWindow.New()
+window = fast.SimpleWindow.create()
 window.addRenderer(renderer)
-window.start()
+window.run()

@@ -28,7 +28,7 @@ TEST_CASE("Segmentation volume reconstructor", "[SegmentationVolumeReconstructor
     SegmentationVolumeReconstructor::pointer reconstructor = SegmentationVolumeReconstructor::New();
     reconstructor->setInputConnection(segmentation->getOutputPort());
 
-    SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+    SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
     extraction->setInputConnection(reconstructor->getOutputPort());
 
     TriangleRenderer::pointer renderer = TriangleRenderer::New();

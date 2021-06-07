@@ -63,7 +63,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, Surf
     filter->setMaskSize(5);
     filter->setStandardDeviation(2.0);
 
-    SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
+    SurfaceExtraction::pointer extractor = SurfaceExtraction::create();
     extractor->setInputConnection(filter->getOutputPort());
     extractor->setThreshold(200);
 

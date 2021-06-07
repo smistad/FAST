@@ -35,7 +35,7 @@ TEST_CASE("TSF liver", "[tsf][liver]") {
     lineRenderer->addInputConnection(tubeExtraction->getCenterlineOutputPort(), Color::Blue(), 1);
     lineRenderer->setDefaultDrawOnTop(true);
 
-    SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::New();
+    SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::create();
     surfaceExtraction->setInputConnection(tubeExtraction->getSegmentationOutputPort());
 
     TriangleRenderer::pointer triangleRenderer = TriangleRenderer::New();
@@ -67,7 +67,7 @@ TEST_CASE("TSF", "[tsf]") {
     lineRenderer->addInputConnection(tubeExtraction->getCenterlineOutputPort());
     lineRenderer->setDefaultDrawOnTop(true);
 
-    SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::New();
+    SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::create();
     surfaceExtraction->setInputConnection(tubeExtraction->getSegmentationOutputPort());
 
     TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
@@ -116,7 +116,7 @@ TEST_CASE("TSF Airway", "[tsf][airway][visual][broken_on_mac]") {
     lineRenderer->addInputConnection(tubeExtraction->getCenterlineOutputPort());
     lineRenderer->setDefaultDrawOnTop(true);
 
-    SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::New();
+    SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::create();
     surfaceExtraction->setInputConnection(tubeExtraction->getSegmentationOutputPort());
 
     TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
