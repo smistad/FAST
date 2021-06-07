@@ -9,7 +9,7 @@ namespace fast {
 class FAST_EXPORT  SimpleWindow : public Window {
     FAST_OBJECT(SimpleWindow)
     public:
-        FAST_CONSTRUCTOR(SimpleWindow, bool, mode2D, = true, Color, bgcolor, = Color::White(), uint, width, = -1, uint, height, = -1)
+        FAST_CONSTRUCTOR(SimpleWindow, bool, mode2D, = false, Color, bgcolor, = Color::White(), uint, width, = 0, uint, height, = 0)
         void addRenderer(std::shared_ptr<Renderer> renderer);
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);

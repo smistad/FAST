@@ -26,8 +26,10 @@ SimpleWindow::SimpleWindow(bool mode2D, Color bgcolor, uint width, uint height) 
         set3DMode();
     }
     getView()->setBackgroundColor(std::move(bgcolor));
-    setWidth(width);
-    setHeight(height);
+    if(width > 0)
+        setWidth(width);
+    if(height > 0)
+        setHeight(height);
 }
 
 void SimpleWindow::init() {
