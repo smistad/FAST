@@ -49,6 +49,9 @@ void TIFFImagePyramidImporter::execute() {
 TIFFImagePyramidImporter::TIFFImagePyramidImporter() {
     createOutputPort<ImagePyramid>(0);
 }
+TIFFImagePyramidImporter::TIFFImagePyramidImporter(std::string filename) : FileImporter(filename) {
+    createOutputPort<ImagePyramid>(0);
+}
 
 void TIFFImagePyramidImporter::loadAttributes() {
     FileImporter::loadAttributes();

@@ -5,11 +5,6 @@
 
 namespace fast {
 
-void HDF5TensorImporter::setFilename(std::string filename) {
-	m_filename = filename;
-	setModified(true);
-}
-
 void HDF5TensorImporter::setDatasetName(std::string name) {
 	m_datasetName = name;
 	setModified(true);
@@ -21,10 +16,14 @@ void HDF5TensorImporter::loadAttributes() {
 }
 
 HDF5TensorImporter::HDF5TensorImporter() {
-	createOutputPort<Tensor>(0);
-
-	createStringAttribute("filename", "Filename", "Path to file to open", "");
+	createOutputPort(0, "Tensor");
 	createStringAttribute("name", "Dataset name", "Name of dataset tensor to open", m_datasetName);
+}
+
+HDF5TensorImporter::HDF5TensorImporter(std::string filename, std::string datasetName) : FileImporter(std::move(filename)) {
+    createOutputPort(0, "Tensor");
+    createStringAttribute("name", "Dataset name", "Name of dataset tensor to open", m_datasetName);
+    setDatasetName(std::move(datasetName));
 }
 
 void HDF5TensorImporter::execute() {

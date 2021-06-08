@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Importer.hpp"
+#include <FAST/Importers/FileImporter.hpp>
 
 namespace fast {
 
@@ -14,13 +14,12 @@ namespace fast {
  *
  * @ingroup importers
  */
-class FAST_EXPORT  MetaImageImporter : public Importer {
-    FAST_OBJECT(MetaImageImporter)
+class FAST_EXPORT  MetaImageImporter : public FileImporter {
+    FAST_PROCESS_OBJECT(MetaImageImporter)
     public:
-        void setFilename(std::string filename);
+        FAST_CONSTRUCTOR(MetaImageImporter, std::string, filename,)
     private:
         MetaImageImporter();
-        std::string mFilename;
         void execute();
 };
 

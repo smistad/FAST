@@ -21,6 +21,9 @@ class FAST_EXPORT FileImporter : public Importer {
             setFilename(getStringAttribute("filename"));
         }
     protected:
+        FileImporter(std::string filename) : FileImporter() {
+            setFilename(filename);
+        }
         FileImporter() {
             createStringAttribute("filename", "Filename", "Filename of the file to import", "");
         }

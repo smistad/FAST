@@ -13,6 +13,7 @@
 #include "FAST/Config.hpp"
 #include "FAST/Attribute.hpp"
 #include "FAST/DataChannels/DataChannel.hpp"
+#include <FAST/DataStream.hpp>
 
 namespace fast {
 
@@ -108,6 +109,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0);
         std::shared_ptr<ProcessObject> connect(std::shared_ptr<DataObject> inputDataObject);
         std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<DataObject> inputDataObject);
+        std::unique_ptr<DataStream> getDataStream();
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
@@ -125,14 +127,8 @@ class FAST_EXPORT  ProcessObject : public Object {
         void createInputPort(uint portID, std::string name = "", std::string description = "", bool required = true);
         void createOutputPort(uint portID, std::string name = "", std::string description = "");
         template <class DataType>
-#ifndef SWIG
-        [[deprecated("Replaced by non templated createInputPort(uint portID, std::string name, std::string description, bool required)")]]
-#endif
         void createInputPort(uint portID, bool required = true);
         template <class DataType>
-#ifndef SWIG
-        [[deprecated("Replaced by non templated createOutputPort(uint portID, std::string name, std::string description)")]]
-#endif
         void createOutputPort(uint portID);
 
         template <class DataType>

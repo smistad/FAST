@@ -5,14 +5,17 @@
 
 namespace fast {
 
-void VTKMeshFileImporter::setFilename(std::string filename) {
-    mFilename = filename;
+VTKMeshFileImporter::VTKMeshFileImporter() {
     mIsModified = true;
+    createOutputPort<Mesh>(0);
+    mFunctions["POINTS"] = std::bind(&VTKMeshFileImporter::processPoints, this, std::placeholders::_1, std::placeholders::_2);
+    mFunctions["NORMALS"] = std::bind(&VTKMeshFileImporter::processNormals, this, std::placeholders::_1, std::placeholders::_2);
+    mFunctions["LINES"] = std::bind(&VTKMeshFileImporter::processLines, this, std::placeholders::_1, std::placeholders::_2);
+    mFunctions["POLYGONS"] = std::bind(&VTKMeshFileImporter::processTriangles, this, std::placeholders::_1, std::placeholders::_2);
+    mFunctions["VECTORS"] = std::bind(&VTKMeshFileImporter::processVectors, this, std::placeholders::_1, std::placeholders::_2);
 }
 
-VTKMeshFileImporter::VTKMeshFileImporter() {
-    mFilename = "";
-    mIsModified = true;
+VTKMeshFileImporter::VTKMeshFileImporter(std::string filename) : FileImporter(filename){
     createOutputPort<Mesh>(0);
     mFunctions["POINTS"] = std::bind(&VTKMeshFileImporter::processPoints, this, std::placeholders::_1, std::placeholders::_2);
     mFunctions["NORMALS"] = std::bind(&VTKMeshFileImporter::processNormals, this, std::placeholders::_1, std::placeholders::_2);
@@ -107,7 +110,7 @@ void VTKMeshFileImporter::processVectors(std::ifstream& file, std::string& line)
     std::vector<std::string> tokens = split(line);
     std::string name = tokens[1];
     if(name != "vertex_colors") {
-        reportWarning() << "Unknown VECTORS data with name " << name << " in file " << mFilename << reportEnd();
+        reportWarning() << "Unknown VECTORS data with name " << name << " in file " << m_filename << reportEnd();
     }
     //if(std::stoi(tokens.at(1)) != mVertices.size()) {
     //    throw Exception("Number of normals must be equal to number of points", __LINE__, __FILE__);
@@ -166,14 +169,14 @@ void VTKMeshFileImporter::processPoints(std::ifstream& file, std::string& line) 
 
 void VTKMeshFileImporter::execute() {
     getReporter().setReportMethod(Reporter::COUT);
-    if(mFilename == "")
+    if(m_filename == "")
         throw Exception("No filename given to the VTKMeshFileImporter");
 
     // Try to open file and check that it exists
-    std::ifstream file(mFilename.c_str());
+    std::ifstream file(m_filename.c_str());
     std::string line;
     if(!file.is_open()) {
-        throw FileNotFoundException(mFilename);
+        throw FileNotFoundException(m_filename);
     }
 
     getline(file, line);
@@ -194,7 +197,7 @@ void VTKMeshFileImporter::execute() {
     }
 
     if(mVertices.size() == 0) {
-        throw Exception("No points found in file " + mFilename);
+        throw Exception("No points found in file " + m_filename);
     }
 
     auto output = Mesh::create(mVertices, mLines, mTriangles);

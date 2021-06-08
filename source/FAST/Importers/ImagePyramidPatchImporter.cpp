@@ -7,9 +7,14 @@
 namespace fast {
 
 ImagePyramidPatchImporter::ImagePyramidPatchImporter() {
-    createOutputPort<ImagePyramid>(0);
-
+    createOutputPort(0, "ImagePyramid");
     createStringAttribute("path", "Path", "Path to a directory to load image patches from", m_path);
+}
+
+ImagePyramidPatchImporter::ImagePyramidPatchImporter(std::string path) {
+    createOutputPort(0, "ImagePyramid");
+    createStringAttribute("path", "Path", "Path to a directory to load image patches from", m_path);
+    setPath(path);
 }
 
 void ImagePyramidPatchImporter::setPath(std::string path) {

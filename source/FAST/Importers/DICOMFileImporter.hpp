@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Importer.hpp"
+#include <FAST/Importers/FileImporter.hpp>
 #include <string>
 
 namespace fast {
@@ -12,17 +12,19 @@ namespace fast {
  *
  * @ingroup importers
  */
-class FAST_EXPORT DICOMFileImporter : public Importer {
-    FAST_OBJECT(DICOMFileImporter)
+class FAST_EXPORT DICOMFileImporter : public FileImporter {
+    FAST_PROCESS_OBJECT(DICOMFileImporter)
     public:
-        void setFilename(std::string filename);
+        FAST_CONSTRUCTOR(DICOMFileImporter,
+                         std::string, filename,,
+                         bool, loadSeries, = true
+        )
         void setLoadSeries(bool load);
     private:
         DICOMFileImporter();
         void execute() override;
 
         bool mLoadSeries = true;
-        std::string mFilename = "";
 };
 
 }

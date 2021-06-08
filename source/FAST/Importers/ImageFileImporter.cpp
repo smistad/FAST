@@ -12,21 +12,14 @@
 
 namespace fast {
 
-ImageFileImporter::pointer ImageFileImporter::setFilename(std::string filename) {
-    mFilename = std::move(filename);
-    setModified(true);
-    return getSharedPtr();
-}
-
 ImageFileImporter::ImageFileImporter() {
-    mFilename = "";
     createOutputPort<Image>(0);
     setMainDevice(Host::getInstance()); // Default is to put image on host
-
-    createStringAttribute("filename", "Filename", "Filename", "");
 }
 
-ImageFileImporter::ImageFileImporter(std::string filename) : ImageFileImporter() {
+ImageFileImporter::ImageFileImporter(std::string filename) : FileImporter(filename) {
+    createOutputPort<Image>(0);
+    setMainDevice(Host::getInstance()); // Default is to put image on host
     setFilename(filename);
 }
 
@@ -38,20 +31,20 @@ inline bool matchExtension(std::string extension, std::string extension2) {
 }
 
 void ImageFileImporter::execute() {
-    if(mFilename.empty())
+    if(m_filename.empty())
         throw Exception("No filename was given to the ImageFileImporter");
 
-    if(!fileExists(mFilename))
-        throw FileNotFoundException(mFilename);
+    if(!fileExists(m_filename))
+        throw FileNotFoundException(m_filename);
 
     // Get file extension
-    size_t pos = mFilename.rfind(".", -5);
+    size_t pos = m_filename.rfind(".", -5);
     if(pos == std::string::npos) {
-        reportWarning() << "Filename " << mFilename << " had no extension, guessing it to be DICOM.." << reportEnd();
+        reportWarning() << "Filename " << m_filename << " had no extension, guessing it to be DICOM.." << reportEnd();
 #ifdef FAST_MODULE_DICOM
         auto importer = DICOMFileImporter::New();
         importer->setMainDevice(getMainDevice());
-        importer->setFilename(mFilename);
+        importer->setFilename(m_filename);
         DataChannel::pointer port = importer->getOutputPort();
         importer->update(); // Have to to update because otherwise the data will not be available
         Image::pointer data = port->getNextFrame<Image>();
@@ -60,11 +53,11 @@ void ImageFileImporter::execute() {
         throw Exception("The ImageFileImporter needs the dicom module (DCMTK) to be enabled in order to read dicom files.");
 #endif
     } else {
-        std::string ext = mFilename.substr(pos + 1);
+        std::string ext = m_filename.substr(pos + 1);
         if(matchExtension(ext, "mhd")) {
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setMainDevice(getMainDevice());
-            importer->setFilename(mFilename);
+            importer->setFilename(m_filename);
             DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
@@ -72,7 +65,7 @@ void ImageFileImporter::execute() {
         } else if(matchExtension(ext, "dcm")) {
 #ifdef FAST_MODULE_DICOM
             auto importer = DICOMFileImporter::New();
-            importer->setFilename(mFilename);
+            importer->setFilename(m_filename);
             importer->setMainDevice(getMainDevice());
             DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available
@@ -87,7 +80,7 @@ void ImageFileImporter::execute() {
                   matchExtension(ext, "bmp")) {
 #ifdef FAST_MODULE_VISUALIZATION
             auto importer = ImageImporter::New();
-            importer->setFilename(mFilename);
+            importer->setFilename(m_filename);
             importer->setMainDevice(getMainDevice());
             DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available

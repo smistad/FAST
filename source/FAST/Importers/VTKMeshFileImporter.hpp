@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Importer.hpp"
+#include <FAST/Importers/FileImporter.hpp>
 #include <string>
 #include <map>
 #include <FAST/Data/MeshVertex.hpp>
@@ -17,10 +17,10 @@ namespace fast {
  *
  * @ingroup importers
  */
-class FAST_EXPORT  VTKMeshFileImporter : public Importer {
-    FAST_OBJECT(VTKMeshFileImporter)
+class FAST_EXPORT VTKMeshFileImporter : public FileImporter {
+    FAST_PROCESS_OBJECT(VTKMeshFileImporter)
     public:
-        void setFilename(std::string filename);
+        FAST_CONSTRUCTOR(VTKMeshFileImporter, std::string, filename,)
     private:
         VTKMeshFileImporter();
         void execute();
@@ -31,7 +31,6 @@ class FAST_EXPORT  VTKMeshFileImporter : public Importer {
         void processNormals(std::ifstream& file, std::string& line);
         void processVectors(std::ifstream& file, std::string& line);
 
-        std::string mFilename;
         std::vector<MeshVertex> mVertices;
         std::vector<MeshLine> mLines;
         std::vector<MeshTriangle> mTriangles;

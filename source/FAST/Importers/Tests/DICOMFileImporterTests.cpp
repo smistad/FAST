@@ -6,7 +6,7 @@
 
 using namespace fast;
 
-TEST_CASE("Dicom image read", "[DICOM][visual]") {
+TEST_CASE("Dicom image read", "[DICOM][DICOMFileImporter][visual]") {
     auto importer = DICOMFileImporter::New();
     importer->setLoadSeries(false);
     importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/000001.dcm");

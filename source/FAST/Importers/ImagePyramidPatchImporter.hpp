@@ -14,8 +14,9 @@ namespace fast {
  * @ingroup importers
  */
 class FAST_EXPORT ImagePyramidPatchImporter : public ProcessObject {
-    FAST_OBJECT(ImagePyramidPatchImporter)
+    FAST_PROCESS_OBJECT(ImagePyramidPatchImporter)
     public:
+        FAST_CONSTRUCTOR(ImagePyramidPatchImporter, std::string, path,)
         void setPath(std::string path);
         void loadAttributes() override;
     private:

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Importer.hpp"
+#include <FAST/Importers/FileImporter.hpp>
 #include <string>
 
 namespace fast {
@@ -12,15 +12,17 @@ namespace fast {
  *
  * @ingroup importers
  */
-class FAST_EXPORT ImageImporter : public Importer {
-    FAST_OBJECT(ImageImporter)
+class FAST_EXPORT ImageImporter : public FileImporter {
+    FAST_PROCESS_OBJECT(ImageImporter)
     public:
-        void setFilename(std::string filename);
+        FAST_CONSTRUCTOR(ImageImporter,
+                         std::string, filename,,
+                         bool, convertToGrayscale, = true
+        )
         void setGrayscale(bool grayscale);
         void loadAttributes() override;
     private:
         ImageImporter();
-        std::string mFilename;
         bool mGrayscale;
         void execute() override;
 };

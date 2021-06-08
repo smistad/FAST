@@ -18,8 +18,9 @@ namespace fast {
  * @ingroup importers
  */
 class FAST_EXPORT TIFFImagePyramidImporter : public FileImporter {
-    FAST_OBJECT(TIFFImagePyramidImporter)
+    FAST_PROCESS_OBJECT(TIFFImagePyramidImporter)
     public:
+        FAST_CONSTRUCTOR(TIFFImagePyramidImporter, std::string, filename,)
         void loadAttributes() override;
     private:
         TIFFImagePyramidImporter();

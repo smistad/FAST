@@ -1,6 +1,6 @@
 #pragma once
 
-#include <FAST/ProcessObject.hpp>
+#include <FAST/Importers/FileImporter.hpp>
 
 namespace fast {
 
@@ -17,7 +17,7 @@ namespace fast {
  *
  * @ingroup importers
  */
-class FAST_EXPORT  ImageFileImporter : public ProcessObject {
+class FAST_EXPORT  ImageFileImporter : public FileImporter {
     FAST_PROCESS_OBJECT(ImageFileImporter)
     public:
         /**
@@ -27,13 +27,10 @@ class FAST_EXPORT  ImageFileImporter : public ProcessObject {
          * @return smart pointer to instance
          */
         FAST_CONSTRUCTOR(ImageFileImporter, std::string, filename,);
-        ImageFileImporter::pointer setFilename(std::string filename);
         void loadAttributes() override;
     private:
         ImageFileImporter();
         void execute() override;
-
-        std::string mFilename;
 };
 
 }

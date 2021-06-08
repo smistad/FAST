@@ -63,6 +63,7 @@ class FAST_EXPORT Tensor : public SpatialDataObject {
 		virtual ~Tensor();
 
     protected:
+        void init(std::unique_ptr<float[]> data, TensorShape shape);
         Tensor() = default;
         virtual bool isInitialized();
         virtual void transferCLBufferFromHost(OpenCLDevice::pointer device);

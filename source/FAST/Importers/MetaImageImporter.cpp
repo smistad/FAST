@@ -8,15 +8,15 @@
 #include <zlib.h>
 using namespace fast;
 
-void MetaImageImporter::setFilename(std::string filename) {
-    mFilename = filename;
+MetaImageImporter::MetaImageImporter() {
+    m_filename = "";
     mIsModified = true;
+    createOutputPort(0, "Image");
+    setMainDevice(Host::getInstance()); // Default is to put image on host
 }
 
-MetaImageImporter::MetaImageImporter() {
-    mFilename = "";
-    mIsModified = true;
-    createOutputPort<Image>(0);
+MetaImageImporter::MetaImageImporter(std::string filename) : FileImporter(filename) {
+    createOutputPort(0, "Image");
     setMainDevice(Host::getInstance()); // Default is to put image on host
 }
 
@@ -103,14 +103,14 @@ static std::unique_ptr<T[]> readRawData(std::string rawFilename, std::size_t vox
 }
 
 void MetaImageImporter::execute() {
-    if(mFilename == "")
+    if(m_filename == "")
         throw Exception("Filename was not set in MetaImageImporter");
 
     // Open and parse mhd file
     std::fstream mhdFile;
-    mhdFile.open(mFilename.c_str(), std::fstream::in);
+    mhdFile.open(m_filename.c_str(), std::fstream::in);
     if(!mhdFile.is_open())
-        throw FileNotFoundException(mFilename);
+        throw FileNotFoundException(m_filename);
     std::string line;
     std::string rawFilename;
     bool sizeFound = false,
@@ -203,16 +203,16 @@ void MetaImageImporter::execute() {
             rawFilename = rawFilename.substr(0,pos);
 
             // Get path name
-            pos = mFilename.rfind('/');
+            pos = m_filename.rfind('/');
 #ifdef WIN32
 			// Windows often use \ instead of / in pathnames
-			int pos2 = mFilename.rfind('\\');
+			int pos2 = m_filename.rfind('\\');
 			if(pos2 > pos) {
 				pos = pos2;
 			}
 #endif
             if(pos > 0)
-                rawFilename = mFilename.substr(0,pos+1) + rawFilename;
+                rawFilename = m_filename.substr(0,pos+1) + rawFilename;
         } else if(key == "ElementType") {
             typeFound = true;
             typeName = value;

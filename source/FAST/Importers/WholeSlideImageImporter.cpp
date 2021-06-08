@@ -102,11 +102,10 @@ void WholeSlideImageImporter::execute() {
 
 WholeSlideImageImporter::WholeSlideImageImporter() {
     createOutputPort<ImagePyramid>(0);
-
-    createStringAttribute("filename", "Filename", "Filename to read", "");
-    //createBooleanAttribute("grayscale", "Grayscale", "Turn image into grayscale on import", mGrayscale);
 }
-
+WholeSlideImageImporter::WholeSlideImageImporter(std::string filename) : FileImporter(filename) {
+    createOutputPort<ImagePyramid>(0);
+}
 void WholeSlideImageImporter::loadAttributes() {
     FileImporter::loadAttributes();
 }

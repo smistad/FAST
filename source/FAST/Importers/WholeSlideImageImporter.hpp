@@ -25,11 +25,12 @@ namespace fast {
  * @ingroup importers
  */
 class FAST_EXPORT WholeSlideImageImporter : public FileImporter {
-    FAST_OBJECT(WholeSlideImageImporter)
+    FAST_PROCESS_OBJECT(WholeSlideImageImporter)
     public:
-        WholeSlideImageImporter();
+        FAST_CONSTRUCTOR(WholeSlideImageImporter, std::string, filename,)
         void loadAttributes() override;
     private:
+        WholeSlideImageImporter();
         void readWithOpenSlide(std::string filename);
         void execute();
 };

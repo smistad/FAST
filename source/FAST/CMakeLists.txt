@@ -35,6 +35,8 @@ fast_add_sources(
     ProcessObjectRegistry.hpp
     PipelineSynchronizer.cpp
     PipelineSynchronizer.hpp
+    DataStream.cpp
+    DataStream.hpp
 )
 if(FAST_MODULE_Visualization)
     fast_add_sources(

@@ -4,7 +4,7 @@
 
 namespace fast {
 
-Tensor::Tensor(std::unique_ptr<float[]> data, TensorShape shape) {
+void Tensor::init(std::unique_ptr<float[]> data, TensorShape shape) {
     if(shape.empty())
         throw Exception("Shape can't be empty");
     if(shape.getUnknownDimensions() > 0)
@@ -20,6 +20,10 @@ Tensor::Tensor(std::unique_ptr<float[]> data, TensorShape shape) {
     }
 }
 
+Tensor::Tensor(std::unique_ptr<float[]> data, TensorShape shape) {
+    init(std::move(data), shape);
+}
+
 Tensor::Tensor(const float* const data, TensorShape shape) {
     if(shape.empty())
         throw Exception("Shape can't be empty");
@@ -27,7 +31,7 @@ Tensor::Tensor(const float* const data, TensorShape shape) {
         throw Exception("When creating a tensor, shape must be fully defined");
     auto newData = make_uninitialized_unique<float[]>(shape.getTotalSize());
     std::memcpy(newData.get(), data, shape.getTotalSize()*sizeof(float));
-    create(std::move(newData), shape);
+    init(std::move(newData), shape);
 }
 
 
@@ -37,7 +41,7 @@ Tensor::Tensor(TensorShape shape) {
     if(shape.getUnknownDimensions() > 0)
         throw Exception("When creating a tensor, shape must be fully defined");
     auto newData = make_uninitialized_unique<float[]>(shape.getTotalSize());
-    create(std::move(newData), shape);
+    init(std::move(newData), shape);
 }
 
 Tensor::Tensor(std::initializer_list<float> data) {
@@ -51,7 +55,7 @@ Tensor::Tensor(std::initializer_list<float> data) {
 		++i;
 	}
     auto shape = TensorShape({(int)data.size()});
-    create(std::move(newData), shape);
+    init(std::move(newData), shape);
 }
 
 void Tensor::expandDims(int position) {
