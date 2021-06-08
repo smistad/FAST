@@ -8,11 +8,9 @@ import matplotlib.pyplot as plt
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
 # Set up FAST pipeline
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
-filter = fast.NonLocalMeans.New()
-filter.setInputConnection(importer.getOutputPort())
+filter = fast.NonLocalMeans.create().connect(importer)
 
 # Execute pipeline and convert images to numpy arrays
 input_image = importer.updateAndGetOutputImage()

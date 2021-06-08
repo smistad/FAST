@@ -15,10 +15,6 @@ fast_image = fast.Image.New()
 fast_image.createFromArray(numpy_image)
 
 # Display using FAST
-renderer = fast.ImageRenderer.New()
-renderer.addInputData(fast_image)
+renderer = fast.ImageRenderer.create().connect(fast_image)
 
-window = fast.SimpleWindow.New()
-window.addRenderer(renderer)
-window.set2DMode()
-window.start()
+window = fast.SimpleWindow2D.create().connect(renderer).run()

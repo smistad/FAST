@@ -25,6 +25,4 @@ print(access.getTriangle(0).getEndpoint1(), access.getTriangle(0).getEndpoint2()
 # Visualize the mesh
 renderer = fast.TriangleRenderer.create().connect(mesh)
 
-window = fast.SimpleWindow.create()
-window.addRenderer(renderer)
-window.run()
+window = fast.SimpleWindow3D.create().connect(renderer).run()

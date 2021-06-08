@@ -5,18 +5,18 @@ import fast
 import matplotlib.pyplot as plt
 import numpy as np
 
-visualize_with_matplotlib = True    # Switch between using FAST and matplotlib for visualization
+visualize_with_matplotlib = False    # Switch between using FAST and matplotlib for visualization
 
-streamer = fast.ImageFileStreamer.New()
-streamer.setFilenameFormat(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
+streamer = fast.ImageFileStreamer.create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
 
-blockMatching = fast.BlockMatching.New()
-blockMatching.setInputConnection(streamer.getOutputPort())
-blockMatching.setMatchingMetric(fast.BlockMatching.MatchingMetric_SUM_OF_ABSOLUTE_DIFFERENCES)
-blockMatching.setBlockSize(13)
+blockMatching = fast.BlockMatching.create(
+        blockSize=13,
+        searchSize=11,
+        metric=fast.MatchingMetric_SUM_OF_ABSOLUTE_DIFFERENCES,
+        timeLag=1,
+        forwardBackwardTracking=False,
+).connect(streamer)
 blockMatching.setIntensityThreshold(75)
-blockMatching.setTimeLag(1)
-blockMatching.setForwardBackwardTracking(False)
 
 if visualize_with_matplotlib:
     imageChannel = streamer.getOutputPort()
@@ -44,14 +44,9 @@ if visualize_with_matplotlib:
             break
 
 else:
-    imageRenderer = fast.ImageRenderer.New()
-    imageRenderer.addInputConnection(streamer.getOutputPort())
-
-    vectorRenderer = fast.VectorFieldColorRenderer.New()
-    vectorRenderer.addInputConnection(blockMatching.getOutputPort())
-
-    window = fast.SimpleWindow.New()
-    window.set2DMode()
-    window.addRenderer(imageRenderer)
-    window.addRenderer(vectorRenderer)
-    window.start()
+    imageRenderer = fast.ImageRenderer.create().connect(streamer)
+    vectorRenderer = fast.VectorFieldColorRenderer.create().connect(blockMatching)
+    window = fast.SimpleWindow2D.create()\
+        .connect(imageRenderer)\
+        .connect(vectorRenderer)\
+        .run()

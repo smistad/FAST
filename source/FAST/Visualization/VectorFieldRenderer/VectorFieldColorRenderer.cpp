@@ -2,11 +2,13 @@
 
 namespace fast {
 
-VectorFieldColorRenderer::VectorFieldColorRenderer() {
+VectorFieldColorRenderer::VectorFieldColorRenderer(float maxOpacity, float maxLength) {
     m_2Donly = true;
     createInputPort(0, "Image", "", false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VectorFieldRenderer/VectorFieldColorRenderer.cl");
     mIsModified = false;
+    setMaxOpacity(maxOpacity);
+    setMaxLength(maxLength);
 }
 
 void VectorFieldColorRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {

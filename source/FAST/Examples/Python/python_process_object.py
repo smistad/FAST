@@ -30,17 +30,12 @@ class Inverter(fast.PythonProcessObject):
 
 
 # Set up pipeline as normal
-importer = fast.ImageFileStreamer.New()
-importer.setFilenameFormat(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd')
+importer = fast.ImageFileStreamer.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd')
 importer.enableLooping()
 
 inverter = Inverter.New()
 inverter.setInputConnection(importer.getOutputPort())
 
-renderer = fast.ImageRenderer.New()
-renderer.setInputConnection(inverter.getOutputPort())
+renderer = fast.ImageRenderer.create().connect(inverter)
 
-window = fast.SimpleWindow.New()
-window.set2DMode()
-window.addRenderer(renderer)
-window.start()
+window = fast.SimpleWindow2D.create().connect(renderer).run()

@@ -19,7 +19,16 @@ namespace fast {
  * @ingroup streamers
  */
 class FAST_EXPORT ImageFileStreamer : public FileStreamer {
-    FAST_OBJECT(ImageFileStreamer)
+    FAST_PROCESS_OBJECT(ImageFileStreamer)
+    public:
+        /**
+         * Create a ImageFileStreamer instance
+         *
+         * @param filenameFormat String of path and format of images. E.g. /path/to/files/frame_#.mhd. The hash sign #
+         * will be replaced by an index
+         * @return
+         */
+        FAST_CONSTRUCTOR(ImageFileStreamer, std::string, filenameFormat,)
     protected:
         DataObject::pointer getDataFrame(std::string filename) override;
 

@@ -10,8 +10,9 @@ namespace fast {
  * @ingroup renderers
  */
 class FAST_EXPORT VectorFieldColorRenderer : public ImageRenderer {
-    FAST_OBJECT(VectorFieldColorRenderer)
+    FAST_PROCESS_OBJECT(VectorFieldColorRenderer)
     public:
+        FAST_CONSTRUCTOR(VectorFieldColorRenderer, float, maxOpacity, = 0.5f, float, maxLength, = -1.0f)
         /**
          * Set the maximum opacity for the color overlay.
          *
@@ -20,7 +21,6 @@ class FAST_EXPORT VectorFieldColorRenderer : public ImageRenderer {
         void setMaxOpacity(float maxOpacity);
         void setMaxLength(float max);
     private:
-        VectorFieldColorRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
 
         float m_maxOpacity = 0.5f;

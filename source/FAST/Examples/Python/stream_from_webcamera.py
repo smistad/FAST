@@ -11,7 +11,4 @@ filter.setInputConnection(streamer.getOutputPort())
 renderer = fast.ImageRenderer.New()
 renderer.addInputConnection(filter.getOutputPort())
 
-window = fast.SimpleWindow.New()
-window.addRenderer(renderer)
-window.set2DMode()
-window.start()
+window = fast.SimpleWindow2D.create().connect(renderer).run()
