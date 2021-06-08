@@ -10,8 +10,8 @@ fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
 
 importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
-renderer = fast.ImageRenderer.New().connect(importer)
+renderer = fast.ImageRenderer.create().connect(importer)
 
-window = fast.SimpleWindow.create(True)
-window.addRenderer(renderer)
-window.run()
+window = fast.SimpleWindow2D.create(bgcolor=fast.Color.Black())\
+    .connect(renderer)\
+    .run()

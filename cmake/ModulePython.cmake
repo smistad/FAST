@@ -57,7 +57,7 @@ if(FAST_MODULE_Python)
     else()
         swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
     endif()
-    set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi) # Enable Python 3 specific features and doxygen comment translation in SWIG
+    set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword) # Enable Python 3 specific features and doxygen comment translation in SWIG
     set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})

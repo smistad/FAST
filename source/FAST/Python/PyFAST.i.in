@@ -124,6 +124,10 @@ public
 %shared_ptr(fast::ProcessObject)
 @PYFAST_SHARED_PTR_DEFS@
 
+// These must live here due to the shared_ptr
+%template(vectorrenderer) std::vector<std::shared_ptr<fast::Renderer>>;
+%template(vectorpo) std::vector<std::shared_ptr<fast::ProcessObject>>;
+
 // Interface includes
 %include <FAST/Reporter.hpp>
 %include <FAST/Object.hpp>

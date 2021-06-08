@@ -47,4 +47,20 @@ View* SimpleWindow::getView() {
     return Window::getView(0);
 }
 
+std::shared_ptr<SimpleWindow> SimpleWindow::connect(std::shared_ptr<Renderer> renderer) {
+    addRenderer(renderer);
+    return std::dynamic_pointer_cast<SimpleWindow>(mPtr.lock());
+}
+std::shared_ptr<SimpleWindow> SimpleWindow::connect(std::vector<std::shared_ptr<Renderer>> renderers) {
+    for(auto renderer : renderers)
+        addRenderer(renderer);
+    return std::dynamic_pointer_cast<SimpleWindow>(mPtr.lock());
+}
+
+SimpleWindow2D::SimpleWindow2D(Color bgcolor, uint width, uint height) : SimpleWindow(true, bgcolor, width, height) {
+}
+
+SimpleWindow3D::SimpleWindow3D(Color bgcolor, uint width, uint height) : SimpleWindow(false, bgcolor, width, height) {
+}
+
 } // end namespace fast
