@@ -109,7 +109,6 @@ class FAST_EXPORT  ProcessObject : public Object {
         std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0);
         std::shared_ptr<ProcessObject> connect(std::shared_ptr<DataObject> inputDataObject);
         std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<DataObject> inputDataObject);
-        std::unique_ptr<DataStream> getDataStream();
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified

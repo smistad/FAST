@@ -612,3 +612,38 @@ TEST_CASE("getOutputData after update should return last output data object", "[
     CHECK_NOTHROW(po->getOutputData());
     CHECK(po->getOutputData<DummyDataObject>()->getID() == data->getID());
 }
+
+TEST_CASE("DataStream", "[ProecssObject][DataStream][Streamer][fast]") {
+    auto streamer = DummyStreamer::New();
+    streamer->setSleepTime(10);
+    const int totalFrames = 20;
+    streamer->setTotalFrames(totalFrames);
+
+    auto stream = streamer->getDataStream();
+    int timestep = 0;
+    while(!stream->isDone()) {
+        auto [data] = stream->getNextFrame();
+        CHECK(timestep == data->getID());
+        ++timestep;
+    }
+    CHECK(timestep == totalFrames);
+}
+
+TEST_CASE("DataStream multi output", "[ProecssObject][DataStream][Streamer][fast]") {
+    auto streamer = DummyStreamer::New();
+    streamer->setSleepTime(10);
+    const int totalFrames = 20;
+    streamer->setTotalFrames(totalFrames);
+
+    auto po = DummyProcessObject3::New();
+
+    auto stream = po->getDataStream();
+    int timestep = 0;
+    while(!stream->isDone()) {
+        auto [data1, data2] = stream->getNextFrame();
+        CHECK(timestep == data1->getID());
+        CHECK(timestep == data2->getID());
+        ++timestep;
+    }
+    CHECK(timestep == totalFrames);
+}

@@ -84,6 +84,23 @@ int DummyProcessObject2::getStaticDataID() const {
     return mStaticID;
 }
 
+DummyProcessObject3::DummyProcessObject3() {
+    createInputPort<DummyDataObject>(0);
+    createOutputPort<DummyDataObject>(0);
+    createOutputPort<DummyDataObject>(1);
+}
+
+void DummyProcessObject3::execute() {
+    std::cout << "Executing PO 3" << std::endl;
+    DummyDataObject::pointer dyanmicInput = getInputData<DummyDataObject>(0);
+
+    auto output = DummyDataObject::New();
+    output->create(dyanmicInput->getID());
+    addOutputData(0, output);
+    auto output1 = DummyDataObject::New();
+    output1->create(dyanmicInput->getID());
+    addOutputData(1, output1);
+}
 
 DummyImporter::DummyImporter() {
     createOutputPort<DummyDataObject>(0);
