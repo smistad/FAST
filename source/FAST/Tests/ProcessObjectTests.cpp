@@ -619,10 +619,10 @@ TEST_CASE("DataStream", "[ProecssObject][DataStream][Streamer][fast]") {
     const int totalFrames = 20;
     streamer->setTotalFrames(totalFrames);
 
-    auto stream = streamer->getDataStream();
+    auto stream = DataStream(streamer);
     int timestep = 0;
-    while(!stream->isDone()) {
-        auto [data] = stream->getNextFrame();
+    while(!stream.isDone()) {
+        auto data = stream.getNextFrame<DummyDataObject>();
         CHECK(timestep == data->getID());
         ++timestep;
     }
@@ -637,12 +637,15 @@ TEST_CASE("DataStream multi output", "[ProecssObject][DataStream][Streamer][fast
 
     auto po = DummyProcessObject3::New();
 
-    auto stream = po->getDataStream();
+    auto stream = DataStream({streamer, po});
     int timestep = 0;
-    while(!stream->isDone()) {
-        auto [data1, data2] = stream->getNextFrame();
+    while(!stream.isDone()) {
+        auto data1 = stream.getNextFrame<DummyDataObject>(0);
+        auto data2 = stream.getNextFrame<DummyDataObject>(1);
+        auto data3 = stream.getNextFrame<DummyDataObject>(2);
         CHECK(timestep == data1->getID());
         CHECK(timestep == data2->getID());
+        CHECK(timestep == data3->getID());
         ++timestep;
     }
     CHECK(timestep == totalFrames);

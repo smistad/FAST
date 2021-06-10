@@ -5,7 +5,7 @@
 namespace fast {
 
 ImageFileStreamer::ImageFileStreamer() {
-    createOutputPort<Image>(0);
+    createOutputPort(0, "Image");
 }
 
 ImageFileStreamer::ImageFileStreamer(std::string filename) {

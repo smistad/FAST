@@ -154,9 +154,17 @@ public
 %include <FAST/Data/Access/OpenGLTextureAccess.hpp>
 %include <FAST/Visualization/Plane.hpp>
 
+@PYFAST_INTERFACE_INCLUDES@
+
 %define ADD_TEMPLATE_METHODS(TYPE)
 %template(updateAndGetOutput ## TYPE) fast::ProcessObject::updateAndGetOutputData<fast::TYPE>;
 %template(getNext ## TYPE) fast::DataChannel::getNextFrame<fast::TYPE>;
+%{
+std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::DataObject> dataObject) {
+    return std::dynamic_pointer_cast<fast::TYPE>(dataObject);
+}
+%}
+std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::DataObject> dataObject);
 %enddef
 
 ADD_TEMPLATE_METHODS(Image)
@@ -167,8 +175,7 @@ ADD_TEMPLATE_METHODS(Mesh)
 ADD_TEMPLATE_METHODS(BoundingBox)
 ADD_TEMPLATE_METHODS(BoundingBoxSet)
 ADD_TEMPLATE_METHODS(Text)
-
-@PYFAST_INTERFACE_INCLUDES@
+%template(getNextFrame) fast::DataChannel::getNextFrame<fast::DataObject>;
 
 // Extend image for numpy support
 %extend fast::Image {
@@ -385,3 +392,14 @@ def New(cls):
         Swig::DirectorMethodException::raise(err_msg.c_str());
     }
 }
+
+// DataStream iterable
+%pythoncode "@PROJECT_SOURCE_DIR@/source/FAST/Python/DataStream.py"
+
+%extend fast::ProcessObject {
+%pythoncode %{
+   def getDataStream(self):
+       return DataStream(self)
+%}
+}
+

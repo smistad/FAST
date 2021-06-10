@@ -5,7 +5,7 @@ import fast
 import matplotlib.pyplot as plt
 import numpy as np
 
-visualize_with_matplotlib = False    # Switch between using FAST and matplotlib for visualization
+visualize_with_matplotlib = True    # Switch between using FAST and matplotlib for visualization
 
 streamer = fast.ImageFileStreamer.create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
 
@@ -19,16 +19,11 @@ blockMatching = fast.BlockMatching.create(
 blockMatching.setIntensityThreshold(75)
 
 if visualize_with_matplotlib:
-    imageChannel = streamer.getOutputPort()
-    vectorChannel = blockMatching.getOutputPort()
-
     frame_nr = 0
-    while True:
-        blockMatching.update()
-        fast_image = imageChannel.getNextImage()
+    for fast_image, vectorField in fast.DataStream(streamer, blockMatching):
         spacing = fast_image.getSpacing()
         image = np.asarray(fast_image)
-        vectorField = np.asarray(vectorChannel.getNextImage())
+        vectorField = np.asarray(vectorField)
 
         if frame_nr > 0: # Skip first frame
             plt.imshow(image[..., 0], cmap='gray', aspect=spacing[1]/spacing[0])

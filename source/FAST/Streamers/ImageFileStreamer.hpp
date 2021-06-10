@@ -4,6 +4,8 @@
 
 namespace fast {
 
+class Image;
+
 /**
  * @brief Stream a sequence of image files from disk
  *
