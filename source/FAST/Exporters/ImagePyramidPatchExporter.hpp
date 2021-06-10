@@ -1,6 +1,6 @@
 #pragma once
 
-#include <FAST/ProcessObject.hpp>
+#include <FAST/Exporters/Exporter.hpp>
 
 namespace fast {
 
@@ -17,9 +17,14 @@ class Image;
  * @ingroup exporters
  * @sa ImagePyramidPatchImporter
  */
-class FAST_EXPORT ImagePyramidPatchExporter : public ProcessObject {
-    FAST_OBJECT(ImagePyramidPatchExporter)
+class FAST_EXPORT ImagePyramidPatchExporter : public Exporter {
+    FAST_PROCESS_OBJECT(ImagePyramidPatchExporter)
     public:
+        FAST_CONSTRUCTOR(ImagePyramidPatchExporter,
+                         std::string, path,,
+                         uint, level, = 0,
+                         uint, width, = 512,
+                         uint, height, = 512)
         /**
          * Path to the folder to put all tiles in. If folder does not exist, it will be created.
          * @param path

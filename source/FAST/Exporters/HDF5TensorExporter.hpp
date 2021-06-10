@@ -1,6 +1,6 @@
 #pragma once
 
-#include <FAST/ProcessObject.hpp>
+#include <FAST/Exporters/FileExporter.hpp>
 
 namespace fast {
 
@@ -15,17 +15,19 @@ namespace fast {
  * @ingroup exporters
  * @sa HDF5TensorImporter
  */
-class FAST_EXPORT HDF5TensorExporter : public ProcessObject {
-	FAST_OBJECT(HDF5TensorExporter)
+class FAST_EXPORT HDF5TensorExporter : public FileExporter {
+	FAST_PROCESS_OBJECT(HDF5TensorExporter)
 	public:
-		void setFilename(std::string name);
-		void setDatasetName(std::string name);
+        FAST_CONSTRUCTOR(HDF5TensorExporter,
+                         std::string, filename,,
+                         std::string, datasetName, = "tensor"
+        )
+        void setDatasetName(std::string name);
 		void loadAttributes() override;
 	private:
 		HDF5TensorExporter();
 		void execute() override;
 
-		std::string m_filename = "";
 		std::string m_datasetName = "tensor";
 };
 

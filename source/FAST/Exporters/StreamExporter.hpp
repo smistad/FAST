@@ -1,11 +1,10 @@
-#ifndef STREAM_EXPORTER_HPP_
-#define STREAM_EXPORTER_HPP_
+#pragma once
 
 #include "FAST/Exporters/FileExporter.hpp"
 
 namespace fast {
 
-class FAST_EXPORT  StreamExporter : public ProcessObject {
+class FAST_EXPORT StreamExporter : public Exporter {
     FAST_OBJECT(StreamExporter)
     public:
         void setFilenameFormat(std::string format);
@@ -22,5 +21,3 @@ class FAST_EXPORT  StreamExporter : public ProcessObject {
 };
 
 }
-
-#endif

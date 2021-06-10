@@ -12,16 +12,24 @@ VTKMeshFileExporter::VTKMeshFileExporter() {
     mWriteColors = false;
 }
 
+VTKMeshFileExporter::VTKMeshFileExporter(std::string filename, bool writeNormals, bool writeColors) : FileExporter(filename) {
+    createInputPort<Mesh>(0);
+    setWriteNormals(writeNormals);
+    setWriteColors(writeColors);
+}
+
 void VTKMeshFileExporter::setWriteNormals(bool writeNormals) {
     mWriteNormals = writeNormals;
+    setModified(true);
 }
 
 void VTKMeshFileExporter::setWriteColors(bool writeColors)  {
     mWriteColors = writeColors;
+    setModified(true);
 }
 
 void VTKMeshFileExporter::execute() {
-    if(mFilename == "")
+    if(m_filename == "")
         throw Exception("No filename given to the VTKMeshFileExporter");
 
     Mesh::pointer mesh = getInputData<Mesh>();
@@ -29,10 +37,10 @@ void VTKMeshFileExporter::execute() {
     // Get transformation
     AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(mesh);
 
-    std::ofstream file(mFilename.c_str());
+    std::ofstream file(m_filename.c_str());
 
     if(!file.is_open())
-        throw Exception("Unable to open the file " + mFilename);
+        throw Exception("Unable to open the file " + m_filename);
 
     // Write header
     file << "# vtk DataFile Version 3.0\n"

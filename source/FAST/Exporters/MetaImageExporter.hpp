@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FAST/ProcessObject.hpp"
+#include "FAST/Exporters/FileExporter.hpp"
 #include <string>
 
 namespace fast {
@@ -19,10 +19,12 @@ namespace fast {
  * @ingroup exporters
  * @sa MetaImageImporter, ImageFileExporter
  */
-class FAST_EXPORT MetaImageExporter : public ProcessObject {
-    FAST_OBJECT(MetaImageExporter)
+class FAST_EXPORT MetaImageExporter : public FileExporter {
+    FAST_PROCESS_OBJECT(MetaImageExporter)
     public:
-        void setFilename(std::string filename);
+        FAST_CONSTRUCTOR(MetaImageExporter,
+                         std::string, filename,,
+                         bool, compress, = false)
         /**
          * Enable or disable lossless compression
          * @param compress
@@ -48,7 +50,6 @@ class FAST_EXPORT MetaImageExporter : public ProcessObject {
         MetaImageExporter();
         void execute();
 
-        std::string mFilename;
         std::map<std::string, std::string> mMetadata;
         bool mUseCompression;
 };

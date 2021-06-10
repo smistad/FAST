@@ -5,16 +5,15 @@
 
 namespace fast {
 
-void MetaImageExporter::setFilename(std::string filename) {
-    mFilename = filename;
-    mIsModified = true;
-}
-
-MetaImageExporter::MetaImageExporter() {
+MetaImageExporter::MetaImageExporter() : FileExporter() {
     createInputPort<Image>(0);
-    mFilename = "";
     mIsModified = true;
     mUseCompression = false;
+}
+
+MetaImageExporter::MetaImageExporter(std::string filename, bool compress) : FileExporter(filename) {
+    createInputPort<Image>(0);
+    setCompression(compress);
 }
 
 template <class T>
@@ -62,21 +61,21 @@ inline std::size_t writeToRawFile(std::string filename, T * data, unsigned int n
 }
 
 void MetaImageExporter::execute() {
-    if(mFilename == "")
+    if(m_filename == "")
         throw Exception("No filename was given to the MetaImageExporter");
 
     Image::pointer input = getInputData<Image>();
 
     // Check that filename ends with .mhd if not, append it
-    if(mFilename.substr(mFilename.length()-4) != ".mhd") {
-        mFilename += ".mhd";
+    if(m_filename.substr(m_filename.length()-4) != ".mhd") {
+        m_filename += ".mhd";
     }
 
     // Create mhd file
     std::fstream mhdFile;
-    mhdFile.open(mFilename.c_str(), std::fstream::out);
+    mhdFile.open(m_filename.c_str(), std::fstream::out);
     if(!mhdFile.is_open()) {
-        throw Exception("Could not open file " + mFilename + " for writing");
+        throw Exception("Could not open file " + m_filename + " for writing");
     }
 
     mhdFile << "ObjectType = Image\n";
@@ -107,12 +106,12 @@ void MetaImageExporter::execute() {
     mhdFile << "Timestamp = " << std::to_string(input->getCreationTimestamp()) << "\n";
 
     // Save to raw file
-    // set rawFilename, by removing the end .mhd from mFilename and add .raw
+    // set rawFilename, by removing the end .mhd from m_filename and add .raw
     std::string extension = ".raw";
     if(mUseCompression) {
         extension = ".zraw";
     }
-    std::string rawFilename = mFilename.substr(0,mFilename.length()-4) + extension;
+    std::string rawFilename = m_filename.substr(0,m_filename.length()-4) + extension;
     const unsigned int numberOfElements = input->getWidth()*input->getHeight()*
             input->getDepth()*input->getNrOfChannels();
 

@@ -10,25 +10,22 @@
 
 namespace fast {
 
-void ImageExporter::setFilename(std::string filename) {
-    mFilename = std::move(filename);
-    setModified(true);
-}
 
 void ImageExporter::loadAttributes() {
     setFilename(getStringAttribute("filename"));
 }
 
-ImageExporter::ImageExporter() {
-    createInputPort<Image>(0);
-    mFilename = "";
+ImageExporter::ImageExporter() : ImageExporter("") {
+}
 
-    createStringAttribute("filename", "Filename", "Path to file to load", mFilename);
+ImageExporter::ImageExporter(std::string filename) : FileExporter(filename) {
+    createInputPort<Image>(0);
+    createStringAttribute("filename", "Filename", "Path to file to load", filename);
 }
 
 void ImageExporter::execute() {
 #ifdef FAST_MODULE_VISUALIZATION
-    if(mFilename.empty())
+    if(m_filename.empty())
         throw Exception("No filename given to ImageExporter");
 
     auto input = getInputData<Image>();
@@ -101,7 +98,7 @@ void ImageExporter::execute() {
         }
     }
 
-    image.save(QString(mFilename.c_str()));
+    image.save(QString(m_filename.c_str()));
 
 #else
     throw Exception("The ImageExporter need Qt to work, but the visualization module is disabled");

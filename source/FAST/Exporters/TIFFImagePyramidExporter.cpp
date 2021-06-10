@@ -13,18 +13,18 @@ void fast::TIFFImagePyramidExporter::loadAttributes() {
 }
 
 void TIFFImagePyramidExporter::execute() {
-    if(mFilename.empty())
+    if(m_filename.empty())
         throw Exception("Must set filename in TIFFImagePyramidExporter");
 
     auto imagePyramid = getInputData<ImagePyramid>();
 
     if(imagePyramid->usesTIFF()) {
         // If image pyramid is using TIFF backend. It is already stored on disk, we just need to copy it..
-        if(fileExists(mFilename)) {
+        if(fileExists(m_filename)) {
             // If destination file already exists, we have to remove the existing file, or copy will not run.
-            QFile::remove(mFilename.c_str());
+            QFile::remove(m_filename.c_str());
         }
-        QFile::copy(imagePyramid->getTIFFPath().c_str(), mFilename.c_str());
+        QFile::copy(imagePyramid->getTIFFPath().c_str(), m_filename.c_str());
         return;
     }
     // If not, we need to do a patch based copy
@@ -51,9 +51,9 @@ void TIFFImagePyramidExporter::execute() {
         samplesPerPixel = 1;
     }
 
-    auto tiff = TIFFOpen(mFilename.c_str(), "w8");
+    auto tiff = TIFFOpen(m_filename.c_str(), "w8");
     if(tiff == nullptr) {
-        throw Exception("Unable to open file " + mFilename + " in TIFFImagePyramidExporter");
+        throw Exception("Unable to open file " + m_filename + " in TIFFImagePyramidExporter");
     }
 
     // For each level, we need to 1) write fields, 2) write tiles

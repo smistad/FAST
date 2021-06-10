@@ -13,9 +13,14 @@ namespace fast {
  * @sa VTKMeshFileImporter
  * @ingroup exporters
  */
-class FAST_EXPORT  VTKMeshFileExporter : public FileExporter {
-    FAST_OBJECT(VTKMeshFileExporter);
+class FAST_EXPORT VTKMeshFileExporter : public FileExporter {
+    FAST_PROCESS_OBJECT(VTKMeshFileExporter);
     public:
+        FAST_CONSTRUCTOR(VTKMeshFileExporter,
+                         std::string, filename,,
+                         bool, writeNormals, = false,
+                         bool, writeColors, = false
+        )
         void setWriteNormals(bool writeNormals);
         void setWriteColors(bool writeColors);
     private:

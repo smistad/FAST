@@ -5,11 +5,6 @@
 
 namespace fast {
 
-void HDF5TensorExporter::setFilename(std::string filename) {
-	m_filename = filename;
-	setModified(true);
-}
-
 void HDF5TensorExporter::setDatasetName(std::string name) {
 	m_datasetName = name;
 	setModified(true);
@@ -20,11 +15,15 @@ void HDF5TensorExporter::loadAttributes() {
 	setDatasetName(getStringAttribute("name"));
 }
 
-HDF5TensorExporter::HDF5TensorExporter() {
-	createInputPort<Tensor>(0);
 
-	createStringAttribute("filename", "Filename", "Path to file to export to", "");
-	createStringAttribute("name", "Dataset name", "Name of dataset tensor to write", m_datasetName);
+
+HDF5TensorExporter::HDF5TensorExporter() : HDF5TensorExporter("", "tensor") {
+}
+
+HDF5TensorExporter::HDF5TensorExporter(std::string filename, std::string datasetName) : FileExporter(filename) {
+    createInputPort(0, "Tensor");
+    createStringAttribute("name", "Dataset name", "Name of dataset tensor to write", datasetName);
+    setDatasetName(datasetName);
 }
 
 void HDF5TensorExporter::execute() {

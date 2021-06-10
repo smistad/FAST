@@ -10,8 +10,15 @@ namespace fast {
 
 ImagePyramidPatchExporter::ImagePyramidPatchExporter() {
     createInputPort<Image>(0); // Can be both ImagePyramid an stream of images
-
     createStringAttribute("path", "Path", "Path to where to store image patches", m_path);
+}
+
+ImagePyramidPatchExporter::ImagePyramidPatchExporter(std::string path, uint level, uint width, uint height) {
+    createInputPort<Image>(0); // Can be both ImagePyramid an stream of images
+    createStringAttribute("path", "Path", "Path to where to store image patches", path);
+    setPath(path);
+    setLevel(level);
+    setPatchSize(width, height);
 }
 
 void ImagePyramidPatchExporter::execute() {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FAST/ProcessObject.hpp"
+#include <FAST/Exporters/FileExporter.hpp>
 #include <string>
 
 namespace fast {
@@ -17,16 +17,14 @@ namespace fast {
  * @ingroup exporters
  * @sa ImageImporter
  */
-class FAST_EXPORT ImageExporter : public ProcessObject {
-    FAST_OBJECT(ImageExporter)
+class FAST_EXPORT ImageExporter : public FileExporter {
+    FAST_PROCESS_OBJECT(ImageExporter)
     public:
-        void setFilename(std::string filename);
+        FAST_CONSTRUCTOR(ImageExporter, std::string, filename,)
         void loadAttributes() override;
     private:
         ImageExporter();
         void execute() override;
-
-        std::string mFilename;
 };
 
 

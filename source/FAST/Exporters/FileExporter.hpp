@@ -11,9 +11,12 @@ class FAST_EXPORT FileExporter : public Exporter {
        virtual void setFilename(std::string filename);
        void loadAttributes();
    protected:
-       std::string mFilename;
+       std::string m_filename;
    protected:
        FileExporter();
+       FileExporter(std::string filename) {
+           setFilename(m_filename);
+       }
        void execute() = 0;
 
    };

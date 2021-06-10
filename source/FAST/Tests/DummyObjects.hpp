@@ -76,7 +76,6 @@ class DummyProcessObject2 : public ProcessObject {
 class DummyProcessObject3 : public ProcessObject {
     FAST_PROCESS_OBJECT(DummyProcessObject3)
     public:
-        FAST_OUTPUT_PORTS(DummyDataObject, DummyDataObject)
     private:
         DummyProcessObject3();
         void execute();
@@ -85,7 +84,6 @@ class DummyProcessObject3 : public ProcessObject {
 class DummyStreamer : public Streamer {
     FAST_OBJECT(DummyStreamer)
     public:
-        FAST_OUTPUT_PORTS(DummyDataObject)
         void setSleepTime(uint milliseconds);
         void setTotalFrames(uint frames);
         bool hasReachedEnd();

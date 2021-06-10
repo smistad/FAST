@@ -1,5 +1,4 @@
-#ifndef MESHACCESS_HPP_
-#define MESHACCESS_HPP_
+#pragma once
 
 #include <vector>
 #include <FAST/Data/DataTypes.hpp>
@@ -46,5 +45,3 @@ class FAST_EXPORT  MeshAccess {
 
 } // end namespace fast
 
-
-#endif /* MESHACCESS_HPP_ */

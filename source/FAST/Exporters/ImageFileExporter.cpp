@@ -7,14 +7,12 @@
 
 namespace fast {
 
-void ImageFileExporter::setFilename(std::string filename) {
-    mFilename = std::move(filename);
-    mIsModified = true;
+ImageFileExporter::ImageFileExporter() : ImageFileExporter("") {
 }
 
-ImageFileExporter::ImageFileExporter() {
-    mFilename = "";
+ImageFileExporter::ImageFileExporter(std::string filename, bool compress) : FileExporter(filename) {
     createInputPort<Image>(0);
+    setCompression(compress);
 }
 
 inline bool matchExtension(std::string extension, std::string extension2) {
@@ -25,21 +23,21 @@ inline bool matchExtension(std::string extension, std::string extension2) {
 }
 
 void ImageFileExporter::execute() {
-    if(mFilename.empty())
+    if(m_filename.empty())
         throw Exception("No filename was given to the ImageFileExporter");
 
     Image::pointer input = getInputData<Image>();
 
     // Get file extension
-    size_t pos = mFilename.rfind(".", -5);
+    size_t pos = m_filename.rfind(".", -5);
     if(pos == std::string::npos) {
         throw Exception("ImageFileExporter filename had no extension");
     } else {
-        std::string ext = mFilename.substr(pos + 1);
+        std::string ext = m_filename.substr(pos + 1);
         if(matchExtension(ext, "mhd")) {
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
             exporter->setInputData(input);
-            exporter->setFilename(mFilename);
+            exporter->setFilename(m_filename);
             exporter->setCompression(mCompress);
             exporter->update();
         } else if(matchExtension(ext, "jpg") ||
@@ -48,7 +46,7 @@ void ImageFileExporter::execute() {
                   matchExtension(ext, "bmp")) {
 #ifdef FAST_MODULE_VISUALIZATION
             ImageExporter::pointer exporter = ImageExporter::New();
-            exporter->setFilename(mFilename);
+            exporter->setFilename(m_filename);
             exporter->setInputData(input);
             exporter->update();
 #else
