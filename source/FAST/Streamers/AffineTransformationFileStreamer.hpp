@@ -1,6 +1,4 @@
-#ifndef AFFINE_TRANSFORMATION_FILE_STREAMER_HPP
-#define AFFINE_TRANSFORMATION_FILE_STREAMER_HPP
-
+#pragma once
 
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
@@ -9,8 +7,12 @@
 namespace fast {
 
 class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer {
-    FAST_OBJECT(AffineTransformationFileStreamer)
+    FAST_PROCESS_OBJECT(AffineTransformationFileStreamer)
     public:
+        FAST_CONSTRUCTOR(AffineTransformationFileStreamer,
+                         std::string, filename,,
+                         std::string, timestampFilename,
+        )
         void setFilename(std::string str);
         void setTimestampFilename(std::string filepath);
         void enableLooping();
@@ -46,5 +48,3 @@ class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer {
 };
 
 } // end namespace fast
-
-#endif

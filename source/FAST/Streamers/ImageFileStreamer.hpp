@@ -28,9 +28,13 @@ class FAST_EXPORT ImageFileStreamer : public FileStreamer {
          *
          * @param filenameFormat String of path and format of images. E.g. /path/to/files/frame_#.mhd. The hash sign #
          * will be replaced by an index
+         * @param loop Whether to loop the recording or not
          * @return
          */
-        FAST_CONSTRUCTOR(ImageFileStreamer, std::string, filenameFormat,)
+        FAST_CONSTRUCTOR(ImageFileStreamer,
+                         std::string, filenameFormat,,
+                         bool, loop, = false
+        )
     protected:
         DataObject::pointer getDataFrame(std::string filename) override;
 

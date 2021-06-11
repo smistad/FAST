@@ -21,10 +21,14 @@ class UFFData;
  * @ingroup streamers
 */
 class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
-    FAST_OBJECT(UFFStreamer)
+    FAST_PROCESS_OBJECT(UFFStreamer)
 
     public:
-        UFFStreamer();
+        FAST_CONSTRUCTOR(UFFStreamer,
+             std::string, filename,,
+             bool, loop, = false,
+             uint, framerate, = 30
+        )
         void setFilename(std::string filename);
         void execute() override;
         int getNrOfFrames() override;
@@ -34,6 +38,7 @@ class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
         ~UFFStreamer();
 
     protected:
+        UFFStreamer();
         void generateStream() override;
         std::string m_filename;
         std::string m_name;

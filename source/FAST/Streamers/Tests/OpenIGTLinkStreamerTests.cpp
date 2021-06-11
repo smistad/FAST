@@ -22,8 +22,8 @@ TEST_CASE("Stream 2D images using OpenIGTLinkStreamer", "[OpenIGTLinkStreamer][f
     streamer->setConnectionPort(18944);
 
     auto addTransformation = AddTransformation::New();
-    addTransformation->setInputConnection(streamer->getOutputPort<Image>("DummyImage"));
-    addTransformation->setTransformationInputConnection(streamer->getOutputPort<AffineTransformation>("DummyTransform"));
+    addTransformation->setInputConnection(streamer->getOutputPort("DummyImage"));
+    addTransformation->setTransformationInputConnection(streamer->getOutputPort("DummyTransform"));
 
     auto renderer = ImageRenderer::New();
     renderer->addInputConnection(addTransformation->getOutputPort());

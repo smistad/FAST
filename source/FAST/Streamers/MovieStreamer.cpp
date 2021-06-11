@@ -122,6 +122,12 @@ MovieStreamer::MovieStreamer() {
     createBooleanAttribute("grayscale", "Grayscale", "Convert movie to grayscale while streaming", mGrayscale);
 }
 
+MovieStreamer::MovieStreamer(std::string filename, bool grayscale) {
+    createOutputPort(0, "Image");
+    setFilename(filename);
+    setGrayscale(grayscale);
+}
+
 MovieStreamerWorker::MovieStreamerWorker(MovieStreamer* streamer) {
     mStreamer = streamer;
 }

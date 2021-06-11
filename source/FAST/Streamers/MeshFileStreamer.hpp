@@ -15,10 +15,13 @@ namespace fast {
  * @ingroup streamers
  */
 class FAST_EXPORT  MeshFileStreamer : public FileStreamer {
-    FAST_OBJECT(MeshFileStreamer)
+    FAST_PROCESS_OBJECT(MeshFileStreamer)
+    public:
+        FAST_CONSTRUCTOR(MeshFileStreamer,
+                         std::string, filenameFormat,,
+                         bool, loop, = false)
     protected:
         DataObject::pointer getDataFrame(std::string filename);
-    private:
         MeshFileStreamer();
 
 };

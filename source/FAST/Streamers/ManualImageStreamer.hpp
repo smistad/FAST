@@ -10,8 +10,9 @@ namespace fast {
 class Image;
 
 class FAST_EXPORT  ManualImageStreamer : public Streamer {
-    FAST_OBJECT(ManualImageStreamer)
+    FAST_PROCESS_OBJECT(ManualImageStreamer)
     public:
+        FAST_CONSTRUCTOR(ManualImageStreamer)
     	void addImage(std::shared_ptr<Image> image);
         void addSequence(std::vector<std::shared_ptr<Image>> images);
         void setStartNumber(uint startNumber);
@@ -35,7 +36,6 @@ class FAST_EXPORT  ManualImageStreamer : public Streamer {
 
         ~ManualImageStreamer();
     private:
-        ManualImageStreamer();
 
         // Update the streamer if any parameters have changed
         void execute();

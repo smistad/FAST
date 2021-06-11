@@ -368,16 +368,17 @@ void OpenIGTLinkStreamer::loadAttributes() {
     setConnectionPort(getIntegerAttribute("port"));
 }
 
-OpenIGTLinkStreamer::OpenIGTLinkStreamer() {
+OpenIGTLinkStreamer::OpenIGTLinkStreamer(std::string ipAddress, int port) {
     mIsModified = true;
     mNrOfFrames = 0;
-    mAddress = "localhost";
-    mPort = 18944;
     mMaximumNrOfFramesSet = false;
     mInFreezeMode = false;
 
-    createStringAttribute("address", "Connection address", "Connection address", mAddress);
-    createIntegerAttribute("port", "Connection port", "Connection port", mPort);
+    createStringAttribute("address", "Connection address", "Connection address", ipAddress);
+    createIntegerAttribute("port", "Connection port", "Connection port", port);
+
+    setConnectionAddress(ipAddress);
+    setConnectionPort(port);
 }
 
 void OpenIGTLinkStreamer::execute() {
@@ -420,4 +421,27 @@ float OpenIGTLinkStreamer::getCurrentFramerate() {
     return 1000.0f/((float)sum / counter); // Timestamps are i milliseconds. get framerate in per second
 }
 
+DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(std::string deviceName) {
+    uint portID;
+    if(mOutputPortDeviceNames.count(deviceName) == 0) {
+        portID = getNrOfOutputPorts();
+        createOutputPort(portID);
+        mOutputPortDeviceNames[deviceName] = portID;
+    } else {
+        portID = mOutputPortDeviceNames[deviceName];
+    }
+    return ProcessObject::getOutputPort(portID);
+}
+
+uint OpenIGTLinkStreamer::createOutputPortForDevice(std::string deviceName) {
+    uint portID;
+    if(mOutputPortDeviceNames.count(deviceName) == 0) {
+        portID = getNrOfOutputPorts();
+        createOutputPort(portID);
+        mOutputPortDeviceNames[deviceName] = portID;
+    } else {
+        portID = mOutputPortDeviceNames[deviceName];
+    }
+    return portID;
+}
 } // end namespace fast

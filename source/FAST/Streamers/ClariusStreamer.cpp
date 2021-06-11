@@ -6,18 +6,21 @@
 namespace fast {
 
 
-ClariusStreamer::ClariusStreamer() {
+ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale) {
 	Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     createOutputPort<Image>(0);
     mNrOfFrames = 0;
     mFirstFrameIsInserted = false;
     mStreamIsStarted = false;
     mIsModified = true;
-    mGrayscale = true;
+    mGrayscale = grayscale;
 
-    createStringAttribute("ip", "IP address", "IP address of Clarius device to connect to", mIPAddress);
-    createIntegerAttribute("port", "Port number", "Port number of Clarius device to connect to", mPort);
+    createStringAttribute("ip", "IP address", "IP address of Clarius device to connect to", ipAddress);
+    createIntegerAttribute("port", "Port number", "Port number of Clarius device to connect to", port);
     createBooleanAttribute("grayscale", "Grayscale", "Convert input image to grayscale", mGrayscale);
+
+    setConnectionAddress(ipAddress);
+    setConnectionPort(port);
 }
 
 void ClariusStreamer::loadAttributes() {

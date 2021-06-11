@@ -95,6 +95,18 @@
 #endif
 
 // FAST constructor macros, not pretty and very repetitive, but it works.
+
+
+#define FAST_CONSTRUCTOR1(className) \
+    static std::shared_ptr<className> create() {\
+        std::shared_ptr<className> ptr(new className());   \
+        ptr->setPtr(ptr);\
+        return ptr;\
+    };                                             \
+    protected:\
+        explicit className();                 \
+    public:\
+
 #define FAST_CONSTRUCTOR4(className, TYPE1, NAME1, VAL1) \
     static std::shared_ptr<className> create(TYPE1 NAME1 VAL1) {\
         std::shared_ptr<className> ptr(new className(std::move(NAME1)));   \

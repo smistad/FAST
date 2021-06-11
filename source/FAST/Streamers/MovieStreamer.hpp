@@ -23,8 +23,12 @@ class MovieStreamerWorker;
  * @ingroup streamers
  */
 class FAST_EXPORT MovieStreamer : public Streamer {
-    FAST_OBJECT(MovieStreamer)
+    FAST_PROCESS_OBJECT(MovieStreamer)
     public:
+        FAST_CONSTRUCTOR(MovieStreamer,
+                         std::string, filename,,
+                         bool, grayscale, = true
+        )
         void setFilename(std::string filename);
         std::string getFilename() const;
         bool hasReachedEnd();

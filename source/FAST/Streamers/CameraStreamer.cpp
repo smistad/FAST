@@ -63,14 +63,14 @@ public:
     }
 };
 
-
-CameraStreamer::CameraStreamer() {
-    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
+CameraStreamer::CameraStreamer(bool grayscale, uchar cameraIndex) {
     createOutputPort<Image>(0);
-    mIsModified = true;
 
-    createBooleanAttribute("grayscale", "Grayscale", "Convert camera to grayscale while streaming", mGrayscale);
-    createIntegerAttribute("camera", "Camera Index", "Select which camera to use", m_cameraIndex);
+    setGrayscale(grayscale);
+    setCamera(cameraIndex);
+
+    createBooleanAttribute("grayscale", "Grayscale", "Convert camera to grayscale while streaming", grayscale);
+    createIntegerAttribute("camera", "Camera Index", "Select which camera to use", cameraIndex);
 }
 
 void CameraStreamer::loadAttributes() {

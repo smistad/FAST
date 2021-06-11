@@ -1,5 +1,4 @@
-#ifndef FAST_KINECT_STREAMER_HPP_
-#define FAST_KINECT_STREAMER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "Streamer.hpp"
@@ -27,8 +26,9 @@ class MeshVertex;
  * @ingroup streamers
  */
 class FAST_EXPORT RealSenseStreamer : public Streamer {
-    FAST_OBJECT(RealSenseStreamer);
+    FAST_PROCESS_OBJECT(RealSenseStreamer);
     public:
+        FAST_CONSTRUCTOR(RealSenseStreamer)
         /**
          * Set maximum range in millimeters. All points above this range will be dropped.
          * @param range
@@ -55,8 +55,6 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
         MeshVertex getPoint(int x, int y);
         ~RealSenseStreamer();
     private:
-        RealSenseStreamer();
-
         void execute();
         void generateStream() override;
 
@@ -75,5 +73,3 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
 };
 
 }
-
-#endif

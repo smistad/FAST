@@ -8,9 +8,11 @@ ImageFileStreamer::ImageFileStreamer() {
     createOutputPort(0, "Image");
 }
 
-ImageFileStreamer::ImageFileStreamer(std::string filename) {
+ImageFileStreamer::ImageFileStreamer(std::string filename, bool loop) {
     createOutputPort(0, "Image");
     setFilenameFormat(filename);
+    if(loop)
+        enableLooping();
 }
 
 DataObject::pointer ImageFileStreamer::getDataFrame(std::string filename) {

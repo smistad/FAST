@@ -378,13 +378,20 @@ void UFFStreamer::execute() {
 }
 
 UFFStreamer::UFFStreamer() {
-	createOutputPort<Image>(0);
+	createOutputPort(0, "Image");
 	m_loop = false;
 	m_framerate = 30;
 
 	createStringAttribute("filename", "Filename", "File to stream UFF data from", "");
 	createStringAttribute("name", "Group name", "Name of which beamformed_data group to stream from", "");
 	createBooleanAttribute("loop", "Loop", "Loop recordin", false);
+}
+
+UFFStreamer::UFFStreamer(std::string filename, bool loop, uint framerate) {
+    createOutputPort(0, "Image");
+    setFilename(filename);
+    setLooping(loop);
+    setFramerate(framerate);
 }
 
 void UFFStreamer::loadAttributes() {

@@ -22,8 +22,9 @@ class CameraWorker;
  * @ingroup streamers
  */
 class FAST_EXPORT CameraStreamer : public Streamer {
-	FAST_OBJECT(CameraStreamer)
+	FAST_PROCESS_OBJECT(CameraStreamer)
 	public:
+        FAST_CONSTRUCTOR(CameraStreamer, bool, grayscale, = false, uchar, cameraIndex, = 0)
 		void setFinished(bool finished);
         void addNewImageFrame(const uchar* data, int width, int height);
 		bool getGrayscale() const;
@@ -31,10 +32,8 @@ class FAST_EXPORT CameraStreamer : public Streamer {
         void loadAttributes() override;
         void setCamera(uchar index);
 	protected:
-		CameraStreamer();
 		void execute() override;
         void generateStream() override {};
-
 
 		bool mGrayscale = false;
 		bool m_finished = false;

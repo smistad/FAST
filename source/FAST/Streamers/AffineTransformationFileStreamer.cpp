@@ -17,6 +17,11 @@ AffineTransformationFileStreamer::AffineTransformationFileStreamer() {
     createOutputPort<AffineTransformation>(0);
 }
 
+AffineTransformationFileStreamer::AffineTransformationFileStreamer(std::string filename, std::string timestampFilename) : AffineTransformationFileStreamer() {
+    setFilename(filename);
+    setTimestampFilename(timestampFilename);
+}
+
 void AffineTransformationFileStreamer::setSleepTime(uint milliseconds) {
     mSleepTime = milliseconds;
 }

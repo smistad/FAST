@@ -26,8 +26,12 @@ class IGTLSocketWrapper;
  * @ingroup streamers
  */
 class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
-    FAST_OBJECT(OpenIGTLinkStreamer)
+    FAST_PROCESS_OBJECT(OpenIGTLinkStreamer)
     public:
+        FAST_CONSTRUCTOR(OpenIGTLinkStreamer,
+                         std::string, ipAddress, = "localhost",
+                         int, port, = 18944
+        )
 		std::set<std::string> getImageStreamNames();
 		std::set<std::string> getTransformStreamNames();
 		std::vector<std::string> getActiveImageStreamNames();
@@ -43,8 +47,10 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
 		 */
 		DataChannel::pointer getOutputPort(uint portID = 0) override;
 
-        template<class T>
         DataChannel::pointer getOutputPort(std::string deviceName);
+
+        // V4 TODO: Need a method to set which output port related to device name
+        uint createOutputPortForDevice(std::string deviceName);
 
         /**
          * This method runs in a separate thread and adds frames to the
@@ -57,8 +63,6 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
 
         float getCurrentFramerate();
     private:
-        OpenIGTLinkStreamer();
-
         // Update the streamer if any parameters have changed
         void execute();
 
@@ -87,18 +91,8 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
 
 
 
-template<class T>
-DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(std::string deviceName) {
-	uint portID;
-	if(mOutputPortDeviceNames.count(deviceName) == 0) {
-		portID = getNrOfOutputPorts();
-		createOutputPort<T>(portID);
-		mOutputPortDeviceNames[deviceName] = portID;
-	} else {
-		portID = mOutputPortDeviceNames[deviceName];
-	}
-    return ProcessObject::getOutputPort(portID);
-}
+
+
 
 
 

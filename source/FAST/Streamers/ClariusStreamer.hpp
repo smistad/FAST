@@ -21,8 +21,13 @@ namespace fast {
  * @ingroup streamers
  */
 class FAST_EXPORT ClariusStreamer : public Streamer {
-    FAST_OBJECT(ClariusStreamer)
+    FAST_PROCESS_OBJECT(ClariusStreamer)
     public:
+        FAST_CONSTRUCTOR(ClariusStreamer,
+                         std::string, ipAddress, = "192.168.1.1",
+                         int, port, = 5858,
+                         bool, grayscale, = true
+        )
         void setConnectionAddress(std::string ipAddress);
         void setConnectionPort(int port);
         void stop();
@@ -42,7 +47,6 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         void setGain(float gain);
         void loadAttributes() override;
 	private:
-        ClariusStreamer();
         void execute();
         void generateStream() override {};
 

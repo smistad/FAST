@@ -1,5 +1,4 @@
-#ifndef FAST_KINECT_STREAMER_HPP_
-#define FAST_KINECT_STREAMER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "Streamer.hpp"
@@ -77,5 +76,3 @@ class FAST_EXPORT KinectStreamer : public Streamer {
 };
 
 }
-
-#endif
