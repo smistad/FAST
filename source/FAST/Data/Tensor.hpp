@@ -21,6 +21,7 @@ class OpenCLBufferAccess;
 class FAST_EXPORT Tensor : public SpatialDataObject {
     FAST_OBJECT_V4(Tensor)
     public:
+#ifndef SWIG
         /**
          * Create a tensor using the provided data and shape.
          * @param data
@@ -33,17 +34,17 @@ class FAST_EXPORT Tensor : public SpatialDataObject {
          * @param shape
          */
         FAST_CONSTRUCTOR(Tensor, const float* const, data,, TensorShape, shape,)
-
-        /**
-         * Create an unitialized tensor with the provided shape
-         * @param shape
-         */
-        FAST_CONSTRUCTOR(Tensor, TensorShape, shape,)
 		/**
 		 * Create a 1D tensor with the provided data. Its shape will be equal to its length
 		 * @param data
 		 */
 		FAST_CONSTRUCTOR(Tensor, std::initializer_list<float>, data,)
+#endif
+        /**
+         * Create an unitialized tensor with the provided shape
+         * @param shape
+         */
+        FAST_CONSTRUCTOR(Tensor, TensorShape, shape,)
 		/**
 		 * Add a dimension of size 1 at provided position. -1 is last position.
 		 * @param position
