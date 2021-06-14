@@ -44,4 +44,10 @@ LabelColorRenderer::~LabelColorRenderer() noexcept {
     glDeleteBuffers(1, &m_colorsUBO);
 }
 
+void LabelColorRenderer::setColors(std::map<uint, Color> colors) {
+    m_labelColors = std::move(colors);
+    if(m_labelColors.count(255) == 0)
+        m_labelColors[255] = Color::Cyan();
+}
+
 }

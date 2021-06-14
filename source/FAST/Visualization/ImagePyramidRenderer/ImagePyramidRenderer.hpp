@@ -10,15 +10,15 @@ class ImagePyramid;
 class ImageSharpening;
 
 class FAST_EXPORT ImagePyramidRenderer : public Renderer {
-    FAST_OBJECT(ImagePyramidRenderer)
+    FAST_PROCESS_OBJECT(ImagePyramidRenderer)
     public:
+        FAST_CONSTRUCTOR(ImagePyramidRenderer, bool, sharpening, = true)
         void setSharpening(bool sharpening);
         bool getSharpening() const;
         void loadAttributes() override;
         ~ImagePyramidRenderer() override;
         void clearPyramid();
     private:
-        ImagePyramidRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
 
         std::unordered_map<std::string, uint> mTexturesToRender;

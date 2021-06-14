@@ -15,20 +15,23 @@ void SegmentationLabelRenderer::loadAttributes() {
     }
     auto classColors = getStringListAttribute("label-color");
     for(int i = 0; i < classColors.size(); i += 2) {
-        setLabelColor(std::stoi(classColors[i]), Color::fromString(classColors[i+1]));
+        setColor(std::stoi(classColors[i]), Color::fromString(classColors[i+1]));
     }
     setAreaThreshold(getFloatAttribute("area-threshold"));
 }
 
 void SegmentationLabelRenderer::setAreaThreshold(float threshold) {
     m_areaThreshold = threshold;
+    setModified(true);
 }
 
-SegmentationLabelRenderer::SegmentationLabelRenderer() {
+SegmentationLabelRenderer::SegmentationLabelRenderer(std::map<uint, std::string> labelNames, std::map<uint, Color> labelColors, float areaThreshold) {
     createInputPort(0, "Image");
     m_2Donly = true;
     mFontSize = 28;
-    m_areaThreshold = 1.0f;
+    setLabelNames(labelNames);
+    setColors(labelColors);
+    setAreaThreshold(areaThreshold);
 
     createShaderProgram({
                                 Config::getKernelSourcePath() + "/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.vert",
@@ -264,12 +267,14 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
     glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the line renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
-void SegmentationLabelRenderer::setLabelName(int label, std::string name) {
+void SegmentationLabelRenderer::setLabelName(uint label, std::string name) {
     m_labelNames[label] = name;
+    setModified(true);
 }
 
-void SegmentationLabelRenderer::setLabelColor(int label, Color color) {
-    m_labelColors[label] = color;
+void SegmentationLabelRenderer::setLabelNames(std::map<uint, std::string> labelNames) {
+    m_labelNames = labelNames;
+    setModified(true);
 }
 
 

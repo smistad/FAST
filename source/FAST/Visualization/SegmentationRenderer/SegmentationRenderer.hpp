@@ -22,15 +22,21 @@ class ImagePyramid;
  * @ingroup renderers
  */
 class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColorRenderer {
-    FAST_OBJECT(SegmentationRenderer)
+    FAST_PROCESS_OBJECT(SegmentationRenderer)
     public:
+        FAST_CONSTRUCTOR(SegmentationRenderer,
+                         (std::map<uint, Color>), labelColors, = {},
+                         float, opacity, = 0.5f,
+                         float, borderOpacity, = 0.5f,
+                         int, borderRadius, = 2,
+                         bool, interpolation, = true
+        )
         void setBorderRadius(int radius);
         void setOpacity(float opacity, float borderOpacity = -1);
         void setInterpolation(bool useInterpolation);
         void loadAttributes() override;
         virtual ~SegmentationRenderer();
     protected:
-        SegmentationRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
         void drawPyramid(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar);
         void drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) ;

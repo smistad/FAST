@@ -41,7 +41,7 @@ ImagePyramidRenderer::~ImagePyramidRenderer() {
     clearPyramid();
 }
 
-ImagePyramidRenderer::ImagePyramidRenderer() : Renderer() {
+ImagePyramidRenderer::ImagePyramidRenderer(bool sharpening) : Renderer() {
     createInputPort(0, "ImagePyramid", "", false);
     m_2Donly = true;
     mIsModified = true;
@@ -55,6 +55,7 @@ ImagePyramidRenderer::ImagePyramidRenderer() : Renderer() {
 
     m_sharpening = ImageSharpening::New();
     m_sharpening->setStandardDeviation(1.5f);
+    setSharpening(sharpening);
 }
 
 

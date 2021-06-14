@@ -4,7 +4,7 @@
 
 namespace fast {
 
-BoundingBoxRenderer::BoundingBoxRenderer() {
+BoundingBoxRenderer::BoundingBoxRenderer(std::map<uint, Color> labelColors) {
     m_2Donly = true;
     createInputPort<BoundingBoxSet>(0, false);
 
@@ -13,6 +13,7 @@ BoundingBoxRenderer::BoundingBoxRenderer() {
         Config::getKernelSourcePath() + "Visualization/BoundingBoxRenderer/BoundingBoxRenderer.frag",
     });
 
+    setColors(labelColors);
 }
 
 

@@ -6,6 +6,7 @@
 #include "FAST/Reporter.hpp"
 #include <memory>
 
+
 #define FAST_OBJECT(className)                                  \
     public:                                                     \
         typedef std::shared_ptr<className> pointer;               \
@@ -80,6 +81,10 @@
 //#define FAST_VA_NUM_ARGS(...) FAST_VA_NUM_ARGS_IMPL(__VA_ARGS__, 16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1)
 //#define FAST_VA_NUM_ARGS_IMPL(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,N,...) N
 
+// For extracting type in parathensis
+template<typename T> struct argument_type;
+template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
+
 // Macro for choosing function based on nr of arguments
 #define FAST_macro_dispatcher(func, ...) \
             FAST_macro_dispatcher_(func, FAST_GET_ARG_COUNT(__VA_ARGS__))
@@ -108,64 +113,64 @@
     public:\
 
 #define FAST_CONSTRUCTOR4(className, TYPE1, NAME1, VAL1) \
-    static std::shared_ptr<className> create(TYPE1 NAME1 VAL1) {\
+    static std::shared_ptr<className> create(argument_type<void(TYPE1)>::type NAME1 VAL1) {\
         std::shared_ptr<className> ptr(new className(std::move(NAME1)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
     protected:\
-        explicit className(TYPE1 NAME1 VAL1);                 \
+        explicit className(argument_type<void(TYPE1)>::type NAME1 VAL1);                 \
     public:\
 
 
 #define FAST_CONSTRUCTOR7(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2) \
-    static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2) {\
+    static std::shared_ptr<className> create(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2) {\
         std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
     protected:\
-        className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2);                 \
+        className(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2);                 \
     public:\
 
 #define FAST_CONSTRUCTOR10(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3) \
-    static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3) {\
+    static std::shared_ptr<className> create(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2, argument_type<void(TYPE3)>::type NAME3 VAL3) {\
         std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
     protected:\
-        className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3);                 \
+        className(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2, argument_type<void(TYPE3)>::type NAME3 VAL3);                 \
     public:\
 
 #define FAST_CONSTRUCTOR13(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3, TYPE4, NAME4, VAL4) \
-    static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4) {\
+    static std::shared_ptr<className> create(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2, argument_type<void(TYPE3)>::type NAME3 VAL3, argument_type<void(TYPE4)>::type NAME4 VAL4) {\
         std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3), std::move(NAME4)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
     protected:\
-        className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4);                 \
+        className(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2, argument_type<void(TYPE3)>::type NAME3 VAL3, argument_type<void(TYPE4)>::type NAME4 VAL4);                 \
     public:                                                                                                           \
 
 #define FAST_CONSTRUCTOR16(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3, TYPE4, NAME4, VAL4, TYPE5, NAME5, VAL5) \
-    static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5) {\
+    static std::shared_ptr<className> create(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2, argument_type<void(TYPE3)>::type NAME3 VAL3, argument_type<void(TYPE4)>::type NAME4 VAL4, argument_type<void(TYPE5)>::type NAME5 VAL5) {\
         std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3), std::move(NAME4), std::move(NAME5)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
     protected:\
-        className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5);                 \
+        className(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2, argument_type<void(TYPE3)>::type NAME3 VAL3, argument_type<void(TYPE4)>::type NAME4 VAL4, argument_type<void(TYPE5)>::type NAME5 VAL5);                 \
     public:
 
 #define FAST_CONSTRUCTOR19(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3, TYPE4, NAME4, VAL4, TYPE5, NAME5, VAL5, TYPE6, NAME6, VAL6) \
-    static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6) {\
+    static std::shared_ptr<className> create(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2, argument_type<void(TYPE3)>::type NAME3 VAL3, argument_type<void(TYPE4)>::type NAME4 VAL4, argument_type<void(TYPE5)>::type NAME5 VAL5, argument_type<void(TYPE6)>::type NAME6 VAL6) {\
         std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3), std::move(NAME4), std::move(NAME5), std::move(NAME6)));   \
         ptr->setPtr(ptr);\
         return ptr;\
     };                                             \
     protected:\
-        className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6);                 \
+        className(argument_type<void(TYPE1)>::type NAME1 VAL1, argument_type<void(TYPE2)>::type NAME2 VAL2, argument_type<void(TYPE3)>::type NAME3 VAL3, argument_type<void(TYPE4)>::type NAME4 VAL4, argument_type<void(TYPE5)>::type NAME5 VAL5, argument_type<void(TYPE6)>::type NAME6 VAL6);                 \
     public:
 
 

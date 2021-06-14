@@ -13,8 +13,15 @@ class Tensor;
  * @ingroup renderers
  */
 class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
-    FAST_OBJECT(HeatmapRenderer);
+    FAST_PROCESS_OBJECT(HeatmapRenderer);
     public:
+        FAST_CONSTRUCTOR(HeatmapRenderer,
+                         bool, hideChannelZero, = true,
+                         bool, useInterpolation, = true,
+                         float, minConfidence, = 0.5f,
+                         float, maxOpacity, = 0.3f,
+                         (std::map<uint, Color>), channelColors, = {}
+        )
         void setMinConfidence(float confidence);
         void setMaxOpacity(float opacity);
         void setChannelColor(uint channel, Color color);
@@ -22,13 +29,12 @@ class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
         void setInterpolation(bool useInterpolation);
         void loadAttributes() override;
     protected:
-        HeatmapRenderer();
         void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
 
-        std::unordered_map<uint, Color> mColors;
-        std::unordered_map<uint, bool> mHide;
-        std::unordered_map<uint, std::shared_ptr<Tensor>> mTensorUsed;
+        std::map<uint, Color> mColors;
+        std::map<uint, bool> mHide;
+        std::map<uint, std::shared_ptr<Tensor>> mTensorUsed;
 
         float mMaxOpacity = 0.3;
         float mMinConfidence = 0.5f;

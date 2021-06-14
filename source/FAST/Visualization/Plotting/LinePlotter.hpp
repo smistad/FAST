@@ -9,9 +9,10 @@ FAST_SIMPLE_DATA_OBJECT(FloatPoint, Vector2f);
 // Input data objects: simple data object: float.., create one line per input connection
 // Redraw whenever new data arrives
 class FAST_EXPORT LinePlotter : public Plotter {
-    FAST_OBJECT(LinePlotter);
+    FAST_PROCESS_OBJECT(LinePlotter);
     Q_OBJECT
 public:
+    FAST_CONSTRUCTOR(LinePlotter, int, bufferSize, = 64)
     uint addInputConnection(DataChannel::pointer channel, std::string name = "");
     //uint addInputConnection(DataChannel::pointer channel, std::string name, Color color);
     void setBufferSize(int size);
@@ -19,7 +20,6 @@ public:
 public slots:
     void processQueue();
 protected:
-    LinePlotter();
     void execute() override;
     int m_bufferSize = 64;
     std::map<uint, std::vector<double>> m_buffer;

@@ -5,7 +5,7 @@
 
 namespace fast {
 
-LinePlotter::LinePlotter() {
+LinePlotter::LinePlotter(int bufferSize) {
 	createInputPort<FloatScalar>(0);
 
 	//QSettings plotSettings(":/JKQTPlotter/styles/dark.ini", QSettings::IniFormat);;
@@ -15,6 +15,7 @@ LinePlotter::LinePlotter() {
 	m_plotterWidget = new JKQTPlotter();
 
 	QObject::connect(this, &LinePlotter::newData, this, &LinePlotter::processQueue); // Define signal here so that it will happen in the main thread
+	setBufferSize(bufferSize);
 }
 
 uint LinePlotter::addInputConnection(DataChannel::pointer port, std::string name) {

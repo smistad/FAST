@@ -20,8 +20,12 @@ void SegmentationRenderer::loadAttributes() {
     }
 }
 
-SegmentationRenderer::SegmentationRenderer() {
+SegmentationRenderer::SegmentationRenderer(std::map<uint, Color> labelColors, float opacity, float borderOpacity, int borderRadius, bool interpolation) {
     createInputPort<Image>(0, false);
+    setColors(labelColors);
+    setOpacity(opacity, borderOpacity);
+    setBorderRadius(borderRadius);
+    setInterpolation(interpolation);
 
     createFloatAttribute("opacity", "Segmentation Opacity", "", mOpacity);
     createFloatAttribute("border-opacity", "Segmentation border opacity", "", -1);

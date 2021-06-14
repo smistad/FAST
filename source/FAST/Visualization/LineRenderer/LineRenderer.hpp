@@ -12,8 +12,12 @@ namespace fast {
  * @ingroup renderers
  */
 class FAST_EXPORT  LineRenderer : public Renderer {
-    FAST_OBJECT(LineRenderer)
+    FAST_PROCESS_OBJECT(LineRenderer)
     public:
+        FAST_CONSTRUCTOR(LineRenderer,
+                         Color, color, = Color::Blue(),
+                         bool, drawOnTop, = false
+        )
         uint addInputConnection(DataChannel::pointer port) override;
         uint addInputConnection(DataChannel::pointer port, Color color, float width);
         void setDefaultColor(Color color);
@@ -24,7 +28,6 @@ class FAST_EXPORT  LineRenderer : public Renderer {
         void setWidth(uint inputNr, float width);
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
     protected:
-        LineRenderer();
 
         float mDefaultLineWidth;
         Color mDefaultColor;

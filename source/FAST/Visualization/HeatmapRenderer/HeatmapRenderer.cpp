@@ -16,7 +16,7 @@ void HeatmapRenderer::loadAttributes() {
     setMinConfidence(getFloatAttribute("min-confidence"));
 }
 
-HeatmapRenderer::HeatmapRenderer() {
+HeatmapRenderer::HeatmapRenderer(bool hideChannelZero, bool useInterpolation, float minConfidence, float maxOpacity, std::map<uint, Color> channelColors) {
     m_2Donly = true;
     createInputPort<Tensor>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/HeatmapRenderer/HeatmapRenderer.cl");
@@ -26,6 +26,14 @@ HeatmapRenderer::HeatmapRenderer() {
                         });
     mIsModified = false;
     mColorsModified = true;
+    for(auto& item : channelColors) {
+        setChannelColor(item.first, item.second);
+    }
+    if(hideChannelZero)
+        setChannelHidden(0, true);
+    setInterpolation(useInterpolation);
+    setMinConfidence(minConfidence);
+    setMaxOpacity(maxOpacity);
     createStringAttribute("channel-colors", "Channel Colors", "Color of each channel", "");
     createStringAttribute("hidden-channels", "Hidden Channels", "List of channels to hide", "");
     createFloatAttribute("max-opacity", "Max Opacity", "Max Opacity", mMaxOpacity);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <FAST/Visualization/Renderer.hpp>
+#include <FAST/Visualization/LabelColorRenderer.hpp>
 #include <FAST/Data/Color.hpp>
 
 namespace fast {
@@ -16,16 +16,20 @@ class Image;
  *
  * @ingroup renderers
  */
-class FAST_EXPORT SegmentationLabelRenderer : public Renderer {
-    FAST_OBJECT(SegmentationLabelRenderer)
+class FAST_EXPORT SegmentationLabelRenderer : public LabelColorRenderer {
+    FAST_PROCESS_OBJECT(SegmentationLabelRenderer)
     public:
-        void setLabelName(int label, std::string name);
-        void setLabelColor(int label, Color color);
+        FAST_CONSTRUCTOR(SegmentationLabelRenderer,
+                         (std::map<uint, std::string>), labelNames, = {},
+                         (std::map<uint, Color>), labelColors, = {},
+                         float, areaThreshold, = 1.0f
+        )
+        void setLabelNames(std::map<uint, std::string> labelNames);
+        void setLabelName(uint label, std::string name);
         void setAreaThreshold(float threshold);
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
         void loadAttributes() override;
     protected:
-        SegmentationLabelRenderer();
         void execute() override;
 
         std::unordered_map<uint, uint> mTexturesToRender;
@@ -39,8 +43,7 @@ class FAST_EXPORT SegmentationLabelRenderer : public Renderer {
          */
         std::unordered_map<uint, uint64_t> mDataTimestamp;
         std::unordered_map<uint, float> mScales;
-        std::unordered_map<int, Color> m_labelColors;
-        std::unordered_map<int, std::string> m_labelNames;
+        std::map<uint, std::string> m_labelNames;
 
         uint mFontSize;
         Vector2f m_worldPosition;

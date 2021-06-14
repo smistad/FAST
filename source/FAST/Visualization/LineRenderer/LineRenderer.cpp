@@ -101,11 +101,11 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
     glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the text renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
-LineRenderer::LineRenderer() {
+LineRenderer::LineRenderer(Color color, bool drawOnTop) {
     createInputPort<Mesh>(0, false);
     mDefaultLineWidth = 2;
-    mDefaultColor = Color::Blue();
-    mDefaultDrawOnTop = false;
+    mDefaultColor = color;
+    mDefaultDrawOnTop = drawOnTop;
     mDefaultColorSet = false;
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.vert",
