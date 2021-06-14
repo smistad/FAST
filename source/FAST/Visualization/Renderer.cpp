@@ -211,9 +211,12 @@ void Renderer::setShaderUniform(std::string name, Affine3f matrix, std::string s
     setShaderUniform(name, matrix.matrix(), shaderProgram);
 }
 
-
 void Renderer::setShaderUniform(std::string name, Vector3f vector, std::string shaderProgram) {
     glUniform3f(getShaderUniformLocation(name, shaderProgram), vector.x(), vector.y(), vector.z());
+}
+
+void Renderer::setShaderUniform(std::string name, Vector4f vector, std::string shaderProgram) {
+    glUniform4f(getShaderUniformLocation(name, shaderProgram), vector.x(), vector.y(), vector.z(), vector.w());
 }
 
 void Renderer::setShaderUniform(std::string name, float value, std::string shaderProgram) {

@@ -75,6 +75,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         void setShaderUniform(std::string name, Matrix4f matrix, std::string shaderProgramName = "default");
         void setShaderUniform(std::string name, Affine3f matrix, std::string shaderProgramName = "default");
         void setShaderUniform(std::string name, Vector3f vector, std::string shaderProgramName = "default");
+        void setShaderUniform(std::string name, Vector4f vector, std::string shaderProgramName = "default");
         void setShaderUniform(std::string name, float value, std::string shaderProgramName = "default");
         void setShaderUniform(std::string name, bool value, std::string shaderProgramName = "default");
         void setShaderUniform(std::string name, int value, std::string shaderProgramName = "default");

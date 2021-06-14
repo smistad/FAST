@@ -1,24 +1,33 @@
 #include "BoundingBoxRenderer.hpp"
 #include "FAST/Data/BoundingBox.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
+#include <FAST/Visualization/View.hpp>
 
 namespace fast {
 
-BoundingBoxRenderer::BoundingBoxRenderer(std::map<uint, Color> labelColors) {
+BoundingBoxRenderer::BoundingBoxRenderer(float borderSize, std::map<uint, Color> labelColors) {
     m_2Donly = true;
     createInputPort<BoundingBoxSet>(0, false);
 
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/BoundingBoxRenderer/BoundingBoxRenderer.vert",
         Config::getKernelSourcePath() + "Visualization/BoundingBoxRenderer/BoundingBoxRenderer.frag",
+        Config::getKernelSourcePath() + "Visualization/BoundingBoxRenderer/BoundingBoxRenderer.geom",
     });
 
     setColors(labelColors);
+    setBorderSize(borderSize);
 }
 
 
 BoundingBoxRenderer::~BoundingBoxRenderer() {
 	glDeleteBuffers(1, &m_colorsUBO);
+}
+
+void BoundingBoxRenderer::setBorderSize(float borderSize) {
+    if(borderSize <= 0.0f)
+        throw Exception("Border size to bounding box renderer must be > 0");
+    m_borderSize = borderSize;
 }
 
 void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
@@ -31,6 +40,7 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
 
 	glDisable(GL_DEPTH_TEST);
     activateShader();
+    setShaderUniform("borderSize", m_borderSize);
     setShaderUniform("perspectiveTransform", perspectiveMatrix);
     setShaderUniform("viewTransform", viewingMatrix);
     auto colorsIndex = glGetUniformBlockIndex(getShaderProgram(), "Colors");   
@@ -92,6 +102,10 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
     deactivateShader();
     glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the text renderer. Suboptimal solution as glFinish is a blocking sync operation.
     glEnable(GL_DEPTH_TEST);
+}
+
+float BoundingBoxRenderer::getBorderSize() const {
+    return m_borderSize;
 }
 
 }
