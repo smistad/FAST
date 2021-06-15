@@ -14,7 +14,7 @@ class FAST_EXPORT BoundingBoxRenderer : public LabelColorRenderer {
         float getBorderSize() const;
         virtual ~BoundingBoxRenderer();
     protected:
-        FAST_CONSTRUCTOR(BoundingBoxRenderer, float, borderSize, = 1.0f, (std::map<uint, Color>), labelColors, = {})
+        FAST_CONSTRUCTOR(BoundingBoxRenderer, float, borderSize, = 1.0f, FAST_P(std::map<uint, Color>), labelColors, = FAST_P(std::map<uint, Color>)())
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
 
         std::unordered_map<uint, float> mInputWidths;

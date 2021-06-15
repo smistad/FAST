@@ -20,8 +20,8 @@ class FAST_EXPORT SegmentationLabelRenderer : public LabelColorRenderer {
     FAST_PROCESS_OBJECT(SegmentationLabelRenderer)
     public:
         FAST_CONSTRUCTOR(SegmentationLabelRenderer,
-                         (std::map<uint, std::string>), labelNames, = {},
-                         (std::map<uint, Color>), labelColors, = {},
+                         FAST_P(std::map<uint, std::string>), labelNames, = FAST_P(std::map<uint, std::string>)(),
+                         FAST_P(std::map<uint, Color>), labelColors, = FAST_P(std::map<uint, Color>)(),
                          float, areaThreshold, = 1.0f
         )
         void setLabelNames(std::map<uint, std::string> labelNames);

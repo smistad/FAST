@@ -25,7 +25,7 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColo
     FAST_PROCESS_OBJECT(SegmentationRenderer)
     public:
         FAST_CONSTRUCTOR(SegmentationRenderer,
-                         (std::map<uint, Color>), labelColors, = {},
+                         FAST_P(std::map<uint, Color>), labelColors, = FAST_P(std::map<uint, Color>)(),
                          float, opacity, = 0.5f,
                          float, borderOpacity, = 0.5f,
                          int, borderRadius, = 2,

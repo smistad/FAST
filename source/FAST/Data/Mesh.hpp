@@ -31,7 +31,11 @@ class FAST_EXPORT Mesh : public SpatialDataObject {
          * @param lines
          * @param triangles
          */
-        FAST_CONSTRUCTOR(Mesh, std::vector<MeshVertex>, vertices,, std::vector<MeshLine>, lines, = {}, std::vector<MeshTriangle>, triangles, = {})
+        FAST_CONSTRUCTOR(Mesh, 
+            std::vector<MeshVertex>, vertices, , 
+            std::vector<MeshLine>, lines, = std::vector<MeshLine>(), 
+            std::vector<MeshTriangle>, triangles, = std::vector<MeshTriangle>()
+        )
 #ifndef SWIG
         FAST_CONSTRUCTOR(Mesh, uint, nrOfVertices,, uint, nrOfLInes,, uint, nrOfTriangles,, bool, useColors,, bool, useNormals,, bool, useEBO,);
 #endif

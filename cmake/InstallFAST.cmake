@@ -252,23 +252,16 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
 # Install license files for depedencies
 # Qt5
 if(FAST_BUILD_ALL_DEPENDENCIES)
-install(CODE "
-		file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/LICENSE.*)
-		file(INSTALL
-			DESTINATION \"$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/licences/qt5/\"
-			FILES ${LICENSE_FILES}
-		)
-	" COMPONENT fast)
-endif()
-
+install(DIRECTORY ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/
+		DESTINATION fast/licences/qt5/
+		COMPONENT fast
+		FILES_MATCHING PATTERN "LICENSE.*")
+	endif()
 # Eigen
-install(CODE "
-		file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/eigen/src/eigen/COPYING.*)
-		file(INSTALL
-			DESTINATION \"$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/licences/eigen/\"
-			FILES ${LICENSE_FILES}
-		)
-	" COMPONENT fast)
+install(DIRECTORY ${FAST_EXTERNAL_BUILD_DIR}/eigen/src/eigen/
+		DESTINATION fast/licences/eigen/
+		COMPONENT fast
+		FILES_MATCHING PATTERN "COPYING.*")
 # zlib
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/zlib/src/zlib/README
 		DESTINATION fast/licenses/zlib/

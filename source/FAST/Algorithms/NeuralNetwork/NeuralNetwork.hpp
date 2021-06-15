@@ -113,7 +113,7 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          * @param filename Path to network model file.
          * @param customPlugins Paths to custom plugins/operators which can be libraries (.so/.dll) or in the case of GPU/VPU OpenVINO: .xml files.
          */
-        void load(std::string filename, std::vector<std::string> customPlugins = {});
+        void load(std::string filename, std::vector<std::string> customPlugins = std::vector<std::string>());
         /**
          * Load a network from memory provided as byte two byte vectors: model and weights
          * The second argument can be used to specify files for loading custom plugins/operators
@@ -123,7 +123,7 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          * @param weights
          * @param customPlugins paths to custom plugins/operators which can be libraries (.so/.dll) or in the case of GPU/VPU OpenVINO: .xml files.
          */
-        void load(std::vector<uint8_t> model, std::vector<uint8_t> weights, std::vector<std::string> customPlugins = {});
+        void load(std::vector<uint8_t> model, std::vector<uint8_t> weights, std::vector<std::string> customPlugins = std::vector<std::string>());
         /**
          * Specify which inference engine to use
          * @param engine
@@ -139,8 +139,8 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          * @return
          */
         InferenceEngine::pointer getInferenceEngine() const;
-        void setInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
-        void setOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
+        void setInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape());
+        void setOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape());
         /**
          * For each input value i: new_i = i*scale
          * @param scale

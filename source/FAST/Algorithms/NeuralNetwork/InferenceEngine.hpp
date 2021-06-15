@@ -86,8 +86,8 @@ class FAST_EXPORT InferenceEngine : public Object {
         virtual void setModelAndWeights(std::vector<uint8_t> model, std::vector<uint8_t> weights);
         virtual std::string getFilename() const;
         virtual void run() = 0;
-        virtual void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
-        virtual void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
+        virtual void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape());
+        virtual void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape());
         virtual void setInputNodeShape(std::string name, TensorShape shape);
         virtual void setOutputNodeShape(std::string name, TensorShape shape);
         virtual NetworkNode getInputNode(std::string name) const;
