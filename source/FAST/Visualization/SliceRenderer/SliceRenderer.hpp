@@ -18,8 +18,14 @@ class ImageSlicer;
  * @ingroup renderers
  */
 class FAST_EXPORT  SliceRenderer : public ImageRenderer {
-    FAST_OBJECT(SliceRenderer)
+    FAST_PROCESS_OBJECT(SliceRenderer)
     public:
+        FAST_CONSTRUCTOR(SliceRenderer,
+                         PlaneType, orthogonalSlicePlane,,
+                         int, sliceNr, = -1
+        )
+        FAST_CONSTRUCTOR(SliceRenderer,
+                         Plane, arbitrarySlicePlane,)
         uint addInputConnection(DataChannel::pointer port) override;
         /**
          * Orthogonal slicing using the specified orthogonal plane.

@@ -166,8 +166,9 @@ void AlphaBlendingVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mainFBO);
 }
 
-AlphaBlendingVolumeRenderer::AlphaBlendingVolumeRenderer() {
+AlphaBlendingVolumeRenderer::AlphaBlendingVolumeRenderer(TransferFunction transferFunction) {
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.cl");
+    setTransferFunction(transferFunction);
 }
 
 void AlphaBlendingVolumeRenderer::setTransferFunction(TransferFunction transferFunction) {

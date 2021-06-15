@@ -12,13 +12,13 @@ DataBoundingBox TextRenderer::getBoundingBox(bool transform) {
     return DataBoundingBox(Vector3f(6,6,6));
 }
 
-TextRenderer::TextRenderer() {
+TextRenderer::TextRenderer(uint fontSize, Color color, TextStyleType style, TextPosition position, PositionType positionType) {
     createInputPort<Text>(0);
-    mStyle = STYLE_NORMAL;
-    m_position = POSITION_CENTER;
-    m_positionType = PositionType::STANDARD;
-	mFontSize = 28;
-	mColor = Color::Green();
+    setFontSize(fontSize);
+    setColor(color);
+    setStyle(style);
+    setPosition(position);
+    setPositionType(positionType);
     createStringAttribute("position", "Text position", "Position of text in view (center/bottom_left/bottom_right/top_left/top_right)", "top_left");
     createIntegerAttribute("font_size", "Font size", "Font size", mFontSize);
 

@@ -14,8 +14,13 @@ namespace fast {
  * @sa Mesh
  */
 class FAST_EXPORT  VertexRenderer : public Renderer {
-    FAST_OBJECT(VertexRenderer)
+    FAST_PROCESS_OBJECT(VertexRenderer)
     public:
+        FAST_CONSTRUCTOR(VertexRenderer,
+                         float, size, = 10.0f,
+                         Color, color, = Color::Green(),
+                         bool, drawOnTop, = false
+        )
         uint addInputConnection(DataChannel::pointer port) override;
         uint addInputConnection(DataChannel::pointer port, Color color, float size);
         uint addInputData(DataObject::pointer data) override;
@@ -36,8 +41,6 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
                 Vector2f translation
         );
     private:
-        VertexRenderer();
-
         float mDefaultPointSize;
         Color mDefaultColor;
         bool mDefaultDrawOnTop;

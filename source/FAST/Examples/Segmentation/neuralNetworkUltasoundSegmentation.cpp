@@ -74,9 +74,9 @@ int main(int argc, char** argv) {
     labelRenderer->addInputConnection(segmentation->getOutputPort());
     labelRenderer->setAreaThreshold(10);
     labelRenderer->setLabelName(1, "Artery");
-    labelRenderer->setLabelColor(1, Color::Red());
+    labelRenderer->setColor(1, Color::Red());
     labelRenderer->setLabelName(2, "Vein");
-    labelRenderer->setLabelColor(2, Color::Blue());
+    labelRenderer->setColor(2, Color::Blue());
 
     auto imageRenderer = ImageRenderer::New();
     imageRenderer->setInputConnection(inputStream->getOutputPort());

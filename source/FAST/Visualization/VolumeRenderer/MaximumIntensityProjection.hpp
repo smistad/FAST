@@ -12,12 +12,11 @@ namespace fast {
  * @ingroup renderers
  */
 class FAST_EXPORT MaximumIntensityProjection : public VolumeRenderer {
-    FAST_OBJECT(MaximumIntensityProjection)
+    FAST_PROCESS_OBJECT(MaximumIntensityProjection)
     public:
+        FAST_CONSTRUCTOR(MaximumIntensityProjection)
     protected:
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
-    private:
-        MaximumIntensityProjection();
 };
 
 }

@@ -155,8 +155,9 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mainFBO);
 }
 
-ThresholdVolumeRenderer::ThresholdVolumeRenderer() {
+ThresholdVolumeRenderer::ThresholdVolumeRenderer(float threshold) {
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VolumeRenderer/ThresholdVolumeRenderer.cl");
+    setThreshold(threshold);
 }
 
 }

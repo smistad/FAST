@@ -15,6 +15,7 @@ class FAST_EXPORT SimpleWindow : public Window {
         /**
          * Create a SimpleWindow object
          *
+         * Args:
          * @param mode2D 2D or 3D mode
          * @param bgcolor Background color
          * @param width in pixels
@@ -24,8 +25,8 @@ class FAST_EXPORT SimpleWindow : public Window {
         FAST_CONSTRUCTOR(SimpleWindow,
                          bool, mode2D, = false,
                          Color, bgcolor, = Color::White(),
-                         unsigned int, width, = 0,
-                         unsigned int, height, = 0)
+                         uint, width, = 0,
+                         uint, height, = 0)
         void addRenderer(std::shared_ptr<Renderer> renderer);
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);
@@ -47,12 +48,13 @@ class FAST_EXPORT SimpleWindow2D : public SimpleWindow {
         /**
          * Create a SimpleWindow 2D object
          *
+         * Args:
          * @param bgcolor Background color
          * @param width in pixels
          * @param height in pixels
          * @return shared ptr of new SimpleWindow
          */
-        FAST_CONSTRUCTOR(SimpleWindow2D, Color, bgcolor, = Color::White(), unsigned int, width, = 0, unsigned int, height, = 0)
+        FAST_CONSTRUCTOR(SimpleWindow2D, Color, bgcolor, = Color::White(), uint, width, = 0, uint, height, = 0)
 };
 
 /**
@@ -64,12 +66,13 @@ class FAST_EXPORT SimpleWindow3D : public SimpleWindow {
         /**
          * Create a SimpleWindow 3D object
          *
+         * Args:
          * @param bgcolor Background color
          * @param width in pixels
          * @param height in pixels
          * @return shared ptr of new SimpleWindow
          */
-        FAST_CONSTRUCTOR(SimpleWindow3D, Color, bgcolor, = Color::White(), unsigned int, width, = 0, unsigned int, height, = 0)
+        FAST_CONSTRUCTOR(SimpleWindow3D, Color, bgcolor, = Color::White(), uint, width, = 0, uint, height, = 0)
 };
 } // end namespace fast
 

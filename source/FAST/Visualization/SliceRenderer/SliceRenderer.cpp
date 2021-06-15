@@ -49,6 +49,18 @@ SliceRenderer::SliceRenderer() {
     mIsModified = true;
 }
 
+SliceRenderer::SliceRenderer(PlaneType orthogonalSlicePlane, int sliceNr) {
+    createInputPort(0, "Image");
+    setOrthogonalSlicePlane(0, orthogonalSlicePlane, sliceNr);
+    setModified(true);
+}
+
+SliceRenderer::SliceRenderer(Plane slicePlane) {
+    createInputPort(0, "Image");
+    setArbitrarySlicePlane(0, slicePlane);
+    setModified(true);
+}
+
 uint SliceRenderer::addInputConnection(DataChannel::pointer port, PlaneType orthogonalSlicePlane, int sliceNr) {
     uint portID = Renderer::addInputConnection(port);
     mSlicers[portID] = ImageSlicer::New();
