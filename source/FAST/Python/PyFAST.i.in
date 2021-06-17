@@ -16,6 +16,7 @@ import $module
 %{
 
 
+#include <FAST/Object.hpp>
 #include <FAST/ProcessObject.hpp>
 #include <FAST/Reporter.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
@@ -50,15 +51,32 @@ using namespace fast;
 %eigen_typemaps(Matrix3f)
 %eigen_typemaps(Matrix4f)
 
-// Enable std::vector <-> python conversion
+
+// Define FAST_EXPORT to nothing to avoid compile errors
+%define FAST_EXPORT
+%enddef
+%define Q_OBJECT
+%enddef
+%define Q_SLOTS
+%enddef
+%define Q_SIGNALS
+public
+%enddef
+
+// Enable std::vector and std::map <-> python conversion
+%include <FAST/Data/DataTypes.hpp>
 %template(vectori) std::vector<int>;
 %template(vectorf) std::vector<float>;
 %template(vectorui) std::vector<uint>;
 %template(vectorc) std::vector<char>;
 %template(vectoruc) std::vector<uchar>;
 %template(vectors) std::vector<std::string>;
-%template(labelColors) std::map<uint, fast::Color>;
-%template(labelNames) std::map<uint, std::string>;
+%ignore std::vector<fast::NeuralNetworkNode>::vector(size_type);
+%ignore std::vector<fast::NeuralNetworkNode>::resize;
+%ignore std::vector<fast::NeuralNetworkNode>::pop;
+%template(NeuralNetworkNodes) std::vector<fast::NeuralNetworkNode>;
+%template(ColorMap) std::map<uint, fast::Color>;
+%template(LabelNames) std::map<uint, std::string>;
 // This avoids the no default constructor available problem for this vector types:
 %ignore std::vector<fast::MeshVertex>::vector(size_type);
 %ignore std::vector<fast::MeshVertex>::resize;
@@ -75,16 +93,7 @@ using namespace fast;
 
 // FAST CORE LIBRARY
 
-// Define FAST_EXPORT to nothing to avoid compile errors
-%define FAST_EXPORT
-%enddef
-%define Q_OBJECT
-%enddef
-%define Q_SLOTS
-%enddef
-%define Q_SIGNALS
-public
-%enddef
+
 
 // Ignore statements
 %ignore getDevice;
@@ -144,7 +153,6 @@ public
 %include <FAST/Attribute.hpp>
 %include <FAST/ProcessObject.hpp>
 %include <FAST/Config.hpp>
-%include <FAST/Data/DataTypes.hpp>
 %include <FAST/Data/Access/Access.hpp>
 %include <FAST/Data/Color.hpp>
 %include <FAST/Data/DataObject.hpp>
@@ -169,6 +177,8 @@ std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::Data
 %}
 std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::DataObject> dataObject);
 %enddef
+
+
 
 ADD_TEMPLATE_METHODS(Image)
 ADD_TEMPLATE_METHODS(ImagePyramid)

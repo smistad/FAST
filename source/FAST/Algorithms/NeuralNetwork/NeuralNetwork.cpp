@@ -64,6 +64,33 @@ void NeuralNetwork::setInputSize(std::string name, std::vector<int> size) {
     mInputSizes[name] = size;
 }
 
+NeuralNetwork::NeuralNetwork(std::string modelFilename, float scaleFactor, float meanIntensity,
+                             float stanardDeviationIntensity,
+                             std::vector<NeuralNetworkNode> inputNodes,
+                             std::vector<NeuralNetworkNode> outputNodes,
+                             std::string inferenceEngine,
+                             std::vector<std::string> customPlugins) {
+    mPreserveAspectRatio = false;
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
+    if(inferenceEngine.empty()) {
+        m_engine = InferenceEngineManager::loadBestAvailableEngine();
+        reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
+    } else {
+        setInferenceEngine(inferenceEngine);
+    }
+    setScaleFactor(scaleFactor);
+    setMeanAndStandardDeviation(meanIntensity, stanardDeviationIntensity);
+    for(int i = 0; i < inputNodes.size(); ++i) {
+        auto node = inputNodes[i];
+        setInputNode(i, node.name, node.type, node.shape);
+    }
+    for(int i = 0; i < outputNodes.size(); ++i) {
+        auto node = outputNodes[i];
+        setOutputNode(i, node.name, node.type, node.shape);
+    }
+    load(modelFilename, customPlugins);
+}
+
 NeuralNetwork::NeuralNetwork() {
 	mPreserveAspectRatio = false;
 	mScaleFactor = 1.0f;

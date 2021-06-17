@@ -56,7 +56,7 @@ class FAST_EXPORT InferenceDataList {
  *
  * @ingroup neural-network
  */
-class Sequence : public SimpleDataObject<InferenceDataList> {
+class FAST_EXPORT Sequence : public SimpleDataObject<InferenceDataList> {
 	FAST_OBJECT(Sequence)
     public:
         void create(std::vector<std::shared_ptr<Image>> images) {
@@ -78,7 +78,7 @@ class Sequence : public SimpleDataObject<InferenceDataList> {
  *
  * @ingroup neural-network
  */
-class Batch : public SimpleDataObject<InferenceDataList> {
+class FAST_EXPORT Batch : public SimpleDataObject<InferenceDataList> {
 	FAST_OBJECT(Batch)
     public:
         void create(std::vector<std::shared_ptr<Image>> images) {
@@ -90,6 +90,16 @@ class Batch : public SimpleDataObject<InferenceDataList> {
         typedef DataAccess<InferenceDataList>::pointer access;
     private:
         Batch() {};
+};
+
+class FAST_EXPORT NeuralNetworkNode {
+    public:
+        NeuralNetworkNode(std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape()) : name(name), type(type), shape(shape) {
+
+        }
+        std::string name;
+        NodeType type;
+        TensorShape shape;
 };
 
 /**
@@ -104,8 +114,18 @@ class Batch : public SimpleDataObject<InferenceDataList> {
  * @ingroup neural-network
  */
 class FAST_EXPORT NeuralNetwork : public ProcessObject {
-    FAST_OBJECT(NeuralNetwork)
+    FAST_PROCESS_OBJECT(NeuralNetwork)
     public:
+        FAST_CONSTRUCTOR(NeuralNetwork,
+                         std::string, modelFilename,,
+                         float, scaleFactor, = 1.0f,
+                         float, meanIntensity, = 0.0f,
+                         float, stanardDeviationIntensity, = 1.0f,
+                         std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::string, inferenceEngine, = "",
+                         std::vector<std::string>, customPlugins, = std::vector<std::string>()
+        )
         /**
          * Load a given network model file. This takes time. The second argument can be used
          * to specify files for loading custom plugins/operators needed by the network model.

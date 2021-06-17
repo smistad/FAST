@@ -6,29 +6,23 @@ import fast
 #fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT) # Uncomment to show debug info
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
-streamer = fast.ImageFileStreamer.New()
-streamer.setFilenameFormat(fast.Config.getTestDataPath() + 'US/JugularVein/US-2D_#.mhd')
-streamer.enableLooping()
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/JugularVein/US-2D_#.mhd',
+    loop=True
+)
 
-segmentationNetwork = fast.SegmentationNetwork.New()
-segmentationNetwork.setInputConnection(streamer.getOutputPort())
-segmentationNetwork.setInferenceEngine('OpenVINO')
-segmentationNetwork.setScaleFactor(1/255)
-segmentationNetwork.load(fast.Config.getTestDataPath() +
-    'NeuralNetworkModels/jugular_vein_segmentation.xml') 
+segmentationNetwork = fast.SegmentationNetwork.create(
+    fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_vein_segmentation.xml',
+    scaleFactor=1./255.,
+).connect(streamer)
 
-imageRenderer = fast.ImageRenderer.New()
-imageRenderer.addInputConnection(streamer.getOutputPort())
+imageRenderer = fast.ImageRenderer.create().connect(streamer)
 
-segmentationRenderer = fast.SegmentationRenderer.New()
-segmentationRenderer.addInputConnection(segmentationNetwork.getOutputPort())
-segmentationRenderer.setOpacity(0.25)
-segmentationRenderer.setColor(1, fast.Color.Red())
-segmentationRenderer.setColor(2, fast.Color.Blue())
+segmentationRenderer = fast.SegmentationRenderer.create(
+    opacity=0.25,
+    colors={1: fast.Color.Red(), 2: fast.Color.Blue()},
+).connect(segmentationNetwork)
 
-window = fast.SimpleWindow.New()
-window.set2DMode()
-window.addRenderer(imageRenderer)
-window.addRenderer(segmentationRenderer)
-window.getView().setBackgroundColor(fast.Color.Black())
-window.start()
+window = fast.SimpleWindow2D.create(bgcolor=fast.Color.Black())\
+    .connect([imageRenderer, segmentationRenderer])\
+    .run()
