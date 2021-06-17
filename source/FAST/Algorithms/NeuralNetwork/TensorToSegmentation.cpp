@@ -19,11 +19,13 @@ inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering or
     return ordering == ImageOrdering::ChannelLast ? x*nrOfClasses + j : x + j*size;
 }
 
-TensorToSegmentation::TensorToSegmentation() {
+TensorToSegmentation::TensorToSegmentation(float threshold, bool hasBackgroundClass) {
     createInputPort<Tensor>(0);
     createOutputPort<Image>(0);
 
     createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", m_threshold);
+    setThreshold(threshold);
+    setBackgroundClass(hasBackgroundClass);
 }
 
 void TensorToSegmentation::execute() {

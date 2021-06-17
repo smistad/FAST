@@ -9,6 +9,17 @@ ImageClassificationNetwork::ImageClassificationNetwork() {
 	createStringAttribute("labels", "Labels", "Name of each class", "");
 }
 
+ImageClassificationNetwork::ImageClassificationNetwork(std::string modelFilename, std::vector<std::string> labels,
+                                                       float scaleFactor, float meanIntensity,
+                                                       float stanardDeviationIntensity,
+                                                       std::vector<NeuralNetworkNode> inputNodes,
+                                                       std::vector<NeuralNetworkNode> outputNodes,
+                                                       std::string inferenceEngine,
+                                                       std::vector<std::string> customPlugins) : NeuralNetwork(modelFilename,scaleFactor,meanIntensity,stanardDeviationIntensity,inputNodes,outputNodes,inferenceEngine,customPlugins) {
+    createOutputPort<ImageClassification>(0);
+    setLabels(labels);
+}
+
 void ImageClassificationNetwork::setLabels(std::vector<std::string> labels) {
 	mLabels = labels;
 }
@@ -41,10 +52,11 @@ void ImageClassificationNetwork::loadAttributes() {
 	setLabels(getStringListAttribute("labels"));
 }
 
-ClassificationToText::ClassificationToText() {
+ClassificationToText::ClassificationToText(int bufferSize) {
     createInputPort<ImageClassification>(0);
     createOutputPort<Text>(0);
     createIntegerAttribute("average_size", "Average size", "nr of frames to average", 100);
+    setBufferSize(bufferSize);
 }
 
 void ClassificationToText::loadAttributes() {
@@ -95,6 +107,11 @@ void ClassificationToText::execute() {
     std::string result = label + ": " + buffer;
     text->setText(result);
     addOutputData(0, text);
+}
+
+void ClassificationToText::setBufferSize(int bufferSize) {
+    mBufferSize = bufferSize;
+    setModified(true);
 }
 
 }

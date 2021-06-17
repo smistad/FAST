@@ -9,8 +9,13 @@ enum class BoundingBoxNetworkType {
 };
 
 class FAST_EXPORT TensorToBoundingBoxSet : public ProcessObject {
-    FAST_OBJECT(TensorToBoundingBoxSet)
+    FAST_PROCESS_OBJECT(TensorToBoundingBoxSet)
     public:
+        FAST_CONSTRUCTOR(TensorToBoundingBoxSet,
+                         BoundingBoxNetworkType, type, = BoundingBoxNetworkType::YOLOv3,
+                         float, threshold, = 0.5f,
+                         std::vector<std::vector<Vector2f>>, anchors, = std::vector<std::vector<Vector2f>>()
+         )
         void setType(BoundingBoxNetworkType type);
         void setThreshold(float threshold);
         void setAnchors(std::vector<std::vector<Vector2f>> anchors);
@@ -19,7 +24,6 @@ class FAST_EXPORT TensorToBoundingBoxSet : public ProcessObject {
         void setNrOfInputNodes(int nr);
         void loadAttributes() override;
     private:
-        TensorToBoundingBoxSet();
         void execute() override;
 
         BoundingBoxNetworkType m_type;

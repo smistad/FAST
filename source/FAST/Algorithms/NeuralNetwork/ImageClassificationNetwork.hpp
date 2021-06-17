@@ -28,8 +28,19 @@ FAST_SIMPLE_DATA_OBJECT(ImageClassification, classifications)
  * @ingroup neural-network
  */
 class FAST_EXPORT ImageClassificationNetwork : public NeuralNetwork {
-	FAST_OBJECT(ImageClassificationNetwork)
+	FAST_PROCESS_OBJECT(ImageClassificationNetwork)
 	public:
+        FAST_CONSTRUCTOR(ImageClassificationNetwork,
+                         std::string, modelFilename,,
+                         std::vector<std::string>, labels,,
+                         float, scaleFactor, = 1.0f,
+                         float, meanIntensity, = 0.0f,
+                         float, stanardDeviationIntensity, = 1.0f,
+                         std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::string, inferenceEngine, = "",
+                         std::vector<std::string>, customPlugins, = std::vector<std::string>()
+         )
 		void setLabels(std::vector<std::string> labels);
         void loadAttributes();
 	private:
@@ -46,12 +57,14 @@ class FAST_EXPORT ImageClassificationNetwork : public NeuralNetwork {
  * ProcessObject to convert a classification into text
  */
 class FAST_EXPORT  ClassificationToText : public ProcessObject {
-    FAST_OBJECT(ClassificationToText)
+    FAST_PROCESS_OBJECT(ClassificationToText)
+    public:
+        FAST_CONSTRUCTOR(ClassificationToText, int, bufferSize, = 1)
+        void setBufferSize(int bufferSize);
     private:
         std::deque<std::map<std::string, float>> mBuffer; // used for calculating temporal average
         int mBufferSize = 1; // How large the buffer can be
 
-        ClassificationToText();
         void loadAttributes();
         void execute();
 };

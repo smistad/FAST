@@ -22,10 +22,11 @@ void FlowNetwork::execute() {
     addOutputData(0, tensorToImage->updateAndGetOutputData<Image>());
 }
 
-ImagesToSequence::ImagesToSequence() {
+ImagesToSequence::ImagesToSequence(int sequenceSize) {
     createInputPort<Image>(0);
     createOutputPort<Sequence>(0);
 
+    setSequenceSize(sequenceSize);
     createIntegerAttribute("size", "Size", "Size of sequence", m_sequenceSize);
 }
 

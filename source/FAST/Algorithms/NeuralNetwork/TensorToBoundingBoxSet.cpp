@@ -21,11 +21,15 @@ void TensorToBoundingBoxSet::loadAttributes() {
     setAnchors(anchors);
 }
 
-TensorToBoundingBoxSet::TensorToBoundingBoxSet() {
+TensorToBoundingBoxSet::TensorToBoundingBoxSet(BoundingBoxNetworkType type, float threshold,
+                                               std::vector<std::vector<Vector2f>> anchors) {
     createOutputPort(0, "BoundingBoxSet");
 
     createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", 0.5f);
     createStringAttribute("anchors", "Anchors", "Should be formatted like: x1,y1,x2,y2;x1,y1,x2,y2", "");
+    setType(type);
+    setThreshold(threshold);
+    setAnchors(anchors);
 }
 
 /**
