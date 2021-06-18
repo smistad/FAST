@@ -42,4 +42,4 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
       
     - name: Test
-      run: ${{github.workspace}}/build/testFAST [processobject]
+      run: ${{github.workspace}}/build/bin/testFAST [processobject]
