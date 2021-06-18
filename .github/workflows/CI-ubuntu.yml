@@ -28,7 +28,9 @@ jobs:
         sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
         #sudo apt install libopenslide-dev # Needed for WSI module
         #sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
-        sudo apt install libpocl-dev 
+        sudo apt install ocl-icd-libopencl1 # For libOpenCL
+        sudo apt install opencl-c-headers
+        sudo apt install libpocl2
 
 
     - name: Configure CMake
