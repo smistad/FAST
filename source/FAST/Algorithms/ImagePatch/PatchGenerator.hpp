@@ -9,9 +9,37 @@ namespace fast {
 class ImagePyramid;
 class Image;
 
+/**
+ * @brief Generates a stream of patches from an ImagePyramid or 3D Image
+ *
+ * The patch generator tiles an ImagePyramid or 3D image into equal sized patches.
+ * Although the patches can be smaller at the edges if the image size is not dividable by the patch size.
+ * The result of the processed patches can be stitched together again to form a full
+ * ImagePyramid/3D Image/Tensor by using the PatchStitcher.
+ *
+ * @sa PatchStitcher
+ */
 class FAST_EXPORT PatchGenerator : public Streamer {
-    FAST_OBJECT(PatchGenerator)
+    FAST_PROCESS_OBJECT(PatchGenerator)
     public:
+        /**
+         * Creates a PatchGenerator instance
+         * @param width Width of patch (Note: patches can be smaller at boundaries)
+         * @param height Height of patch (Note: patches can be smaller at boundaries)
+         * @param depth Depth of patch (Note: patches can be smaller at boundaries)
+         * @param level Which level of an ImagePyramid to generate patches from.
+         * @param overlapPercent Amount of patch overlap in percent.
+         * @param maskThreshold Threshold to accept a patch if the additional mask is provided.
+         * @return
+         */
+        FAST_CONSTRUCTOR(PatchGenerator,
+                         int, width,,
+                         int, height,,
+                         int, depth, = 1,
+                         int, level, = 0,
+                         float, overlapPercent, = 0.0f,
+                         float, maskThreshold, = 0.5f
+        )
         void setPatchSize(int width, int height, int depth = 1);
         /**
          * Set overlap of generated patches, in percent of patch size.

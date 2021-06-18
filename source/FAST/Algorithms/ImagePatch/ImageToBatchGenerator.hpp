@@ -7,9 +7,22 @@ namespace fast {
 
 class Image;
 
+/**
+ * @brief Converts a stream of images into stream of Batch data objects
+ *
+ * This is used for doing batch processing on a stream of images.
+ *
+ * @ingroup neural-network
+ */
 class FAST_EXPORT ImageToBatchGenerator : public Streamer {
-    FAST_OBJECT(ImageToBatchGenerator)
+    FAST_PROCESS_OBJECT(ImageToBatchGenerator)
     public:
+        /**
+         * Creates an ImageToBatchGenerator instance
+         * @param maxBatchSize Maximum batch size
+         * @return
+         */
+        FAST_CONSTRUCTOR(ImageToBatchGenerator, int, maxBatchSize,)
         void setMaxBatchSize(int size);
         ~ImageToBatchGenerator() override;
     protected:

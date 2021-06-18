@@ -4,9 +4,36 @@
 
 namespace fast {
 
+/**
+ * @brief Segment tissue from a WSI
+ *
+ * Uses the GPU to perform a simple threshold-based tissue/glass segmentation of a WSI.
+ * Since glass is almost white, the thresold is the distance from the pixels color
+ * to white (255,255,255).
+ * A morphological closing (dilation+erosion) is performed after thresholding.
+ *
+ * Inputs:
+ * 0 - ImagePyramid: WSI
+ * Outputs:
+ * 0 - Segmentation: Tissue mask
+ *
+ */
 class FAST_EXPORT TissueSegmentation : public SegmentationAlgorithm {
-    FAST_OBJECT(TissueSegmentation)
+    FAST_PROCESS_OBJECT(TissueSegmentation)
     public:
+        /**
+         * Create an instance of TissueSegmentation
+         *
+         * @param threshold Threshold for distance from white (255,255,255) to be considered as tissue.
+         * @param dilationSize Size of dilation to perform after thresholding
+         * @param erosionSize Size of erosion to perform after thresholding
+         * @return A tissue segmentation instance
+         */
+        FAST_CONSTRUCTOR(TissueSegmentation,
+                         int, threshold, = 85,
+                         int, dilationSize, = 9,
+                         int, erosionSize, = 9
+         )
         /**
          * Set single threshold for pixel filtering based on the distance a RGB-triplet is from the color white. Default is 85
          * @param thresh
@@ -37,7 +64,6 @@ class FAST_EXPORT TissueSegmentation : public SegmentationAlgorithm {
         void loadAttributes() override;
     protected:
         void execute() override;
-        TissueSegmentation();
     private:
         int m_dilate = 9;
         int m_erode = 9;

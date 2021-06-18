@@ -8,9 +8,27 @@ class Image;
 class ImagePyramid;
 class Tensor;
 
+/**
+ * @brief Stitch a stream of processed patches from the PatchGenerator
+ *
+ * This process object stitches a stream of processed Image/Tensor patches into an
+ * ImagePyramid, 2D or 3D Image or Tensor depending on the patch source.
+ *
+ * Inputs:
+ * 0 - Image/Tensor: A stream of processed patches from PatchGenerator
+ * Outputs:
+ * 0 - ImagePyramid/Image/Tensor: The stitched image/image pyramid.
+ *
+ * @sa PatchGenerator
+ */
 class FAST_EXPORT PatchStitcher : public ProcessObject {
-    FAST_OBJECT(PatchStitcher)
+    FAST_PROCESS_OBJECT(PatchStitcher)
     public:
+        /**
+         * Creates an instance of PatchStitcher
+         * @return
+         */
+        FAST_CONSTRUCTOR(PatchStitcher)
     protected:
         void execute() override;
 
@@ -21,7 +39,6 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
         void processTensor(std::shared_ptr<Tensor> tensor);
         void processImage(std::shared_ptr<Image> tensor);
     private:
-        PatchStitcher();
 
 };
 

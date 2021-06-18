@@ -6,7 +6,7 @@
 
 namespace fast {
 
-TissueSegmentation::TissueSegmentation() {
+TissueSegmentation::TissueSegmentation(int threshold, int dilationSize, int erosionSize) {
     createInputPort<ImagePyramid>(0);
     createOutputPort<Segmentation>(0);
 
@@ -14,6 +14,9 @@ TissueSegmentation::TissueSegmentation() {
     createIntegerAttribute("threshold", "Intensity threshold", "", m_thresh);
     createIntegerAttribute("dilate-kernel-size", "Kernel size for dilation", "", m_dilate);
     createIntegerAttribute("erode-kernel-size", "Kernel size for erosion", "", m_erode);
+    setThreshold(threshold);
+    setDilate(dilationSize);
+    setErode(erosionSize);
 }
 
 void TissueSegmentation::loadAttributes() {

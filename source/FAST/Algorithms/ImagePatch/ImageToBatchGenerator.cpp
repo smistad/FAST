@@ -11,6 +11,10 @@ ImageToBatchGenerator::ImageToBatchGenerator() {
     m_maxBatchSize = -1;
 }
 
+ImageToBatchGenerator::ImageToBatchGenerator(int maxBatchSize) : ImageToBatchGenerator() {
+    setMaxBatchSize(maxBatchSize);
+}
+
 void ImageToBatchGenerator::generateStream() {
     std::vector<Image::pointer> imageList;
     imageList.reserve(m_maxBatchSize);
