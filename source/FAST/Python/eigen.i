@@ -324,7 +324,7 @@
   $result = PyList_New($1.size());
   if (!$result)
     SWIG_fail;
-  for (size_t i=0; i != $1.size(); ++i) {
+  for (Py_ssize_t i=0; i != $1.size(); ++i) {
     PyObject *out;
     if (!ConvertFromEigenToNumPyMatrix(&out, &$1[i]))
       SWIG_fail;
@@ -338,7 +338,7 @@
   if (!PyList_Check($input))
     SWIG_fail;
   temp.resize(PyList_Size($input));
-  for (size_t i=0; i != PyList_Size($input); ++i) {
+  for (Py_ssize_t i=0; i != PyList_Size($input); ++i) {
     if (!ConvertFromNumpyToEigenMatrix<CLASS >(&(temp[i]), PyList_GetItem($input, i)))
       SWIG_fail;
   }
@@ -351,9 +351,9 @@
   $result = PyList_New($1.size());
   if (!$result)
     SWIG_fail;
-  for (size_t i=0; i != $1.size(); ++i) {
+  for (Py_ssize_t i=0; i != $1.size(); ++i) {
     PyObject* innerList = PyList_New($1[i].size());
-    for(size_t j=0; j != $1[i].size(); j++) {
+    for(Py_ssize_t j=0; j != $1[i].size(); j++) {
         PyObject *out;
         if (!ConvertFromEigenToNumPyMatrix(&out, &$1[i][j]))
           SWIG_fail;
@@ -370,12 +370,12 @@
   if (!PyList_Check($input))
     SWIG_fail;
   temp.resize(PyList_Size($input));
-  for (size_t i=0; i != PyList_Size($input); ++i) {
+  for (Py_ssize_t i=0; i != PyList_Size($input); ++i) {
     PyObject* innerList = PyList_GetItem($input, i);
     if(!PyList_Check(innerList))
         SWIG_fail;
     temp[i].resize(PyList_Size(innerList));
-    for(size_t j = 0; j != PyList_Size(innerList); ++j) {
+    for(Py_ssize_t j = 0; j != PyList_Size(innerList); ++j) {
         if (!ConvertFromNumpyToEigenMatrix <CLASS>(&(temp[i][j]), PyList_GetItem(innerList, j)))
             SWIG_fail;
     }
