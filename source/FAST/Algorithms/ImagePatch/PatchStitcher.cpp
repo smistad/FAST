@@ -111,13 +111,11 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
     if(!m_outputImage && !m_outputImagePyramid) {
         // Create output image
         if(is3D) {
-			m_outputImage = Image::New();
-            m_outputImage->create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
+			m_outputImage = Image::create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
         } else {
             if(fullWidth < 8192 && fullHeight < 8192) {
                 reportInfo() << "Patch stitcher creating image with size " << fullWidth << " " << fullHeight << reportEnd();
-				m_outputImage = Image::New();
-                m_outputImage->create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
+				m_outputImage = Image::create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
             } else {
                 // Large image, create image pyramid instead
                 int patchWidth = std::stoi(patch->getFrameData("patch-width")) - 2*std::stoi(patch->getFrameData("patch-overlap-x"));

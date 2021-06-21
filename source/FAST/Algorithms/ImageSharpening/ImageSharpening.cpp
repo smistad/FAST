@@ -26,7 +26,6 @@ void ImageSharpening::execute() {
     if(input->getDimensions() != 2)
         throw Exception("ImageSharpening only supports 2D images");
 
-    auto output = Image::New();
 
     char maskSize = mMaskSize;
     if(maskSize <= 0) // If mask size is not set calculate it instead
@@ -36,11 +35,12 @@ void ImageSharpening::execute() {
         maskSize = 19;
 
     // Initialize output image
+    Image::pointer output;
     if(mOutputTypeSet) {
-        output->create(input->getSize(), mOutputType, input->getNrOfChannels());
+        output = Image::create(input->getSize(), mOutputType, input->getNrOfChannels());
         output->setSpacing(input->getSpacing());
     } else {
-        output->createFromImage(input);
+        output = Image::createFromImage(input);
     }
     mOutputType = output->getDataType();
     SceneGraph::setParentNode(output, input);

@@ -10,7 +10,7 @@ namespace fast {
 class FAST_EXPORT VTKtoFAST : public vtkImageAlgorithm {
     public:
         static VTKtoFAST *New();
-        void setFASTImage(Image::pointer image);
+        Image::pointer getFASTImage();
     private:
         VTKtoFAST();
         int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);

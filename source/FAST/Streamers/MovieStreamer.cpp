@@ -83,8 +83,7 @@ void MovieStreamer::addLastFrame() {
 }
 
 void MovieStreamer::addNewImageFrame(const uchar* data, int width, int height) {
-    auto output = Image::New();
-    output->create(
+    auto output = Image::create(
             width,
             height,
             TYPE_UINT8,

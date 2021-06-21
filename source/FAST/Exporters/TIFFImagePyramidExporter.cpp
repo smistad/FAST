@@ -120,8 +120,7 @@ void TIFFImagePyramidExporter::execute() {
             if(image->getWidth() != imagePyramid->getLevelTileWidth(level) || image->getHeight() != imagePyramid->getLevelTileHeight(level)) {
                 // Have to pad the image, TIFF expects all tiles to be equal
                 // TODO improve
-                auto paddedImage = Image::New();
-                paddedImage->create(imagePyramid->getLevelTileWidth(level), imagePyramid->getLevelTileHeight(level), image->getDataType(), image->getNrOfChannels());
+                auto paddedImage = Image::create(imagePyramid->getLevelTileWidth(level), imagePyramid->getLevelTileHeight(level), image->getDataType(), image->getNrOfChannels());
                 if(imagePyramid->getNrOfChannels() >= 3) {
                     paddedImage->fill(255);
                 } else {

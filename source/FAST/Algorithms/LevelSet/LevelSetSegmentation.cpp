@@ -57,8 +57,7 @@ void LevelSetSegmentation::execute() {
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Program program = getOpenCLProgram(device);
 
-    Image::pointer phi = Image::New();
-    phi->create(input->getSize(), TYPE_FLOAT, 1);
+    auto phi = Image::create(input->getSize(), TYPE_FLOAT, 1);
 
     OpenCLImageAccess::pointer phiAccess = phi->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
     cl::Image3D phi_1 = *phiAccess->get3DImage();
@@ -122,10 +121,9 @@ void LevelSetSegmentation::execute() {
                 input->getDepth()
         );
 
-        Image::pointer speed = Image::New();
-        speed->create(input->getSize(), TYPE_FLOAT, 1);
+        auto speed = Image::create(input->getSize(), TYPE_FLOAT, 1);
 
-        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+        auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
         kernel.setArg(0, *access->get3DImage());
         kernel.setArg(3, mIntensityMean);
         kernel.setArg(4, mIntensityVariance);

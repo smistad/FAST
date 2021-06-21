@@ -28,8 +28,7 @@ void LabelModifier::execute() {
     if(input->getDimensions() != 2 || input->getDataType() != TYPE_UINT8)
         throw Exception("Input to LabelModifier must be 2D image of type uint8");
 
-    auto output = Image::New();
-    output->createFromImage(input);
+    auto output = Image::createFromImage(input);
 
     auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
     auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);

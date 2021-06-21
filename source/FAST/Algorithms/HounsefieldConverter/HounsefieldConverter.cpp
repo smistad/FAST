@@ -10,12 +10,11 @@ HounsefieldConverter::HounsefieldConverter() {
 }
 
 Image::pointer HounsefieldConverter::convertToHU(Image::pointer image) {
-	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-	cl::Program program = getOpenCLProgram(device);
+	auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
+	auto program = getOpenCLProgram(device);
 
-	OpenCLImageAccess::pointer input = image->getOpenCLImageAccess(ACCESS_READ, device);
-	Image::pointer newImage = Image::New();
-	newImage->create(image->getSize(), TYPE_INT16, 1);
+	auto input = image->getOpenCLImageAccess(ACCESS_READ, device);
+	auto newImage = Image::create(image->getSize(), TYPE_INT16, 1);
 	newImage->setSpacing(image->getSpacing());
 	SceneGraph::setParentNode(newImage, image);
 

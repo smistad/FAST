@@ -379,10 +379,8 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
 
 Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::pointer image) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    Image::pointer floatImage = Image::New();
-    floatImage->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 1);
-    Image::pointer vectorField = Image::New();
-    vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_SNORM_INT16, 3);
+    auto floatImage = Image::create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 1);
+    auto vectorField = Image::create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_SNORM_INT16, 3);
     //vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 3);
     vectorField->setSpacing(image->getSpacing());
     SceneGraph::setParentNode(vectorField, image);
@@ -466,12 +464,10 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
 
 void TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::pointer vectorField, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    TDF = Image::New();
-    TDF->create(vectorField->getSize(), TYPE_FLOAT, 1);
+    TDF = Image::create(vectorField->getSize(), TYPE_FLOAT, 1);
     TDF->setSpacing(vectorField->getSpacing());
     SceneGraph::setParentNode(TDF, vectorField);
-    radius = Image::New();
-    radius->create(vectorField->getSize(), TYPE_FLOAT, 1);
+    radius = Image::create(vectorField->getSize(), TYPE_FLOAT, 1);
 
     OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
     OpenCLBufferAccess::pointer radiusAccess = radius->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
@@ -505,12 +501,10 @@ void TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::poin
 
 void TubeSegmentationAndCenterlineExtraction::runNonCircularTubeDetectionFilter(Image::pointer vectorField, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    TDF = Image::New();
-    TDF->create(vectorField->getSize(), TYPE_FLOAT, 1);
+    TDF = Image::create(vectorField->getSize(), TYPE_FLOAT, 1);
     TDF->setSpacing(vectorField->getSpacing());
     SceneGraph::setParentNode(TDF, vectorField);
-    radius = Image::New();
-    radius->create(vectorField->getSize(), TYPE_FLOAT, 1);
+    radius = Image::create(vectorField->getSize(), TYPE_FLOAT, 1);
 
     OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
     OpenCLBufferAccess::pointer radiusAccess = radius->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);

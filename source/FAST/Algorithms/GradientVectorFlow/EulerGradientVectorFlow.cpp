@@ -414,8 +414,7 @@ void EulerGradientVectorFlow::execute() {
         iterations = std::max(input->getWidth(), std::max(input->getHeight(), input->getDepth()));
 
     // Create output, currently only type float is output, not normalized 16 bit
-    auto output = Image::New();
-    output->create(input->getSize(), TYPE_FLOAT, input->getNrOfChannels());
+    auto output = Image::create(input->getSize(), TYPE_FLOAT, input->getNrOfChannels());
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
 

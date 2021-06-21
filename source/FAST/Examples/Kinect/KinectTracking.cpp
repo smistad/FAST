@@ -18,8 +18,7 @@ KinectTracking::KinectTracking() {
     createOutputPort<Mesh>(2); // Target cloud
 
     // Create annotation image
-    mAnnotationImage = Image::New();
-    mAnnotationImage->create(512, 424, TYPE_UINT8, 1);
+    mAnnotationImage = Image::create(512, 424, TYPE_UINT8, 1);
     mAnnotationImage->fill(0);
 
     mTargetCloud = Mesh::create(0, 0, 0, false, false, false);

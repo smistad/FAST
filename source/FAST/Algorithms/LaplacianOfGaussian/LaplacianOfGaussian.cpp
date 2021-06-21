@@ -193,15 +193,14 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
 
 void LaplacianOfGaussian::execute() {
     auto input = getInputData<Image>(0);
-    auto output = Image::New();
 
     if(input->getDimensions() != 2) {
         throw Exception("The LaplacianOfGaussian filter currently only accept 2D images");
     }
 
     // Initialize output image
-    ExecutionDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    output->create(
+    auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
+    auto output = Image::create(
             input->getWidth(),
             input->getHeight(),
             TYPE_FLOAT,

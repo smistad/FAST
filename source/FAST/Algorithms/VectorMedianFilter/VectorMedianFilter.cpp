@@ -19,8 +19,7 @@ void VectorMedianFilter::loadAttributes() {
 
 void VectorMedianFilter::execute() {
     auto input = getInputData<Image>(0);
-    auto output = Image::New();
-    output->createFromImage(input);
+    auto output = Image::createFromImage(input);
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto queue = device->getCommandQueue();

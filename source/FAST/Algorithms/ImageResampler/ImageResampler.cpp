@@ -43,7 +43,6 @@ void ImageResampler::execute() {
         throw Exception("You must set output spacing with setOutputSpacing before executing the ImageResampler");
 
     auto input = getInputData<Image>();
-    auto output = Image::New();
 
     Vector3f inputSpacing = input->getSpacing();
 
@@ -54,12 +53,13 @@ void ImageResampler::execute() {
     int height = round(newSize.y());
     int depth = round(newSize.z());
 
+    Image::pointer output;
     if(input->getDimensions() == 2) {
         reportInfo() << "New size for volume in image resampler: " << width << " " << height << reportEnd();
-        output->create(width, height, input->getDataType(), 1);
+        output = Image::create(width, height, input->getDataType(), 1);
     } else {
         reportInfo() << "New size for volume in image resampler: " << width << " " << height << " " << depth << reportEnd();
-        output->create(width, height, depth, input->getDataType(), 1);
+        output = Image::create(width, height, depth, input->getDataType(), 1);
     }
     output->setSpacing(mSpacing);
 

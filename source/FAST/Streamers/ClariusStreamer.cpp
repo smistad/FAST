@@ -78,7 +78,7 @@ void ClariusStreamer::newImageFn(const void *img, const _ClariusProcessedImageIn
         throw Exception("Expected 32 bits per pixel (4 channels with 8 bits) each in ClariusStreamer, but got " + std::to_string(nfo->bitsPerPixel));
 
     // Copy pixels
-    auto image = Image::New();
+    Image::pointer image;
     const int width = nfo->width;
     const int height = nfo->height;
     if(mGrayscale) {
@@ -87,9 +87,9 @@ void ClariusStreamer::newImageFn(const void *img, const _ClariusProcessedImageIn
         for(int i = 0; i < width*height; ++i) {
             pixels[i] = img2[i * 4 + 0];
         }
-        image->create(width, height, TYPE_UINT8, 1, std::move(pixels));
+        image = Image::create(width, height, TYPE_UINT8, 1, std::move(pixels));
     } else {
-        image->create(width, height, TYPE_UINT8, 4, img);
+        image = Image::create(width, height, TYPE_UINT8, 4, img);
     }
     float spacing = (float)nfo->micronsPerPixel/1000.0f; // convert spacing to millimeters
     image->setSpacing(Vector3f(spacing, spacing, 1));

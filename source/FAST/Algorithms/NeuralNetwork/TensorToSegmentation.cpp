@@ -30,7 +30,6 @@ TensorToSegmentation::TensorToSegmentation(float threshold, bool hasBackgroundCl
 
 void TensorToSegmentation::execute() {
     auto tensor = getInputData<Tensor>();
-    auto output = Image::New();
 
     auto shape = tensor->getShape();
     const int dims = shape.getDimensions();
@@ -63,10 +62,11 @@ void TensorToSegmentation::execute() {
         // If a match is found; add (1 - firstClass). Thus if there is no background class, we will add 1 when maxClass is actually 0
         data[x] = found ? maxClass + (1 - firstClass) : 0;
     }
+    Image::pointer output;
     if(outputDepth == 1) {
-        output->create(outputWidth, outputHeight, TYPE_UINT8, 1, std::move(data));
+        output = Image::create(outputWidth, outputHeight, TYPE_UINT8, 1, std::move(data));
     } else {
-        output->create(outputWidth, outputHeight, outputDepth, TYPE_UINT8, 1, std::move(data));
+        output = Image::create(outputWidth, outputHeight, outputDepth, TYPE_UINT8, 1, std::move(data));
     }
     output->setSpacing(tensor->getSpacing());
 

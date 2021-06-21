@@ -198,7 +198,6 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, const f
 
 void GaussianSmoothingFilter::execute() {
     auto input = getInputData<Image>(0);
-    auto output = Image::New();
 
     char maskSize = mMaskSize;
     if(maskSize <= 0) // If mask size is not set calculate it instead
@@ -209,11 +208,12 @@ void GaussianSmoothingFilter::execute() {
 
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
+    Image::pointer output;
     if(mOutputTypeSet) {
-        output->create(input->getSize(), mOutputType, input->getNrOfChannels());
+        output = Image::create(input->getSize(), mOutputType, input->getNrOfChannels());
         output->setSpacing(input->getSpacing());
     } else {
-        output->createFromImage(input);
+        output = Image::createFromImage(input);
     }
     mOutputType = output->getDataType();
     SceneGraph::setParentNode(output, input);
@@ -249,8 +249,7 @@ void GaussianSmoothingFilter::execute() {
             );
         } else {
             // Create an auxilliary image
-            Image::pointer output2 = Image::New();
-            output2->createFromImage(output);
+            auto output2 = Image::createFromImage(output);
 
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
 

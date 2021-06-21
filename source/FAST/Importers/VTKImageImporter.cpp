@@ -51,7 +51,7 @@ void* readVTKData(vtkImageData* image) {
     }
 }
 
-void transferVTKDataToFAST(vtkImageData* image, Image::pointer output) {
+Image::pointer transferVTKDataToFAST(vtkImageData* image) {
 
     void* data;
     DataType type;
@@ -83,14 +83,16 @@ void transferVTKDataToFAST(vtkImageData* image, Image::pointer output) {
     }
 
     int * size = image->GetDimensions();
+    Image::pointer output;
     if(image->GetDataDimension() == 2) {
-        output->create(size[0], size[1],type,1,Host::getInstance(),data);
+        output = Image::create(size[0], size[1],type,1,Host::getInstance(),data);
     } else if(image->GetDataDimension() == 3) {
-        output->create(size[0], size[1],size[2],type,1,Host::getInstance(),data);
+        output = Image::create(size[0], size[1],size[2],type,1,Host::getInstance(),data);
     } else {
         throw Exception("Wrong number of dimensions in VTK image");
     }
     deleteArray(data, type);
+    return output;
 }
 
 
@@ -102,21 +104,19 @@ int VTKtoFAST::RequestData(
     // Get the input data
     vtkImageData* input = vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-    transferVTKDataToFAST(input, mFASTImage);
+    mFASTImage = transferVTKDataToFAST(input);
 
     return 1;
 }
 
-void VTKtoFAST::setFASTImage(Image::pointer image) {
-    mFASTImage = image;
+Image::pointer VTKtoFAST::getFASTImage() {
+    return mFASTImage;
 }
 
-
 void VTKImageImporter::execute() {
-    auto image = Image::New();
-    mVTKProcessObject->setFASTImage(image);
     // Run VTK pipeline
     mVTKProcessObject->Update();
+    auto image = mVTKProcessObject->getFASTImage();
     addOutputData(0, image);
 }
 

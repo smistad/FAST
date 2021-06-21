@@ -13,14 +13,13 @@ Skeletonization::Skeletonization() {
 
 void Skeletonization::execute() {
     auto input = getInputData<Segmentation>();
-    auto output = Image::New();
-    SceneGraph::setParentNode(output, input);
 
     if(input->getDimensions() != 2)
         throw Exception("The skeletonization algorithm currently only support 2D images");
 
     // Initialize output image
-    output->createFromImage(input);
+    auto output = Image::createFromImage(input);
+    SceneGraph::setParentNode(output, input);
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 

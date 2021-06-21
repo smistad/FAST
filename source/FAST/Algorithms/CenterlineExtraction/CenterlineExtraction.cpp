@@ -24,9 +24,7 @@ Image::pointer CenterlineExtraction::calculateDistanceTransform(Image::pointer i
 	const int height = input->getHeight();
 	const int depth = input->getDepth();
 
-	Image::pointer distance = Image::New();
-	distance->create(input->getSize(), TYPE_INT16, 1);
-
+	auto distance = Image::create(input->getSize(), TYPE_INT16, 1);
 
 	// First initialize
 	cl::Kernel initializeKernel(program, "initialize");
@@ -51,8 +49,7 @@ Image::pointer CenterlineExtraction::calculateDistanceTransform(Image::pointer i
     );
 
 	// Iteratively calculate distance
-	Image::pointer distance2 = Image::New();
-	distance2->create(input->getSize(), TYPE_INT16, 1);
+	auto distance2 = Image::create(input->getSize(), TYPE_INT16, 1);
 
 	cl::Buffer changedBuffer(
 			device->getContext(),
@@ -268,8 +265,7 @@ void CenterlineExtraction::execute() {
 	const int depth = input->getDepth();
 	const int totalSize = width*height*depth;
 
-	Image::pointer candidateCenterpointsImage = Image::New();
-	candidateCenterpointsImage->create(size.cast<uint>(), TYPE_UINT8, 1);
+	auto candidateCenterpointsImage = Image::create(size.cast<uint>(), TYPE_UINT8, 1);
 
 	{
         OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());

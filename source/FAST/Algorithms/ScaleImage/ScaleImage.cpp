@@ -24,7 +24,6 @@ void ScaleImage::execute() {
         throw Exception("The high value must be higher than the low value in ScaleImage.");
 
     auto input = getInputData<Image>();
-    auto output = Image::New();
 
     const uint width = input->getWidth();
     const uint height = input->getHeight();
@@ -39,15 +38,16 @@ void ScaleImage::execute() {
     cl::Kernel kernel;
 
     OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+    Image::pointer output;
     if(input->getDimensions() == 2) {
-        output->create(width, height, TYPE_FLOAT, input->getNrOfChannels());
+        output = Image::create(width, height, TYPE_FLOAT, input->getNrOfChannels());
         globalSize = cl::NDRange(width, height);
         OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         kernel = cl::Kernel(program, "scaleImage2D");
         kernel.setArg(0, *(inputAccess->get2DImage()));
         kernel.setArg(1, *(outputAccess->get2DImage()));
     } else {
-        output->create(width, height, depth, TYPE_FLOAT, input->getNrOfChannels());
+        output = Image::create(width, height, depth, TYPE_FLOAT, input->getNrOfChannels());
         globalSize = cl::NDRange(width, height, depth);
         kernel = cl::Kernel(program, "scaleImage3D");
         kernel.setArg(0, *(inputAccess->get3DImage()));

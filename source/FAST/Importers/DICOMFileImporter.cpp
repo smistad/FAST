@@ -128,7 +128,6 @@ void DICOMFileImporter::execute() {
     DcmFileFormat fileformat;
     OFCondition status = fileformat.loadFile(m_filename.c_str());
     if(status.good()) {
-        auto output = Image::New();
         // Get pixel spacing
         Float64 spacingX;
         Float64 spacingY;
@@ -176,19 +175,20 @@ void DICOMFileImporter::execute() {
                 inserSliceFromImage(DicomImage(file.c_str()), width, height, sliceNr-1, data);
             }
 
-            output->create(image.getWidth(), image.getHeight(), seriesFiles.size(), type, 1, data);
+            auto output = Image::create(image.getWidth(), image.getHeight(), seriesFiles.size(), type, 1, data);
             output->setSpacing(spacingX, spacingY, spacingZ);
             deleteArray(data, type);
+            addOutputData(0, output);
         } else {
             DicomImage image(m_filename.c_str());
             DataType type;
             void* data = getDataFromImage(image, type);
 
-            output->create(image.getWidth(), image.getHeight(), type, 1, data);
+            auto output = Image::create(image.getWidth(), image.getHeight(), type, 1, data);
             output->setSpacing(spacingX, spacingY, 1);
             deleteArray(data, type);
+            addOutputData(0, output);
         }
-        addOutputData(0, output);
     } else {
         throw Exception("Error: cannot read DICOM file " + m_filename + "(" + std::string(status.text()) + ")");
     }

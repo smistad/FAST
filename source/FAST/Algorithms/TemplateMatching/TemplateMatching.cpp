@@ -29,8 +29,7 @@ void TemplateMatching::execute() {
     if(templateImage->getWidth() % 2 == 0 || templateImage->getHeight() % 2 == 0)
         throw Exception("Template image size for template matching must be odd");
 
-    outputScores = Image::New();
-    outputScores->create(image->getSize(), TYPE_FLOAT, 1);
+    outputScores = Image::create(image->getSize(), TYPE_FLOAT, 1);
     outputScores->fill(0);
     auto outputAccess = outputScores->getImageAccess(ACCESS_READ_WRITE);
     auto templateAccess = templateImage->getImageAccess(ACCESS_READ);

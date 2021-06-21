@@ -7,7 +7,7 @@
 using namespace fast;
 
 TEST_CASE("No filename given to the MetaImageExporter", "[fast][MetaImageExporter]") {
-    Image::pointer image = Image::New();
+    Image::pointer image = Image::create(32, 32, TYPE_UINT8, 1);
     MetaImageExporter::pointer exporter = MetaImageExporter::New();
     exporter->setInputData(image);
     CHECK_THROWS(exporter->update());
@@ -50,9 +50,8 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             DataType type = (DataType)typeNr;
 
-            Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*channels, type);
-            image->create(width, height, type, channels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -131,9 +130,8 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             DataType type = (DataType)typeNr;
 
-            Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*depth*channels, type);
-            image->create(width, height, depth, type, channels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, depth, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -211,9 +209,8 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
             INFO("Type nr: " << typeNr);
             DataType type = (DataType)typeNr;
 
-            Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*channels, type);
-            image->create(width, height, type, channels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -292,9 +289,8 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             DataType type = (DataType)typeNr;
 
-            Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*depth*channels, type);
-            image->create(width, height, depth, type, channels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, depth, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);

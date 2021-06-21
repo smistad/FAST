@@ -52,8 +52,7 @@ void BlockMatching::execute() {
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
-    auto output = Image::New();
-    output->create(currentFrame->getSize(), TYPE_FLOAT, 2);
+    auto output = Image::create(currentFrame->getSize(), TYPE_FLOAT, 2);
     output->setSpacing(currentFrame->getSpacing());
     m_frameBuffer.push_back(currentFrame);
 

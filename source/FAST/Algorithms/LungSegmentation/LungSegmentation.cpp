@@ -91,8 +91,7 @@ Image::pointer LungSegmentation::convertToHU(Image::pointer image) {
 	cl::Program program = getOpenCLProgram(device);
 
 	OpenCLImageAccess::pointer input = image->getOpenCLImageAccess(ACCESS_READ, device);
-	Image::pointer newImage = Image::New();
-	newImage->create(image->getSize(), TYPE_INT16, 1);
+	auto newImage = Image::create(image->getSize(), TYPE_INT16, 1);
 	newImage->setSpacing(image->getSpacing());
 	SceneGraph::setParentNode(newImage, image);
 

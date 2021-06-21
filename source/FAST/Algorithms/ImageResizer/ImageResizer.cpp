@@ -61,14 +61,14 @@ ImageResizer::ImageResizer() {
 
 void ImageResizer::execute() {
     auto input = getInputData<Image>();
-    auto output = Image::New();
 
     if(mSize.x() <= 0 || mSize.y() <= 0)
     	throw Exception("Desired size must be provided to ImageResizer");
 
     // Initialize output image
+    Image::pointer output;
     if(input->getDimensions() == 2) {
-        output->create(
+        output = Image::create(
                 mSize.x(),
 				mSize.y(),
                 input->getDataType(),
@@ -77,7 +77,7 @@ void ImageResizer::execute() {
     } else {
         if(mSize.z() == 0)
             throw Exception("Desired size must be provided to ImageResizer");
-        output->create(
+        output = Image::create(
                 mSize.cast<uint>(),
                 input->getDataType(),
 				input->getNrOfChannels()

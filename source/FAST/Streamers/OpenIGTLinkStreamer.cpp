@@ -77,7 +77,6 @@ std::vector<std::string> OpenIGTLinkStreamer::getActiveTransformStreamNames() {
 }
 
 static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
-    Image::pointer image = Image::New();
     int width, height, depth;
     message->GetDimensions(width, height, depth);
     void* data = message->GetScalarPointer();
@@ -103,10 +102,11 @@ static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
             break;
     }
 
+    Image::pointer image;
     if(depth == 1) {
-        image->create(width, height, type, message->GetNumComponents(), device, data);
+        image = Image::create(width, height, type, message->GetNumComponents(), device, data);
     } else {
-        image->create(width, height, depth, type, message->GetNumComponents(), device, data);
+        image = Image::create(width, height, depth, type, message->GetNumComponents(), device, data);
     }
 
     auto spacing = std::make_unique<float[]>(3);

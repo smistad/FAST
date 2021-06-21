@@ -32,8 +32,7 @@ void Dilation::execute() {
         throw Exception("Data type of image given to Dilation must be UINT8");
     }
 
-    auto output = Image::New();
-    output->createFromImage(input);
+    auto output = Image::createFromImage(input);
     SceneGraph::setParentNode(output, input);
     output->fill(0);
 

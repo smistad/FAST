@@ -30,8 +30,7 @@ void UltrasoundImageEnhancement::execute() {
         mColormapUploaded = true;
     }
 
-    auto output = Image::New();
-    output->create(input->getSize(), TYPE_UINT8, 3); // Make color image
+    auto output = Image::create(input->getSize(), TYPE_UINT8, 3); // Make color image
     output->setSpacing(input->getSpacing());
 
     cl::CommandQueue queue = device->getCommandQueue();

@@ -102,8 +102,7 @@ void UltrasoundImageCropper::execute() {
         }
     }
 
-    auto outputImage = Image::New();
-    outputImage->create(m_width, m_height, image->getDataType(), image->getNrOfChannels());
+    auto outputImage = Image::create(m_width, m_height, image->getDataType(), image->getNrOfChannels());
     outputImage->setSpacing(m_spacing);
     outputImage->setCreationTimestamp(image->getCreationTimestamp());
 	outputImage->setFrameData("original-width", std::to_string(outputImage->getWidth()));

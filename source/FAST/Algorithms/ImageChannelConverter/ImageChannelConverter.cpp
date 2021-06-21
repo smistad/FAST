@@ -13,7 +13,6 @@ void ImageChannelConverter::setChannelsToRemove(bool channel1, bool channel2, bo
 void ImageChannelConverter::execute() {
     auto input = getInputData<Image>();
     //std::cout << "IN converter, PATCH: " << input->getFrameData("patchid-x") << " " << input->getFrameData("patchid-y") << std::endl;
-    auto output = Image::New();
 
     int existingChannels = input->getNrOfChannels();
     int nrOfChannelsToRemove = 0;
@@ -26,7 +25,7 @@ void ImageChannelConverter::execute() {
     }
     cl_uchar4 removeChannel = {m_channelsToRemove[0], m_channelsToRemove[1], m_channelsToRemove[2], m_channelsToRemove[3]};
 
-    output->create(input->getSize(), input->getDataType(), existingChannels - nrOfChannelsToRemove);
+    auto output = Image::create(input->getSize(), input->getDataType(), existingChannels - nrOfChannelsToRemove);
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
 

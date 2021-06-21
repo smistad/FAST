@@ -23,11 +23,11 @@ void TensorToImage::execute() {
         outputDepth = shape[dims - 4];
     }
 
-    auto image = Image::New();
+    Image::pointer image;
     if(outputDepth == 1) {
-        image->create(outputWidth, outputHeight, TYPE_FLOAT, channels, std::move(tensorData));
+        image = Image::create(outputWidth, outputHeight, TYPE_FLOAT, channels, std::move(tensorData));
     } else {
-        image->create(outputWidth, outputHeight, outputDepth, TYPE_FLOAT, channels, std::move(tensorData));
+        image = Image::create(outputWidth, outputHeight, outputDepth, TYPE_FLOAT, channels, std::move(tensorData));
     }
     image->setSpacing(tensor->getSpacing());
     SceneGraph::setParentNode(image, tensor);
