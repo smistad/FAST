@@ -21,8 +21,7 @@ void PatchStitcher::execute() {
     auto imagePatch = std::dynamic_pointer_cast<Image>(patch);
     auto batchOfPatches = std::dynamic_pointer_cast<Batch>(patch);
     if(batchOfPatches) {
-       auto access = batchOfPatches->getAccess(ACCESS_READ);
-       auto list = access->getData();
+       auto list = batchOfPatches->get();
        if(list.isTensors()) {
            for(auto&& tensor : list.getTensors())
                processTensor(tensor);

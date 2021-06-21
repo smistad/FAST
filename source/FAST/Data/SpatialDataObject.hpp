@@ -1,5 +1,4 @@
-#ifndef SPATIAL_DATA_OBJECT_HPP_
-#define SPATIAL_DATA_OBJECT_HPP_
+#pragma once
 
 #include "FAST/Data/DataObject.hpp"
 #include "DataBoundingBox.hpp"
@@ -25,5 +24,3 @@ class FAST_EXPORT  SpatialDataObject : public DataObject {
 };
 
 }
-
-#endif

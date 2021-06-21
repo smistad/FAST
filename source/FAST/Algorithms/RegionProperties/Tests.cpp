@@ -17,8 +17,7 @@ TEST_CASE("Region properties", "[regionproperties][fast]") {
     auto regionProperties = RegionProperties::New();
     regionProperties->setInputConnection(segmentation->getOutputPort());
     auto regionList = regionProperties->updateAndGetOutputData<RegionList>();
-    auto access = regionList->getAccess(ACCESS_READ);
-    auto regions = access->getData();
+    auto regions = regionList->get();
 
     // TODO validate
     for(auto& region : regions) {

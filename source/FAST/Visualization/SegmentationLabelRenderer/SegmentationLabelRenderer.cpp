@@ -116,7 +116,7 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
         textimg.fill(QColor(0, 0, 0, 0));
         QPainter painter(&textimg);
         float pixelArea = spacing.x()*spacing.y();
-        for(auto& region : m_regions[inputNr]->getAccess(ACCESS_READ)->getData()) {
+        for(auto& region : m_regions[inputNr]->get()) {
 
             if(region.area*pixelArea < m_areaThreshold) // If object to small.. (area in mm^2)
                 continue;

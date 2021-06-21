@@ -134,8 +134,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
             std::vector<Image::pointer> inputImages;
             std::vector<Tensor::pointer> inputTensors;
             if(batch) {
-                Batch::access access = batch->getAccess(ACCESS_READ);
-                auto dataList = access->getData();
+                auto dataList = batch->get();
                 if(dataList.isImages()) {
                     inputImages = dataList.getImages();
                 } else {
@@ -151,8 +150,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 m_batchSize = 1;
                 Sequence::pointer sequence = std::dynamic_pointer_cast<Sequence>(data);
                 if(sequence) {
-                    Sequence::access access = sequence->getAccess(ACCESS_READ);
-                    auto dataList = access->getData();
+                    auto dataList = sequence->get();
                     if(dataList.isImages()) {
                         inputImages = dataList.getImages();
                     } else {
@@ -353,8 +351,7 @@ void NeuralNetwork::run() {
                 newTensor = standardizeOutputTensorData(newTensor, i);
                 tensorList.push_back(newTensor);
             }
-            auto outputBatch = Batch::New();
-            outputBatch->create(tensorList);
+            auto outputBatch = Batch::create(tensorList);
             m_processedOutputData[node.second.portID] = outputBatch;
         } else {
             // Remove first dimension as it is 1, due to batch size 1
@@ -591,6 +588,21 @@ void NeuralNetwork::setMinAndMaxIntensity(float min, float max) {
     mMaxIntensity = max;
     mMinAndMaxIntensitySet = true;
     mIsModified = true;
+}
+
+
+Sequence::Sequence(std::vector<std::shared_ptr<Image>> images) {
+    m_data = InferenceDataList(std::move(images));
+}
+Sequence::Sequence(std::vector<std::shared_ptr<Tensor>> tensors) {
+    m_data = InferenceDataList(std::move(tensors));
+}
+
+Batch::Batch(std::vector<std::shared_ptr<Image>> images) {
+    m_data = InferenceDataList(std::move(images));
+}
+Batch::Batch(std::vector<std::shared_ptr<Tensor>> tensors) {
+    m_data = InferenceDataList(std::move(tensors));
 }
 
 };

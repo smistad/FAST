@@ -57,17 +57,10 @@ class FAST_EXPORT InferenceDataList {
  * @ingroup neural-network
  */
 class FAST_EXPORT Sequence : public SimpleDataObject<InferenceDataList> {
-	FAST_OBJECT(Sequence)
+	FAST_OBJECT_V4(Sequence)
     public:
-        void create(std::vector<std::shared_ptr<Image>> images) {
-            mData = InferenceDataList(images);
-        };
-        void create(std::vector<std::shared_ptr<Tensor>> tensors) {
-            mData = InferenceDataList(tensors);
-        };
-        typedef DataAccess<InferenceDataList>::pointer access;
-    private:
-        Sequence() {};
+        FAST_CONSTRUCTOR(Sequence, std::vector<std::shared_ptr<Image>>, images,)
+        FAST_CONSTRUCTOR(Sequence, std::vector<std::shared_ptr<Tensor>>, tensors,)
 };
 
 /**
@@ -79,17 +72,10 @@ class FAST_EXPORT Sequence : public SimpleDataObject<InferenceDataList> {
  * @ingroup neural-network
  */
 class FAST_EXPORT Batch : public SimpleDataObject<InferenceDataList> {
-	FAST_OBJECT(Batch)
+	FAST_OBJECT_V4(Batch)
     public:
-        void create(std::vector<std::shared_ptr<Image>> images) {
-            mData = InferenceDataList(images);
-        };
-        void create(std::vector<std::shared_ptr<Tensor>> tensors) {
-            mData = InferenceDataList(tensors);
-        };
-        typedef DataAccess<InferenceDataList>::pointer access;
-    private:
-        Batch() {};
+        FAST_CONSTRUCTOR(Batch, std::vector<std::shared_ptr<Image>>, images,)
+        FAST_CONSTRUCTOR(Batch, std::vector<std::shared_ptr<Tensor>>, tensors,)
 };
 
 class FAST_EXPORT NeuralNetworkNode {

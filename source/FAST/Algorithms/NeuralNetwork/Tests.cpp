@@ -219,8 +219,7 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
             images.push_back(data);
             images.push_back(data);
         }
-        auto batch = Batch::New();
-        batch->create(images);
+        auto batch = Batch::create(images);
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
@@ -241,8 +240,7 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
         auto data2 = port2->getNextFrame<Batch>();
 
         // We are expecting two batches as output each with dimensions (6)
-        auto access1 = data1->getAccess(ACCESS_READ);
-        auto list1 = access1->getData();
+        auto list1 = data1->get();
 
         REQUIRE(list1.getSize() == 2);
         CHECK(list1.isTensors());
@@ -251,8 +249,7 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
         CHECK(list1.getTensors()[0]->getShape()[0] == 6);
         CHECK(list1.getTensors()[1]->getShape()[0] == 6);
 
-        auto access2 = data2->getAccess(ACCESS_READ);
-        auto list2 = access2->getData();
+        auto list2 = data2->get();
 
         REQUIRE(list2.getSize() == 2);
         CHECK(list2.isTensors());
@@ -278,8 +275,7 @@ TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]")
             images.push_back(data);
             images.push_back(data);
         }
-        auto sequence = Sequence::New();
-        sequence->create(images);
+        auto sequence = Sequence::create(images);
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
@@ -315,8 +311,7 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
             images.push_back(data);
             images.push_back(data);
         }
-        auto sequence = Sequence::New();
-        sequence->create(images);
+        auto sequence = Sequence::create(images);
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);

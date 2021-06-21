@@ -41,9 +41,8 @@ void ImagesToSequence::execute() {
     while(m_queue.size() < m_sequenceSize)
         m_queue.push_back(newImage);
 
-    auto sequence = Sequence::New();
     std::vector<Image::pointer> vector{m_queue.begin(), m_queue.end()};
-    sequence->create(vector);
+    auto sequence = Sequence::create(vector);
     addOutputData(0, sequence);
 }
 

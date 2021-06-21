@@ -149,8 +149,7 @@ void RegionProperties::execute() {
         //region.contour->create(vertices);
     }
 
-    auto regionList = RegionList::New();
-    regionList->create(regions);
+    auto regionList = RegionList::create(regions);
     addOutputData(0, regionList);
 }
 
