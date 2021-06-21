@@ -16,11 +16,9 @@ patchGenerator = fast.PatchGenerator.create(512, 512)\
     .connect(0, importer)\
     .connect(1, tissueSegmentation)
 
-stream = fast.DataStream(patchGenerator)
-
 # Create a 3x3 subplot for every set of 9 patches
 patch_list = []
-for patch in stream:
+for patch in fast.DataStream(patchGenerator):
     patch_list.append(patch)
     if len(patch_list) == 9:
         # Display the 9 last patches

@@ -545,13 +545,13 @@ void Image::create(
     copyData(device, data);
 }
 
-void Image::create(
+Image::Image(
         unsigned int width,
         unsigned int height,
         unsigned int depth,
         DataType type,
         unsigned int nrOfChannels,
-        const void* const data) {
+        const void* const data) : Image() {
 
 	create(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
 }
@@ -590,12 +590,12 @@ void Image::create(
 
 }
 
-void Image::create(
+Image::Image(
         unsigned int width,
         unsigned int height,
         DataType type,
         unsigned int nrOfChannels,
-        const void* const data) {
+        const void* const data) : Image() {
 
 	create(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
 }

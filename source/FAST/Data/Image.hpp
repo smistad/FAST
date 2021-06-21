@@ -50,6 +50,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param image to copy size and pixel spacing from
          */
         void createFromImage(Image::pointer image);
+#ifndef SWIG
         /**
          * Setup a 2D/3D image object, but does not allocate any memory
          *
@@ -58,6 +59,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param nrOfChannels
          */
         void create(VectorXui size, DataType type, uint nrOfChannels);
+#endif
         /**
          * Setup a 2D image object, but does not allocate any memory
          *
@@ -77,6 +79,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param nrOfChannels
          */
         void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels);
+#ifndef SWIG
         /**
          * Copies 2D/3D data to given device
          *
@@ -88,6 +91,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          */
         void create(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device,
                     const void *const data);
+#endif
         /**
          * Copies 2D data to given device
          *
@@ -111,6 +115,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param data
          */
         void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * const data);
+#ifndef SWIG
         /**
          * Copies 2D/3D data to default device
          *
@@ -120,6 +125,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param data
          */
         void create(VectorXui size, DataType type, uint nrOfChannels, const void* const data);
+#endif
         /**
          * Copies 2D data to default device
          *
@@ -129,7 +135,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param nrOfChannels
          * @param data
          */
-        void create(uint width, uint height, DataType type, uint nrOfChannels, const void* const data);
+         FAST_CONSTRUCTOR(Image, uint, width,, uint, height,, DataType, type,, uint, nrOfChannels,, const void* const, data,);
         /**
          * Copies 3D data to default device
          *
@@ -140,7 +146,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param nrOfChannels
          * @param data
          */
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, const void* const data);
+        FAST_CONSTRUCTOR(Image, uint, width,, uint, height,, uint, depth,, DataType, type,, uint, nrOfChannels,, const void* const, data,);
 
         /**
          * Moves the 2D data pointer to the given device

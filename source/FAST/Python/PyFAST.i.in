@@ -196,7 +196,7 @@ std::size_t _getHostDataPointer() {
     auto access = $self->getImageAccess(ACCESS_READ);
     return (std::size_t)access->get();
 }
-void* _intToVoidPointer(std::size_t intPointer) {
+static void* _intToVoidPointer(std::size_t intPointer) {
     return (void*)intPointer;
 }
 %pythoncode %{
@@ -222,11 +222,11 @@ void* _intToVoidPointer(std::size_t intPointer) {
       'strides': None,
     }
 
-
-  def createFromArray(self, ndarray):
+  @staticmethod
+  def createFromArray(ndarray):
     """Create a FAST image from a N-D array (e.g. numpy ndarray)"""
     if not hasattr(ndarray, '__array_interface__'):
-      raise ValueError('Input to Image createFromArray() must have the array_interface property')
+        raise ValueError('Input to Image createFromArray() must have the array_interface property')
     array_interface = ndarray.__array_interface__
     shape = array_interface['shape']
     is_2d = True
@@ -239,21 +239,21 @@ void* _intToVoidPointer(std::size_t intPointer) {
         is_2d = False
         has_channels = True
     if is_2d:
-        self.create(
+        return Image.create(
             shape[1],
             shape[0],
-            self._str_to_data_type[array_interface['typestr'][1:]],
+            Image._str_to_data_type[array_interface['typestr'][1:]],
             shape[-1] if has_channels else 1,
-                self._intToVoidPointer(array_interface['data'][0])
+            Image._intToVoidPointer(array_interface['data'][0])
         )
     else:
-        self.create(
+        return Image.create(
             shape[2],
             shape[1],
             shape[0],
-            self._str_to_data_type[array_interface['typestr'][1:]],
+            Image._str_to_data_type[array_interface['typestr'][1:]],
             shape[-1] if has_channels else 1,
-                self._intToVoidPointer(array_interface['data'][0])
+            Image._intToVoidPointer(array_interface['data'][0])
         )
 %}
 }
@@ -264,7 +264,7 @@ std::size_t _getHostDataPointer() {
     auto access = $self->getAccess(ACCESS_READ);
     return (std::size_t)access->getRawData();
 }
-float* _intToFloatPointer(std::size_t intPointer) {
+static float* _intToFloatPointer(std::size_t intPointer) {
     return (float*)intPointer;
 }
 %pythoncode %{
@@ -278,11 +278,11 @@ float* _intToFloatPointer(std::size_t intPointer) {
       'strides': None,
     }
 
-
-  def createFromArray(self, ndarray):
+  @staticmethod
+  def createFromArray(ndarray):
     """Create a FAST Tensor from a N-D array (e.g. numpy ndarray)"""
     if not hasattr(ndarray, '__array_interface__'):
-      raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
+        raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
     array_interface = ndarray.__array_interface__
     # Check data type if it is correct
     if array_interface['typestr'] != 'f4':
@@ -299,7 +299,7 @@ float* _intToFloatPointer(std::size_t intPointer) {
     for i in shape:
         fast_shape.addDimension(i)
 
-    self.create(self._intToFloatPointer(array_interface['data'][0]), fast_shape)
+    return Tensor.create(Tensor._intToFloatPointer(array_interface['data'][0]), fast_shape)
 %}
 }
 
