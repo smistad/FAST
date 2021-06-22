@@ -28,6 +28,8 @@ public:
     static void setConfigFilename(std::string filename);
     static void setBasePath(std::string path);
     static void setVisualization(bool visualization);
+    static void setTerminateHandlerDisabled(bool disabled);
+    static bool getTerminateHandlerDisabled();
 protected:
     static void loadConfiguration();
     static std::string getPath();

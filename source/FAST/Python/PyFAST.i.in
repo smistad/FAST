@@ -30,6 +30,16 @@ using namespace fast;
 
 %}
 
+// General exception handler to avoid crashing python when something in FAST triggers an exception
+%exception {
+    try {
+        $action
+    } catch(std::exception &e) {
+        PyErr_SetString(PyExc_RuntimeError, e.what());
+        SWIG_fail;
+    }
+}
+
 // Third party stuff
 %include <std_string.i>
 %include <std_shared_ptr.i>
@@ -400,6 +410,8 @@ def connect(self, *args):
 
 %}
 }
+
+
 
 // Get proper error messages if python error occurs in PythonProcessObject director
 // This was taken from https://github.com/swig/swig/issues/1117

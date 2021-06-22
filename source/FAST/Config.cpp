@@ -36,6 +36,7 @@ namespace fast {
 			std::string mQtPluginsPath;
 			StreamingMode m_streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
 			bool m_visualization = true;
+			bool m_terminateHandlerDisabled = false;
 		}
 
 		static void copyPipelineFilesRecursivly(std::string pipelineSourcePath, std::string pipelineDestinationPath) {
@@ -320,7 +321,15 @@ namespace fast {
 		    return m_visualization;
 		}
 
-		void downloadTestDataIfNotExists(std::string destination, bool force) {
+        void Config::setTerminateHandlerDisabled(bool disabled) {
+            m_terminateHandlerDisabled = disabled;
+        }
+
+        bool Config::getTerminateHandlerDisabled() {
+		    return m_terminateHandlerDisabled;
+		}
+
+    void downloadTestDataIfNotExists(std::string destination, bool force) {
 			if(destination.empty())
 				destination = Config::getTestDataPath();
 			if(!force && fileExists(destination + "/LICENSE.md"))

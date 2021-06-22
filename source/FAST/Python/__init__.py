@@ -12,3 +12,5 @@ os.environ['PATH'] = path + os.pathsep + os.environ['PATH'] # This is needed in 
 
 from .fast import *
 fast.Config.setBasePath(bin_path)
+fast.Config.setTerminateHandlerDisabled(True)
+fast.Object() # Trigger splash
