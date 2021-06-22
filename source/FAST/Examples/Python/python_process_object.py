@@ -2,6 +2,7 @@
 # An example showing how to make FAST process object in python.
 import fast
 import numpy as np
+
 fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT) # Show debug info
 
 
@@ -21,20 +22,19 @@ class Inverter(fast.PythonProcessObject):
         np_image = 255 - np_image # invert
 
         # Create new fast image and add as output
-        new_output_image = fast.Image.New()
-        new_output_image.createFromArray(np_image)
+        new_output_image = fast.Image.createFromArray(np_image)
         new_output_image.setSpacing(image.getSpacing())
         self.addOutputData(0, new_output_image)
         print('Done in execute')
 
 
-
 # Set up pipeline as normal
-importer = fast.ImageFileStreamer.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd')
-importer.enableLooping()
+importer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd',
+    loop=True,
+)
 
-inverter = Inverter.New()
-inverter.setInputConnection(importer.getOutputPort())
+inverter = Inverter.create().connect(importer)
 
 renderer = fast.ImageRenderer.create().connect(inverter)
 
