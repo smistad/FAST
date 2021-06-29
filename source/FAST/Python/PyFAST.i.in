@@ -235,8 +235,11 @@ static void* _intToVoidPointer(std::size_t intPointer) {
   @staticmethod
   def createFromArray(ndarray):
     """Create a FAST image from a N-D array (e.g. numpy ndarray)"""
+    import numpy as np
     if not hasattr(ndarray, '__array_interface__'):
         raise ValueError('Input to Image createFromArray() must have the array_interface property')
+    # ndarray must be C contiguous
+    ndarray = np.ascontiguousarray(ndarray)
     array_interface = ndarray.__array_interface__
     shape = array_interface['shape']
     is_2d = True
@@ -291,19 +294,16 @@ static float* _intToFloatPointer(std::size_t intPointer) {
   @staticmethod
   def createFromArray(ndarray):
     """Create a FAST Tensor from a N-D array (e.g. numpy ndarray)"""
+    import numpy as np
     if not hasattr(ndarray, '__array_interface__'):
         raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
-    array_interface = ndarray.__array_interface__
+
     # Check data type if it is correct
-    if array_interface['typestr'] != 'f4':
-      import numpy as np
-      # Convert if numpy, else raise error
-      if isinstance(ndarray, np.ndarray):
+    if ndarray.__array_interface__['typestr'] != 'f4': # Is Float 32 bit?
         print('WARNING: ndarray given to fast::Tensor::createFromArray was not 32 bit float and will now be converted.')
-        ndarray = ndarray.astype(np.float32)
-        array_interface = ndarray.__array_interface__
-      else:
-        raise ValueError('Array given to Tensor::createFromArray must be 32 bit float, but you sent ' + array_interface['typestr'])
+    # Make sure it is C contiguous first
+    ndarray = np.ascontiguousarray(ndarray, dtype=np.float32)
+    array_interface = ndarray.__array_interface__
     shape = array_interface['shape']
     fast_shape = TensorShape()
     for i in shape:
