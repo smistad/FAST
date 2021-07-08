@@ -17,8 +17,6 @@ fast_add_sources(
     Utility.hpp
     SceneGraph.cpp
     SceneGraph.hpp
-    AffineTransformation.cpp
-    AffineTransformation.hpp
     OpenCLProgram.cpp
     OpenCLProgram.hpp
     Reporter.cpp

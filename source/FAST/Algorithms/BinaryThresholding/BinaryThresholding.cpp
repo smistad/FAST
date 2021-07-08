@@ -36,6 +36,11 @@ BinaryThresholding::BinaryThresholding() {
     createFloatAttribute("upper-threshold", "Upper threshold", "Upper intensity threshold", std::nanf(""));
 }
 
+BinaryThresholding::BinaryThresholding(float lowerThreshold, float upperThreshold) : BinaryThresholding() {
+    setLowerThreshold(lowerThreshold);
+    setUpperThreshold(upperThreshold);
+}
+
 void BinaryThresholding::execute() {
     if(!mLowerThresholdSet && !mUpperThresholdSet) {
         throw Exception("BinaryThresholding need at least one threshold to be set.");

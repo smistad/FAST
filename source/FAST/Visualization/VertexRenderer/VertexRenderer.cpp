@@ -46,8 +46,8 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
 
-        auto transform = SceneGraph::getAffineTransformationFromData(points);
-        setShaderUniform("transform", transform->getTransform());
+        auto transform = SceneGraph::getEigenTransformFromData(points);
+        setShaderUniform("transform", transform);
         setShaderUniform("pointSize", pointSize);
 
         auto access = points->getVertexBufferObjectAccess(ACCESS_READ);

@@ -157,7 +157,7 @@ void PatchGenerator::generateStream() {
         const int width = m_inputVolume->getWidth();
         const int height = m_inputVolume->getHeight();
         const int depth = m_inputVolume->getDepth();
-        auto transformData = SceneGraph::getEigenAffineTransformationFromData(m_inputVolume).data();
+        auto transformData = SceneGraph::getEigenTransformFromData(m_inputVolume).data();
         std::string transformString;
         for(int i = 0; i < 16; ++i)
             transformString += std::to_string(transformData[i]) + " ";

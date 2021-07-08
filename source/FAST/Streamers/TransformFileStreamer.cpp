@@ -1,49 +1,49 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
-#include "AffineTransformationFileStreamer.hpp"
-#include "FAST/AffineTransformation.hpp"
+#include "TransformFileStreamer.hpp"
+#include <FAST/Data/DataBoundingBox.hpp>
 #include <fstream>
 #include <chrono>
 
 namespace fast {
 
-AffineTransformationFileStreamer::AffineTransformationFileStreamer() {
+TransformFileStreamer::TransformFileStreamer() {
     mIsModified = true;
     mLoop = false;
     mTimestampFilename = "";
     mSleepTime = 0;
     mNrOfFrames = 0;
-    createOutputPort<AffineTransformation>(0);
+    createOutputPort<Transform>(0);
 }
 
-AffineTransformationFileStreamer::AffineTransformationFileStreamer(std::string filename, std::string timestampFilename) : AffineTransformationFileStreamer() {
+TransformFileStreamer::TransformFileStreamer(std::string filename, std::string timestampFilename) : TransformFileStreamer() {
     setFilename(filename);
     setTimestampFilename(timestampFilename);
 }
 
-void AffineTransformationFileStreamer::setSleepTime(uint milliseconds) {
+void TransformFileStreamer::setSleepTime(uint milliseconds) {
     mSleepTime = milliseconds;
 }
 
-void AffineTransformationFileStreamer::setTimestampFilename(std::string filepath) {
+void TransformFileStreamer::setTimestampFilename(std::string filepath) {
     mTimestampFilename = filepath;
 }
 
-void AffineTransformationFileStreamer::execute() {
+void TransformFileStreamer::execute() {
     if(mFilename == "")
-        throw Exception("No filename was given to the AffineTransformationFileStreamer");
+        throw Exception("No filename was given to the TransformFileStreamer");
 
     startStream();
 
     waitForFirstFrame();
 }
 
-void AffineTransformationFileStreamer::setFilename(std::string str) {
+void TransformFileStreamer::setFilename(std::string str) {
     mFilename = str;
 }
 
-void AffineTransformationFileStreamer::generateStream() {
+void TransformFileStreamer::generateStream() {
     // Read timestamp file if available
     std::ifstream timestampFile;
     unsigned long previousTimestamp = 0;
@@ -51,14 +51,14 @@ void AffineTransformationFileStreamer::generateStream() {
     if(mTimestampFilename != "") {
         timestampFile.open(mTimestampFilename.c_str());
         if(!timestampFile.is_open()) {
-            throw Exception("Timestamp file not found in AffineTransformationFileStreamer");
+            throw Exception("Timestamp file not found in TransformFileStreamer");
         }
     }
 
     // Open file
     std::ifstream transformationFile(mFilename);
     if(!transformationFile.is_open()) {
-    	throw Exception("Transformation file " + mFilename + " not found in AffineTransformationFileStreamer");
+    	throw Exception("Transformation file " + mFilename + " not found in TransformFileStreamer");
     }
 
     while(true) {
@@ -106,8 +106,8 @@ void AffineTransformationFileStreamer::generateStream() {
 		if(restart)
 			continue;
 
-		AffineTransformation::pointer transformation = AffineTransformation::New();
-		transformation->getTransform().matrix() = matrix;
+		auto transformation = Transform::create();
+		transformation->get().matrix() = matrix;
 
 		// Set and use timestamp if available
 		if(mTimestampFilename != "") {
@@ -145,19 +145,19 @@ void AffineTransformationFileStreamer::generateStream() {
 }
 
 
-uint AffineTransformationFileStreamer::getNrOfFrames() const {
+uint TransformFileStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
 
-AffineTransformationFileStreamer::~AffineTransformationFileStreamer() {
+TransformFileStreamer::~TransformFileStreamer() {
     stop();
 }
 
-void AffineTransformationFileStreamer::enableLooping() {
+void TransformFileStreamer::enableLooping() {
     mLoop = true;
 }
 
-void AffineTransformationFileStreamer::disableLooping() {
+void TransformFileStreamer::disableLooping() {
     mLoop = false;
 }
 

@@ -103,12 +103,12 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(std::shared_ptr<Image> i
 	// For each point on the shape do a line search in the direction of the normal
 	// Return set of displacements and uncertainties
 	if(image->getDimensions() == 3) {
-		AffineTransformation::pointer transformMatrix = SceneGraph::getAffineTransformationFromData(image);
-		Matrix4f inverseTransformMatrix = transformMatrix->getTransform().scale(image->getSpacing()).matrix().inverse();
+		auto transformMatrix = SceneGraph::getTransformFromData(image);
+		Matrix4f inverseTransformMatrix = transformMatrix->get().scale(image->getSpacing()).matrix().inverse();
 
 		// Get model scene graph transform
-		AffineTransformation::pointer modelTransformation = SceneGraph::getAffineTransformationFromData(shape->getMesh());
-		MatrixXf modelTransformMatrix = modelTransformation->getTransform().affine();
+		auto modelTransformation = SceneGraph::getTransformFromData(shape->getMesh());
+		MatrixXf modelTransformMatrix = modelTransformation->get().affine();
 
 		// Do edge detection for each vertex
 		int counter = 0;

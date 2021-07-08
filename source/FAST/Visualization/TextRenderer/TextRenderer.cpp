@@ -187,7 +187,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
             float textHeight = mTextUsed[inputNr]->getTextHeight();
             float textSpacing = textHeight/height;
             float textWidthInMM = textSpacing*width;
-            auto T = SceneGraph::getEigenAffineTransformationFromData(mTextUsed[inputNr]);
+            auto T = SceneGraph::getEigenTransformFromData(mTextUsed[inputNr]);
             m_worldPosition.x() = T.translation().x();
             m_worldPosition.y() = T.translation().y();
             if(m_centerPosition) {

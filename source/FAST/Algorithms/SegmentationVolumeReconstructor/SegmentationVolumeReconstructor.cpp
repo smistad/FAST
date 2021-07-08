@@ -12,7 +12,7 @@ SegmentationVolumeReconstructor::SegmentationVolumeReconstructor() {
 void SegmentationVolumeReconstructor::execute() {
     Image::pointer input = getInputData<Image>();
 
-    auto T_I = SceneGraph::getEigenAffineTransformationFromData(input);
+    auto T_I = SceneGraph::getEigenTransformFromData(input);
     if(!m_volume) {
         // Initialize volume
         m_volume = Image::create(512, 512, 512, TYPE_UINT8, 1);
@@ -28,12 +28,12 @@ void SegmentationVolumeReconstructor::execute() {
         //auto T_T = Affine3f::Identity();
         //T_T.translation() = Vector3f(input->getWidth(), input->getHeight(), 0)/2.0f*input->getSpacing().x();
         auto transform = T_I*T_C;
-        m_volume->getSceneGraphNode()->getTransformation()->setTransform(transform);
+        m_volume->getSceneGraphNode()->setTransform(transform);
     }
 
     // Add input to m_volume
     // Calculate transform form current image to the volume
-    auto T_V = SceneGraph::getEigenAffineTransformationFromData(m_volume);
+    auto T_V = SceneGraph::getEigenTransformFromData(m_volume);
 
     auto T_C = Affine3f::Identity();
     T_C.translation() = m_volume->getSize().cast<float>()/2.0f*m_volume->getSpacing().x();

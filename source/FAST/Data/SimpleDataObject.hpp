@@ -18,6 +18,21 @@ protected:                                                                      
     NAME(DATA_TYPE data) : SimpleDataObject<DATA_TYPE>(data) {};                                                                                            \
 };                                                                                          \
 
+
+// A macro for creating new simple data objects with init
+#define FAST_SIMPLE_DATA_OBJECT2(NAME, DATA_TYPE, VAL)                                            \
+class FAST_EXPORT NAME : public SimpleDataObject<DATA_TYPE > {                                      \
+	FAST_OBJECT_V4(NAME)                                                                       \
+public:                                                                                     \
+    static std::shared_ptr<NAME> create(DATA_TYPE data = VAL) {                                                         \
+        std::shared_ptr<NAME> ptr(new NAME(std::move(data)));   \
+        ptr->setPtr(ptr);\
+        return ptr;\
+    } \
+protected:                                                                                  \
+    NAME(DATA_TYPE data) : SimpleDataObject<DATA_TYPE>(data) {};                                                                                            \
+};                                                                                          \
+
 template <class DataType>
 class FAST_EXPORT SimpleDataObject : public DataObject {
     public:

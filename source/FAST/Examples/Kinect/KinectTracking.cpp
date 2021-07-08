@@ -62,9 +62,9 @@ void KinectTracking::execute() {
         icp->update();
         reportInfo() << "Finished ICP in: " << reportEnd();
         icp->getAllRuntimes()->printAll();
-        AffineTransformation::pointer currentTransform = mTargetCloud->getSceneGraphNode()->getTransformation();
-        AffineTransformation::pointer newTransform = icp->getOutputTransformation();
-        mTargetCloud->getSceneGraphNode()->setTransformation(newTransform->multiply(currentTransform));
+        auto currentTransform = mTargetCloud->getSceneGraphNode()->getTransform();
+        auto newTransform = icp->getOutputTransformation();
+        mTargetCloud->getSceneGraphNode()->setTransform(newTransform->get() * currentTransform->get());
 
         if(mRecording) {
             VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();

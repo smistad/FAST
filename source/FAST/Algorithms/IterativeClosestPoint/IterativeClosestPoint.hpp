@@ -1,7 +1,5 @@
-#ifndef ITERATIVE_CLOSEST_POINT_HPP
-#define ITERATIVE_CLOSEST_POINT_HPP
+#pragma once
 
-#include "FAST/AffineTransformation.hpp"
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Mesh.hpp"
 
@@ -16,7 +14,7 @@ class FAST_EXPORT  IterativeClosestPoint : public ProcessObject {
         void setMovingMeshPort(DataChannel::pointer port);
         void setMovingMesh(Mesh::pointer data);
         void setTransformationType(const IterativeClosestPoint::TransformationType type);
-        AffineTransformation::pointer getOutputTransformation();
+        Transform::pointer getOutputTransformation();
         float getError() const;
         void setMinimumErrorChange(float errorChange);
         void setMaximumNrOfIterations(uint iterations);
@@ -31,10 +29,8 @@ class FAST_EXPORT  IterativeClosestPoint : public ProcessObject {
         int mRandomSamplingPoints;
         float mDistanceThreshold;
         float mError;
-        AffineTransformation::pointer mTransformation;
+        Transform::pointer mTransformation;
         IterativeClosestPoint::TransformationType mTransformationType;
 };
 
 } // end namespace fast
-
-#endif

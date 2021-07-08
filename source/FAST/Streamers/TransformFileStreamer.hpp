@@ -6,10 +6,10 @@
 
 namespace fast {
 
-class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer {
-    FAST_PROCESS_OBJECT(AffineTransformationFileStreamer)
+class FAST_EXPORT  TransformFileStreamer : public Streamer {
+    FAST_PROCESS_OBJECT(TransformFileStreamer)
     public:
-        FAST_CONSTRUCTOR(AffineTransformationFileStreamer,
+        FAST_CONSTRUCTOR(TransformFileStreamer,
                          std::string, filename,,
                          std::string, timestampFilename,
         )
@@ -28,9 +28,9 @@ class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer {
          */
         void generateStream() override;
 
-        ~AffineTransformationFileStreamer();
+        ~TransformFileStreamer();
     private:
-        AffineTransformationFileStreamer();
+        TransformFileStreamer();
 
         // Update the streamer if any parameters have changed
         void execute();

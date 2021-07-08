@@ -9,8 +9,8 @@ fast_add_sources(
     MeshFileStreamer.hpp
     ManualImageStreamer.cpp
     ManualImageStreamer.hpp
-    AffineTransformationFileStreamer.cpp
-    AffineTransformationFileStreamer.hpp
+    TransformFileStreamer.cpp
+    TransformFileStreamer.hpp
     RandomAccessStreamer.cpp
     RandomAccessStreamer.hpp
 )

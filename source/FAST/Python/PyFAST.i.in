@@ -192,7 +192,6 @@ std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::Data
 
 ADD_TEMPLATE_METHODS(Image)
 ADD_TEMPLATE_METHODS(ImagePyramid)
-ADD_TEMPLATE_METHODS(Segmentation)
 ADD_TEMPLATE_METHODS(Tensor)
 ADD_TEMPLATE_METHODS(Mesh)
 ADD_TEMPLATE_METHODS(BoundingBox)
@@ -355,7 +354,6 @@ namespace fast {
 
         ADD_GET_INPUT_DATA_METHOD(Image)
         ADD_GET_INPUT_DATA_METHOD(ImagePyramid)
-        ADD_GET_INPUT_DATA_METHOD(Segmentation)
         ADD_GET_INPUT_DATA_METHOD(Tensor)
         ADD_GET_INPUT_DATA_METHOD(Mesh)
         ADD_GET_INPUT_DATA_METHOD(BoundingBox)

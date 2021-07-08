@@ -94,7 +94,7 @@ void AlphaBlendingVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
     cl::Image3D *clImage = access->get3DImage();
 
-    Affine3f modelMatrix = SceneGraph::getEigenAffineTransformationFromData(input);
+    Affine3f modelMatrix = SceneGraph::getEigenTransformFromData(input);
     modelMatrix.scale(input->getSpacing());
     Matrix4f invModelViewMatrix = (viewingMatrix*modelMatrix.matrix()).inverse();
     

@@ -234,14 +234,12 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     activateShader();
 
     // This is the actual rendering
-    AffineTransformation::pointer transform;
-    // If rendering is in 2D mode we skip any transformations
-    transform = AffineTransformation::New();
+    Affine3f transform = Affine3f::Identity();
 
-    //transform->getTransform().scale(it.second->getSpacing());
+    //transform.scale(it.second->getSpacing());
 
     uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
     transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
     transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");

@@ -134,15 +134,15 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         }
         try {
             auto transformData = split(patch->getFrameData("original-transform"));
-            auto T = AffineTransformation::New();
+            auto T = Transform::create();
             Affine3f transform;
             for(int i = 0; i < 16; ++i)
                 transform.matrix()(i) = std::stof(transformData[i]);
-            T->setTransform(transform);
+            T->set(transform);
             if(m_outputImage) {
-                m_outputImage->getSceneGraphNode()->setTransformation(T);
+                m_outputImage->getSceneGraphNode()->setTransform(T);
             } else {
-                m_outputImagePyramid->getSceneGraphNode()->setTransformation(T);
+                m_outputImagePyramid->getSceneGraphNode()->setTransform(T);
             }
         } catch(Exception &e) {
 

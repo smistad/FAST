@@ -1244,29 +1244,29 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     }
 
     // Fix placement and spacing of the new cropped image
-    AffineTransformation::pointer T = AffineTransformation::New();
     newImage->setSpacing(getSpacing());
     // Multiply with spacing here to convert voxel translation to world(mm) translation
-    T->getTransform().translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
-    newImage->getSceneGraphNode()->setTransformation(T);
+    Affine3f T;
+    T.translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
+    newImage->getSceneGraphNode()->setTransform(T);
     SceneGraph::setParentNode(newImage, std::static_pointer_cast<SpatialDataObject>(mPtr.lock()));
 
     return newImage;
 }
 
 DataBoundingBox Image::getTransformedBoundingBox() const {
-    AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromNode(getSceneGraphNode());
+    auto T = SceneGraph::getEigenTransformFromNode(getSceneGraphNode());
 
     // Add image spacing
-    T->getTransform().scale(getSpacing());
+    T.scale(getSpacing());
 
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
 DataBoundingBox Image::getBoundingBox() const {
     // Add image spacing
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->getTransform().scale(getSpacing());
+    auto T = Affine3f::Identity();
+    T.scale(getSpacing());
 
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }

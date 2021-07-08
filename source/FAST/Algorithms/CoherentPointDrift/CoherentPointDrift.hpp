@@ -1,7 +1,6 @@
-#ifndef COHERENT_POINT_DRIFT_HPP
-#define COHERENT_POINT_DRIFT_HPP
+#pragma once
 
-#include "FAST/AffineTransformation.hpp"
+#include "FAST/Data/DataBoundingBox.hpp"
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Mesh.hpp"
 
@@ -18,7 +17,7 @@ namespace fast {
         void setMaximumIterations(unsigned char maxIterations);
         void setUniformWeight(float uniformWeight);
         void setTolerance(double tolerance);
-        AffineTransformation::pointer getOutputTransformation();
+        Transform::pointer getOutputTransformation();
 
         virtual void initializeVarianceAndMore() = 0;
         void expectation(MatrixXf& fixedPoints, MatrixXf& movingPoints);
@@ -42,7 +41,7 @@ namespace fast {
         double mObjectiveFunction;              // Q
         double mFixedNormalizationScale;
         double mMovingNormalizationScale;
-        AffineTransformation::pointer mTransformation;
+        Transform::pointer mTransformation;
         unsigned char mIteration;
         bool mRegistrationConverged;
         double timeE;
@@ -69,5 +68,3 @@ namespace fast {
     };
 
 } // end namespace fast
-
-#endif

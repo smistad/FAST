@@ -105,7 +105,7 @@ int main() {
 
     // Transform one of the point clouds
     Vector3f translation(-0.052f, 0.005f, -0.001f);
-    auto transform = AffineTransformation::New();
+    auto transform = Transform::create();
     MatrixXf shearing = Matrix3f::Identity();
     shearing(0, 0) = 0.5;
     shearing(0, 1) = 1.2;
@@ -115,13 +115,13 @@ int main() {
     affine.scale(0.5);
     affine.translate(translation);
     affine.linear() += shearing;
-    transform->setTransform(affine);
+    transform->set(affine);
 
     if (applyTransform) {
         // Apply transform to one point cloud
-        cloud2->getSceneGraphNode()->setTransformation(transform);
+        cloud2->getSceneGraphNode()->setTransform(transform);
         // Apply transform to a point cloud not registered (for reference)
-        cloud3->getSceneGraphNode()->setTransformation(transform);
+        cloud3->getSceneGraphNode()->setTransform(transform);
     }
 
     // Run for different numbers of iterations

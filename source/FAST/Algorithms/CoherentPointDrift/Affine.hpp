@@ -1,8 +1,5 @@
-#ifndef FAST_AFFINE_H
-#define FAST_AFFINE_H
+#pragma once
 
-
-#include "FAST/AffineTransformation.hpp"
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Algorithms/CoherentPointDrift/CoherentPointDrift.hpp"
@@ -28,5 +25,3 @@ namespace fast {
 
 }
 
-
-#endif //FAST_AFFINE_H

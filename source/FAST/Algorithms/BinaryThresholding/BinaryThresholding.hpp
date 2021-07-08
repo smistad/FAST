@@ -4,9 +4,26 @@
 
 namespace fast {
 
+/**
+ * @brief Segmentation using a threshold value
+ *
+ * Any pixel with intensity between lower and upper threshold is labeled as 1, the rest is background 0.
+ *
+ * Inputs:
+ * - 0: Image
+ *
+ * Outputs:
+ * - 0: Image segmentation
+ *
+ * @ingroup segmentation
+ */
 class FAST_EXPORT BinaryThresholding : public ProcessObject {
-    FAST_OBJECT(BinaryThresholding)
+    FAST_PROCESS_OBJECT(BinaryThresholding)
     public:
+        FAST_CONSTRUCTOR(BinaryThresholding,
+                         float, lowerThreshold,,
+                         float, upperThreshold, = std::numeric_limits<float>::max()
+        );
         void setLowerThreshold(float threshold);
         void setUpperThreshold(float threshold);
         void loadAttributes() override;

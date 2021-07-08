@@ -26,9 +26,7 @@ Color Text::getColor() const {
 void Text::setPosition(Vector2f position) {
     Affine3f transform = Affine3f::Identity();
     transform.translate(Vector3f(position.x(), position.y(), 0.0f));
-    auto T = AffineTransformation::New();
-    T->setTransform(transform);
-    getSceneGraphNode()->setTransformation(T);
+    getSceneGraphNode()->setTransform(transform);
 }
 
 void Text::setTextHeight(float millimeters) {

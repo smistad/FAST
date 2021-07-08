@@ -18,7 +18,7 @@ IterativeClosestPoint::IterativeClosestPoint() {
     mDistanceThreshold = -1;
     mTransformationType = IterativeClosestPoint::RIGID;
     mIsModified = true;
-    mTransformation = AffineTransformation::New();
+    mTransformation = Transform::create();
 }
 
 
@@ -35,7 +35,7 @@ void IterativeClosestPoint::setMovingMesh(Mesh::pointer data) {
     setInputData(1, data);
 }
 
-AffineTransformation::pointer IterativeClosestPoint::getOutputTransformation() {
+Transform::pointer IterativeClosestPoint::getOutputTransformation() {
     return mTransformation;
 }
 
@@ -142,12 +142,12 @@ void IterativeClosestPoint::execute() {
     MeshAccess::pointer accessMovingSet = movingMesh->getMeshAccess(ACCESS_READ);
 
     // Get transformations of point sets
-    AffineTransformation::pointer fixedPointTransform2 = SceneGraph::getAffineTransformationFromData(fixedMesh);
+    auto fixedPointTransform2 = SceneGraph::getTransformFromData(fixedMesh);
     Affine3f fixedPointTransform;
-    fixedPointTransform.matrix() = fixedPointTransform2->getTransform().matrix();
-    AffineTransformation::pointer initialMovingTransform2 = SceneGraph::getAffineTransformationFromData(movingMesh);
+    fixedPointTransform.matrix() = fixedPointTransform2->get().matrix();
+    auto initialMovingTransform2 = SceneGraph::getTransformFromData(movingMesh);
     Affine3f initialMovingTransform;
-    initialMovingTransform.matrix() = initialMovingTransform2->getTransform().matrix();
+    initialMovingTransform.matrix() = initialMovingTransform2->get().matrix();
 
     // These matrices are 3xN, where N is number of vertices
     std::vector<MeshVertex> fixedVertices = accessFixedSet->getVertices();
@@ -237,7 +237,7 @@ void IterativeClosestPoint::execute() {
     }
     Affine3f currentTransformation = Affine3f::Identity();
     if(fixedPoints.size() == 0 || movingPoints.size() == 0) {
-        mTransformation->setTransform(currentTransformation);
+        mTransformation->set(currentTransformation);
         return;
     }
     fixedPoints = fixedPointTransform*fixedPoints.colwise().homogeneous();
@@ -322,7 +322,7 @@ void IterativeClosestPoint::execute() {
     reportInfo() << "Final transform: " << currentTransformation.matrix() << reportEnd();
 
     mError = error;
-    mTransformation->setTransform(currentTransformation);
+    mTransformation->set(currentTransformation);
 }
 
 void IterativeClosestPoint::setMaximumNrOfIterations(uint iterations) {

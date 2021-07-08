@@ -40,6 +40,12 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
         void setConnectionAddress(std::string address);
         void setConnectionPort(uint port);
         uint getNrOfFrames() const;
+        /**
+         * Get output port number for specific device
+         * @param deviceName
+         * @return output port number
+         */
+        uint getOutputPortNumber(std::string deviceName);
 
 		/**
 		 * Will select first image stream

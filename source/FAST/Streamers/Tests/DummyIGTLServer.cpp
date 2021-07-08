@@ -91,10 +91,10 @@ static igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) 
 static igtl::TransformMessage::Pointer createIGTLTransformMessage(Image::pointer image) {
     // Create transform message from the scene graph information of image
     igtl::Matrix4x4 matrix;
-    AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
+    auto T = image->getSceneGraphNode()->getTransform()->get();
     for(int i = 0; i < 4; i++) {
     for(int j = 0; j < 4; j++) {
-        matrix[i][j] = T->getTransform().matrix()(i,j);
+        matrix[i][j] = T.matrix()(i,j);
     }}
 
     igtl::TransformMessage::Pointer message = igtl::TransformMessage::New();

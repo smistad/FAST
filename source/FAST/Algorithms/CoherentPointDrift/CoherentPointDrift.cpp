@@ -20,7 +20,7 @@ namespace fast {
         mIteration = 0;
         mTolerance = 1e-4;
         mUniformWeight = 0.5;
-        mTransformation = AffineTransformation::New();
+        mTransformation = Transform::create();
         mRegistrationConverged = false;
         mScale = 1.0;
 
@@ -148,7 +148,7 @@ namespace fast {
 
         // Apply the existing transform, if any, to moving point cloud
         auto existingTransform = Affine3f::Identity();
-        existingTransform = SceneGraph::getEigenAffineTransformationFromData(mMovingMesh);
+        existingTransform = SceneGraph::getEigenTransformFromData(mMovingMesh);
         mMovingPoints = mMovingPoints.rowwise().homogeneous() * existingTransform.affine().transpose();
 
         // Normalize the point sets, i.e. zero mean and unit variance
@@ -203,7 +203,7 @@ namespace fast {
         // Denormalize moving point set
 
         mScale *= mFixedNormalizationScale / mMovingNormalizationScale;
-        Affine3f registration = mTransformation->getTransform();
+        Affine3f registration = mTransformation->get();
         registration.scale((float) mScale);
         registration.translation() *= mFixedNormalizationScale;
 
@@ -211,11 +211,11 @@ namespace fast {
         denormalization.translate((Vector3f) (mFixedMeanInitial).transpose());
 
         // Set total transformation
-        auto transform = AffineTransformation::New();
+        auto transform = Transform::create();
         Affine3f registrationTransformTotal = denormalization * registration * normalization;
-        transform->setTransform(registrationTransformTotal * existingTransform);
+        transform->set(registrationTransformTotal * existingTransform);
 
-        mMovingMesh->getSceneGraphNode()->setTransformation(transform);
+        mMovingMesh->getSceneGraphNode()->setTransform(transform);
         addOutputData(0, mMovingMesh);
 
         // Print some matrices
@@ -256,7 +256,7 @@ namespace fast {
         mTolerance = tolerance;
     }
 
-    AffineTransformation::pointer CoherentPointDrift::getOutputTransformation() {
+    Transform::pointer CoherentPointDrift::getOutputTransformation() {
         return mTransformation;
     }
 
