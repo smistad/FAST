@@ -6,7 +6,7 @@
 
 #include "FAST/Visualization/Window.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
-#include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
+#include <FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp>
 #include <QLabel>
 
 namespace fast {
@@ -20,7 +20,7 @@ class SimpleGUI : public Window {
 		SimpleGUI();
 
 		SurfaceExtraction::pointer mSurfaceExtraction;
-		GaussianSmoothingFilter::pointer mSmoothing;
+		GaussianSmoothing::pointer mSmoothing;
 		QLabel* mSmoothingLabel;
 		QLabel* mThresholdLabel;
 };

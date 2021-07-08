@@ -1,4 +1,4 @@
-#include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
+#include <FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp>
 #include "SegmentationVolumeReconstructor.hpp"
 #include "FAST/Data/Image.hpp"
 
@@ -68,7 +68,7 @@ void SegmentationVolumeReconstructor::execute() {
 
     addOutputData(0, m_volume);
     /*
-    GaussianSmoothingFilter::pointer smoother = GaussianSmoothingFilter::New();
+    GaussianSmoothing::pointer smoother = GaussianSmoothing::New();
     smoother->setInputData(m_volume);
     smoother->setStandardDeviation(1);
     //smoother->setMaskSize(3);

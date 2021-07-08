@@ -28,7 +28,7 @@ SimpleGUI::SimpleGUI() {
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
     // Smooth image
-    mSmoothing = GaussianSmoothingFilter::New();
+    mSmoothing = GaussianSmoothing::New();
     mSmoothing->setInputConnection(importer->getOutputPort());
     mSmoothing->setStandardDeviation(1);
 

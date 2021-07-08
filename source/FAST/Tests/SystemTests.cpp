@@ -2,7 +2,7 @@
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Testing.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
-#include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
+#include "FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
@@ -13,11 +13,11 @@
 #include <FAST/Algorithms/NonLocalMeans/NonLocalMeans.hpp>
 
 using namespace fast;
-TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and ImageRenderer", "[fast][SystemTests][visual]") {
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothing and ImageRenderer", "[fast][SystemTests][visual]") {
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_#.mhd");
 
-    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    GaussianSmoothing::pointer filter = GaussianSmoothing::New();
     filter->setInputConnection(streamer->getOutputPort());
     filter->setMaskSize(3);
     filter->setStandardDeviation(2.0);
@@ -32,12 +32,12 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and I
         window->start();
     );
 }
-TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and SliceRenderer on OpenCL device", "[fast][SystemTests][visual]") {
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothing and SliceRenderer on OpenCL device", "[fast][SystemTests][visual]") {
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     //mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
-    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    GaussianSmoothing::pointer filter = GaussianSmoothing::New();
     filter->setInputConnection(mhdStreamer->getOutputPort());
     filter->setMaskSize(3);
     filter->setStandardDeviation(2.0);
@@ -53,12 +53,12 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     );
 }
 
-TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, SurfaceExtraction and TriangleRenderer on OpenCL device", "[fast][SystemTests][visual]") {
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothing, SurfaceExtraction and TriangleRenderer on OpenCL device", "[fast][SystemTests][visual]") {
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     //mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
-    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    GaussianSmoothing::pointer filter = GaussianSmoothing::New();
     filter->setInputConnection(mhdStreamer->getOutputPort());
     filter->setMaskSize(5);
     filter->setStandardDeviation(2.0);
@@ -78,14 +78,14 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, Surf
     );
 }
 
-TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and SliceRenderer on Host", "[fast][SystemTests][visual]") {
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothing and SliceRenderer on Host", "[fast][SystemTests][visual]") {
     ExecutionDevice::pointer host = Host::getInstance();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     //mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setMainDevice(host);
 
-    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    GaussianSmoothing::pointer filter = GaussianSmoothing::New();
     filter->setInputConnection(mhdStreamer->getOutputPort());
     filter->setMaskSize(3);
     filter->setStandardDeviation(2.0);

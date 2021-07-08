@@ -1,7 +1,7 @@
 #include "TubeSegmentationAndCenterlineExtraction.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
-#include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
+#include "FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp"
 #include "FAST/Algorithms/GradientVectorFlow/EulerGradientVectorFlow.hpp"
 #include "FAST/Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.hpp"
 #include "RidgeTraversalCenterlineExtraction.hpp"
@@ -245,7 +245,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         // Blur
         Image::pointer smoothedImage;
         if(mStDevBlurLarge > 0.1) {
-            GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+            GaussianSmoothing::pointer filter = GaussianSmoothing::New();
             filter->setInputData(input);
             filter->setStandardDeviation(mStDevBlurLarge);
             //filter->setMaskSize(7);
@@ -279,7 +279,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         // Blur
         Image::pointer smoothedImage;
         if(mStDevBlurSmall > 0.1) {
-            GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+            GaussianSmoothing::pointer filter = GaussianSmoothing::New();
             filter->setInputData(input);
             filter->setStandardDeviation(mStDevBlurSmall);
             //filter->setMaskSize(7);

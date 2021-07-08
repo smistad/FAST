@@ -2,7 +2,7 @@
 #include "TissueSegmentation.hpp"
 #include <FAST/Algorithms/Morphology/Dilation.hpp>
 #include <FAST/Algorithms/Morphology/Erosion.hpp>
-#include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
+#include <FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp>
 
 namespace fast {
 

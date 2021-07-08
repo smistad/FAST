@@ -4,7 +4,7 @@ namespace fast {
 
 void ImageSharpening::loadAttributes() {
 	setGain(getFloatAttribute("gain"));
-	GaussianSmoothingFilter::loadAttributes();
+	GaussianSmoothing::loadAttributes();
 }
 
 ImageSharpening::ImageSharpening() {

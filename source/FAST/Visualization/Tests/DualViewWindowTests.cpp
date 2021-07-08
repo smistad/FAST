@@ -4,7 +4,7 @@
 #include "FAST/Visualization/DualViewWindow.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
-#include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
+#include "FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 
 using namespace fast;

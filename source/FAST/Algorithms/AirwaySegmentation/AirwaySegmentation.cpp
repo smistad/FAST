@@ -1,5 +1,5 @@
 #include "AirwaySegmentation.hpp"
-#include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
+#include "FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp"
 #include "FAST/Data/Image.hpp"
 #include <unordered_set>
 #include <stack>
@@ -289,7 +289,7 @@ void AirwaySegmentation::execute() {
 
 	// Smooth image
 	if(mSmoothingSigma > 0) {
-		GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+		GaussianSmoothing::pointer filter = GaussianSmoothing::New();
         filter->setInputData(image);
         filter->setStandardDeviation(mSmoothingSigma);
         DataChannel::pointer port = filter->getOutputPort();

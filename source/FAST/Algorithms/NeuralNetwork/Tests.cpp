@@ -11,7 +11,7 @@
 #include <FAST/Algorithms/ImageCropper/ImageCropper.hpp>
 #include <FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp>
 #include <FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp>
-#include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
+#include <FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp>
 #include <FAST/Streamers/ImageFileStreamer.hpp>
 #include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 
@@ -107,7 +107,7 @@ TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d][visual]") 
     sliceRenderer->setIntensityLevel(-512);
     sliceRenderer->setIntensityWindow(1024);
 
-    //auto smoothing = GaussianSmoothingFilter::New();
+    //auto smoothing = GaussianSmoothing::New();
     //smoothing->setInputConnection(segmentation->getOutputPort());
     //smoothing->setOutputType(TYPE_FLOAT);
     //smoothing->setStandardDeviation(2.0);

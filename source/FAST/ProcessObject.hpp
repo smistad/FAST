@@ -20,6 +20,29 @@ namespace fast {
 class OpenCLProgram;
 class ProcessObject;
 
+/**
+ * @defgroup segmentation Segmentation
+ * Objects and functions for image segmentation.
+ */
+
+/**
+ * @defgroup filter Filter
+ * Objects and functions for image filtering.
+ */
+
+/**
+ * @defgroup registration Registration
+ * Objects and functions for image and feature registration.
+ */
+
+/**
+ * @defgroup motion-and-tracking Motion and tracking
+ * Objects and functions for motion and tracking.
+ */
+
+/**
+ * @brief Abstract base class for all process objects
+ */
 class FAST_EXPORT  ProcessObject : public Object {
     public:
         virtual ~ProcessObject();
