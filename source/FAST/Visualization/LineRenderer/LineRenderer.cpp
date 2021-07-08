@@ -106,7 +106,7 @@ LineRenderer::LineRenderer(Color color, bool drawOnTop) {
     mDefaultLineWidth = 2;
     mDefaultColor = color;
     mDefaultDrawOnTop = drawOnTop;
-    mDefaultColorSet = false;
+    mDefaultColorSet = true;
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.vert",
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.frag",

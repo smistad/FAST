@@ -1,12 +1,12 @@
 #include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
 #include "SegmentationVolumeReconstructor.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
 SegmentationVolumeReconstructor::SegmentationVolumeReconstructor() {
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
 }
 
 void SegmentationVolumeReconstructor::execute() {
@@ -15,8 +15,7 @@ void SegmentationVolumeReconstructor::execute() {
     auto T_I = SceneGraph::getEigenAffineTransformationFromData(input);
     if(!m_volume) {
         // Initialize volume
-        m_volume = Segmentation::New();
-        m_volume->create(512, 512, 512, TYPE_UINT8, 1);
+        m_volume = Image::create(512, 512, 512, TYPE_UINT8, 1);
         m_volume->fill(0);
         // TODO calculate transformation
 

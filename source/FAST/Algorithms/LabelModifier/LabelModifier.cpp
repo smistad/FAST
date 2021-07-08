@@ -1,12 +1,12 @@
-#include <FAST/Data/Segmentation.hpp>
+#include <FAST/Data/Image.hpp>
 #include "LabelModifier.hpp"
 
 namespace fast {
 
 
 LabelModifier::LabelModifier() {
-    createInputPort<Segmentation>(0);
-    createOutputPort<Segmentation>(0);
+    createInputPort<Image>(0);
+    createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LabelModifier/LabelModifier.cl");
 

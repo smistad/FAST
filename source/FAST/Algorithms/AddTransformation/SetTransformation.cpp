@@ -4,11 +4,6 @@
 
 namespace fast {
 
-
-void SetTransformation::setTransformationInputConnection(DataChannel::pointer port) {
-    setInputConnection(1, port);
-}
-
 SetTransformation::SetTransformation() {
     createInputPort<SpatialDataObject>(0);
     createInputPort<AffineTransformation>(1);

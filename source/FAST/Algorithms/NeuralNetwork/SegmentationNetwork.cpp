@@ -1,4 +1,4 @@
-#include <FAST/Data/Segmentation.hpp>
+#include <FAST/Data/Image.hpp>
 #include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include "SegmentationNetwork.hpp"
 #include "FAST/Data/Image.hpp"
@@ -36,7 +36,7 @@ SegmentationNetwork::SegmentationNetwork(std::string modelFilename, float scaleF
 
 SegmentationNetwork::SegmentationNetwork() {
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
 
     m_tensorToSegmentation = TensorToSegmentation::New();
     mHeatmapOutput = false;
@@ -51,7 +51,7 @@ void SegmentationNetwork::setHeatmapOutput() {
 
 void SegmentationNetwork::setSegmentationOutput() {
     mHeatmapOutput = false;
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
 }
 
 void SegmentationNetwork::setResizeBackToOriginalSize(bool resize) {

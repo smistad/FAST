@@ -1,6 +1,5 @@
 #include "TubeSegmentationAndCenterlineExtraction.hpp"
 #include "FAST/Data/Image.hpp"
-#include "FAST/Data/Segmentation.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
 #include "FAST/Algorithms/GradientVectorFlow/EulerGradientVectorFlow.hpp"
@@ -14,7 +13,7 @@ namespace fast {
 TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction() {
 
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
     createOutputPort<Mesh>(1);
     createOutputPort<Image>(2);
 
@@ -143,7 +142,7 @@ inline std::vector<Vector3i> floodFill(ImageAccess::pointer& access, Vector3ui s
     return thisObject;
 }
 
-void TubeSegmentationAndCenterlineExtraction::keepLargestObjects(Segmentation::pointer segmentation, Mesh::pointer& centerlines) {
+void TubeSegmentationAndCenterlineExtraction::keepLargestObjects(Image::pointer segmentation, Mesh::pointer& centerlines) {
     ImageAccess::pointer access = segmentation->getImageAccess(ACCESS_READ_WRITE);
     const int width = segmentation->getWidth();
     const int height = segmentation->getHeight();
@@ -350,7 +349,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
     auto segPort = segmentation->getOutputPort();
     segmentation->update();
-    Segmentation::pointer segmentationVolume = segPort->getNextFrame<Segmentation>();
+    auto segmentationVolume = segPort->getNextFrame<Image>();
 
     // TODO get largest segmentation object
     reportInfo() << "Removing small objects..." << Reporter::end();

@@ -1,5 +1,5 @@
 #include "BinaryThresholding.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
@@ -28,7 +28,7 @@ BinaryThresholding::BinaryThresholding() {
     mLowerThresholdSet = false;
     mUpperThresholdSet = false;
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/BinaryThresholding/BinaryThresholding3D.cl", "3D");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl", "2D");
 
@@ -42,9 +42,7 @@ void BinaryThresholding::execute() {
     }
 
     auto input = getInputData<Image>(0);
-    auto output = Segmentation::New();
-
-    output->createFromImage(input);
+    auto output = Image::createSegmentationFromImage(input);
 
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");
@@ -59,14 +57,14 @@ void BinaryThresholding::execute() {
         cl::Kernel kernel;
         if(mLowerThresholdSet && mUpperThresholdSet) {
             kernel = cl::Kernel(program, "thresholding");
-            kernel.setArg(3, mLowerThreshold);
-            kernel.setArg(4, mUpperThreshold);
+            kernel.setArg(2, mLowerThreshold);
+            kernel.setArg(3, mUpperThreshold);
         } else if(mLowerThresholdSet) {
             kernel = cl::Kernel(program, "thresholdingWithOnlyLower");
-            kernel.setArg(3, mLowerThreshold);
+            kernel.setArg(2, mLowerThreshold);
         } else {
             kernel = cl::Kernel(program, "thresholdingWithOnlyUpper");
-            kernel.setArg(3, mUpperThreshold);
+            kernel.setArg(2, mUpperThreshold);
         }
         cl::NDRange globalSize;
         OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -82,7 +80,6 @@ void BinaryThresholding::execute() {
             kernel.setArg(1, *access2->get3DImage());
             globalSize = cl::NDRange(output->getWidth(), output->getHeight(), output->getDepth());
         }
-        kernel.setArg(2, (uchar)mLabel);
 
         cl::CommandQueue queue = device->getCommandQueue();
         queue.enqueueNDRangeKernel(

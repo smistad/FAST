@@ -15,7 +15,7 @@ TEST_CASE("Template matching NCC", "[fast][NCC][TemplateMatching][visual]") {
     auto port = importer->getOutputPort();
     importer->update();
     auto image = port->getNextFrame<Image>();
-    Vector2i size(32, 32);
+    Vector2i size(33, 33);
     Vector2i position = Vector2i(120, 100) + size/2;
     auto templateImage = image->crop(position - size/2, size);
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 #include "FAST/Data/Color.hpp"
 #include "FAST/Utility.hpp"
 #include <unordered_map>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <FAST/Algorithms/SegmentationAlgorithm.hpp>
+#include <FAST/ProcessObject.hpp>
 
 namespace fast {
 
@@ -18,7 +18,7 @@ namespace fast {
  * 0 - Segmentation: Tissue mask
  *
  */
-class FAST_EXPORT TissueSegmentation : public SegmentationAlgorithm {
+class FAST_EXPORT TissueSegmentation : public ProcessObject {
     FAST_PROCESS_OBJECT(TissueSegmentation)
     public:
         /**

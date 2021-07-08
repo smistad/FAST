@@ -7,6 +7,8 @@ namespace fast {
 class Image;
 
 /**
+ * @brief Match a template image to an image
+ *
  * This algorithms matches a template image to an image using normalized cross correlation (NCC),
  * sum of absolute differences (SAD) or sum of squared differences (SSD).
  */

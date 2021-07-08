@@ -1,12 +1,12 @@
 #include "LevelSetSegmentation.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 #include "FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp"
 
 namespace fast {
 
 LevelSetSegmentation::LevelSetSegmentation() {
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LevelSet/LevelSetSegmentation.cl");
 
     mCurvatureWeight = 0.9;
@@ -169,7 +169,7 @@ void LevelSetSegmentation::execute() {
     thresholding->setInputData(phi);
     DataChannel::pointer port = thresholding->getOutputPort();
     thresholding->update();
-    Segmentation::pointer output = port->getNextFrame<Segmentation>();
+    auto output = port->getNextFrame<Image>();
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
     addOutputData(0, output);

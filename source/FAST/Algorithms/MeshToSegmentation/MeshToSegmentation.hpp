@@ -1,11 +1,10 @@
-#ifndef MESH_TO_SEGMENTATION_HPP_
-#define MESH_TO_SEGMENTATION_HPP_
+#pragma once
 
-#include "FAST/Algorithms/SegmentationAlgorithm.hpp"
+#include "FAST/ProcessObject.hpp"
 
 namespace fast {
 
-class FAST_EXPORT  MeshToSegmentation : public SegmentationAlgorithm {
+class FAST_EXPORT MeshToSegmentation : public ProcessObject {
 	FAST_OBJECT(MeshToSegmentation)
 	public:
         /**
@@ -24,5 +23,3 @@ class FAST_EXPORT  MeshToSegmentation : public SegmentationAlgorithm {
 };
 
 }
-
-#endif

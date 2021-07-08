@@ -2,7 +2,7 @@
 #include <stack>
 #include <FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp>
 #include "LungSegmentation.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 #include "FAST/Algorithms/SeededRegionGrowing/SeededRegionGrowing.hpp"
 #include "FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp"
 #include "FAST/Algorithms/AirwaySegmentation/AirwaySegmentation.hpp"

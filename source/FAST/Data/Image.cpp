@@ -1425,6 +1425,12 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
     return std::make_unique<OpenGLTextureAccess>(m_GLtextureID, std::dynamic_pointer_cast<Image>(mPtr.lock()));
 }
 
+bool Image::isSegmentationType() const {
+    if(!isInitialized())
+        throw Exception("Image was not initialized");
+    return mType == TYPE_UINT8 && mChannels == 1;
+}
+
 } // end namespace fast;
 
 

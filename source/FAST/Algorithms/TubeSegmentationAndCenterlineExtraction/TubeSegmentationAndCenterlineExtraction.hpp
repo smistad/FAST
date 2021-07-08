@@ -1,14 +1,13 @@
-#ifndef TUBE_SEGMENTATION_AND_CENTERLINE_EXTRACTION_HPP
-#define TUBE_SEGMENTATION_AND_CENTERLINE_EXTRACTION_HPP
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
-class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObject {
+class FAST_EXPORT TubeSegmentationAndCenterlineExtraction : public ProcessObject {
     FAST_OBJECT(TubeSegmentationAndCenterlineExtraction)
     public:
         void setKeepLargestTree(bool keep);
@@ -39,7 +38,7 @@ class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObjec
         void runTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius);
         void runNonCircularTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius);
         Image::pointer runGradientVectorFlow(Image::pointer vectorField);
-        void keepLargestObjects(Segmentation::pointer segmentation, Mesh::pointer& centerlines);
+        void keepLargestObjects(Image::pointer segmentation, Mesh::pointer& centerlines);
 
         // Parameters
 
@@ -60,5 +59,3 @@ class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObjec
 };
 
 } // end namespace fast
-
-#endif

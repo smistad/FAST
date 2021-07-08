@@ -1,20 +1,28 @@
-#ifndef SET_TRANSFORMATION_HPP_
-#define SET_TRANSFORMATION_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
 
 namespace fast {
 
+/**
+ * @brief Set transformations to spatial data objects
+ *
+ * This class will set the transform for spatial data object.
+ *
+ * Inputs:
+ * - 0: SpatialDataObject - Object to set transform to
+ * - 1: AffineTransformation - Transform to set
+ *
+ * Outputs:
+ * - 0: SpatialDataObject - Same as input 0
+ */
 class FAST_EXPORT  SetTransformation : public ProcessObject {
-    FAST_OBJECT(SetTransformation)
+    FAST_PROCESS_OBJECT(SetTransformation)
     public:
-        void setTransformationInputConnection(DataChannel::pointer port);
+        FAST_CONSTRUCTOR(SetTransformation)
     private:
-        SetTransformation();
         void execute();
 };
 
 }
-
-#endif

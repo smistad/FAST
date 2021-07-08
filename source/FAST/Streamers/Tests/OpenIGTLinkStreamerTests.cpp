@@ -23,7 +23,7 @@ TEST_CASE("Stream 2D images using OpenIGTLinkStreamer", "[OpenIGTLinkStreamer][f
 
     auto addTransformation = AddTransformation::New();
     addTransformation->setInputConnection(streamer->getOutputPort("DummyImage"));
-    addTransformation->setTransformationInputConnection(streamer->getOutputPort("DummyTransform"));
+    addTransformation->setInputConnection(1, streamer->getOutputPort("DummyTransform"));
 
     auto renderer = ImageRenderer::New();
     renderer->addInputConnection(addTransformation->getOutputPort());

@@ -27,8 +27,7 @@ __kernel void mesh_to_segmentation_2d(
 		__private uint nrOfLines,
 		__write_only image2d_t segmentation,
 		__private float spacingX,
-		__private float spacingY,
-		__private uchar label
+		__private float spacingY
 	) {
 
 	const int2 pos = {get_global_id(0), get_global_id(1)};
@@ -79,7 +78,7 @@ __kernel void mesh_to_segmentation_2d(
         }
 	}
 
-	write_imageui(segmentation, pos, intersections % 2 == 0 ? 0:label);
+	write_imageui(segmentation, pos, intersections % 2 == 0 ? 0:1);
 }
 
 int rayIntersectsTriangle(float3 p, float3 d, float3 v0, float3 v1, float3 v2) {
@@ -129,8 +128,7 @@ __kernel void mesh_to_segmentation_3d(
 		__global uchar* segmentation,
 		__private float spacingX,
 		__private float spacingY,
-		__private float spacingZ,
-		__private uchar label
+		__private float spacingZ
 	) {
 	const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 
@@ -163,5 +161,5 @@ __kernel void mesh_to_segmentation_3d(
         }
     }
 
-	segmentation[pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1)] = intersections % 2 == 0 ? 0:label;
+	segmentation[pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1)] = intersections % 2 == 0 ? 0:1;
 }

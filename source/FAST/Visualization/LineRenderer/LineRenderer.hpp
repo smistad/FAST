@@ -15,7 +15,7 @@ class FAST_EXPORT  LineRenderer : public Renderer {
     FAST_PROCESS_OBJECT(LineRenderer)
     public:
         FAST_CONSTRUCTOR(LineRenderer,
-                         Color, color, = Color::Blue(),
+                         Color, color, = Color::Green(),
                          bool, drawOnTop, = false
         )
         uint addInputConnection(DataChannel::pointer port) override;

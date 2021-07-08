@@ -1,11 +1,10 @@
-#ifndef BINARY_THRESHOLDING_HPP
-#define BINARY_THRESHOLDING_HPP
+#pragma once
 
-#include "FAST/Algorithms/SegmentationAlgorithm.hpp"
+#include <FAST/ProcessObject.hpp>
 
 namespace fast {
 
-class FAST_EXPORT  BinaryThresholding : public SegmentationAlgorithm {
+class FAST_EXPORT BinaryThresholding : public ProcessObject {
     FAST_OBJECT(BinaryThresholding)
     public:
         void setLowerThreshold(float threshold);
@@ -13,7 +12,9 @@ class FAST_EXPORT  BinaryThresholding : public SegmentationAlgorithm {
         void loadAttributes() override;
     private:
         BinaryThresholding();
+
         void execute();
+
         void waitToFinish();
 
         float mLowerThreshold;
@@ -23,5 +24,3 @@ class FAST_EXPORT  BinaryThresholding : public SegmentationAlgorithm {
 };
 
 }
-
-#endif

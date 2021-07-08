@@ -144,7 +144,7 @@ TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images and set dif
 
     SegmentationRenderer::pointer renderer = SegmentationRenderer::New();
     renderer->addInputConnection(segmentation->getOutputPort());
-    renderer->setColor(Segmentation::LABEL_FOREGROUND, Color::Red());
+    renderer->setColor(1, Color::Red());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->set2DMode();

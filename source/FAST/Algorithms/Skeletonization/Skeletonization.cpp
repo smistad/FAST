@@ -2,20 +2,20 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
 Skeletonization::Skeletonization() {
-    createInputPort<Segmentation>(0);
+    createInputPort<Image>(0);
     createOutputPort<Image>(0);
 }
 
 void Skeletonization::execute() {
-    auto input = getInputData<Segmentation>();
+    auto input = getInputData<Image>();
 
-    if(input->getDimensions() != 2)
-        throw Exception("The skeletonization algorithm currently only support 2D images");
+    if(input->getDimensions() != 2 || input->getDataType() != TYPE_UINT8)
+        throw Exception("The skeletonization algorithm currently only support UINT8 2D images");
 
     // Initialize output image
     auto output = Image::createFromImage(input);

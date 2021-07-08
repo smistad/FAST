@@ -54,6 +54,13 @@ class FAST_EXPORT Image : public SpatialDataObject {
             ptr->setPtr(ptr);
             return ptr;
         }
+        static std::shared_ptr<Image> createSegmentationFromImage(Image::pointer image) {
+            auto ptr = std::shared_ptr<Image>(new Image(image->getSize(), TYPE_UINT8, 1));
+            ptr->setSpacing(image->getSpacing());
+            SceneGraph::setParentNode(ptr, image);
+            ptr->setPtr(ptr);
+            return ptr;
+        }
         Image(Image::pointer image);
 #ifndef SWIG
         /**
@@ -268,6 +275,12 @@ class FAST_EXPORT Image : public SpatialDataObject {
          */
         void fill(float value);
 
+        /**
+         * Checks wheter this image is of segmentation type (UINT8 and 1 channel)
+         * @return
+         */
+        bool isSegmentationType() const;
+
         // Override
         DataBoundingBox getTransformedBoundingBox() const override;
         DataBoundingBox getBoundingBox() const override;
@@ -345,7 +358,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
         friend class ImageAccess;
         friend class OpenCLBufferAccess;
         friend class OpenCLImageAccess;
-    private:
+
         void init(VectorXui, DataType type, uint nrOfChannels);
         void init(uint width, uint height, DataType type, uint nrOfChannels);
         void init(uint width, uint height, uint depth, DataType type, uint nrOfChannels);

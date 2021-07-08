@@ -1,5 +1,5 @@
 #include "CenterlineExtraction.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Utility.hpp"
 #include <unordered_set>

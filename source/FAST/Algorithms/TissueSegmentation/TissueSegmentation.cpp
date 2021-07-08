@@ -8,7 +8,7 @@ namespace fast {
 
 TissueSegmentation::TissueSegmentation(int threshold, int dilationSize, int erosionSize) {
     createInputPort<ImagePyramid>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/TissueSegmentation/TissueSegmentation.cl");
     createIntegerAttribute("threshold", "Intensity threshold", "", m_thresh);
@@ -54,8 +54,7 @@ void TissueSegmentation::execute() {
     auto access = wsi->getAccess(ACCESS_READ);
     auto input = access->getLevelAsImage(wsi->getNrOfLevels()-1);
 
-    auto output = Segmentation::New();
-    output->createFromImage(input);
+    auto output = Image::createSegmentationFromImage(input);
 
     {
         auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());

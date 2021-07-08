@@ -2,7 +2,7 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/SceneGraph.hpp"
 #include <stack>
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
@@ -37,7 +37,7 @@ void SeededRegionGrowing::addSeedPoint(Vector3ui position) {
 
 SeededRegionGrowing::SeededRegionGrowing() {
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
     mDimensionCLCodeCompiledFor = 0;
 }
 
@@ -147,10 +147,7 @@ void SeededRegionGrowing::execute() {
     if(input->getNrOfChannels() != 1)
         throw Exception("Seeded region growing currently doesn't support images with several components.");
 
-    auto output = Segmentation::New();
-
-    // Initialize output image
-    output->createFromImage(input);
+    auto output = Image::createSegmentationFromImage(input);
 
     if(getMainDevice()->isHost()) {
         ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);

@@ -4,7 +4,7 @@
 
 namespace fast {
 
-class Segmentation;
+class Image;
 
 class FAST_EXPORT SegmentationVolumeReconstructor : public ProcessObject {
     FAST_OBJECT(SegmentationVolumeReconstructor)
@@ -13,7 +13,7 @@ class FAST_EXPORT SegmentationVolumeReconstructor : public ProcessObject {
         SegmentationVolumeReconstructor();
         void execute() override;
 
-        std::shared_ptr<Segmentation> m_volume;
+        std::shared_ptr<Image> m_volume;
 };
 
 }
