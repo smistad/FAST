@@ -38,13 +38,13 @@ inline uint getPeakMemoryUsage(Image::pointer input, bool use16bit, bool writing
     return result;
 }
 
-EulerGradientVectorFlow::EulerGradientVectorFlow() {
+EulerGradientVectorFlow::EulerGradientVectorFlow(float mu, uint iterations, bool use16bitStorage) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cl");
-    mIterations = 0;
-    mMu = 0.05f;
-    mUse16bitFormat = true;
+    mIterations = iterations;
+    setMuConstant(mu);
+    mUse16bitFormat = use16bitStorage;
 }
 
 void EulerGradientVectorFlow::setIterations(uint iterations) {

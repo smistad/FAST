@@ -24,7 +24,7 @@ void ImageCropper::setSize(VectorXi size) {
     }
 }
 
-ImageCropper::ImageCropper() {
+void ImageCropper::init() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
 
@@ -33,6 +33,20 @@ ImageCropper::ImageCropper() {
     mAllowOutOfBoundsCropping = false;
     mCropBottom = 0;
     mCropTop = 0;
+}
+
+ImageCropper::ImageCropper(VectorXi size, VectorXi offset) {
+    init();
+    setOffset(offset);
+    setSize(size);
+}
+
+ImageCropper::ImageCropper(float cropBottom, float cropTop) {
+    init();
+    if(cropBottom > 0)
+        setCropBottom(cropBottom);
+    if(cropTop > 0)
+        setCropTop(cropTop);
 }
 
 void ImageCropper::execute() {

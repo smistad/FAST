@@ -8,6 +8,7 @@ void ImageChannelConverter::setChannelsToRemove(bool channel1, bool channel2, bo
     m_channelsToRemove[1] = channel2;
     m_channelsToRemove[2] = channel3;
     m_channelsToRemove[3] = channel4;
+    setModified(true);
 }
 
 void ImageChannelConverter::execute() {
@@ -66,7 +67,7 @@ void ImageChannelConverter::execute() {
     addOutputData(0, output);
 }
 
-ImageChannelConverter::ImageChannelConverter() {
+ImageChannelConverter::ImageChannelConverter(std::vector<int> channelsToRemove, bool reverse) {
     createInputPort(0, "input_image");
     createOutputPort(0, "output_image");
 
@@ -74,11 +75,18 @@ ImageChannelConverter::ImageChannelConverter() {
 
     for(int i = 0; i < 4; ++i)
         m_channelsToRemove[i] = false;
-    m_reverse = false;
+    for(auto item : channelsToRemove) {
+        if(item < 0 || item > 3) {
+            throw Exception("Channels to remove given to ImageCHannelConverter must be >= 0 and <= 3");
+        }
+        m_channelsToRemove[item] = true;
+    }
+    setReverseChannels(reverse);
 }
 
 void ImageChannelConverter::setReverseChannels(bool reverse) {
     m_reverse = reverse;
+    setModified(true);
 }
 
 }

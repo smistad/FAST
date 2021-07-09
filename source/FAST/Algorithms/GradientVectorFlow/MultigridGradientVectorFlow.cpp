@@ -546,12 +546,14 @@ void MultigridGradientVectorFlow::setIterations(uint iterations) {
     if(iterations == 0)
         throw Exception("Number of iterations can't be zero in MultigridGradientVectorFlow.");
     mIterations = iterations;
+    setModified(true);
 }
 
 void MultigridGradientVectorFlow::setMuConstant(float mu) {
     if(mu > 0.2 || mu < 0)
         throw Exception("The constant mu must be larger than 0 and smaller than 0.2 in MultigridGradientVectorFlow.");
     mMu = mu;
+    setModified(true);
 }
 
 float MultigridGradientVectorFlow::getMuConstant() const {
@@ -566,13 +568,13 @@ void MultigridGradientVectorFlow::set32bitStorageFormat() {
     mUse16bitFormat = false;
 }
 
-MultigridGradientVectorFlow::MultigridGradientVectorFlow() {
+MultigridGradientVectorFlow::MultigridGradientVectorFlow(float mu, uint iterations, bool use16BitFormat) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.cl");
-    mIterations = 10;
-    mMu = 0.1f;
-    mUse16bitFormat = true;
+    mIterations = iterations;
+    setMuConstant(mu);
+    mUse16bitFormat = use16BitFormat;
 }
 
 void MultigridGradientVectorFlow::execute() {

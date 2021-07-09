@@ -1,13 +1,20 @@
-#ifndef IMAGE_CROPPER_HPP_
-#define IMAGE_CROPPER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 
 namespace fast {
 
 class FAST_EXPORT  ImageCropper : public ProcessObject {
-    FAST_OBJECT(ImageCropper)
+    FAST_PROCESS_OBJECT(ImageCropper)
     public:
+        FAST_CONSTRUCTOR(ImageCropper,
+                         VectorXi, size,,
+                         VectorXi, offset, = Vector3i::Zero()
+        )
+        FAST_CONSTRUCTOR(ImageCropper,
+                         float, cropBottom, = -1.0f,
+                         float, cropTop, = -1.0f
+        )
         void setOffset(VectorXi offset);
         void setSize(VectorXi size);
         /**
@@ -19,8 +26,8 @@ class FAST_EXPORT  ImageCropper : public ProcessObject {
         void setCropBottom(float fraction);
         void setCropTop(float fraction);
     private:
-        ImageCropper();
         void execute();
+        void init();
 
         float mCropBottom;
         float mCropTop;
@@ -31,5 +38,3 @@ class FAST_EXPORT  ImageCropper : public ProcessObject {
 
 
 } // end namespace fast
-
-#endif
