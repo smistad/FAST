@@ -8,12 +8,20 @@ namespace fast {
 
 class Image;
 
-class FAST_EXPORT  ImageSlicer : public ProcessObject {
-	FAST_OBJECT(ImageSlicer)
+/**
+ * @brief Slice a 3D image using a defined plane
+ *
+ * @sa Plane PlaneType
+ */
+class FAST_EXPORT ImageSlicer : public ProcessObject {
+	FAST_PROCESS_OBJECT(ImageSlicer)
 	public:
-		void setOrthogonalSlicePlane(PlaneType orthogonalSlicePlane, int sliceNr = -1);
+        FAST_CONSTRUCTOR(ImageSlicer, Plane, slicePlane,);
+        FAST_CONSTRUCTOR(ImageSlicer, PlaneType, orthogoalSlicePlane,, int, sliceNr, = -1);
+        void setOrthogonalSlicePlane(PlaneType orthogonalSlicePlane, int sliceNr = -1);
 		void setArbitrarySlicePlane(Plane slicePlane);
 	private:
+        void init();
 		ImageSlicer();
 		void execute();
 		std::shared_ptr<Image> orthogonalSlicing(std::shared_ptr<Image> input);

@@ -19,13 +19,27 @@ void ImageSlicer::setArbitrarySlicePlane(Plane slicePlane) {
     mIsModified = true;
 }
 
-ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
-	createInputPort(0);
-	createOutputPort(0);
-	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSlicer/ImageSlicer.cl");
+void ImageSlicer::init() {
+    createInputPort(0);
+    createOutputPort(0);
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSlicer/ImageSlicer.cl");
 
-	mArbitrarySlicing = false;
-	mOrthogonalSlicing = false;
+    mArbitrarySlicing = false;
+    mOrthogonalSlicing = false;
+}
+
+ImageSlicer::ImageSlicer(Plane slicePlane) {
+    init();
+    setArbitrarySlicePlane(slicePlane);
+}
+
+ImageSlicer::ImageSlicer(PlaneType orthogoalSlicePlane, int sliceNr) {
+    init();
+    setOrthogonalSlicePlane(orthogoalSlicePlane, sliceNr);
+}
+
+ImageSlicer::ImageSlicer() {
+    init();
 }
 
 void ImageSlicer::execute() {

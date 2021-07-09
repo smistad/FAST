@@ -13,6 +13,16 @@ LabelModifier::LabelModifier() {
     createIntegerAttribute("label-changes", "Label changes", "List of label pairs oldValue1 newValue1 oldValue2 newValue2 ...", 0);
 }
 
+
+LabelModifier::LabelModifier(std::vector<uchar> oldLabels, std::vector<uchar> newLabels) : LabelModifier() {
+    if(oldLabels.size() != newLabels.size())
+        throw Exception("Old label and new label vectors given to LabelModified must have the same size");
+
+    for(int i = 0; i < oldLabels.size(); ++i) {
+        setLabelChange(oldLabels[i], newLabels[i]);
+    }
+}
+
 void LabelModifier::execute() {
     if(m_labelChanges.empty())
         throw Exception("No label changes were given to LabelModifier");

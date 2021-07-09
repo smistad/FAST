@@ -1,5 +1,4 @@
-#ifndef LAPLACIAN_OF_GAUSSIAN_HPP_
-#define LAPLACIAN_OF_GAUSSIAN_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/ExecutionDevice.hpp"
@@ -7,6 +6,11 @@
 
 namespace fast {
 
+/**
+ * @brief Calculate image gradient using Laplacian of Gaussian method
+ *
+ * @ingroup filter
+ */
 class FAST_EXPORT  LaplacianOfGaussian : public ProcessObject {
     FAST_OBJECT(LaplacianOfGaussian)
     public:
@@ -34,8 +38,3 @@ class FAST_EXPORT  LaplacianOfGaussian : public ProcessObject {
 };
 
 } // end namespace fast
-
-
-
-
-#endif
