@@ -8,14 +8,11 @@
 using namespace fast;
 
 TEST_CASE("ImageResampler 2D", "[fast][ImageResampler][visual]") {
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "US/CarotidArtery/Left/US-2D_400.mhd");
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/CarotidArtery/Left/US-2D_400.mhd");
 
-    ImageResampler::pointer resampler = ImageResampler::New();
-    resampler->setOutputSpacing(0.1f, 0.1f);
-    resampler->setInputConnection(importer->getOutputPort());
+    auto resampler = ImageResampler::create(0.1f, 0.1f)->connect(importer);
 
-    ImageRenderer::pointer renderer = ImageRenderer::New();
+    auto renderer = ImageRenderer::New();
     renderer->addInputConnection(resampler->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();

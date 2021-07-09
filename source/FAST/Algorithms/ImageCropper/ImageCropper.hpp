@@ -4,7 +4,13 @@
 
 namespace fast {
 
-class FAST_EXPORT  ImageCropper : public ProcessObject {
+/**
+ * @brief Process object from cropping an image
+ *
+ * Uses Image::crop
+ * @todo Python kwargs constructor
+ */
+class FAST_EXPORT ImageCropper : public ProcessObject {
     FAST_PROCESS_OBJECT(ImageCropper)
     public:
         FAST_CONSTRUCTOR(ImageCropper,

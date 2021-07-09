@@ -1,13 +1,23 @@
-#ifndef IMAGE_RESIZER_HPP
-#define IMAGE_RESIZER_HPP
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 
 namespace fast {
 
+/**
+ * @brief Process object for resizing an image
+ */
 class FAST_EXPORT  ImageResizer : public ProcessObject {
-	FAST_OBJECT(ImageResizer)
+	FAST_PROCESS_OBJECT(ImageResizer)
 	public:
+        FAST_CONSTRUCTOR(ImageResizer,
+                         int, width,,
+                         int, height,,
+                         int, depth, = 0,
+                         bool, useInterpolation, = true,
+                         bool, preserveAspectRatio, = false
+        )
+
 		void setWidth(int width);
 		void setHeight(int height);
 		void setDepth(int depth);
@@ -25,5 +35,3 @@ class FAST_EXPORT  ImageResizer : public ProcessObject {
 };
 
 }
-
-#endif

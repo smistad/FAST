@@ -3,12 +3,12 @@
 
 namespace fast {
 
-ImageGradient::ImageGradient() {
+ImageGradient::ImageGradient(bool use16bit) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageGradient/ImageGradient.cl");
 
-    mUse16bitFormat = false;
+    mUse16bitFormat = use16bit;
 }
 
 void ImageGradient::execute() {

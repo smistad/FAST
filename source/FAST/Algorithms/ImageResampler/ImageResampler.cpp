@@ -15,27 +15,34 @@ ImageResampler::ImageResampler() {
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResampler/ImageResampler2D.cl", "2D");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResampler/ImageResampler3D.cl", "3D");
 
-    mSpacing = Vector3f(-1, -1, -1);
-    mInterpolationSet = false;
-    mInterpolation = true;
-
     createFloatAttribute("spacing-x", "Spacing X", "Spacing X", mSpacing.x());
     createFloatAttribute("spacing-y", "Spacing Y", "Spacing Y", mSpacing.y());
     createFloatAttribute("spacing-z", "Spacing Z", "Spacing Z", mSpacing.z());
     createBooleanAttribute("interpolation", "Bilinear interpolation", "Bilinear interpolation", mInterpolation);
+}
 
+ImageResampler::ImageResampler(float spacingX, float spacingY, float spacingZ, bool useInterpolation) {
+    createInputPort<Image>(0);
+    createOutputPort<Image>(0);
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResampler/ImageResampler2D.cl", "2D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResampler/ImageResampler3D.cl", "3D");
+
+    setOutputSpacing(spacingX, spacingY, spacingZ);
+    setInterpolation(useInterpolation);
 }
 
 void ImageResampler::setOutputSpacing(float spacingX, float spacingY) {
     mSpacing.x() = spacingX;
     mSpacing.y() = spacingY;
     mSpacing.z() = 1.0f;
+    setModified(true);
 }
 
 void ImageResampler::setOutputSpacing(float spacingX, float spacingY, float spacingZ) {
     mSpacing.x() = spacingX;
     mSpacing.y() = spacingY;
     mSpacing.z() = spacingZ;
+    setModified(true);
 }
 
 void ImageResampler::execute() {
@@ -116,8 +123,8 @@ void ImageResampler::execute() {
 }
 
 void ImageResampler::setInterpolation(bool useInterpolation) {
-    mInterpolationSet = true;
     mInterpolation = useInterpolation;
+    setModified(true);
 }
 
 }

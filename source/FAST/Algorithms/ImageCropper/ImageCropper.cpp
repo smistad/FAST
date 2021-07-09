@@ -70,6 +70,8 @@ void ImageCropper::execute() {
                 offset.z() = (int) std::floor(size.z() * (1.0f - mCropBottom));
                 size.z() = (int) std::floor(size.z() * mCropBottom);
             }
+        } else {
+            throw Exception("ImageCropper need at least non-zero size or cropBottom/Top fraction");
         }
     }
 

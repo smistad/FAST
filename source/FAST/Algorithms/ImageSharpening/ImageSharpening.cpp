@@ -7,12 +7,10 @@ void ImageSharpening::loadAttributes() {
 	GaussianSmoothing::loadAttributes();
 }
 
-ImageSharpening::ImageSharpening() {
-	createInputPort<Image>(0);
-	createOutputPort<Image>(0);
-
+ImageSharpening::ImageSharpening(float gain, float stddev, uchar maskSize) : GaussianSmoothing(stddev, maskSize) {
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSharpening/ImageSharpening.cl");
     createFloatAttribute("gain", "Unsharp masking gain", "Unsharp masking gain", m_gain);
+    setGain(gain);
 }
 
 void ImageSharpening::setGain(float gain) {

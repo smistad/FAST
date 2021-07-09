@@ -59,6 +59,15 @@ ImageResizer::ImageResizer() {
     createIntegerAttribute("size", "Size", "Size", 0);
 }
 
+ImageResizer::ImageResizer(int width, int height, int depth, bool useInterpolation, bool preserveAspectRatio) : ImageResizer() {
+    setWidth(width);
+    setHeight(height);
+    if(depth > 0)
+        setDepth(depth);
+    setInterpolation(useInterpolation);
+    setPreserveAspectRatio(preserveAspectRatio);
+}
+
 void ImageResizer::execute() {
     auto input = getInputData<Image>();
 
