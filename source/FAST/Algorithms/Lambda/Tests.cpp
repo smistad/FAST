@@ -5,85 +5,61 @@
 namespace fast {
 
 TEST_CASE("RunLambda test", "[fast][RunLambda]") {
-	auto testText = Text::New();
-	testText->create("test");
-	auto runLambda = RunLambda::New();
-	runLambda->setInputData(testText);
-	bool hasRun = false;
-	runLambda->setLambda([&hasRun]() {
+    bool hasRun = false;
+	auto runLambda = RunLambda::create([&hasRun]() {
 		hasRun = true;
+		return DataList();
 	});
-
-	auto resultData = runLambda->updateAndGetOutputData<Text>();
+	runLambda->run();
 	CHECK(hasRun == true);
-	CHECK(resultData->getText() == "test");
 }
 
 TEST_CASE("RunLambda test with input", "[fast][RunLambda]") {
-	auto testText = Text::New();
-	testText->create("test");
-	auto runLambda = RunLambda::New();
-	runLambda->setInputData(testText);
-	bool hasRun = false;
-	runLambda->setLambda([&hasRun](DataObject::pointer data) {
-		hasRun = true;
-		std::static_pointer_cast<Text>(data)->setText("changed");
-	});
+    bool hasRun = false;
+	auto testText = Text::create("test");
+	auto runLambda = RunLambda::create([&hasRun](DataObject::pointer data) {
+        hasRun = true;
+        std::static_pointer_cast<Text>(data)->setText("changed");
+        return DataList();
+    })->connect(testText);
 
-	auto resultData = runLambda->updateAndGetOutputData<Text>();
+	runLambda->run();
 	CHECK(hasRun == true);
-	CHECK(resultData->getText() == "changed");
+	CHECK(testText->getText() == "changed");
+}
+
+TEST_CASE("RunLambda test with input and output", "[fast][RunLambda]") {
+    bool hasRun = false;
+    auto testText = Text::create("test");
+    auto runLambda = RunLambda::create([&hasRun](DataObject::pointer data) {
+        hasRun = true;
+        auto text = Text::create("test2");
+        return DataList(text);
+    })->connect(testText);
+
+    auto resultData = runLambda->runAndGetOutputData<Text>();
+    CHECK(hasRun == true);
+    CHECK(resultData->getText() == "test2");
 }
 
 TEST_CASE("RunLambda on last frame only", "[fast][RunLambda]") {
-	auto testText = Text::New();
-	testText->create("test1");
-	auto runLambda = RunLambda::New();
-	runLambda->setRunOnLastFrameOnly(true);
-	runLambda->setInputData(testText);
+	auto testText = Text::create("test1");
 	bool hasRun = false;
-	runLambda->setLambda([&hasRun]() {
+    auto runLambda = RunLambda::create([&hasRun](DataObject::pointer data) {
 		hasRun = true;
-	});
+		return DataList();
+	})->connect(testText);
+    runLambda->setRunOnLastFrameOnly(true);
 
-	auto resultData = runLambda->updateAndGetOutputData<Text>();
+	runLambda->run();
 	CHECK(hasRun == false);
-	CHECK(resultData->getText() == "test1");
 
-	auto lastText = Text::New();
-	lastText->create("test2");
+	auto lastText = Text::create("test2");
 	lastText->setLastFrame("");
-	runLambda->setInputData(lastText);
+	runLambda->connect(lastText);
 
-	resultData = runLambda->updateAndGetOutputData<Text>();
+	runLambda->run();
 	CHECK(hasRun == true);
-	CHECK(resultData->getText() == "test2");
 }
-
-TEST_CASE("RunLambda on last frame only separate object", "[fast][RunLambda]") {
-	auto testText = Text::New();
-	testText->create("test1");
-	auto runLambda = RunLambdaOnLastFrame::New();
-	runLambda->setInputData(testText);
-	bool hasRun = false;
-	runLambda->setLambda([&hasRun]() {
-		hasRun = true;
-	});
-
-	auto resultData = runLambda->updateAndGetOutputData<Text>();
-	CHECK(hasRun == false);
-	CHECK(resultData->getText() == "test1");
-
-	auto lastText = Text::New();
-	lastText->create("test2");
-	lastText->setLastFrame("");
-	runLambda->setInputData(lastText);
-
-	resultData = runLambda->updateAndGetOutputData<Text>();
-	CHECK(hasRun == true);
-	CHECK(resultData->getText() == "test2");
-}
-
-
 
 }

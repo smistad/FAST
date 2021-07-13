@@ -11,7 +11,7 @@ namespace fast {
 /**
  * \brief A 2D bounding box data object.
  *
- * \ingroup data
+ * \ingroup data bounding-box
  */
 class FAST_EXPORT BoundingBox : public SpatialDataObject {
     FAST_OBJECT(BoundingBox)
@@ -54,7 +54,7 @@ class FAST_EXPORT BoundingBox : public SpatialDataObject {
 /**
  * \brief A data object representing a (large) set of bounding boxes.
  *
- * \ingroup data
+ * \ingroup data bounding-box
  */
 class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
     FAST_OBJECT(BoundingBoxSet)
@@ -94,13 +94,16 @@ class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
 };
 
 /**
- * Process object which accumulates incoming bounding box sets to a single bounding box set.
+ * @brief Accumulate a stream of bounding box sets to a single large bounding box set.
+ *
+ * @todo move to algorithms folder
+ * @ingroup bounding-box
  */
 class FAST_EXPORT BoundingBoxSetAccumulator : public ProcessObject {
-    FAST_OBJECT(BoundingBoxSetAccumulator)
+    FAST_PROCESS_OBJECT(BoundingBoxSetAccumulator)
 	public:
+        FAST_CONSTRUCTOR(BoundingBoxSetAccumulator)
 	protected:
-        BoundingBoxSetAccumulator();
         void execute() override;
 
         BoundingBoxSet::pointer m_accumulatedBBset;

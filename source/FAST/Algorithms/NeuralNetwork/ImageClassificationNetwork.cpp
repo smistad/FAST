@@ -64,7 +64,6 @@ void ClassificationToText::loadAttributes() {
 
 void ClassificationToText::execute() {
     auto classification = getInputData<ImageClassification>();
-    auto text = Text::New();
 
     std::map<std::string, float> values = classification->get();
 
@@ -103,7 +102,7 @@ void ClassificationToText::execute() {
     char buffer[8];
     std::sprintf(buffer, "%.2f", max);
     std::string result = label + ": " + buffer;
-    text->setText(result);
+    auto text = Text::create(result);
     addOutputData(0, text);
 }
 

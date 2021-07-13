@@ -9,8 +9,7 @@ using namespace fast;
 
 TEST_CASE("Text renderer", "[fast][TextRenderer][visual]") {
 
-    auto text = Text::New();
-    text->create("This is a test!");
+    auto text = Text::create("This is a test!");
 
     auto renderer = TextRenderer::New();
     renderer->addInputData(text);
@@ -29,8 +28,7 @@ TEST_CASE("Text renderer", "[fast][TextRenderer][visual]") {
 
 TEST_CASE("Text renderer positioning", "[fast][TextRenderer][visual]") {
 
-    auto text = Text::New();
-    text->create("This is a test!");
+    auto text = Text::create("This is a test!");
 
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/US/Axillary/US-2D_0.mhd");

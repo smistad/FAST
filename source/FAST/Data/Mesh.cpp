@@ -15,7 +15,7 @@ Mesh::Mesh(
         std::vector<MeshVertex> vertices,
         std::vector<MeshLine> lines,
         std::vector<MeshTriangle> triangles
-    ) {
+    ) : Mesh() {
      if(mIsInitialized) {
         // Delete old data
         freeAll();
@@ -75,7 +75,7 @@ Mesh::Mesh(
         bool useColors,
         bool useNormals,
         bool useEBO
-        ) {
+        ) : Mesh() {
     if(mIsInitialized) {
         // Delete old data
         freeAll();

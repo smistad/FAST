@@ -61,6 +61,14 @@
             return className::connect(0, inputDataObject);            \
         };\
 
+#define FAST_CONNECT(CLASS_NAME, CONNECT_NAME, INPUT_PORT_ID) \
+    std::shared_ptr<CLASS_NAME> connect##CONNECT_NAME(std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) { \
+        return std::dynamic_pointer_cast<CLASS_NAME>(ProcessObject::connect(INPUT_PORT_ID, parentProcessObject, outputPortID));  \
+    } \
+    std::shared_ptr<CLASS_NAME> connect##CONNECT_NAME(std::shared_ptr<DataObject> inputDataObject) { \
+        return std::dynamic_pointer_cast<CLASS_NAME>(ProcessObject::connect(INPUT_PORT_ID, inputDataObject));  \
+    }                                                         \
+
 // Macro for counting arguments, add more if needed: From https://stackoverflow.com/questions/2124339/c-preprocessor-va-args-number-of-arguments
 #ifdef _MSC_VER // Microsoft compilers
 

@@ -8,14 +8,15 @@
 
 namespace fast {
 
-IterativeClosestPoint::IterativeClosestPoint() {
-    createInputPort<Mesh>(0);
-    createInputPort<Mesh>(1);
-    mMaxIterations = 100;
-    mMinErrorChange = 1e-5;
+IterativeClosestPoint::IterativeClosestPoint(TransformationType type, int maxIterations, float minErrorChange,
+                                                 float distanceThreshold, int randomSamplingPoints) {
+    createInputPort(0, "Mesh", "Fixed mesh");
+    createInputPort(1, "Mesh", "Moving mesh");
+    setMaximumNrOfIterations(maxIterations);
+    setMinimumErrorChange(minErrorChange);
+    setDistanceThreshold(distanceThreshold);
+    setRandomPointSampling(randomSamplingPoints);
     mError = -1;
-    mRandomSamplingPoints = 0;
-    mDistanceThreshold = -1;
     mTransformationType = IterativeClosestPoint::RIGID;
     mIsModified = true;
     mTransformation = Transform::create();
@@ -134,12 +135,12 @@ void IterativeClosestPoint::setTransformationType(
 void IterativeClosestPoint::execute() {
     float error = std::numeric_limits<float>::max(), previousError;
     uint iterations = 0;
-    Mesh::pointer fixedMesh = getInputData<Mesh>(0);
-    Mesh::pointer movingMesh = getInputData<Mesh>(1);
+    auto fixedMesh = getInputData<Mesh>(0);
+    auto movingMesh = getInputData<Mesh>(1);
 
     // Get access to the two point sets
-    MeshAccess::pointer accessFixedSet = fixedMesh->getMeshAccess(ACCESS_READ);
-    MeshAccess::pointer accessMovingSet = movingMesh->getMeshAccess(ACCESS_READ);
+    auto accessFixedSet = fixedMesh->getMeshAccess(ACCESS_READ);
+    auto accessMovingSet = movingMesh->getMeshAccess(ACCESS_READ);
 
     // Get transformations of point sets
     auto fixedPointTransform2 = SceneGraph::getTransformFromData(fixedMesh);

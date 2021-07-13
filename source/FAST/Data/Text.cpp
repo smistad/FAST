@@ -2,9 +2,10 @@
 
 namespace fast {
 
-void Text::create(std::string text, Color color) {
+Text::Text(std::string text, Color color) {
     m_text = text;
     m_color = color;
+    updateModifiedTimestamp();
 }
 
 void Text::setText(std::string text) {

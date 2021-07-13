@@ -20,11 +20,11 @@ TEST_CASE("IterativeClosestPoint", "[fast][IterativeClosestPoint][icp]") {
     verticesB.push_back(MeshVertex(Vector3f(2,1,8)));
     auto B = Mesh::create(verticesB);
 
-    IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
-    icp->setInputData(0, B);
-    icp->setInputData(1, A);
+    auto icp = IterativeClosestPoint::create()
+            ->connectFixed(A)
+            ->connectMoving(B);
 
-    CHECK_NOTHROW(icp->update());
+    CHECK_NOTHROW(icp->run());
 }
 
 TEST_CASE("ICP on two point sets translation only", "[fast][IterativeClosestPoint][icp]") {
@@ -49,12 +49,8 @@ TEST_CASE("ICP on two point sets translation only", "[fast][IterativeClosestPoin
     Mesh::pointer A = importerAPort->getNextFrame<Mesh>();
 
     // Do ICP registration
-    IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
-    icp->setTransformationType(IterativeClosestPoint::TRANSLATION);
-    icp->setMovingMesh(A);
-    icp->setFixedMesh(B);
-
-    icp->update();
+    auto icp = IterativeClosestPoint::create(IterativeClosestPoint::TRANSLATION)->connectFixed(B)->connectMoving(A);
+    icp->run();
 
     // Validate result
     A->getSceneGraphNode()->setTransform(icp->getOutputTransformation());
