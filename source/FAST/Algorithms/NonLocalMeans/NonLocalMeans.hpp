@@ -3,8 +3,16 @@
 #include <FAST/ProcessObject.hpp>
 
 namespace fast {
-    class FAST_EXPORT NonLocalMeans : public ProcessObject {
-        FAST_PROCESS_OBJECT(NonLocalMeans);
+/**
+ * @brief Multiscale Non-Local Means (NLM) smoothing
+ *
+ * Non-Local Means (NLM) is an excellent despeckling filter for ultrasound images.
+ * This GPU implementation is based on the article "Real-Time Nonlocal Means-Based Despeckling" by Breivik et al. 2017.
+ *
+ * @ingroup filter
+ */
+class FAST_EXPORT NonLocalMeans : public ProcessObject {
+    FAST_PROCESS_OBJECT(NonLocalMeans);
     public:
         /**
          * Creates instance of this process object

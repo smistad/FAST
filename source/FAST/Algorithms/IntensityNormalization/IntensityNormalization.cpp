@@ -1,27 +1,27 @@
-#include "ScaleImage.hpp"
+#include "IntensityNormalization.hpp"
 #include "FAST/Data/Image.hpp"
 
 namespace fast {
 
-ScaleImage::ScaleImage() {
+IntensityNormalization::IntensityNormalization(float valueLow, float valueHigh) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
-    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ScaleImage/ScaleImage.cl");
-    mLow = 0.0f;
-    mHigh = 1.0f;
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/IntensityNormalization/IntensityNormalization.cl");
+    mLow = valueLow;
+    mHigh = valueHigh;
 }
 
-void ScaleImage::setLowestValue(float value) {
+void IntensityNormalization::setLowestValue(float value) {
     mLow = value;
 }
 
-void ScaleImage::setHighestValue(float value) {
+void IntensityNormalization::setHighestValue(float value) {
     mHigh = value;
 }
 
-void ScaleImage::execute() {
+void IntensityNormalization::execute() {
     if(mHigh <= mLow)
-        throw Exception("The high value must be higher than the low value in ScaleImage.");
+        throw Exception("The high value must be higher than the low value in IntensityNormalization.");
 
     auto input = getInputData<Image>();
 

@@ -9,11 +9,20 @@ void UltrasoundImageCropper::loadAttributes() {
 
 }
 
-UltrasoundImageCropper::UltrasoundImageCropper() {
+UltrasoundImageCropper::UltrasoundImageCropper(float physicalWidth, bool staticCropping, float threshold1, float threshold2) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.cl");
+    if(physicalWidth > 0)
+        setPhysicalWidth(physicalWidth);
+    setStaticCropping(staticCropping);
+    setThresholds(threshold1, threshold2);
+}
+
+void UltrasoundImageCropper::setThresholds(float threshold1, float threshold2) {
+    m_threshold1 = threshold1;
+    m_threshold2 = threshold2;
 }
 
 void UltrasoundImageCropper::execute() {
@@ -58,28 +67,26 @@ void UltrasoundImageCropper::execute() {
         int maxX = width;
         int minY = 0;
         int maxY = height;
-        int threshold = 30;
         for(int x = width / 2; x > 0; --x) {
-            if(result[x] <= threshold) {
+            if(result[x] <= m_threshold1) {
                 minX = x;
                 break;
             }
         }
         for(int x = width / 2; x < width; ++x) {
-            if(result[x] <= threshold) {
+            if(result[x] <= m_threshold1) {
                 maxX = x;
                 break;
             }
         }
-        int threshold2 = 10;
         for(int y = height / 4; y > 0; --y) {
-            if(result[width + y] <= threshold2) {
+            if(result[width + y] <= m_threshold2) {
                 minY = y;
                 break;
             }
         }
         for(int y = height / 2 + height / 4; y < height; ++y) {
-            if(result[width + y] <= threshold2) {
+            if(result[width + y] <= m_threshold2) {
                 maxY = y;
                 break;
             }

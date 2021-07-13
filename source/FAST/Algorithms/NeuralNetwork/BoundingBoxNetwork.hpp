@@ -12,7 +12,7 @@ class TensorToBoundingBoxSet;
  *
  * This class is a convenience class for a neural network which performs bounding box prediction.
  *
- * @ingroup neural-network
+ * @ingroup neural-network bounding-box
  */
 class FAST_EXPORT BoundingBoxNetwork : public NeuralNetwork {
     FAST_PROCESS_OBJECT(BoundingBoxNetwork)

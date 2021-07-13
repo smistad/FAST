@@ -13,18 +13,18 @@
 
 namespace fast {
 
-LungSegmentation::LungSegmentation() {
+LungSegmentation::LungSegmentation(Vector3i seedPoint, bool extractBloodVessels) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOutputPort<Image>(1);
+    createOutputPort<Image>(2);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LungSegmentation/LungSegmentation.cl");
-}
 
-DataChannel::pointer LungSegmentation::getBloodVesselOutputPort() {
-    if(mOutputPorts.count(2) == 0)
-        createOutputPort<Image>(2);
-    return getOutputPort(2);
+    if(seedPoint != Vector3i::Zero()) {
+        setAirwaySeedPoint(seedPoint);
+    }
+    m_extractBloodVessels = extractBloodVessels;
 }
 
 Vector3i LungSegmentation::findSeedVoxel(Image::pointer volume) {
@@ -138,7 +138,7 @@ void LungSegmentation::execute() {
     // Grow the segmentation in 3D
     SeededRegionGrowing::pointer segmentation = SeededRegionGrowing::New();
     segmentation->setInputData(input);
-    segmentation->addSeedPoint(seed.cast<uint>());
+    segmentation->addSeedPoint(seed);
     segmentation->setIntensityRange(-900, -500);
 
     // Next we want to get airways so we can remove those from the segmentation
@@ -177,7 +177,7 @@ void LungSegmentation::execute() {
     erosion->update();
     Image::pointer image = port->getNextFrame<Image>();
 
-    if(mOutputPorts.count(2) > 0) {
+    if(m_extractBloodVessels) {
         // Extract blood vessels as well
         auto erosion = Erosion::New();
         erosion->setInputData(image);

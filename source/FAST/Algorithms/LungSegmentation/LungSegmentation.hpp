@@ -1,5 +1,4 @@
-#ifndef FAST_LUNG_SEGMENTATION_HPP_
-#define FAST_LUNG_SEGMENTATION_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 
@@ -7,14 +6,30 @@ namespace fast {
 
 class Image;
 
+/**
+ * @brief Segment the lung, airways and blood vessels from a CT using seeded region growing and morpohology
+ *
+ * Inputs:
+ * - 0: Image a 3D CT image
+ *
+ * Outputs:
+ * - 0: Image segmentation of lungs
+ * - 1: Image segmentation of airways
+ * - 2: Image segmentation of blood vessels (only if extractBloodVessels == true)
+ *
+ * @sa AirwaySegmentation
+ * @ingroup segmentation
+ */
 class FAST_EXPORT LungSegmentation : public ProcessObject {
-    FAST_OBJECT(LungSegmentation)
+    FAST_PROCESS_OBJECT(LungSegmentation)
 public:
+    FAST_CONSTRUCTOR(LungSegmentation,
+                     Vector3i, airwaySeedPoint, = Vector3i::Zero(),
+                     bool, extractBloodVessels, = false
+    )
     void setAirwaySeedPoint(int x, int y, int z);
     void setAirwaySeedPoint(Vector3i seed);
-    DataChannel::pointer getBloodVesselOutputPort();
 private:
-    LungSegmentation();
     void execute();
     std::shared_ptr<Image> convertToHU(std::shared_ptr<Image> image);
 
@@ -22,8 +37,7 @@ private:
 
     Vector3i mSeedPoint;
     bool mUseManualSeedPoint = false;
+    bool m_extractBloodVessels;
 };
 
 }
-
-#endif

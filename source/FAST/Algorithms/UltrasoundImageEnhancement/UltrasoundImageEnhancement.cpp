@@ -4,7 +4,7 @@
 namespace fast {
 
 
-UltrasoundImageEnhancement::UltrasoundImageEnhancement() {
+UltrasoundImageEnhancement::UltrasoundImageEnhancement(int reject) {
     createInputPort<Image>(0);
 
     createOutputPort<Image>(0);
@@ -15,7 +15,7 @@ UltrasoundImageEnhancement::UltrasoundImageEnhancement() {
 
     mColormapUploaded = false;
 
-    setReject(40);
+    setReject(reject);
 }
 
 void UltrasoundImageEnhancement::execute() {

@@ -4,9 +4,10 @@
 
 namespace fast {
 
-NonMaximumSuppression::NonMaximumSuppression() {
+NonMaximumSuppression::NonMaximumSuppression(float threshold) {
 	createInputPort<BoundingBoxSet>(0);
 	createOutputPort<BoundingBoxSet>(0);
+    setThreshold(threshold);
 	createFloatAttribute("threshold", "Threshold", "Threshold", m_threshold);
 }
 

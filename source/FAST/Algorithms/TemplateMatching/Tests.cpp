@@ -19,11 +19,8 @@ TEST_CASE("Template matching NCC", "[fast][NCC][TemplateMatching][visual]") {
     Vector2i position = Vector2i(120, 100) + size/2;
     auto templateImage = image->crop(position - size/2, size);
 
-    auto matching = TemplateMatching::New();
+    auto matching = TemplateMatching::create(MatchingMetric::NORMALIZED_CROSS_CORRELATION, position, Vector2i(16, 16))->connect(image)->connect(1, templateImage);
     matching->enableRuntimeMeasurements();
-    matching->setRegionOfInterest(position, Vector2i(16, 16));
-    matching->setInputData(0, image);
-    matching->setInputData(1, templateImage);
 
     auto renderer = ImageRenderer::New();
     renderer->addInputConnection(matching->getOutputPort());

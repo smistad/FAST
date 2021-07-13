@@ -31,14 +31,14 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d][visual]") {
 
     auto mesh = Mesh::create(vertices, lines);
 
-    MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
-    meshToSeg->setInputData(0, mesh);
-    meshToSeg->setInputConnection(1, importer->getOutputPort());
+    auto meshToSeg = MeshToSegmentation::create()
+            ->connect(mesh)
+            ->connect(1, importer);
     //meshToSeg->setOutputImageResolution(50, 50);
 
-    SegmentationRenderer::pointer segRenderer = SegmentationRenderer::New();
+    auto segRenderer = SegmentationRenderer::New();
     segRenderer->addInputConnection(meshToSeg->getOutputPort());
-    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+    auto imageRenderer = ImageRenderer::New();
     imageRenderer->addInputConnection(importer->getOutputPort());
 
     DualViewWindow::pointer window = DualViewWindow::New();

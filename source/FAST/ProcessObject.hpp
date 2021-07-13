@@ -36,8 +36,23 @@ class ProcessObject;
  */
 
 /**
- * @defgroup motion-and-tracking Motion and tracking
+ * @defgroup motion-and-tracking Motion and Tracking
  * Objects and functions for motion and tracking.
+ */
+
+/**
+ * @defgroup morphology Morphology
+ * Objects and functions for morphology
+ */
+
+/**
+ * @defgroup bounding-box Bounding Box
+ * Objects and functions for bounding box detection etc.
+ */
+
+/**
+ * @defgroup ultrasound Ultrasound
+ * Objects and functions specifically for ultrasound imaging.
  */
 
 /**
@@ -125,6 +140,8 @@ class FAST_EXPORT  ProcessObject : public Object {
         template <class DataType>
         std::shared_ptr<DataType> updateAndGetOutputData(uint portID = 0);
 
+        template <class DataType>
+        std::shared_ptr<DataType> runAndGetOutputData(uint portID = 0);
 
         //// NEW V4 PO SEMANTICS
         void run(int executeToken = -1);
@@ -275,8 +292,14 @@ std::shared_ptr<DataType> ProcessObject::getOutputData(uint portID) {
 
 template<class DataType>
 std::shared_ptr<DataType> ProcessObject::updateAndGetOutputData(uint portID) {
+    return runAndGetOutputData<DataType>();
+}
+
+
+template<class DataType>
+std::shared_ptr<DataType> ProcessObject::runAndGetOutputData(uint portID) {
     auto port = getOutputPort(portID);
-    update();
+    run();
     return port->getNextFrame<DataType>();
 }
 

@@ -1,5 +1,4 @@
-#ifndef FAST_LEVEL_SET_SEGMENTATION_HPP_
-#define FAST_LEVEL_SET_SEGMENTATION_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 
@@ -27,5 +26,3 @@ class FAST_EXPORT  LevelSetSegmentation : public ProcessObject {
 };
 
 }
-
-#endif

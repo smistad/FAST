@@ -4,12 +4,13 @@
 namespace fast {
 
 
-VectorMedianFilter::VectorMedianFilter() {
+VectorMedianFilter::VectorMedianFilter(int size) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/VectorMedianFilter/VectorMedianFilter.cl");
 
+    setWindowSize(size);
     createIntegerAttribute("window-size", "Window size", "Size of area to perform median filter on", m_windowSize);
 }
 

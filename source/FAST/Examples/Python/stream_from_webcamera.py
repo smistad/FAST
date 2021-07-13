@@ -3,12 +3,10 @@
 # and display it in real-time.
 import fast
 
-streamer = fast.CameraStreamer.New()
+streamer = fast.CameraStreamer.create()
 
-filter = fast.LaplacianOfGaussian.New()
-filter.setInputConnection(streamer.getOutputPort())
+filter = fast.LaplacianOfGaussian.create().connect(streamer)
 
-renderer = fast.ImageRenderer.New()
-renderer.addInputConnection(filter.getOutputPort())
+renderer = fast.ImageRenderer.create().connect(filter)
 
 window = fast.SimpleWindow2D.create().connect(renderer).run()

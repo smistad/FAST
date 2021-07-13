@@ -1,5 +1,4 @@
-#ifndef SEEDEDREGIONGROWING_HPP_
-#define SEEDEDREGIONGROWING_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Image.hpp"
@@ -7,13 +6,29 @@
 
 namespace fast {
 
-class FAST_EXPORT  SeededRegionGrowing : public ProcessObject {
-    FAST_OBJECT(SeededRegionGrowing)
+/**
+ * @brief Segmentation by seeded region growing
+ *
+ * Inputs:
+ * - 0: Image
+ *
+ * Outputs
+ * - 0: Image segmentation
+ *
+ * @ingroup segmentation
+ */
+class FAST_EXPORT SeededRegionGrowing : public ProcessObject {
+    FAST_PROCESS_OBJECT(SeededRegionGrowing)
     public:
+        FAST_CONSTRUCTOR(SeededRegionGrowing,
+                         float, intensityMinimum,,
+                         float, intensityMaximum,,
+                         std::vector<Vector3i>, seedPoints,
+        )
         void setIntensityRange(float min, float max);
         void addSeedPoint(uint x, uint y);
         void addSeedPoint(uint x, uint y, uint z);
-        void addSeedPoint(Vector3ui position);
+        void addSeedPoint(Vector3i position);
     private:
         SeededRegionGrowing();
         void execute();
@@ -23,7 +38,7 @@ class FAST_EXPORT  SeededRegionGrowing : public ProcessObject {
         void executeOnHost(T* input, Image::pointer output);
 
         float mMinimumIntensity, mMaximumIntensity;
-        std::vector<Vector3ui> mSeedPoints;
+        std::vector<Vector3i> mSeedPoints;
 
         cl::Kernel mKernel;
         unsigned char mDimensionCLCodeCompiledFor;
@@ -32,7 +47,3 @@ class FAST_EXPORT  SeededRegionGrowing : public ProcessObject {
 };
 
 } // end namespace fast
-
-
-
-#endif /* SEEDEDREGIONGROWING_HPP_ */

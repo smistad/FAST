@@ -5,13 +5,13 @@
 
 namespace fast {
 
-MeshToSegmentation::MeshToSegmentation() {
+MeshToSegmentation::MeshToSegmentation(Vector3i size) {
 	createInputPort<Mesh>(0);
 	createInputPort<Image>(1, false);
 	createOutputPort<Image>(0);
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/MeshToSegmentation/MeshToSegmentation.cl");
 
-	mResolution = Vector3i::Zero();
+	mResolution = size;
 }
 
 void MeshToSegmentation::setOutputImageResolution(uint x, uint y, uint z) {

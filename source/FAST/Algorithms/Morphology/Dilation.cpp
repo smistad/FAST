@@ -3,11 +3,11 @@
 
 namespace fast {
 
-Dilation::Dilation() {
+Dilation::Dilation(int size) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Morphology/Dilation.cl");
-    mSize = 3;
+    setStructuringElementSize(size);
 
     createIntegerAttribute("kernel-size", "Kernel size", "Kernel size used for dilation", mSize);
 }

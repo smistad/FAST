@@ -3,11 +3,11 @@
 
 namespace fast {
 
-Erosion::Erosion() {
+Erosion::Erosion(int size) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Morphology/Erosion.cl");
-    mSize = 3;
+    setStructuringElementSize(size);
 
     createIntegerAttribute("kernel-size", "Kernel size", "Kernel size used for erosion", mSize);
 }

@@ -3,14 +3,14 @@
 
 namespace fast {
 
-ImageWeightedMovingAverage::ImageWeightedMovingAverage() {
+ImageWeightedMovingAverage::ImageWeightedMovingAverage(int frameCount, bool keepDataType) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/TemporalSmoothing/ImageWeightedMovingAverage.cl");
 
-    m_frameCount = 10;
-    m_keepDataType = false;
+    setFrameCount(frameCount);
+    setKeepDataType(keepDataType);
     createIntegerAttribute("frame-count", "Frame count", "Nr of frames to use in moving average", m_frameCount);
     createBooleanAttribute("keep-datatype", "Keep data type", "Whether to keep data type of input image for output image, or use float instead", m_keepDataType);
 }

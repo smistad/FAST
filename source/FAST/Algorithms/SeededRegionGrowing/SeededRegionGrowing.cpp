@@ -16,7 +16,7 @@ void SeededRegionGrowing::setIntensityRange(float min, float max) {
 }
 
 void SeededRegionGrowing::addSeedPoint(uint x, uint y) {
-    Vector3ui pos;
+    Vector3i pos;
     pos[0] = x;
     pos[1] = y;
     pos[2] = 0;
@@ -24,14 +24,14 @@ void SeededRegionGrowing::addSeedPoint(uint x, uint y) {
 }
 
 void SeededRegionGrowing::addSeedPoint(uint x, uint y, uint z) {
-    Vector3ui pos;
+    Vector3i pos;
     pos[0] = x;
     pos[1] = y;
     pos[2] = z;
     addSeedPoint(pos);
 }
 
-void SeededRegionGrowing::addSeedPoint(Vector3ui position) {
+void SeededRegionGrowing::addSeedPoint(Vector3i position) {
     mSeedPoints.push_back(position);
 }
 
@@ -39,6 +39,12 @@ SeededRegionGrowing::SeededRegionGrowing() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     mDimensionCLCodeCompiledFor = 0;
+}
+
+SeededRegionGrowing::SeededRegionGrowing(float intensityMinimum, float intensityMaximum,
+                                         std::vector<Vector3i> seedPoints) : SeededRegionGrowing() {
+    setIntensityRange(intensityMinimum, intensityMaximum);
+    mSeedPoints = seedPoints;
 }
 
 void SeededRegionGrowing::recompileOpenCLCode(Image::pointer input) {
@@ -78,7 +84,7 @@ void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
 
     // Add seeds to queue
     for(int i = 0; i < mSeedPoints.size(); i++) {
-        Vector3ui pos = mSeedPoints[i];
+        Vector3i pos = mSeedPoints[i];
 
         // Check if seed point is in bounds
         if(pos.x() < 0 || pos.y() < 0 || pos.z() < 0 ||
@@ -167,7 +173,7 @@ void SeededRegionGrowing::execute() {
 
         // Add sedd points
         for(int i = 0; i < mSeedPoints.size(); i++) {
-            Vector3ui pos = mSeedPoints[i];
+            Vector3i pos = mSeedPoints[i];
 
             // Check if seed point is in bounds
             if(pos.x() < 0 || pos.y() < 0 || pos.z() < 0 ||

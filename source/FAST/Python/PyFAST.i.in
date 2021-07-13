@@ -179,6 +179,7 @@ public
 
 %define ADD_TEMPLATE_METHODS(TYPE)
 %template(updateAndGetOutput ## TYPE) fast::ProcessObject::updateAndGetOutputData<fast::TYPE>;
+%template(runAndGetOutput ## TYPE) fast::ProcessObject::runAndGetOutputData<fast::TYPE>;
 %template(getNext ## TYPE) fast::DataChannel::getNextFrame<fast::TYPE>;
 %{
 std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::DataObject> dataObject) {

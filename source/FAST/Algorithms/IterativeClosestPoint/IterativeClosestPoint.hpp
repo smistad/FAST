@@ -5,8 +5,13 @@
 
 namespace fast {
 
+/**
+ * @brief Registration of two meshes using ICP
+ *
+ * @ingroup registration
+ */
 class FAST_EXPORT  IterativeClosestPoint : public ProcessObject {
-    FAST_OBJECT(IterativeClosestPoint)
+    FAST_PROCESS_OBJECT(IterativeClosestPoint)
     public:
         typedef enum { RIGID, TRANSLATION } TransformationType;
         void setFixedMeshPort(DataChannel::pointer port);

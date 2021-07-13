@@ -30,19 +30,18 @@ int main(int argc, char** argv) {
     importer->setFilename(parser.get("input-filename"));
 
     // Perform lung segmentation (this will also extract the airways using AirwaySegmentation)
-    auto segmentation = LungSegmentation::New();
-    segmentation->setInputConnection(importer->getOutputPort());
+    auto segmentation = LungSegmentation::create(Vector3i::Zero(), true)->connect(importer);
 
-    auto centerline = CenterlineExtraction::New();
+    auto centerline = CenterlineExtraction::create();
     if(parser.getOption("blood-vessel-centerline")) {
-        centerline->setInputConnection(segmentation->getBloodVesselOutputPort());
+        centerline->connect(segmentation, 2);
         centerline->getReporter().setGlobalReportMethod(Reporter::COUT);
     }
 
     if(parser.gotValue("output-path")) {
         auto exporter = MetaImageExporter::New();
         exporter->setFilename(join(parser.get("output-path"), "vessel_segmentation.mhd"));
-        exporter->setInputConnection(segmentation->getBloodVesselOutputPort());
+        exporter->setInputConnection(segmentation->getOutputPort(2));
 
         auto exporter2 = MetaImageExporter::New();
         exporter2->setFilename(join(parser.get("output-path"), "lung_segmentation.mhd"));
@@ -73,7 +72,7 @@ int main(int argc, char** argv) {
 
         // Extract blood vessel
         auto extraction3 = SurfaceExtraction::create();
-        extraction3->setInputConnection(segmentation->getBloodVesselOutputPort());
+        extraction3->setInputConnection(segmentation->getOutputPort(2));
 
         // Render both surfaces with different color
         auto renderer = TriangleRenderer::New();
