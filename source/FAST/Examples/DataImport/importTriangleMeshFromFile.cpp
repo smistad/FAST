@@ -1,7 +1,6 @@
 /**
- * Examples/DataImport/importMeshFromFile.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example importTriangleMeshFromFile.cpp
+ * An example of importing and visualizing a mesh containing triangles from a file using the VTKMeshFileImporter
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
@@ -16,18 +15,16 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     // Import a triangle mesh from vtk file using the VTKMeshFileImporter
-    auto importer = VTKMeshFileImporter::New();
-    importer->setFilename(parser.get("filename"));
+    auto importer = VTKMeshFileImporter::create(parser.get("filename"));
 
     // Renderer mesh
-    auto renderer = TriangleRenderer::New();
-    renderer->addInputConnection(importer->getOutputPort());
+    auto renderer = TriangleRenderer::create()->connect(importer);
 
     // Setup window
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
+    auto window = SimpleWindow3D::create()->connect(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
     window->setTimeout(5*1000); // automatically close window after 5 seconds
 #endif
-    window->start();
+    // Run entire pipeline and display window
+    window->run();
 }

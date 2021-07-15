@@ -1,7 +1,6 @@
 /**
- * Examples/DataImport/importWholeSlideImage.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example importWholeSlideImage.cpp
+ * An example of importing and visualizing an image from file using the WholeSlideImageImporter
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Importers/WholeSlideImageImporter.hpp>
@@ -16,21 +15,18 @@ int main(int argc, char** argv) {
     parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "/WSI/A05.svs");
     parser.parse(argc, argv);
 
-    // Import image from file using the ImageFileImporter
-    auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(parser.get(1));
+    // Import image from file
+    auto importer = WholeSlideImageImporter::create(parser.get(1));
 
     // Render
-    auto renderer = ImagePyramidRenderer::New();
-    renderer->addInputConnection(importer->getOutputPort());
+    auto renderer = ImagePyramidRenderer::create()->connect(importer);
 
     // Setup window
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->set2DMode();
+    auto window = SimpleWindow2D::create()->connect(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
-    window->start();
+    // Run entire pipeline and display window
+    window->run();
 }

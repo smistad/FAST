@@ -1,3 +1,6 @@
+/**
+ * @exampel nonLocalMeans.cpp
+ */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Streamers/ImageFileStreamer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
@@ -8,7 +11,6 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-
     CommandLineParser parser("Non local means filtering",
             "This example performs speckle reduction using the multiscale non-local means algorithm.");
     parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd");
@@ -18,37 +20,32 @@ int main(int argc, char** argv) {
     parser.addOption("disable-preprocessing", "Disable median preprocessing useful for ultrasound images.");
     parser.parse(argc, argv);
 
-    auto streamer = ImageFileStreamer::New();
-    streamer->setFilenameFormat(parser.get("filename"));
-    streamer->enableLooping();
+    auto streamer = ImageFileStreamer::create(parser.get("filename"), true);
 
-    auto filter = NonLocalMeans::New();
-    filter->setInputConnection(streamer->getOutputPort());
+    auto filter = NonLocalMeans::create(
+            parser.get<int>("filter-size"),
+            parser.get<int>("search-size"),
+            parser.get<float>("smoothing")
+            )->connect(streamer);
     filter->enableRuntimeMeasurements();
-    filter->setSearchSize(parser.get<int>("search-size"));
-    filter->setFilterSize(parser.get<int>("filter-size"));
-    filter->setSmoothingAmount(parser.get<float>("smoothing"));
     filter->setPreProcess(!parser.getOption("disable-preprocessing"));
 
-    auto enhance = UltrasoundImageEnhancement::New();
-    enhance->setInputConnection(filter->getOutputPort());
+    auto enhance = UltrasoundImageEnhancement::create()->connect(filter);
 
-    auto renderer = ImageRenderer::New();
-    renderer->addInputConnection(enhance->getOutputPort());
+    auto renderer = ImageRenderer::create()->connect(enhance);
 
-    auto enhance2 = UltrasoundImageEnhancement::New();
-    enhance2->setInputConnection(streamer->getOutputPort());
+    auto enhance2 = UltrasoundImageEnhancement::create()->connect(streamer);
 
-    auto renderer2 = ImageRenderer::New();
-    renderer2->addInputConnection(enhance2->getOutputPort());
+    auto renderer2 = ImageRenderer::create()->connect(enhance2);
 
     auto window = DualViewWindow::New();
-    window->addRendererToBottomRightView(renderer);
-    window->addRendererToTopLeftView(renderer2);
+    window->set2DMode();
+    window->addRendererToRightView(renderer);
+    window->addRendererToLeftView(renderer2);
     window->getView(0)->setBackgroundColor(Color::Black());
     window->getView(1)->setBackgroundColor(Color::Black());
-    window->getView(0)->set2DMode();
-    window->getView(1)->set2DMode();
-    window->start();
+    window->run();
+
+    // Print runtime of NLM
     filter->getRuntime()->print();
 }

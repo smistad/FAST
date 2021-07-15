@@ -1,5 +1,4 @@
-#ifndef KALMAN_FILTER_HPP
-#define KALMAN_FILTER_HPP
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "AppearanceModel.hpp"
@@ -10,9 +9,31 @@ namespace fast {
 class Image;
 class Mesh;
 
-class FAST_EXPORT  KalmanFilter : public ProcessObject {
-	FAST_OBJECT(KalmanFilter)
+/**
+ * @brief Kalman filter deformable model segmentation
+ *
+ * Temporal deformable model segmentation using Kalman filter state estimation
+ * Supports multiple shape and appearance models
+ *
+ * Inputs:
+ * - 0: Image to segment
+ *
+ * Outputs:
+ * - 0: Mesh segmentation
+ * - 1: Mesh displacement
+ *
+ * @sa ShapeModel AppearanceModel
+ * @ingroup segmentation
+ */
+class FAST_EXPORT KalmanFilterModelSegmentation : public ProcessObject {
+	FAST_PROCESS_OBJECT(KalmanFilterModelSegmentation)
 	public:
+        FAST_CONSTRUCTOR(KalmanFilterModelSegmentation,
+                         ShapeModel::pointer, shapeModel,,
+                         AppearanceModel::pointer, appearanceModel,,
+                         int, iterations, = 5,
+                         int, startIterations, = 20
+        )
 		void setShapeModel(ShapeModel::pointer shapeModel);
 		void setAppearanceModel(AppearanceModel::pointer appearanceModel);
 		void setIterations(int iterations);
@@ -21,7 +42,7 @@ class FAST_EXPORT  KalmanFilter : public ProcessObject {
 		DataChannel::pointer getSegmentationOutputPort();
 		DataChannel::pointer getDisplacementsOutputPort();
 	private:
-		KalmanFilter();
+		KalmanFilterModelSegmentation();
 		void execute(); // runs a loop with predict, measure and update
 		void predict();
 		void estimate(std::shared_ptr<Image> image);
@@ -48,5 +69,3 @@ class FAST_EXPORT  KalmanFilter : public ProcessObject {
 };
 
 } // end namespace fast
-
-#endif

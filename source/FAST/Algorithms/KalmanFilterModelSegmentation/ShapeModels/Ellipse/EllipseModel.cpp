@@ -3,7 +3,7 @@
 
 namespace fast {
 
-EllipseModel::EllipseModel() {
+EllipseModel::EllipseModel(Vector2f position, float majorRadius, float minorRadius) {
 	// Create state transition matrices and process error matrix
     float dampening = 0.5; // 0 is no dampening, 1 is full
     mStateTransitionMatrix1 = Matrix4f::Zero();
@@ -26,6 +26,7 @@ EllipseModel::EllipseModel() {
     mNrOfNodes = 16;
 
     mInitialState = Vector4f(0, 0, 1, 1);
+    setInitialState(position, majorRadius, minorRadius);
 }
 
 Shape::pointer EllipseModel::getShape(VectorXf state) {

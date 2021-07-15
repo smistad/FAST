@@ -3,7 +3,7 @@
 #include <FAST/Exporters/MetaImageExporter.hpp>
 #include "FAST/Testing.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
-#include "KalmanFilter.hpp"
+#include "KalmanFilterModelSegmentation.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
@@ -228,8 +228,8 @@ TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block
  */
 
 
-TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][visual]") {
-	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[fast][kalmanfiltermodelsegmentation][2d][cardiac][visual]") {
+	auto streamer = ImageFileStreamer::New();
 	//streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalTwoChamber/US-2D_#.mhd");
 	//streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalLongAxis/US-2D_#.mhd");
     streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_#.mhd");
@@ -257,44 +257,25 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 			Vector2f(80,31),
 	};
 
-	CardinalSplineModel::pointer shapeModel = CardinalSplineModel::New();
-	shapeModel->setControlPoints(controlPoints);
-	// Increasing these will put more weight on the measurements instead of the model, and vica versa
-	shapeModel->setGlobalProcessError(0.000001f);
-	shapeModel->setLocalProcessError(0.001f);
+	auto shapeModel = CardinalSplineModel::create(
+        controlPoints,
+        // Increasing these will put more weight on the measurements instead of the model, and vica versa
+        0.000001f,
+        0.001f);
 	shapeModel->initializeShapeToImageCenter();
-	KalmanFilter::pointer segmentation = KalmanFilter::New();
-	/*
-	RidgeEdgeModel::pointer appearanceModel = RidgeEdgeModel::New();
-	appearanceModel->setEdgeType(RidgeEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE);
-	appearanceModel->setIntensityDifferenceThreshold(20);
-	appearanceModel->setMinimumRidgeSize(3.0f);
-	 */
-	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
-	appearanceModel->setEdgeType(StepEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE);
-	appearanceModel->setIntensityDifferenceThreshold(20);
+	auto appearanceModel = StepEdgeModel::create(30.0f, 30.0f/48.0f, 20, StepEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE);
 
-	appearanceModel->setLineLength(30.0);
-	appearanceModel->setLineSampleSpacing(30.0/48.0);
-	segmentation->setAppearanceModel(appearanceModel);
-	segmentation->setShapeModel(shapeModel);
-	segmentation->setInputConnection(streamer->getOutputPort());
-    segmentation->setIterations(10);
-	segmentation->setStartIterations(5);
+    auto segmentation = KalmanFilterModelSegmentation::create(shapeModel, appearanceModel, 10, 5)
+            ->connect(streamer);
 
-	LineRenderer::pointer lineRenderer = LineRenderer::New();
+	auto lineRenderer = LineRenderer::New();
 	lineRenderer->addInputConnection(segmentation->getOutputPort());
 	lineRenderer->addInputConnection(segmentation->getDisplacementsOutputPort(), Color::Red(), 1.0);
 
-	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+	auto imageRenderer = ImageRenderer::New();
 	imageRenderer->addInputConnection(streamer->getOutputPort());
 
-	SimpleWindow::pointer window = SimpleWindow::New();
-	window->getView()->setBackgroundColor(Color::Black());
-	window->addRenderer(imageRenderer);
-	window->addRenderer(lineRenderer);
-	window->setSize(1024, 1024);
-	window->set2DMode();
+	auto window = SimpleWindow2D::create(Color::Black())->connect(imageRenderer)->connect(lineRenderer);
 	window->setTimeout(1000);
-	window->start();
+	window->run();
 }

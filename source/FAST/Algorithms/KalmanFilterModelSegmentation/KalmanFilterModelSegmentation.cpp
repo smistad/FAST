@@ -1,11 +1,11 @@
-#include "KalmanFilter.hpp"
+#include "KalmanFilterModelSegmentation.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "Shape.hpp"
 
 namespace fast {
 
-void KalmanFilter::predict() {
+void KalmanFilterModelSegmentation::predict() {
 	// Use temporal/motion model to predict the next state and covariance
 	// This is done using matrices from the shape model
 	MatrixXf A1 = mShapeModel->getStateTransitionMatrix1();
@@ -18,22 +18,22 @@ void KalmanFilter::predict() {
 	mPredictedState = mShapeModel->restrictState(mPredictedState);
 }
 
-void KalmanFilter::setShapeModel(ShapeModel::pointer shapeModel) {
+void KalmanFilterModelSegmentation::setShapeModel(ShapeModel::pointer shapeModel) {
 	mShapeModel = shapeModel;
 }
 
-void KalmanFilter::setAppearanceModel(
+void KalmanFilterModelSegmentation::setAppearanceModel(
 		AppearanceModel::pointer appearanceModel) {
 	mAppearanceModel = appearanceModel;
 }
 
-VectorXf KalmanFilter::getCurrentState() const {
+VectorXf KalmanFilterModelSegmentation::getCurrentState() const {
 	if(!mInitialized)
 		throw Exception("Can't get current state before first execute in Kalman filter.");
 	return mCurrentState;
 }
 
-void KalmanFilter::execute() {
+void KalmanFilterModelSegmentation::execute() {
     reportInfo() << "Executing Kalman filter.." << reportEnd();
 	if(!mShapeModel || !mAppearanceModel)
 		throw Exception("Shape and appearance model must be given to the Kalman filter before execution.");
@@ -72,7 +72,7 @@ void KalmanFilter::execute() {
 	addOutputData(0, shape->getMesh());
 }
 
-Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
+Mesh::pointer KalmanFilterModelSegmentation::getDisplacementVectors(Image::pointer image) {
 
 	Shape::pointer shape = mShapeModel->getShape(mCurrentState);
 	Mesh::pointer mesh = shape->getMesh();
@@ -102,42 +102,51 @@ Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
 	return output;
 }
 
-KalmanFilter::KalmanFilter() {
-	createInputPort<Image>(0);
-	createOutputPort<Mesh>(0); // Segmentation
-	createOutputPort<Mesh>(1); // Displacement
+KalmanFilterModelSegmentation::KalmanFilterModelSegmentation() {
+    createInputPort<Image>(0);
+    createOutputPort<Mesh>(0); // Segmentation
+    createOutputPort<Mesh>(1); // Displacement
 
-	mInitialized = false;
-	mFirstExecute = true;
-	mOutputDisplacements = false;
-	mStartIterations = 20;
-	mIterations = 5;
+    mInitialized = false;
+    mFirstExecute = true;
+    mOutputDisplacements = false;
+    mIterations = 5;
+    mStartIterations = 20;
 }
 
-DataChannel::pointer KalmanFilter::getSegmentationOutputPort() {
+KalmanFilterModelSegmentation::KalmanFilterModelSegmentation(ShapeModel::pointer shapeModel,
+                                                             AppearanceModel::pointer appearanceModel, int iterations,
+                                                             int startIterations) : KalmanFilterModelSegmentation() {
+    setShapeModel(shapeModel);
+    setAppearanceModel(appearanceModel);
+    setIterations(iterations);
+    setStartIterations(startIterations);
+}
+
+DataChannel::pointer KalmanFilterModelSegmentation::getSegmentationOutputPort() {
 	return getOutputPort(0);
 }
 
-DataChannel::pointer KalmanFilter::getDisplacementsOutputPort() {
+DataChannel::pointer KalmanFilterModelSegmentation::getDisplacementsOutputPort() {
 	mOutputDisplacements = true;
 	return getOutputPort(1);
 }
 
-void KalmanFilter::setIterations(int iterations) {
+void KalmanFilterModelSegmentation::setIterations(int iterations) {
 	if(iterations <= 0)
 		throw Exception("Kalman filter iterations must be > 0");
 
 	mIterations = iterations;
 }
 
-void KalmanFilter::setStartIterations(int iterations) {
+void KalmanFilterModelSegmentation::setStartIterations(int iterations) {
 	if(iterations <= 0)
 		throw Exception("Kalman filter iterations must be > 0");
 
 	mStartIterations = iterations;
 }
 
-void KalmanFilter::estimate(std::shared_ptr<Image> image) {
+void KalmanFilterModelSegmentation::estimate(std::shared_ptr<Image> image) {
 
 	Shape::pointer shape = mShapeModel->getShape(mPredictedState);
 	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape, getMainDevice());

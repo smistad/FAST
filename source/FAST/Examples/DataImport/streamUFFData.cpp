@@ -1,3 +1,7 @@
+/**
+ * @example streamUFFData.cpp
+ *
+ */
 #include <FAST/Testing.hpp>
 #include <FAST/Streamers/UFFStreamer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
@@ -12,18 +16,11 @@ int main(int argc, char** argv) {
 	parser.addOption("loop", "Loop playback");
 	parser.parse(argc, argv);
 
-	auto streamer = UFFStreamer::New();
-	streamer->setFilename(parser.get("filename"));
-	streamer->setLooping(parser.getOption("loop"));
+	auto streamer = UFFStreamer::create(parser.get("filename"), parser.getOption("loop"));
 
-	auto renderer = ImageRenderer::New();
-	renderer->addInputConnection(streamer->getOutputPort());
-	renderer->setIntensityLevel(127);
-	renderer->setIntensityWindow(255);
+	auto renderer = ImageRenderer::create()->connect(streamer);
 
-	auto window = SimpleWindow::New();
-	window->addRenderer(renderer);
-	window->set2DMode();
-	window->getView()->setBackgroundColor(Color::Black());
-	window->start();
+	auto window = SimpleWindow2D::create(Color::Black())
+	        ->connect(renderer);
+    window->run();
 }

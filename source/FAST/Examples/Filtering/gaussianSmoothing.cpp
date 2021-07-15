@@ -1,7 +1,5 @@
 /**
- * Examples/Filtering/GaussianSmoothing.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example gaussianSmoothing.cpp
  */
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp"
@@ -22,7 +20,6 @@ int main() {
     auto renderer = ImageRenderer::create()->connect(filter);
 
     auto window = SimpleWindow2D::create()->connect(renderer);
-    window->addRenderer(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);

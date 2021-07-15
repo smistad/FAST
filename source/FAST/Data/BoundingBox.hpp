@@ -14,12 +14,14 @@ namespace fast {
  * \ingroup data bounding-box
  */
 class FAST_EXPORT BoundingBox : public SpatialDataObject {
-    FAST_OBJECT(BoundingBox)
+    FAST_OBJECT_V4(BoundingBox)
     public:
-        /**
-         * Create bounding box object with position and size set in millimeters
-         */
-        void create(Vector2f position, Vector2f size, uchar label = 1, float score = 0.0f);
+        FAST_CONSTRUCTOR(BoundingBox,
+                Vector2f, position,,
+                Vector2f, size,,
+                uchar, label, = 1,
+                float, score, = 0.0f
+        )
         void setLabel(uchar label);
         uchar getLabel();
         /**

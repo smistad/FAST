@@ -1,13 +1,13 @@
 fast_add_sources(
-	KalmanFilter.cpp
-	KalmanFilter.hpp
+	KalmanFilterModelSegmentation.cpp
+	KalmanFilterModelSegmentation.hpp
 	AppearanceModel.hpp
 	ShapeModel.hpp
 	Shape.cpp
 	Shape.hpp
 )
-fast_add_python_interfaces(KalmanFilter.hpp AppearanceModel.hpp ShapeModel.hpp Shape.hpp)
-fast_add_python_shared_pointers(KalmanFilter AppearanceModel ShapeModel Shape)
+fast_add_python_interfaces(KalmanFilterModelSegmentation.hpp AppearanceModel.hpp ShapeModel.hpp Shape.hpp)
+fast_add_python_shared_pointers(KalmanFilterModelSegmentation AppearanceModel ShapeModel Shape)
 if(FAST_MODULE_Visualization)
 fast_add_test_sources(
 	Tests.cpp

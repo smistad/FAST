@@ -1,18 +1,19 @@
 #include "RidgeEdgeModel.hpp"
 #include "FAST/Data/Image.hpp"
-#include "FAST/Algorithms/ModelBasedSegmentation/Shape.hpp"
+#include "FAST/Algorithms/KalmanFilterModelSegmentation/Shape.hpp"
 #include "FAST/Config.hpp"
 
 
 namespace fast {
 
-RidgeEdgeModel::RidgeEdgeModel() {
+RidgeEdgeModel::RidgeEdgeModel(float lineLength, float lineSampleSpacing, float intensityDifferenceThreshold,
+                                   float minimumRidgeSize, EdgeType edgeType) {
 	mMinimumDepth = 0;
-	mLineLength = 0;
-	mLineSampleSpacing = 0;
-	mIntensityDifferenceThreshold = 20;
-	mRidgeSize = 1;
-	mEdgeType = EDGE_TYPE_ANY;
+    setLineLength(lineLength);
+    setLineSampleSpacing(lineSampleSpacing);
+    setIntensityDifferenceThreshold(intensityDifferenceThreshold);
+    setEdgeType(edgeType);
+    setMinimumRidgeSize(minimumRidgeSize);
 }
 
 typedef struct DetectedEdge {
@@ -248,7 +249,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(std::shared_ptr
 	);
 
 	// Create kernel
-	int programNr = device->createProgramFromSource(Config::getKernelSourcePath() + "Algorithms/ModelBasedSegmentation/AppearanceModels/RidgeEdge/RidgeEdgeModel.cl");
+	int programNr = device->createProgramFromSource(Config::getKernelSourcePath() + "Algorithms/KalmanFilterModelSegmentation/AppearanceModels/RidgeEdge/RidgeEdgeModel.cl");
 	cl::Program program = device->getProgram(programNr);
 	cl::Kernel kernel(program, "edgeDetection2D");
 

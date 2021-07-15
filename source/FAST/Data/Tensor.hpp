@@ -16,7 +16,7 @@ class OpenCLBufferAccess;
  * The data can be stored as a C++ pointer, and as an OpenCL buffer.
  * The tensor data is stored as 32-bit floats.
  *
- * @ingroup data
+ * @ingroup data neural-network
  */
 class FAST_EXPORT Tensor : public SpatialDataObject {
     FAST_OBJECT_V4(Tensor)

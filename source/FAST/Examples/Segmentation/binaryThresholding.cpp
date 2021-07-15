@@ -1,7 +1,6 @@
 /**
- * Examples/Segmentation/binaryThresholding.cpp
+ * @example binaryThresholding.cpp
  *
- * If you edit this example, please also update the wiki and source code file in the repository.
  */
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp"
@@ -13,28 +12,20 @@ using namespace fast;
 
 int main() {
     // Import image from file using the ImageFileImporter
-    auto importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_100.mhd");
+    auto importer = ImageFileImporter::create(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_100.mhd");
 
     // Segment image
-    auto thresholding = BinaryThresholding::New();
-    thresholding->setInputConnection(importer->getOutputPort());
-    thresholding->setLowerThreshold(60);
+    auto thresholding = BinaryThresholding::create(60)->connect(importer);
 
     // Renderer segmentation on top of input image
-    auto imageRenderer = ImageRenderer::New();
-    imageRenderer->addInputConnection(importer->getOutputPort());
+    auto imageRenderer = ImageRenderer::create()->connect(importer);
 
-    auto segmentationRenderer = SegmentationRenderer::New();
-    segmentationRenderer->addInputConnection(thresholding->getOutputPort());
+    auto segmentationRenderer = SegmentationRenderer::create()->connect(thresholding);
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(imageRenderer);
-    window->addRenderer(segmentationRenderer);
-    window->set2DMode();
+    auto window = SimpleWindow2D::create()->connect({imageRenderer, segmentationRenderer});
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
-    window->start();
+    window->run();
 }

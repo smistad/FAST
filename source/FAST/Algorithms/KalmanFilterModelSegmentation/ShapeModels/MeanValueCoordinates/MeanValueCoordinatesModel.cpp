@@ -4,12 +4,26 @@
 
 namespace fast {
 
-MeanValueCoordinatesModel::MeanValueCoordinatesModel() {
+MeanValueCoordinatesModel::MeanValueCoordinatesModel(std::string surfaceMeshFilename,
+                                                         std::string controlMeshFilename, float globalProcessError,
+                                                         float localProcessError) {
 	mInitializeShapeToImageCenter = false;
 	mInitialScaling = Vector3f(0.8, 0.8, 0.8);
 	mInitialTranslation = Vector3f::Zero();
-	mGlobalProcessError = 0.01;
-	mLocalProcessError = 0.000001;
+    loadMeshes(surfaceMeshFilename, controlMeshFilename);
+    setGlobalProcessError(globalProcessError);
+    setLocalProcessError(localProcessError);
+}
+
+
+MeanValueCoordinatesModel::MeanValueCoordinatesModel(Mesh::pointer surfaceMesh, Mesh::pointer controlMesh,
+                                                     float globalProcessError, float localProcessError) {
+    mInitializeShapeToImageCenter = false;
+    mInitialScaling = Vector3f(0.8, 0.8, 0.8);
+    mInitialTranslation = Vector3f::Zero();
+    loadMeshes(surfaceMesh, controlMesh);
+    setGlobalProcessError(globalProcessError);
+    setLocalProcessError(localProcessError);
 }
 
 inline float sign(float v) {

@@ -7,9 +7,35 @@
 
 namespace fast {
 
+/**
+ * @brief Segmentation and centerline extraction of tubular structures
+ *
+ * This implementation is described in the article
+ * "GPU Accelerated Segmentation and Centerline Extraction of TubularStructures from Medical Images"
+ * by Smistad et al. 2014
+ * https://www.eriksmistad.no/wp-content/uploads/gpu_accelerated_extraction_of_tubular_structures.pdf
+ *
+ * Inputs:
+ * - 0: Image 3D
+ *
+ * Outputs:
+ * - 0: Image segmentation 3D
+ * - 1: Mesh centerline
+ * - 2: Image 3D tubular detection heatmap
+ *
+ * @ingroup segmentation
+ */
 class FAST_EXPORT TubeSegmentationAndCenterlineExtraction : public ProcessObject {
-    FAST_OBJECT(TubeSegmentationAndCenterlineExtraction)
+    FAST_PROCESS_OBJECT(TubeSegmentationAndCenterlineExtraction)
     public:
+        FAST_CONSTRUCTOR(TubeSegmentationAndCenterlineExtraction,
+            float, sensitivity, = 0.5f,
+            float, minimumRadius, = 1.0f,
+            float, maximumRadius, = 5.0f,
+            float, radiusStep, = 0.5f,
+            bool, extractBrightTubes, = false,
+            bool, keepLargestTreeOnly, = false
+        )
         void setKeepLargestTree(bool keep);
         void setMinimumTreeSize(int nrOfVoxels);
         void setMinimumRadius(float radius);
@@ -31,7 +57,6 @@ class FAST_EXPORT TubeSegmentationAndCenterlineExtraction : public ProcessObject
         DataChannel::pointer getCenterlineOutputPort();
         DataChannel::pointer getTDFOutputPort();
     private:
-        TubeSegmentationAndCenterlineExtraction();
         void execute();
 
         Image::pointer createGradients(Image::pointer image);

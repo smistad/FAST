@@ -1,16 +1,17 @@
 #include "StepEdgeModel.hpp"
 #include "FAST/Data/Image.hpp"
-#include "FAST/Algorithms/ModelBasedSegmentation/Shape.hpp"
+#include "FAST/Algorithms/KalmanFilterModelSegmentation/Shape.hpp"
 
 
 namespace fast {
 
-StepEdgeModel::StepEdgeModel() {
+StepEdgeModel::StepEdgeModel(float lineLength, float lineSampleSpacing, float intensityDifferenceThreshold,
+                 EdgeType edgeType)   {
 	mMinimumDepth = 0;
-	mLineLength = 0;
-	mLineSampleSpacing = 0;
-	mIntensityDifferenceThreshold = 20;
-	mEdgeType = EDGE_TYPE_ANY;
+    setLineLength(lineLength);
+    setLineSampleSpacing(lineSampleSpacing);
+    setIntensityDifferenceThreshold(intensityDifferenceThreshold);
+    setEdgeType(edgeType);
 }
 
 void StepEdgeModel::setEdgeType(EdgeType type) {

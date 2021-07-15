@@ -22,7 +22,11 @@ class FAST_EXPORT NonLocalMeans : public ProcessObject {
          * @param multiScaleIterations Number of multiscale iterations to perform
          * @return smart pointer to instance
          */
-        FAST_CONSTRUCTOR(NonLocalMeans, int, filterSize, = 3, int, searchSize, = 11, float, smoothingAmount, = 0.15, int, multiScaleIterations, = 3)
+        FAST_CONSTRUCTOR(NonLocalMeans,
+                         int, filterSize, = 3,
+                         int, searchSize, = 11,
+                         float, smoothingAmount, = 0.15,
+                         int, multiScaleIterations, = 3)
         void setSmoothingAmount(float parameterH);
         void setPreProcess(bool preProcess);
         void setMultiscaleIterations(int iterations);

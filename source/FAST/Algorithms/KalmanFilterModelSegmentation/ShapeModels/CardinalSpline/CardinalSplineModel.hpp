@@ -1,13 +1,24 @@
-#ifndef CARDINAL_SPLINE_MODEL_HPP
-#define CARDINAL_SPLINE_MODEL_HPP
+#pragma once
 
-#include "FAST/Algorithms/ModelBasedSegmentation/ShapeModel.hpp"
+#include "FAST/Algorithms/KalmanFilterModelSegmentation/ShapeModel.hpp"
 
 namespace fast {
 
+/**
+ * @brief Cardinal spline shape model
+ *
+ * Used in the Kalman filter deformable model segmentation algorithm
+ *
+ * @sa KalmanFilter
+ */
 class FAST_EXPORT  CardinalSplineModel : public ShapeModel {
-	FAST_OBJECT(CardinalSplineModel)
+	FAST_OBJECT_V4(CardinalSplineModel)
 	public:
+        FAST_CONSTRUCTOR(CardinalSplineModel,
+             std::vector<Vector2f>, controlPoints,,
+             float, globalProcessError, = 0.000001f,
+             float, localProcessError, = 0.0000001f
+        )
 		Shape::pointer getShape(VectorXf state);
 		MatrixXf getStateTransitionMatrix1();
 		MatrixXf getStateTransitionMatrix2();
@@ -44,7 +55,6 @@ class FAST_EXPORT  CardinalSplineModel : public ShapeModel {
 		 */
 		void setScalingLimit(float min = -1, float max = -1);
 	private:
-		CardinalSplineModel();
 		void assertControlPointsGiven();
 		void updateProcessErrorMatrix();
 		std::vector<Vector2f> getLocallyDeformedVertices(VectorXf state);
@@ -72,5 +82,3 @@ class FAST_EXPORT  CardinalSplineModel : public ShapeModel {
 };
 
 }
-
-#endif

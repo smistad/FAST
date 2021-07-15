@@ -34,6 +34,8 @@ class FAST_EXPORT DataChannel : public Object {
          */
         virtual void setMaximumNumberOfFrames(uint frames) = 0;
 
+        virtual int getMaximumNumberOfFrames() const = 0;
+
         /**
          * This will unblock if this DataChannel is currently blocking. Used to stop a pipeline.
          */

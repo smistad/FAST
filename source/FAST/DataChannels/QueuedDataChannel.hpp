@@ -30,6 +30,8 @@ class FAST_EXPORT QueuedDataChannel : public DataChannel {
          */
         void setMaximumNumberOfFrames(uint frames) override;
 
+        int getMaximumNumberOfFrames() const override;
+
         /**
          * This will unblock if this DataChannel is currently blocking. Used to stop a pipeline.
          */

@@ -4,10 +4,30 @@
 
 namespace fast {
 
+/**
+ * @brief Level set image segmentation
+ *
+ * GPU-based level set segmentation using spherical seed points.
+ * Only supports 3D images atm.
+ *
+ * Inputs:
+ * - 0: Image 3D
+ *
+ * Outputs:
+ * - 0: Image segmentation 3D
+ *
+ * @ingroup segmentation
+ */
 class FAST_EXPORT  LevelSetSegmentation : public ProcessObject {
-    FAST_OBJECT(LevelSetSegmentation)
+    FAST_PROCESS_OBJECT(LevelSetSegmentation)
     public:
-        void addSeedPoint(Vector3i position, float size);
+        FAST_CONSTRUCTOR(LevelSetSegmentation,
+                     std::vector<Vector3i>, seedPoints,,
+                     float, seedRadius, = 1.0f,
+                     float, curvatureWeight, = 0.9f,
+                     int, maxIterations, = 1000
+         )
+        void addSeedPoint(Vector3i position, float radius);
         void setCurvatureWeight(float weight);
         void setIntensityMean(float intensity);
         void setIntensityVariance(float variation);

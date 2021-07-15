@@ -8,11 +8,7 @@
 
 namespace fast {
 
-BoundingBox::BoundingBox() {
-	m_initialized = false;
-}
-
-void BoundingBox::create(Vector2f position, Vector2f size, uchar label, float score) {
+BoundingBox::BoundingBox(Vector2f position, Vector2f size, uchar label, float score) {
 	if(size.x() <= 0 || size.y() <= 0)
 		throw Exception("Size must be > 0, got: " + std::to_string(size.x()) + " " + std::to_string(size.y()));
 	std::lock_guard<std::mutex> lock(m_mutex);

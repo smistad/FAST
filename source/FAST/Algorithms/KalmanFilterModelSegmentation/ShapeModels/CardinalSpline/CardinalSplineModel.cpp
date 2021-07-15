@@ -346,7 +346,7 @@ void CardinalSplineModel::setControlPoints(std::vector<Vector2f> controlPoints) 
 
 }
 
-CardinalSplineModel::CardinalSplineModel() {
+CardinalSplineModel::CardinalSplineModel(std::vector<Vector2f> controlPoints, float globalProcessError, float localProcessError) {
 	mInitializeShapeToImageCenter = false;
     mInitialGlobalState = VectorXf::Zero(5);
     // Set scale to 1
@@ -356,6 +356,9 @@ CardinalSplineModel::CardinalSplineModel() {
 	mGlobalTension = -2; // Means that global tension is not set
 	mMinScaling = 0.1;
 	mMaxScaling = -1;
+    setControlPoints(controlPoints);
+    setGlobalProcessError(globalProcessError);
+    setLocalProcessError(localProcessError);
 }
 
 void CardinalSplineModel::setInitialScaling(float x, float y) {

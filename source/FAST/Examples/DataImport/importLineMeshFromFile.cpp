@@ -1,7 +1,6 @@
 /**
- * Examples/DataImport/importLineSetFromFile.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example importLineMeshFromFile.cpp
+ * An example of importing and visualizing a mesh containing lines from a file using the VTKMeshFileImporter
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
@@ -16,19 +15,19 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     // Import line set from vtk file
-    auto importer = VTKMeshFileImporter::New();
-    importer->setFilename(parser.get("filename"));
+    auto importer = VTKMeshFileImporter::create(parser.get("filename"));
 
     // Renderer
-    auto renderer = LineRenderer::New();
+    auto renderer = LineRenderer::create()->connect(importer);
     renderer->addInputConnection(importer->getOutputPort());
 
     // Setup window
-    auto window = SimpleWindow::New();
+    auto window = SimpleWindow3D::create()->connect(renderer);
     window->addRenderer(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
-    window->start();
+    // Run entire pipeline and display window
+    window->run();
 }

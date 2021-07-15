@@ -15,6 +15,16 @@ LevelSetSegmentation::LevelSetSegmentation() {
     mIterations = 1000;
 }
 
+LevelSetSegmentation::LevelSetSegmentation(std::vector<Vector3i> seedPoints, float seedRadius, float curvatureWeight,
+                                           int iterations) : LevelSetSegmentation() {
+    for(auto seed : seedPoints) {
+        addSeedPoint(seed, seedRadius);
+    }
+
+    setCurvatureWeight(curvatureWeight);
+    setMaxIterations(iterations);
+}
+
 void LevelSetSegmentation::setCurvatureWeight(float weight) {
     if(weight < 0 || weight > 1)
         throw Exception("Curvature weights must be within [0, 1]");
@@ -65,24 +75,26 @@ void LevelSetSegmentation::execute() {
     if(mSeeds.size() == 0)
         throw Exception("The LevelSetSegmentation algorithm must be given a seed point");
 
-    Vector3i seedPos = mSeeds[0].first;
-    reportInfo() << "Using seed: " << seedPos.transpose() << reportEnd();
-    float seedRadius = mSeeds[0].second;
     Vector3ui size = input->getSize();
+    for(auto seed : mSeeds) {
+        Vector3i seedPos = seed.first;
+        reportInfo() << "Using seed: " << seedPos.transpose() << reportEnd();
+        float seedRadius = seed.second;
 
-    // Create seed
-    cl::Kernel createSeedKernel(program, "initializeLevelSetFunction");
-    createSeedKernel.setArg(0, phi_1);
-    createSeedKernel.setArg(1, seedPos.x());
-    createSeedKernel.setArg(2, seedPos.y());
-    createSeedKernel.setArg(3, seedPos.z());
-    createSeedKernel.setArg(4, seedRadius);
-    queue.enqueueNDRangeKernel(
-            createSeedKernel,
-            cl::NullRange,
-            cl::NDRange(size.x(),size.y(),size.z()),
-            cl::NullRange
-    );
+        // Create seed
+        cl::Kernel createSeedKernel(program, "initializeLevelSetFunction");
+        createSeedKernel.setArg(0, phi_1);
+        createSeedKernel.setArg(1, seedPos.x());
+        createSeedKernel.setArg(2, seedPos.y());
+        createSeedKernel.setArg(3, seedPos.z());
+        createSeedKernel.setArg(4, seedRadius);
+        queue.enqueueNDRangeKernel(
+                createSeedKernel,
+                cl::NullRange,
+                cl::NDRange(size.x(), size.y(), size.z()),
+                cl::NullRange
+        );
+    }
 
     cl::Kernel kernel(program, "updateLevelSetFunction");
     cl::size_t<3> origin = createOrigoRegion();

@@ -1,6 +1,6 @@
 #include "FAST/Testing.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
-#include "KalmanFilter.hpp"
+#include "KalmanFilterModelSegmentation.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"

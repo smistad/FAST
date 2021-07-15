@@ -212,11 +212,13 @@ class EmptyProcessObject : public ProcessObject {
 };
 
 void ProcessObject::setInputData(uint portID, DataObject::pointer data) {
+    if(data == nullptr)
+        throw Exception("Data object given to setInputData was null");
     validateInputPortExists(portID);
-    EmptyProcessObject::pointer PO = EmptyProcessObject::New();
+    auto PO = EmptyProcessObject::New();
     PO->setOutputData(data);
     setInputConnection(portID, PO->getOutputPort());
-    mIsModified = true;
+    setModified(true);
 }
 
 void ProcessObject::preExecute() {
@@ -573,6 +575,10 @@ std::shared_ptr<ProcessObject> ProcessObject::connect(std::shared_ptr<DataObject
 std::shared_ptr<ProcessObject> ProcessObject::connect(uint inputPortID, std::shared_ptr<DataObject> inputDataObject) {
     setInputData(inputPortID, inputDataObject);
     return std::static_pointer_cast<ProcessObject>(mPtr.lock());
+}
+
+int ProcessObject::getLastExecuteToken() const {
+    return m_lastExecuteToken;
 }
 
 DataObject::pointer ProcessObject::getOutputData(uint portID) {

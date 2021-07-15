@@ -35,17 +35,11 @@ void NonMaximumSuppression::execute() {
 	auto labels = inputAccess->getLabels();
 	auto scores = inputAccess->getScores();
 	for(int i = 0; i < coordinates.size(); i += 12) {
-		auto bbox = BoundingBox::New();
 		Vector2f position = Vector2f(coordinates[i], coordinates[i + 1]);
 		Vector2f size = Vector2f(coordinates[i + 6], coordinates[i + 7]) - position;
-		//std::cout << position << " " << size << std::endl;
-		//std::cout << labels[i / 3] << std::endl;
-		//std::cout << scores[i / 12] << std::endl;
 		try {
-            bbox->create(position, size, labels[i / 4], scores[i / 12]);
-            //std::cout << "box created" << std::endl;
+            auto bbox = BoundingBox::create(position, size, labels[i / 4], scores[i / 12]);
             queue.push(bbox);
-            //std::cout << "box added" << std::endl;
         } catch(Exception &e) {
 
 		}

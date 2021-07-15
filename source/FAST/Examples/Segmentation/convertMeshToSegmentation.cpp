@@ -1,3 +1,6 @@
+/**
+ * @example meshToSegmentation.cpp
+ */
 #include <FAST/Algorithms/MeshToSegmentation/MeshToSegmentation.hpp>
 #include <FAST/Importers/VTKMeshFileImporter.hpp>
 #include <FAST/Tools/CommandLineParser.hpp>
@@ -10,10 +13,7 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-
     // TODO add support for 2D
-
-    Reporter::setGlobalReportMethod(Reporter::COUT);
     CommandLineParser parser("Convert mesh to segmentation (3D only)");
     parser.addPositionVariable(1, "mesh-filename", Config::getTestDataPath() + "/Surface_LV.vtk");
     parser.addVariable("segmentation-size", false, "Size of segmentation. Example: 256,256,256");
@@ -22,11 +22,9 @@ int main(int argc, char** argv) {
 
     parser.parse(argc, argv);
 
-    auto importer = VTKMeshFileImporter::New();
-    importer->setFilename(parser.get("mesh-filename"));
+    auto importer = VTKMeshFileImporter::create(parser.get("mesh-filename"));
 
-    auto converter = MeshToSegmentation::New();
-    converter->setInputConnection(importer->getOutputPort());
+    auto converter = MeshToSegmentation::create()->connect(importer);
 
     if(parser.gotValue("segmentation-size")) {
         auto size = split(parser.get("segmentation-size"), ",");

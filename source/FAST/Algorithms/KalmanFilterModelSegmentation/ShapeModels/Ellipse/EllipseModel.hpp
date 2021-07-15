@@ -1,13 +1,24 @@
-#ifndef ELLIPSE_MODEL_HPP
-#define ELLIPSE_MODEL_HPP
+#pragma once
 
-#include "FAST/Algorithms/ModelBasedSegmentation/ShapeModel.hpp"
+#include "FAST/Algorithms/KalmanFilterModelSegmentation/ShapeModel.hpp"
 
 namespace fast {
 
-class FAST_EXPORT  EllipseModel : public ShapeModel {
-	FAST_OBJECT(EllipseModel)
+/**
+ * @brief Ellipse shape model
+ *
+ * Used in the Kalman filter deformable model segmentation algorithm
+ *
+ * @sa KalmanFilter
+ */
+class FAST_EXPORT EllipseModel : public ShapeModel {
+	FAST_OBJECT_V4(EllipseModel)
 	public:
+        FAST_CONSTRUCTOR(EllipseModel,
+                         Vector2f, position,,
+                         float, majorRadius,,
+                         float, MinorRadius,
+        )
 		Shape::pointer getShape(VectorXf state);
 		MatrixXf getStateTransitionMatrix1();
 		MatrixXf getStateTransitionMatrix2();
@@ -21,7 +32,6 @@ class FAST_EXPORT  EllipseModel : public ShapeModel {
 		VectorXf getInitialState(std::shared_ptr<Image> image);
 		VectorXf restrictState(VectorXf state);
 	private:
-		EllipseModel();
 		Matrix4f mStateTransitionMatrix1;
 		Matrix4f mStateTransitionMatrix2;
 		Matrix4f mStateTransitionMatrix3;
@@ -32,5 +42,3 @@ class FAST_EXPORT  EllipseModel : public ShapeModel {
 };
 
 }
-
-#endif

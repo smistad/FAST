@@ -4,6 +4,11 @@
 
 namespace fast {
 
+/**
+ * @brief A list of FAST data input/output objects
+ * Used in RunLambda
+ * @sa RunLambda
+ */
 class DataList {
     public:
         DataList(std::map<int, DataObject::pointer> list) {
@@ -27,6 +32,9 @@ class DataList {
     std::map<int, DataObject::pointer> m_data;
 };
 
+/**
+ * @brief Run a C++ lambda in a FAST pipeline
+ */
 class FAST_EXPORT RunLambda : public ProcessObject {
 	FAST_PROCESS_OBJECT(RunLambda)
 	public:

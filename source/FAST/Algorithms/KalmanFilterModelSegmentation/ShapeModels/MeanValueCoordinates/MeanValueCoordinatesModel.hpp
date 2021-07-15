@@ -1,8 +1,7 @@
-#ifndef MEAN_VALUE_COORDINATES_MODEL_HPP
-#define MEAN_VALUE_COORDINATES_MODEL_HPP
+#pragma once
 
-#include "FAST/Algorithms/ModelBasedSegmentation/ShapeModel.hpp"
-#include "FAST/Algorithms/ModelBasedSegmentation/Shape.hpp"
+#include "FAST/Algorithms/KalmanFilterModelSegmentation/ShapeModel.hpp"
+#include "FAST/Algorithms/KalmanFilterModelSegmentation/Shape.hpp"
 #include "FAST/Data/Mesh.hpp"
 
 
@@ -10,11 +9,28 @@ namespace fast {
 
 class Image;
 
-class FAST_EXPORT  MeanValueCoordinatesModel : public ShapeModel {
-	FAST_OBJECT(MeanValueCoordinatesModel)
+/**
+ * @brief Mean value coordinates shape model
+ *
+ * Used in Kalman filter deformable model segmentation
+ *
+ * @sa KalmanFilter CardianlSplineModel EllipseModel
+ */
+class FAST_EXPORT MeanValueCoordinatesModel : public ShapeModel {
+	FAST_OBJECT_V4(MeanValueCoordinatesModel)
 	public:
-		void loadMeshes(std::string surfaceMeshFilename, std::string controlMeshFilename);
-		void loadMeshes(Mesh::pointer surfaceMesh, Mesh::pointer controlMesh);
+        FAST_CONSTRUCTOR(MeanValueCoordinatesModel,
+            std::string, surfaceMeshFilename,,
+            std::string, controlMeshFilename,,
+            float, globalProcessError, = 0.01f,
+            float, localProcessError, = 0.000001f
+        )
+        FAST_CONSTRUCTOR(MeanValueCoordinatesModel,
+             Mesh::pointer, surfaceMesh,,
+             Mesh::pointer, controlMesh,,
+             float, globalProcessError, = 0.01f,
+             float, localProcessError, = 0.000001f
+        )
 		Shape::pointer getShape(VectorXf state);
 		MatrixXf getStateTransitionMatrix1();
 		MatrixXf getStateTransitionMatrix2();
@@ -28,7 +44,8 @@ class FAST_EXPORT  MeanValueCoordinatesModel : public ShapeModel {
 		void setLocalProcessError(float error);
 		void setGlobalProcessError(float error);
 	private:
-		MeanValueCoordinatesModel();
+        void loadMeshes(std::string surfaceMeshFilename, std::string controlMeshFilename);
+        void loadMeshes(Mesh::pointer surfaceMesh, Mesh::pointer controlMesh);
 		VectorXf getState(Vector3f translation, Vector3f scale, Vector3f rotation);
 		void assertLoadedMeshes();
         void setNormalizedWeight(
@@ -70,5 +87,3 @@ class FAST_EXPORT  MeanValueCoordinatesModel : public ShapeModel {
 };
 
 } // end namespace fast
-
-#endif

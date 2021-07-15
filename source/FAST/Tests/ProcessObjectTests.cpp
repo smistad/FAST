@@ -636,10 +636,12 @@ TEST_CASE("DataStream multi output", "[ProecssObject][DataStream][Streamer][fast
     streamer->setTotalFrames(totalFrames);
 
     auto po = DummyProcessObject3::New();
+    po->setInputConnection(streamer->getOutputPort());
 
     auto stream = DataStream({streamer, po});
     int timestep = 0;
     while(!stream.isDone()) {
+        std::cout << "Processing step " << timestep << std::endl;
         auto data1 = stream.getNextFrame<DummyDataObject>(0);
         auto data2 = stream.getNextFrame<DummyDataObject>(1);
         auto data3 = stream.getNextFrame<DummyDataObject>(2);

@@ -1,6 +1,6 @@
 /**
  * @example importImageFromFile.cpp
- * An example of importing an image from file using the ImageFileImporter
+ * An example of importing and visualizing an image from file using the ImageFileImporter
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Importers/ImageFileImporter.hpp"
@@ -30,5 +30,6 @@ int main(int argc, char** argv) {
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
+    // Run entire pipeline and display window
     window->start();
 }

@@ -1,5 +1,4 @@
-#ifndef MESHVERTEX_HPP_
-#define MESHVERTEX_HPP_
+#pragma once
 
 #include "DataTypes.hpp"
 #include "Color.hpp"
@@ -54,5 +53,3 @@ class FAST_EXPORT  MeshTriangle : public MeshConnection {
 };
 
 } // end namespace fast
-
-#endif /* SURFACEVERTEX_HPP_ */

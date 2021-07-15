@@ -1,7 +1,5 @@
 /**
- * Examples/DataImport/realSenseStreaming.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example realSenseStreaming.cpp
  */
 #include "FAST/Streamers/RealSenseStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
@@ -13,22 +11,16 @@ using namespace fast;
 int main(int argc, char** argv) {
     Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     // Setup streaming
-    auto streamer = RealSenseStreamer::New();
+    auto streamer = RealSenseStreamer::create();
 
     // Renderer RGB image
-    auto renderer = ImageRenderer::New();
-    renderer->addInputConnection(streamer->getOutputPort(0));
+    auto renderer = ImageRenderer::create()->connect(streamer);
 
     // Renderer depth image
-    auto renderer2 = ImageRenderer::New();
-    renderer2->addInputConnection(streamer->getOutputPort(1));
-    renderer2->setIntensityLevel(1000);
-    renderer2->setIntensityWindow(500);
+    auto renderer2 = ImageRenderer::create(1000, 500)->connect(streamer, 1);
 
     // Render point cloud
-    auto renderer3 = VertexRenderer::New();
-    renderer3->addInputConnection(streamer->getOutputPort(2));
-    renderer3->setDefaultSize(1.5);
+    auto renderer3 = VertexRenderer::create(1.5)->connect(streamer, 2);
 
     // Setup window
     auto window = MultiViewWindow::New();

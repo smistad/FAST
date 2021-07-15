@@ -9,9 +9,10 @@
 #include <stack>
 
 namespace fast {
-
-TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction() {
-
+TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction(float sensitivity, float minimumRadius,
+                                                                                 float maximumRadius, float radiusStep,
+                                                                                 bool extractBrightTupes,
+                                                                                 bool keepLargestTreeOnly) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOutputPort<Mesh>(1);
@@ -34,6 +35,13 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     mStDevBlurLarge = 1.0;
     mOnlyKeepLargestTree = false;
     mMinimumTreeSize = -1;
+    setSensitivity(sensitivity);
+    setMinimumRadius(minimumRadius);
+    setMaximumRadius(maximumRadius);
+    setRadiusStep(radiusStep);
+    if(!extractBrightTupes)
+        extractDarkTubes();
+    setKeepLargestTree(keepLargestTreeOnly);
 }
 
 void TubeSegmentationAndCenterlineExtraction::setMinimumRadius(
