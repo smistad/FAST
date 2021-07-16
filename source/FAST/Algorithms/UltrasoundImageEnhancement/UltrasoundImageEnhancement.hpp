@@ -13,7 +13,7 @@ namespace fast {
  * Outputs:
  * - 0: Image color
  *
- * @ingroup ultrasound
+ * @ingroup ultrasound filter
  */
 class FAST_EXPORT UltrasoundImageEnhancement : public ProcessObject {
     FAST_PROCESS_OBJECT(UltrasoundImageEnhancement)

@@ -51,12 +51,14 @@ SliceRenderer::SliceRenderer() {
 
 SliceRenderer::SliceRenderer(PlaneType orthogonalSlicePlane, int sliceNr) {
     createInputPort(0, "Image");
+    mSlicers[0] = ImageSlicer::New();
     setOrthogonalSlicePlane(0, orthogonalSlicePlane, sliceNr);
     setModified(true);
 }
 
 SliceRenderer::SliceRenderer(Plane slicePlane) {
     createInputPort(0, "Image");
+    mSlicers[0] = ImageSlicer::New();
     setArbitrarySlicePlane(0, slicePlane);
     setModified(true);
 }

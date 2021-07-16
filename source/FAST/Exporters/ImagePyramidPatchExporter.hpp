@@ -11,10 +11,10 @@ class Image;
  * Each patch is stored as a PNG image with the file name indicating its position and size.
  * This exporter can handle both an ImagePyramid input and a stream of image patches.
  *
- * <h3>Input ports</h3>
- * 0: ImagePyramid
+ * <h3>Inputs</h3>
+ * - 0: ImagePyramid
  *
- * @ingroup exporters
+ * @ingroup exporters wsi
  * @sa ImagePyramidPatchImporter
  */
 class FAST_EXPORT ImagePyramidPatchExporter : public Exporter {

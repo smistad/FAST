@@ -17,6 +17,7 @@ class Image;
  * The result of the processed patches can be stitched together again to form a full
  * ImagePyramid/3D Image/Tensor by using the PatchStitcher.
  *
+ * @ingroup wsi
  * @sa PatchStitcher
  */
 class FAST_EXPORT PatchGenerator : public Streamer {

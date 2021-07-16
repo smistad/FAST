@@ -59,9 +59,9 @@ class FAST_EXPORT BoundingBox : public SpatialDataObject {
  * \ingroup data bounding-box
  */
 class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
-    FAST_OBJECT(BoundingBoxSet)
+    FAST_OBJECT_V4(BoundingBoxSet)
     public:
-        void create();
+        FAST_CONSTRUCTOR(BoundingBoxSet)
         int getNrOfLines();
         int getNrOfVertices();
         BoundingBoxSetAccess::pointer getAccess(accessType type);
@@ -71,7 +71,6 @@ class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
         ~BoundingBoxSet();
         virtual DataBoundingBox getBoundingBox() const override;
     protected:
-        BoundingBoxSet();
         void setAllDataToOutOfDate();
 
 		// OpenGL data

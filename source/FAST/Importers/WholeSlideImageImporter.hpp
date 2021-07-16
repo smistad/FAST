@@ -20,9 +20,10 @@ namespace fast {
  * - Ventana (.bif, .tif)
  * - Generic tiled TIFF (.tif)
  *
- * - Output 0: ImagePyramid
+ * Outputs
+ * - 0: ImagePyramid
  *
- * @ingroup importers
+ * @ingroup importers wsi
  */
 class FAST_EXPORT WholeSlideImageImporter : public FileImporter {
     FAST_PROCESS_OBJECT(WholeSlideImageImporter)

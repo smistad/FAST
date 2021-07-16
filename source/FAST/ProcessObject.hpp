@@ -52,7 +52,12 @@ class ProcessObject;
 
 /**
  * @defgroup ultrasound Ultrasound
- * Objects and functions specifically for ultrasound imaging.
+ * Objects and functions used for ultrasound imaging.
+ */
+
+/**
+ * @defgroup wsi Whole Slide Images (WSI)
+ * Objects and functions used for whole slide images (WSI) in digital pathology.
  */
 
 /**

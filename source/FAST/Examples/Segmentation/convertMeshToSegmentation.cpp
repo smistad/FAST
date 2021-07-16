@@ -46,27 +46,18 @@ int main(int argc, char** argv) {
     }
 
     if(parser.gotValue("output-filename")) {
-        auto exporter = MetaImageExporter::New();
-        exporter->setFilename(parser.get("output-filename"));
-        exporter->enableCompression();
-        exporter->setInputConnection(converter->getOutputPort());
-        exporter->update();
+        auto exporter = MetaImageExporter::create(parser.get("output-filename"), true)->connect(converter);
+        exporter->run();
     } else {
         // Visualize
-        auto triangleRenderer = TriangleRenderer::New();
-        triangleRenderer->addInputConnection(importer->getOutputPort());
-        triangleRenderer->setOpacity(0, 0.25);
+        auto triangleRenderer = TriangleRenderer::create(Color::Green(), 0.25)->connect(importer);
 
-        auto sliceRenderer = SliceRenderer::New();
-        sliceRenderer->addInputConnection(converter->getOutputPort());
-        sliceRenderer->setOrthogonalSlicePlane(0, PLANE_Z);
+        auto sliceRenderer = SliceRenderer::create(PLANE_Z)->connect(converter);
         sliceRenderer->setIntensityWindow(1);
         sliceRenderer->setIntensityLevel(0.5);
 
-        auto window = SimpleWindow::New();
-        window->addRenderer(triangleRenderer);
-        window->addRenderer(sliceRenderer);
-        window->start();
+        auto window = SimpleWindow3D::create()->connect({triangleRenderer, sliceRenderer});
+        window->run();
     }
 
 }

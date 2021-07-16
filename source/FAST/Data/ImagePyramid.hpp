@@ -12,6 +12,8 @@ class Image;
 
 /**
  * @brief Image compression types for ImagePyramids (TIFF)
+ *
+ * @ingroup wsi
  */
 enum class ImageCompression {
     RAW,
@@ -27,7 +29,7 @@ enum class ImageCompression {
  * Storage uses virtual memory enabling the images to be larger than
  * the available RAM.
  *
- * @ingroup data
+ * @ingroup data wsi
  */
 class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     FAST_OBJECT_V4(ImagePyramid)

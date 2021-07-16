@@ -13,10 +13,12 @@ namespace fast {
  * A morphological closing (dilation+erosion) is performed after thresholding.
  *
  * Inputs:
- * 0 - ImagePyramid: WSI
- * Outputs:
- * 0 - Segmentation: Tissue mask
+ * - 0: ImagePyramid WSI
  *
+ * Outputs:
+ * - 0: Segmentation tissue mask
+ *
+ * @ingroup segmentation wsi
  */
 class FAST_EXPORT TissueSegmentation : public ProcessObject {
     FAST_PROCESS_OBJECT(TissueSegmentation)

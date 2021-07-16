@@ -19,6 +19,7 @@ class Tensor;
  * Outputs:
  * 0 - ImagePyramid/Image/Tensor: The stitched image/image pyramid.
  *
+ * @ingroup wsi
  * @sa PatchGenerator
  */
 class FAST_EXPORT PatchStitcher : public ProcessObject {

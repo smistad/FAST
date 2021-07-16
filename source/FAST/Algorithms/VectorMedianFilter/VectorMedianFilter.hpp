@@ -12,6 +12,8 @@ namespace fast {
  *
  * Outputs:
  * - 0: Image vector field
+ *
+ * @ingroup filter
  */
 class FAST_EXPORT VectorMedianFilter : public ProcessObject {
     FAST_PROCESS_OBJECT(VectorMedianFilter)
