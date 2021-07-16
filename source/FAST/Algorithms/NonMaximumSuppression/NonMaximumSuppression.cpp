@@ -21,8 +21,7 @@ void NonMaximumSuppression::setThreshold(float threshold) {
 
 void NonMaximumSuppression::execute() {
 	auto input = getInputData<BoundingBoxSet>();
-	auto output = BoundingBoxSet::New();
-	output->create();
+	auto output = BoundingBoxSet::create();
 
 	auto compare = [](BoundingBox::pointer a, BoundingBox::pointer b) {
 		return a->getScore() < b->getScore(); // if true, they swap place

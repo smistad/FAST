@@ -85,14 +85,8 @@ float BoundingBox::intersectionOverUnion(BoundingBox::pointer bb2) const {
 }
 
 BoundingBoxSet::BoundingBoxSet() {
-    mIsInitialized = false;
     mVBOHasData = false;
     mVBODataIsUpToDate = false;
-    mHostHasData = false;
-    mHostDataIsUpToDate = false;
-}
-
-void BoundingBoxSet::create() {
     mIsInitialized = true;
     mHostHasData = true;
     mHostDataIsUpToDate = true;
@@ -371,8 +365,7 @@ BoundingBoxSetAccumulator::BoundingBoxSetAccumulator() {
 void BoundingBoxSetAccumulator::execute() {
     auto input = getInputData<BoundingBoxSet>();
     if(!m_accumulatedBBset) {
-        m_accumulatedBBset = BoundingBoxSet::New();
-        m_accumulatedBBset->create();
+        m_accumulatedBBset = BoundingBoxSet::create();
     }
 
     auto outputAccess = m_accumulatedBBset->getAccess(ACCESS_READ_WRITE);

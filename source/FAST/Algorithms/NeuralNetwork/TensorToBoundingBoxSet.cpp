@@ -59,8 +59,7 @@ void TensorToBoundingBoxSet::execute() {
     int inputHeight = 256;//inputShape[0]; // TODO fix
     int inputWidth = 256;//inputShape[1]; // TODO fix
 
-    auto bbset = BoundingBoxSet::New();
-    bbset->create();
+    auto bbset = BoundingBoxSet::create();
     auto outputAccess = bbset->getAccess(ACCESS_READ_WRITE);
     int nodeIdx = 0;
     for(auto node : outputNodes) {
