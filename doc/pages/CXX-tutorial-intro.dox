@@ -118,8 +118,7 @@ Start by removing all the code in the main() function to start from scratch.
 Then add the following code to load an ultrasound image:
 
 ```cpp
-auto importer = ImageFileImporter::New();
-importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
 ```
 
 This code will create an ImageFileImporter process object and
@@ -129,7 +128,7 @@ you downloaded earlier is located.
 To execute the ImageFileImporter, and thereby loading the image, you can do the following:
 
 ```cpp
-auto image = importer->updateAndGetOutputData<Image>();
+auto image = importer->runAndGetOutputData<Image>();
 std::cout << "An image was imported with size: " << image->getSize() << std::endl;
 ```
 
@@ -140,11 +139,10 @@ Display the data
 -------------------
 To display the image data, we need two things: a Window and a Renderer.
 For this example, we will use the ImageRenderer which is used to display images,
-and the SimpleWindow in 2D mode.
-The renderer is connected to the importer using the following statement:
+and the SimpleWindow2D. The renderer is connected to the importer using the connect method:
 
 @code{.cpp}
-renderer->setInputConnection(importer->getOutputPort());
+auto renderer = ImageRenderer::create()->connect(importer);
 @endcode
 
 This will form an execution pipeline, so that executing the renderer will
@@ -153,18 +151,14 @@ trigger execute on the importer as well.
 Our entire example should now look like this:
 
 @code{.cpp}
-auto importer = ImageFileImporter::New();
-importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
 // Set up a renderer and connect it to the importer
-auto renderer = ImageRenderer::New();
-renderer->setInputConnection(importer->getOutputPort());
+auto renderer = ImageRenderer::create()->connect(importer);
 
-// Create a window, add the renderer and start the computation/rendering loop.
-auto window = SimpleWindow::New();
-window->set2DMode();
-window->addRenderer(renderer);
-window->start();
+// Create a 2D window, add the renderer and start the computation/rendering loop.
+auto window = SimpleWindow2D::create()->connect(renderer);
+window->run();
 @endcode
 
 You should now see this image:
@@ -172,12 +166,12 @@ You should now see this image:
 
 @par Execution pipeline
     Each process object in FAST has zero or more input and outputs ports.
-    Process objects are connected together using the setInputConnection/getOutputPort methods thus forming
+    Process objects are connected together using the connect method thus forming
     a pipeline, or a computational graph if you will.
-    The process objects are not executed until update() or updateAndGetOutputData() is called.
-    The update call will recursively call update on all its parent process objects. A process object will execute if
+    The process objects are not executed until run() or runAndGetOutputData() is called.
+    The run call will recursively call run on all its parent process objects. A process object will execute if
     it has new/updated input data or if a parameter has changed i.e. it is marked as being modified.
-    In the example above, the computation/rendering loop started by the window will call update() repeatedly on the renderer,
+    In the example above, the computation/rendering loop started by the window will call run() repeatedly on the renderer,
     thereby triggering execution of the entire pipeline.
     [Read more about the concepts and glossary used in FAST here.](@ref concepts)
 
@@ -187,22 +181,17 @@ We will now add an image processing step to our pipeline.
 For this, we will use the NonLocalMeans filter which is excellent at
 de-noising ultrasound images.
 @code{.cpp}
-auto importer = ImageFileImporter::New();
-importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
 // Set up the NonLocalMeans processing step and connect it to the importer
-auto filter = NonLocalMeans::New();
-filter->setInputConnection(importer->getOutputPort());
+auto filter = NonLocalMeans::create()->connect(importer);
 
 // Set up the renderer and connect it to the NonLocalMeans filter
-auto renderer = ImageRenderer::New();
-renderer->setInputConnection(filter->getOutputPort());
+auto renderer = ImageRenderer::create()->connect(filter);
 
 // Create a window, add the renderer and start the computation/rendering loop.
-auto window = SimpleWindow::New();
-window->set2DMode();
-window->addRenderer(renderer);
-window->start();
+auto window = SimpleWindow2D::create()->connect(renderer);
+window->run();
 @endcode
 
 The results should look like this:
@@ -212,31 +201,26 @@ Dual view window
 -----------------------------
 Now, let's say we want to display the input image and the filtered image side-by-side.
 The SimpleWindow used above only has a single View, to show two images side-by-side we will need two View objects and
-therefore we will use the DualViewWindow instead. We also need an additional ImageRenderer which is connected to the ImageFileImporter.
+therefore we will use the DualViewWindow2D instead. We also need an additional ImageRenderer which is connected to the ImageFileImporter.
 Putting this all together, it should look like this:
 @code{.cpp}
 auto importer = ImageFileImporter::New();
 importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
 // Set up the NonLocalMeans processing step and connect it to the importer
-auto filter = NonLocalMeans::New();
-filter->setInputConnection(importer->getOutputPort());
+auto filter = NonLocalMeans::create()->connect(importer);
 
 // Set a renderer and connect it to importer
-auto renderer = ImageRenderer::New();
-renderer->setInputConnection(importer->getOutputPort());
+auto renderer = ImageRenderer::create()->connect(importer);
 
 // Set a renderer and connect it to the NonLocalMeans filter
-auto filterRenderer = ImageRenderer::New();
-filterRenderer->setInputConnection(filter->getOutputPort());
+auto filterRenderer = ImageRenderer::create()->connect(filter);
 
 // Create a dual view window, add the renderers and start the computation/rendering loop.
-auto window = DualViewWindow::New();
-window->getView(0)->set2DMode();
-window->getView(1)->set2DMode();
-window->addRendererToTopLeftView(renderer);
-window->addRendererToBottomRightView(filterRenderer);
-window->start();
+auto window = DualViewWindow2D::create()
+    ->connectLeft(renderer)
+    ->connectRight(filterRenderer);
+window->run();
 @endcode
 
 The result should look like this:
@@ -251,9 +235,7 @@ First, we are going to try streaming from disk. To do this, simply
 replace the ImageFileImporter with an ImageFileStreamer in the previous code example:
 
 @code{.cpp}
-auto importer = ImageFileStreamer::New();
-importer->setFilenameFormat(Config::getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd");
-importer->enableLooping();
+auto importer = ImageFileStreamer::create(Config::getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd", true);
 @endcode
 
 Compile and run the application, and you should now see an entire ultrasound recording being played back to you on screen.
@@ -264,22 +246,18 @@ Compile and run the application, and you should now see an entire ultrasound rec
 
 If you want to iterate through a stream of data manually, you this with a simply loop as follows:
 @code{.cpp}
-auto streamer = ImageFileStreamer::New();
-streamer->setFilenameFormat(Config::getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd");
+auto streamer = ImageFileStreamer::create(Config::getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd", true);
 
-auto filter = NonLocalMeans::New();
-filter->setInputConnection(streamer->getOutputPort());
-auto dataChannel = filter->getOutputPort();
+auto filter = NonLocalMeans::create()->connect(streamer);
+auto dataStream = DataStream(filter);
 
 // Iterate through all frames in data stream
 int frameNr = 0;
-Image::pointer image;
-do {
-    filter->update(); // Update the pipeline
-    image = dataChannel->getNextFrame<Image>(); // Get next frame in data stream of type Image
+while(!dataStream->isDone()) {
+    auto image = dataStream->getNextFrame<Image>(); // Get next frame in data stream of type Image
     std::cout << "Received image frame " << frameNr << " with size " << image->getSize() << std::endl;
     ++frameNr;
-} while(!image->isLastFrame()); // Check if image was last frame in stream
+}
 @endcode
 
 Access pixel data
@@ -290,11 +268,10 @@ This is done by calling Image::getImageAccess. If the image is located on the GP
 The ImageAccess object has several methods to read and write pixel data. Here are some examples:
 
 @code{.cpp}
-auto importer = ImageFileImporter::New();
-importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
 // Run importer and get access to pixel data on host with READ and WRITE access.
-auto image = importer->updateAndGetOutputData<Image>();
+auto image = importer->runAndGetOutputData<Image>();
 auto access = image->getImageAccess(ACCESS_READ_WRITE);
 
 // Retrieve pixel value at x = 10, y = 23
@@ -348,14 +325,11 @@ and exports it to disk as a jpeg image. There are many other exporters available
 see the [exporter API module page](@ref exporters) for an overview.
 
 @code{.cpp}
-auto importer = ImageFileImporter::New();
-importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
-auto exporter = ImageFileExporter::New();
-exporter->setFilename("exported_image.jpg");
-exporter->setInputConnection(importer->getOutputPort());
-
-exporter->update(); // Run the pipeline
+auto exporter = ImageFileExporter::create("exported_image.jpg")
+    ->connect(importer);
+exporter->run();
 @endcode
 
 Next steps

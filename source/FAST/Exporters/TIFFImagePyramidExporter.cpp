@@ -32,7 +32,7 @@ void TIFFImagePyramidExporter::execute() {
     const Vector3f spacing = imagePyramid->getSpacing();
 
     ImageCompression compression = m_compression;
-    if(!m_compressionSet) {
+    if(!m_compressionSet || m_compression == ImageCompression::UNSPECIFIED) {
         // Default compression
         if(imagePyramid->getNrOfChannels() == 1) {
             compression = ImageCompression::LZW;
@@ -154,8 +154,13 @@ void TIFFImagePyramidExporter::execute() {
     TIFFClose(tiff);
 }
 
-TIFFImagePyramidExporter::TIFFImagePyramidExporter() {
+TIFFImagePyramidExporter::TIFFImagePyramidExporter() : TIFFImagePyramidExporter("") {
+}
+
+TIFFImagePyramidExporter::TIFFImagePyramidExporter(std::string filename, ImageCompression compression) : FileExporter(filename) {
     createInputPort<ImagePyramid>(0);
+    if(compression != ImageCompression::UNSPECIFIED)
+        setCompression(compression);
 }
 
 void TIFFImagePyramidExporter::setCompression(ImageCompression compression) {

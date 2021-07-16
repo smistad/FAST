@@ -16,10 +16,11 @@ class Image;
  * @ingroup wsi
  */
 enum class ImageCompression {
+    UNSPECIFIED,
     RAW,
     JPEG,
     JPEG2000,
-    LZW // Lossless compression
+    LZW, // Lossless compression
 };
 
 /**

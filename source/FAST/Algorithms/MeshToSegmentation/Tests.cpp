@@ -41,15 +41,12 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d][visual]") {
     auto imageRenderer = ImageRenderer::New();
     imageRenderer->addInputConnection(importer->getOutputPort());
 
-    DualViewWindow::pointer window = DualViewWindow::New();
-    window->setWidth(1024);
-    window->addRendererToBottomRightView(segRenderer);
-    window->addRendererToTopLeftView(imageRenderer);
-    window->addRendererToTopLeftView(segRenderer);
-    window->getBottomRightView()->set2DMode();
-    window->getTopLeftView()->set2DMode();
+    auto window = DualViewWindow::create()
+            ->connectRight(segRenderer)
+            ->connectLeft({imageRenderer, segRenderer});
+    window->set2DMode();
     window->setTimeout(500);
-    window->start();
+    window->run();
 }
 
 TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
@@ -96,12 +93,11 @@ TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
     TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
     TriangleRenderer->setInputConnection(extraction->getOutputPort());
 
-    DualViewWindow::pointer window = DualViewWindow::New();
-    window->setWidth(1024);
-    window->addRendererToBottomRightView(TriangleRenderer);
-    window->addRendererToTopLeftView(imageRenderer);
+    auto window = DualViewWindow::create(Color::White(), 1024)
+            ->connectLeft(imageRenderer)
+            ->connectRight(TriangleRenderer);
     //window->getBottomRightView()->set2DMode();
     //window->getTopLeftView()->set2DMode();
     window->setTimeout(500);
-    window->start();
+    window->run();
 }

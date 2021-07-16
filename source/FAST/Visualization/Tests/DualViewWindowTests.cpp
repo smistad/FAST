@@ -27,7 +27,7 @@ TEST_CASE("DualViewWindow with horizontal mode", "[fast][DualViewWindow][visual]
     TriangleRenderer::pointer renderer2 = TriangleRenderer::New();
     renderer2->addInputConnection(extractor->getOutputPort());
 
-    DualViewWindow::pointer window = DualViewWindow::New();
+    auto window = DualViewWindow::create();
     window->addRendererToBottomRightView(renderer);
     window->addRendererToTopLeftView(renderer2);
     window->setTimeout(2000);
@@ -53,11 +53,10 @@ TEST_CASE("DualViewWindow with vertical mode", "[fast][DualViewWindow][visual]")
     TriangleRenderer::pointer renderer2 = TriangleRenderer::New();
     renderer2->addInputConnection(extractor->getOutputPort());
 
-    DualViewWindow::pointer window = DualViewWindow::New();
-    window->addRendererToBottomRightView(renderer);
-    window->addRendererToTopLeftView(renderer2);
+    auto window = DualViewWindow::create()
+            ->connectRight(renderer)
+            ->connectLeft(renderer2);
     window->setVerticalMode();
     window->setTimeout(2000);
-
-    CHECK_NOTHROW(window->start());
+    CHECK_NOTHROW(window->run());
 }
