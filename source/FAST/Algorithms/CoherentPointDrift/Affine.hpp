@@ -6,10 +6,15 @@
 
 namespace fast {
 
-    class FAST_EXPORT CoherentPointDriftAffine: public CoherentPointDrift {
-    FAST_OBJECT(CoherentPointDriftAffine);
+/**
+ * @brief Affine coherent point drift registration
+ *
+ * @ingroup registration
+*/
+class FAST_EXPORT CoherentPointDriftAffine: public CoherentPointDrift {
+    FAST_PROCESS_OBJECT(CoherentPointDriftAffine);
     public:
-        CoherentPointDriftAffine();
+        FAST_CONSTRUCTOR(CoherentPointDriftAffine)
         void initializeVarianceAndMore() override;
         void maximization(MatrixXf& fixedPoints, MatrixXf& movingPoints) override;
 

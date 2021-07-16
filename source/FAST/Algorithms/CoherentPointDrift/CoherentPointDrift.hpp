@@ -6,7 +6,10 @@
 
 namespace fast {
 
-    class FAST_EXPORT  CoherentPointDrift: public ProcessObject {
+/**
+ * @brief Abstract base class for Coherent Point Drift (CPD) registration
+ */
+class FAST_EXPORT  CoherentPointDrift: public ProcessObject {
 //    FAST_OBJECT(CoherentPointDrift)
     public:
         typedef enum { RIGID, AFFINE, NONRIGID } TransformationType;
