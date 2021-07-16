@@ -1,0 +1,56 @@
+name: CI Ubuntu 18.04
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        sudo snap install cmake --classic # Use snap to get more recent version of cmake on Ubuntu 18.04
+        sudo apt install g++ patchelf
+        sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+        sudo apt install libopenslide-dev # Needed for WSI module
+        sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
+        sudo apt install ocl-icd-opencl-dev # libOpenCL.so and headers
+        sudo apt install libpocl2
+
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+        cmake -B ${{github.workspace}}/build \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
+            -DFAST_MODULE_OpenVINO=ON \
+            -DFAST_MODULE_Dicom=ON \
+            -DFAST_MODULE_WholeSlideImaging=ON \
+            -DFAST_MODULE_OpenIGTLink=ON \
+            -DFAST_MODULE_Clarius=OFF \
+            -DFAST_MODULE_HDF5=ON \
+            -DFAST_MODULE_Plotting=ON \
+            -DFAST_MODULE_RealSense=ON \
+            -DFAST_BUILD_EXAMPLES=ON
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
+      
+    - name: Test
+      run: ${{github.workspace}}/build/bin/testFAST [processobject]
