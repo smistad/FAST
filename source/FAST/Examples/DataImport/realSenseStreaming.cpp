@@ -23,18 +23,13 @@ int main(int argc, char** argv) {
     auto renderer3 = VertexRenderer::create(1.5)->connect(streamer, 2);
 
     // Setup window
-    auto window = MultiViewWindow::New();
+    auto window = MultiViewWindow::create(3, Color::Black(), 1920, 512)
+            ->connect(0, renderer)
+            ->connect(1, renderer2)
+            ->connect(2, renderer3);
     window->setTitle("FAST Real Sense Streaming");
-    window->setHeight(512);
-    window->setWidth(1920);
-    window->setNrOfViews(3);
-    window->addRenderer(0, renderer);
     window->getView(0)->set2DMode();
-    window->getView(0)->setBackgroundColor(Color::Black());
-    window->addRenderer(1, renderer2);
     window->getView(1)->set2DMode();
-    window->getView(1)->setBackgroundColor(Color::Black());
-    window->addRenderer(2, renderer3);
     // Adjust camera
     window->getView(2)->setLookAt(Vector3f(0,-500,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 1, 5000);
     window->getView(2)->setBackgroundColor(Color::Black());
@@ -43,5 +38,5 @@ int main(int argc, char** argv) {
     // This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
-    window->start();
+    window->run();
 }

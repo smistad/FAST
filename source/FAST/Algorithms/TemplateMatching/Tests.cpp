@@ -29,16 +29,13 @@ TEST_CASE("Template matching NCC", "[fast][NCC][TemplateMatching][visual]") {
     auto renderer3 = ImageRenderer::New();
     renderer3->addInputData(templateImage);
 
-    auto window = MultiViewWindow::New();
-    window->setNrOfViews(3);
-    window->getView(0)->addRenderer(renderer);
-    window->getView(0)->set2DMode();
-    window->getView(1)->addRenderer(renderer2);
-    window->getView(1)->set2DMode();
-    window->getView(2)->addRenderer(renderer3);
-    window->getView(2)->set2DMode();
+    auto window = MultiViewWindow::create(3)
+            ->connect(0, renderer)
+            ->connect(1, renderer2)
+            ->connect(2, renderer3);
+    window->set2DMode();
     window->setTimeout(1000);
-    window->start();
+    window->run();
 
     //matching->update();
     matching->getRuntime()->print();

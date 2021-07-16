@@ -7,22 +7,33 @@
 
 namespace fast {
 
-class FAST_EXPORT  MultiViewWindow : public Window {
-    FAST_OBJECT(MultiViewWindow)
+/**
+ * @brief Window with multiple views
+ */
+class FAST_EXPORT MultiViewWindow : public Window {
+    FAST_OBJECT_V4(MultiViewWindow)
     public:
+        FAST_CONSTRUCTOR(MultiViewWindow,
+                         int, viewCount,,
+                         Color, bgcolor, = Color::White(),
+                         int, width, = 0,
+                         int, height, = 0,
+                         bool, verticalMode, = false
+        )
         void addView(View* view);
-        void setNrOfViews(int viewCount);
         void addRenderer(int viewIndex, Renderer::pointer renderer);
         void removeAllRenderers();
         void setHorizontalMode();
         void setVerticalMode();
+        void setBackgroundColor(Color color);
         void start() override;
         ~MultiViewWindow();
+        std::shared_ptr<MultiViewWindow> connect(int viewNr, std::shared_ptr<Renderer> renderer);
+        std::shared_ptr<MultiViewWindow> connect(int viewNr, std::vector<std::shared_ptr<Renderer>> renderers);
     protected:
-        MultiViewWindow();
         void createLayout();
 
-        bool mVerticalMode;
+        bool mVerticalMode = false;
 };
 
 } // end namespace fast

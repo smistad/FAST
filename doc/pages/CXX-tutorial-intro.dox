@@ -246,7 +246,7 @@ Compile and run the application, and you should now see an entire ultrasound rec
 
 If you want to iterate through a stream of data manually, you this with a simply loop as follows:
 @code{.cpp}
-auto streamer = ImageFileStreamer::create(Config::getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd", true);
+auto streamer = ImageFileStreamer::create(Config::getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd");
 
 auto filter = NonLocalMeans::create()->connect(streamer);
 auto dataStream = DataStream(filter);

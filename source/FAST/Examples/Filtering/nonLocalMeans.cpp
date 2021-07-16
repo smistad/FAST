@@ -38,12 +38,9 @@ int main(int argc, char** argv) {
 
     auto renderer2 = ImageRenderer::create()->connect(enhance2);
 
-    auto window = DualViewWindow::New();
-    window->set2DMode();
-    window->addRendererToRightView(renderer);
-    window->addRendererToLeftView(renderer2);
-    window->getView(0)->setBackgroundColor(Color::Black());
-    window->getView(1)->setBackgroundColor(Color::Black());
+    auto window = DualViewWindow2D::create(Color::Black())
+        ->connectRight(renderer)
+        ->connectLeft(renderer2);
     window->run();
 
     // Print runtime of NLM

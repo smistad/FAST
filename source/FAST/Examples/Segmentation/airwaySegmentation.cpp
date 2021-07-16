@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 	auto importer = ImageFileImporter::create(parser.get(1));
 
 	// Do airway segmentation
-	auto segmentation = AirwaySegmentation::create(parser.get<float>("smoothing"))->connect(importer)
+	auto segmentation = AirwaySegmentation::create(parser.get<float>("smoothing"))->connect(importer);
 	if(parser.gotValue("seed"))
         segmentation->setSeedPoint(parser.get<Vector3i>("seed"));
 
