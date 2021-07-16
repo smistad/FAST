@@ -70,12 +70,12 @@ You should now see this image:
 
 @par Execution pipeline
     Each process object in FAST has zero or more input and outputs ports.
-    Process objects are connected together using the setInputConnection/getOutputPort methods thus forming
+    Process objects are connected together using the connect method thus forming
     a pipeline, or a computational graph if you will.
-    The process objects are not executed until update() or updateAndGetOutputData() is called.
-    The update call will recursively call update on all its parent process objects. A process object will execute if
+    The process objects are not executed until run() or runAndGetOutputData() is called.
+    The run call will recursively call run on all its parent process objects. A process object will execute if
     it has new/updated input data or if a parameter has changed i.e. it is marked as being modified.
-    In the example above, the computation/rendering loop started by the window will call update() repeatedly on the renderer,
+    In the example above, the computation/rendering loop started by the window will call run() repeatedly on the renderer,
     thereby triggering execution of the entire pipeline.
     [Read more about the concepts and glossary used in FAST here.](@ref concepts)
 

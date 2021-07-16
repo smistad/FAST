@@ -15,18 +15,14 @@ to the neural network.
 
 @code{.cpp}
 // Set up image importer to load an ultrasound image
-auto importer = ImageFileImporter::New();
-importer->setFilename(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
+auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
 
-// Load neural network from a file
-auto network = NeuralNetwork::New();
-network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx");
-
-// Connect neural network to image importer
-network->setInputConnection(importer->getOutputPort());
+// Load neural network from a file and connect it to the importer
+auto network = NeuralNetwork::create(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx")
+    ->connect(importer);
 
 // Run the pipeline and get the resulting tensor
-auto tensor = network->updateAndGetOutputData<Tensor>();
+auto tensor = network->runAndGetOutputData<Tensor>();
 std::cout << "Shape of output tensor is " << tensor->getShape()->toString() << std::endl;
 @endcode
 
@@ -63,33 +59,29 @@ process object, then you can visualize the Segmentation using the SegmentationRe
 
 @code{.cpp}
 // Set up image importer to load an ultrasound image
-auto importer = ImageFileImporter::New();
-importer->setFilename(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
+auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
 
 // Load neural network from a file
-auto network = NeuralNetwork::New();
+auto network = NeuralNetwork::create(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx")
+    ->connect(importer);
 network->setScaleFactor(1.0f/255.0f); // Add a preprocessing step: multiply each pixel with 1/255, thus normalizing the intensity
-network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx");
-network->setInputConnection(importer->getOutputPort());
 
 // Convert tensor to segmentation
-auto tensor2seg = TensorToSegmentation::New();
-tensor2seg->setInputConnection(network->getOutputPort());
+auto tensor2seg = TensorToSegmentation::create()
+    ->connect(network);
 
 // Setup visualization
-auto renderer = ImageRenderer::New();
-renderer->addInputConnection(importer->getOutputPort());
+auto renderer = ImageRenderer::create()
+    ->connect(importer);
 
-auto segRenderer = SegmentationRenderer::New();
-segRenderer->addInputConnection(tensor2seg->getOutputPort());
+auto segRenderer = SegmentationRenderer::create()
+    ->connect(tensor2seg);
 segRenderer->setColor(1, Color::Red()); // Set color for class 1
 segRenderer->setColor(2, Color::Blue()); // Set color for class 2
 
-auto window = SimpleWindow::New();
-window->addRenderer(renderer);
-window->addRenderer(segRenderer);
-window->set2DMode();
-window->start();
+auto window = SimpleWindow2D::create()
+    ->connect({renderer, segRenderer});
+window->run();
 @endcode
 
 For convenience you can also use the SegmentationNetwork process object, which extends NeuralNetwork by applying TensorToSegmentation
@@ -97,8 +89,7 @@ on the output as shown here:
 
 @code{.cpp}
 // Set up image importer to load an ultrasound image
-auto importer = ImageFileImporter::New();
-importer->setFilename(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
+auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
 
 // Use SegmentationNetwork instead of NeuralNetwork which applies TensorToSegmentation
 auto network = SegmentationNetwork::New();
