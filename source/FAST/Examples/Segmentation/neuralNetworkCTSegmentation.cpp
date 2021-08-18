@@ -1,7 +1,5 @@
 /**
- * Examples/Segmentation/neuralNetworkCTSegmentation.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example neuralNetworkCTSegmentation.cpp
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Importers/ImageFileImporter.hpp>

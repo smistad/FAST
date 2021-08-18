@@ -1,5 +1,5 @@
 /**
- * @exampel nonLocalMeans.cpp
+ * @example nonLocalMeans.cpp
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Streamers/ImageFileStreamer.hpp>

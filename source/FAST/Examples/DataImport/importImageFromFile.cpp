@@ -15,21 +15,17 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     // Import image from file using the ImageFileImporter
-    auto importer = ImageFileImporter::New();
-    importer->setFilename(parser.get(1));
+    auto importer = ImageFileImporter::create(parser.get(1));
 
     // Render
-    auto renderer = ImageRenderer::New();
-    renderer->addInputConnection(importer->getOutputPort());
+    auto renderer = ImageRenderer::create()->connect(importer);
 
     // Setup window
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->set2DMode();
+    auto window = SimpleWindow2D::create()->connect(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
     // Run entire pipeline and display window
-    window->start();
+    window->run();
 }

@@ -16,35 +16,39 @@ Many of the examples include command line options which can you can discover by 
 |Example|Result|
 |----|----|
 | [Import image from file](@ref importImageFromFile.cpp) |  |
-| [Stream images from disk](https://github.com/smistad/FAST/wiki/Example:-Stream-images-from-disk) | |
-| [Import mesh from file](https://github.com/smistad/FAST/wiki/Example:-Import-Mesh-From-File) | |
-| [Import point set from file](https://github.com/smistad/FAST/wiki/Example:-Import-Point-Set-From-File) | |
-| [Import line set from file](https://github.com/smistad/FAST/wiki/Example:-Import-Line-Set-From-File) | |
-| [Import and view whole slide microscopy image](https://github.com/smistad/FAST/wiki/Example:-Import-and-view-WSI) | |
-| [Stream images from Clarius ultrasound scanner](https://github.com/smistad/FAST/blob/master/source/FAST/Examples/DataImport/clariusStreaming.cpp) | |
+| [Stream images from disk](@ref streamImagesFromDisk.cpp) | |
+| [Import triangle mesh from file](@ref importTriangleMeshFromFile.cpp) | |
+| [Import point set from file](@ref importVertexMeshFromFile.cpp) | |
+| [Import line mesh from file](@ref importLineMeshFromFile.cpp) | |
+| [Import and view whole slide microscopy image](@ref importWholeSlideImage.cpp) | |
+| [Stream image and depth data from RealSense camera](@ref realSenseStreaming.cpp) | |
+| [Stream images from Clarius ultrasound scanner](@ref clariusStreaming.cpp) | |
+| [Stream ultrasound file format (UFF) data](@ref streamUFFData.cpp) | |
 
 ## Image filtering
 |Example|Result|
 |----|----|
-| [Gaussian smoothing filter](https://github.com/smistad/FAST/wiki/Example:-Gaussian-smoothing-filter) | |
-| [Non local means filter](https://github.com/smistad/FAST/blob/master/source/FAST/Examples/Filtering/nonLocalMeans.cpp) | |
+| [Gaussian smoothing filter](@ref gaussianSmoothing.cpp) | |
+| [Non local means filter](@ref nonLocalMeans.cpp) | |
 
 
 ## Image segmentation
 |Example|Result|
 |----|----|
-| [Binary thresholding](https://github.com/smistad/FAST/wiki/Example:-Binary-thresholding) | |
-| [Seeded region growing](https://github.com/smistad/FAST/wiki/Example:-Seeded-region-growing) | |
-| [Airway segmentation and centerline extraction](https://github.com/smistad/FAST/wiki/Example:-Airway-segmentation-and-centerline-extraction) | |
-| [Lung segmentation](https://github.com/smistad/FAST/wiki/Example:-Lung-segmentation) | |
-| [Neural network ultasound segmentation](https://github.com/smistad/FAST/wiki/Example:-Neural-network-ultasound-segmentation) | |
-| [Neural network CT volume segmentation](https://github.com/smistad/FAST/wiki/Example:-Neural-network-CT-segmentation) | |
-| [Neural network whole slide microscopy image (WSI) segmentation](https://github.com/smistad/FAST/wiki/Example:-Neural-network-WSI-classification) | |
+| [Binary thresholding](@ref binaryThresholding.cpp) | |
+| [Seeded region growing](@ref seededRegionGrowingSegmentation.cpp) | |
+| [Airway segmentation and centerline extraction](@ref airwaySegmentation.cpp) | |
+| [Lung segmentation](@ref lungSegmentation.cpp) | |
+| [Neural network ultasound segmentation](@ref neuralNetworkUltrasoundSegmentation.cpp) | |
+| [Neural network CT volume segmentation](@ref neuralNetworkCTSegmentation.cpp) | |
+| [Neural network whole slide microscopy image (WSI) segmentation](@ref neuralNetworkWSIClassification.cpp) | |
+| [Extract surface mesh using marching cubes](@ref extractSurfaceAndRender.cpp)
 
-## Registration
+## Registration and motion estimation
 |Example|Result|
 |----|----|
-| [Iterative closest point](https://github.com/smistad/FAST/wiki/Example:-Iterative-closest-point) | |
+| [Block matching ultrasound tracking](@ref blockMatching.cpp) | |
+| [Iterative closest point](@ref iterativeClosestPoint.cpp) | |
 
 ## Graphical user interface
 |Example|Result|

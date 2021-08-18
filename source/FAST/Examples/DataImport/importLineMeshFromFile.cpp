@@ -19,11 +19,9 @@ int main(int argc, char** argv) {
 
     // Renderer
     auto renderer = LineRenderer::create()->connect(importer);
-    renderer->addInputConnection(importer->getOutputPort());
 
     // Setup window
     auto window = SimpleWindow3D::create()->connect(renderer);
-    window->addRenderer(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);

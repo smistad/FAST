@@ -1,7 +1,5 @@
 /**
- * Examples/Segmentation/neuralNetworkUltrasoundSegmentation.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example neuralNetworkUltrasoundSegmentation.cpp
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Algorithms/NeuralNetwork/SegmentationNetwork.hpp>

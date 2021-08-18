@@ -1,7 +1,5 @@
 /**
- * Examples/Segmentation/lungSegmentation.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example lungSegmentation.cpp
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Exporters/MetaImageExporter.hpp>
@@ -26,8 +24,7 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     // Import image from file using the ImageFileImporter
-    auto importer = ImageFileImporter::New();
-    importer->setFilename(parser.get("input-filename"));
+    auto importer = ImageFileImporter::create(parser.get("input-filename"));
 
     // Perform lung segmentation (this will also extract the airways using AirwaySegmentation)
     auto segmentation = LungSegmentation::create(Vector3i::Zero(), true)->connect(importer);
