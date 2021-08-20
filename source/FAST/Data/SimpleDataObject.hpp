@@ -34,7 +34,7 @@ protected:                                                                      
 };                                                                                          \
 
 template <class DataType>
-class FAST_EXPORT SimpleDataObject : public DataObject {
+class SimpleDataObject : public DataObject {
     public:
         DataType get();
         void set(DataType data);

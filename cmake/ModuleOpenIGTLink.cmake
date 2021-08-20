@@ -4,7 +4,7 @@ if(FAST_MODULE_OpenIGTLink)
     if(WIN32)
         fast_download_dependency(OpenIGTLink
                 2.1
-                f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
+                8dd74058444f4dc903dee4a400ae13bc84e1d0f93255390ace034da988553296
                 OpenIGTLink.lib
         )
     else()

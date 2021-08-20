@@ -5,7 +5,7 @@ if(FAST_MODULE_Dicom)
     if(WIN32)
         fast_download_dependency(dcmtk
                 3.6.3
-                f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
+                fbb84b29154fbf58833025188dea2c139caa2a5c136a5f48469839f43b9f6e05
                 dcmdata.lib dcmimgle.lib ofstd.lib oflog.lib
         )
     else()

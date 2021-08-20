@@ -3,7 +3,7 @@
 if(WIN32)
     fast_download_dependency(zip
             0.2.0
-            f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
+            63454fc97117e3f336b0fdc56308ddc7d3d4c2d775ee5d82916cf0d7f34e6bbc
             zip.lib
     )
 else()

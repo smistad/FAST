@@ -4,7 +4,7 @@ if(FAST_MODULE_RealSense)
     if(WIN32)
         fast_download_dependency(realsense
                 2.40.0
-                f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
+                f13f1435ef9498b0b53c869c2f389b66bcae220591625ab6059319a0c4acfa2e
                 realsense2.lib
         )
     else()

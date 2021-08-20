@@ -27,7 +27,7 @@ if(FAST_MODULE_Visualization)
         if(WIN32)
             fast_download_dependency(qt5
                     5.14.0
-                    f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
+                    280fbfac2e2c1ad918d5c4efc043b7cc0ec13a149e37f29492215d69968bec7e
                     Qt5Core.lib Qt5Gui.lib Qt5Widgets.lib Qt5OpenGL.lib Qt5Multimedia.lib Qt5MultimediaWidgets.lib Qt5Network.lib Qt5PrintSupport.lib Qt5SerialPort.lib
             )
         else()

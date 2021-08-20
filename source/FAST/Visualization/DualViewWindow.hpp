@@ -41,7 +41,6 @@ class FAST_EXPORT DualViewWindow : public Window {
         std::shared_ptr<DualViewWindow> connectBottom(std::shared_ptr<Renderer> renderer);
         std::shared_ptr<DualViewWindow> connectBottom(std::vector<std::shared_ptr<Renderer>> renderers);
     protected:
-        DualViewWindow();
         void createLayout();
 
         bool mVerticalMode;

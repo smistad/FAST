@@ -3,8 +3,8 @@ if(FAST_MODULE_Plotting)
     if(WIN32)
         fast_download_dependency(jkqtplotter
                 2020.10
-                f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
-                JKQTCommonSharedLib_Release.lib JKQTPlotterSharedLib_Release.lib JKQTFastPlotterSharedLib_Release.liba JKQTMathTextSharedLib_Release.lib
+                cf7459cc6767e3ba815e62ee0d7744d0cc18a454c87cb48f750ec03dd15c39df
+                JKQTCommonSharedLib_Release.lib JKQTPlotterSharedLib_Release.lib JKQTFastPlotterSharedLib_Release.lib JKQTMathTextSharedLib_Release.lib
         )
     else()
         fast_download_dependency(jkqtplotter

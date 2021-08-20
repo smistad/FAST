@@ -3,7 +3,7 @@
 if(WIN32)
 	fast_download_dependency(zlib
 			1.2.9
-			f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
+			bf6971104e98a8ac64c8b172f01508e95b7e4fd81e427511b5531dd1b6376b29
 			zlib.lib
 			)
 else()
