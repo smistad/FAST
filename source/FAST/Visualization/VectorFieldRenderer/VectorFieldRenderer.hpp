@@ -10,11 +10,9 @@ namespace fast {
  * @ingroup renderers
  */
 class FAST_EXPORT VectorFieldRenderer : public LineRenderer {
-    FAST_OBJECT(VectorFieldRenderer)
+    FAST_PROCESS_OBJECT(VectorFieldRenderer)
     public:
     private:
-        VectorFieldRenderer();
-
         void execute() override;
 };
 

@@ -7,20 +7,16 @@
 # * If on windows, disable the windows firewall, or add an exception.
 import fast
 
-streamer = fast.ClariusStreamer.New()
+streamer = fast.ClariusStreamer.create()
 
-filter = fast.NonLocalMeans.New()
-filter.setInputConnection(streamer.getOutputPort())
+filter = fast.NonLocalMeans.create().connect(streamer)
 
-renderer = fast.ImageRenderer.New()
-renderer.addInputConnection(streamer.getOutputPort())
+renderer = fast.ImageRenderer.create().connect(streamer)
 
-renderer2 = fast.ImageRenderer.New()
-renderer2.addInputConnection(filter.getOutputPort())
+renderer2 = fast.ImageRenderer.create().connect(filter)
 
-window = fast.DualViewWindow.New()
-window.addRendererToTopLeftView(renderer)
-window.addRendererToBottomRightView(renderer2)
-window.getTopLeftView().set2DMode()
-window.getBottomRightView().set2DMode()
-window.start()
+window = fast.DualViewWindow.create()
+window.set2DMode()
+window.addRendererToLeftView(renderer)
+window.addRendererToRightView(renderer2)
+window.run()

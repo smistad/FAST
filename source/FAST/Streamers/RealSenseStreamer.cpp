@@ -210,8 +210,7 @@ void RealSenseStreamer::generateStream() {
         }
 
         // Create depth image
-        Image::pointer depthImage = Image::New();
-        depthImage->create(width, height, TYPE_FLOAT, 1, std::move(depthData));
+        Image::pointer depthImage = Image::create(width, height, TYPE_FLOAT, 1, std::move(depthData));
         mDepthImage = depthImage;
 
         // Create mesh
@@ -220,8 +219,7 @@ void RealSenseStreamer::generateStream() {
         // Create RGB camera image
         std::unique_ptr<uint8_t[]> colorData = std::make_unique<uint8_t[]>(width*height*3);
         std::memcpy(colorData.get(), p_other_frame, width*height*sizeof(uint8_t)*3);
-        Image::pointer colorImage = Image::New();
-        colorImage->create(width, height, TYPE_UINT8, 3, std::move(colorData));
+        Image::pointer colorImage = Image::create(width, height, TYPE_UINT8, 3, std::move(colorData));
         mColorImage = colorImage;
 
         addOutputData(0, colorImage);

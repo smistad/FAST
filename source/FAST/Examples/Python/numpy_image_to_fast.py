@@ -7,12 +7,11 @@ from PIL import Image
 
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
-# Open image from file using pillow and convert to numpy ndarray
+# Open image from file using PIL/pillow and convert to numpy ndarray
 numpy_image = np.asarray(Image.open(fast.Config.getTestDataPath() + 'US/US-2D.bmp'))
 
 # Make FAST image from the numpy ndarray
-fast_image = fast.Image.New()
-fast_image.createFromArray(numpy_image)
+fast_image = fast.Image.createFromArray(numpy_image)
 
 # Display using FAST
 renderer = fast.ImageRenderer.create().connect(fast_image)

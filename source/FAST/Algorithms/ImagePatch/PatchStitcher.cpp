@@ -21,8 +21,7 @@ void PatchStitcher::execute() {
     auto imagePatch = std::dynamic_pointer_cast<Image>(patch);
     auto batchOfPatches = std::dynamic_pointer_cast<Batch>(patch);
     if(batchOfPatches) {
-       auto access = batchOfPatches->getAccess(ACCESS_READ);
-       auto list = access->getData();
+       auto list = batchOfPatches->get();
        if(list.isTensors()) {
            for(auto&& tensor : list.getTensors())
                processTensor(tensor);
@@ -112,13 +111,11 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
     if(!m_outputImage && !m_outputImagePyramid) {
         // Create output image
         if(is3D) {
-			m_outputImage = Image::New();
-            m_outputImage->create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
+			m_outputImage = Image::create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
         } else {
             if(fullWidth < 8192 && fullHeight < 8192) {
                 reportInfo() << "Patch stitcher creating image with size " << fullWidth << " " << fullHeight << reportEnd();
-				m_outputImage = Image::New();
-                m_outputImage->create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
+				m_outputImage = Image::create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
             } else {
                 // Large image, create image pyramid instead
                 int patchWidth = std::stoi(patch->getFrameData("patch-width")) - 2*std::stoi(patch->getFrameData("patch-overlap-x"));
@@ -137,15 +134,15 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         }
         try {
             auto transformData = split(patch->getFrameData("original-transform"));
-            auto T = AffineTransformation::New();
+            auto T = Transform::create();
             Affine3f transform;
             for(int i = 0; i < 16; ++i)
                 transform.matrix()(i) = std::stof(transformData[i]);
-            T->setTransform(transform);
+            T->set(transform);
             if(m_outputImage) {
-                m_outputImage->getSceneGraphNode()->setTransformation(T);
+                m_outputImage->getSceneGraphNode()->setTransform(T);
             } else {
-                m_outputImagePyramid->getSceneGraphNode()->setTransformation(T);
+                m_outputImagePyramid->getSceneGraphNode()->setTransform(T);
             }
         } catch(Exception &e) {
 

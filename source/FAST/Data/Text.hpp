@@ -14,9 +14,12 @@ namespace fast {
  * @ingroup data
  */
 class FAST_EXPORT Text : public SpatialDataObject {
-	FAST_OBJECT(Text)
+	FAST_OBJECT_V4(Text)
 public:
-    void create(std::string text, Color color = Color::Green());
+    FAST_CONSTRUCTOR(Text,
+                     std::string, text,,
+                     Color, color, = Color::Green()
+    );
 	void setPosition(Vector2f position);
     void free(ExecutionDevice::pointer device) {};
     void freeAll() {};

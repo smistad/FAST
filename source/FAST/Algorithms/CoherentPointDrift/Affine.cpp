@@ -72,9 +72,9 @@ namespace fast {
         iterationTransform.linear() = mAffineMatrix;
 
         Affine3f currentRegistrationTransform;
-        MatrixXf registrationMatrix = iterationTransform.matrix() * mTransformation->getTransform().matrix();
+        MatrixXf registrationMatrix = iterationTransform.matrix() * mTransformation->get().matrix();
         currentRegistrationTransform.matrix() = registrationMatrix;
-        mTransformation->setTransform(currentRegistrationTransform);
+        mTransformation->set(currentRegistrationTransform);
 
 
         /* *************************

@@ -30,14 +30,12 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         mVAO[it.first] = VAO_ID;
         glBindVertexArray(VAO_ID);
 
-        AffineTransformation::pointer transform;
-        if(mode2D) {
-            // If rendering is in 2D mode we skip any transformations
-            transform = AffineTransformation::New();
-        } else {
-            transform = SceneGraph::getAffineTransformationFromData(it.second);
+        Affine3f transform = Affine3f::Identity();
+        // If rendering is in 2D mode we skip any transformations
+        if(!mode2D) {
+            transform = SceneGraph::getEigenTransformFromData(it.second);
         }
-        setShaderUniform("transform", transform->getTransform());
+        setShaderUniform("transform", transform);
 
         // TODO glLineWidth does not work with GL 3.3 CORE. Have to implemented in shader instead
         if(mInputWidths.count(it.first) > 0) {
@@ -106,7 +104,7 @@ LineRenderer::LineRenderer(Color color, bool drawOnTop) {
     mDefaultLineWidth = 2;
     mDefaultColor = color;
     mDefaultDrawOnTop = drawOnTop;
-    mDefaultColorSet = false;
+    mDefaultColorSet = true;
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.vert",
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.frag",

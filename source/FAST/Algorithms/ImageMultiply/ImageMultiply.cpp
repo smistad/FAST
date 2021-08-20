@@ -13,12 +13,11 @@ ImageMultiply::ImageMultiply() {
 void ImageMultiply::execute() {
     auto input1 = getInputData<Image>(0);
     auto input2 = getInputData<Image>(1);
-    auto output = Image::New();
 
     if(input1->getSize() != input2->getSize())
         throw Exception("Size of both input images to ImageMultiply must be equal");
 
-    output->createFromImage(input1);
+    auto output = Image::createFromImage(input1);
     SceneGraph::setParentNode(output, input1);
     Vector3ui size = input1->getSize();
 

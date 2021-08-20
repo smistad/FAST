@@ -4,16 +4,21 @@
 
 namespace fast {
 
-class Segmentation;
+class Image;
 
+/**
+ * @brief Reconstruct a stream of 2D segmentation images into a 3D segmentation image
+ *
+ * @ingroup segmentation
+ */
 class FAST_EXPORT SegmentationVolumeReconstructor : public ProcessObject {
-    FAST_OBJECT(SegmentationVolumeReconstructor)
+    FAST_PROCESS_OBJECT(SegmentationVolumeReconstructor)
     public:
+        FAST_CONSTRUCTOR(SegmentationVolumeReconstructor)
     private:
-        SegmentationVolumeReconstructor();
         void execute() override;
 
-        std::shared_ptr<Segmentation> m_volume;
+        std::shared_ptr<Image> m_volume;
 };
 
 }

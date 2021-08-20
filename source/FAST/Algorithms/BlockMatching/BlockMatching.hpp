@@ -9,6 +9,7 @@ class Image;
 
 /**
  * @brief Matching metrics for tracking
+ * @ingroup motion-and-tracking
  */
 enum class MatchingMetric {
     NORMALIZED_CROSS_CORRELATION,
@@ -21,6 +22,8 @@ enum class MatchingMetric {
  *
  * 2D block matching on the GPU. Input is a stream of input images, output is a stream of images
  * with 2 channels giving the x,y motion of each pixel.
+ *
+ * @ingroup motion-and-tracking
  */
 class FAST_EXPORT BlockMatching : public ProcessObject {
     FAST_PROCESS_OBJECT(BlockMatching)

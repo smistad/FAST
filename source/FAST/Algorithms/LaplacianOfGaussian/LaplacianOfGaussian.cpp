@@ -26,14 +26,14 @@ void LaplacianOfGaussian::setStandardDeviation(float stdDev) {
     mRecreateMask = true;
 }
 
-LaplacianOfGaussian::LaplacianOfGaussian() {
+LaplacianOfGaussian::LaplacianOfGaussian(float stddev, uchar maskSize) {
     createInputPort(0);
     createOutputPort(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian2D.cl", "2D");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian3D.cl", "3D");
-    mStdDev = 1.0f;
-    mMaskSize = 3;
-    mIsModified = true;
+    setStandardDeviation(stddev);
+    if(maskSize > 0)
+        setMaskSize(maskSize);
     mRecreateMask = true;
     mDimensionCLCodeCompiledFor = 0;
     mMask = NULL;
@@ -43,33 +43,33 @@ LaplacianOfGaussian::~LaplacianOfGaussian() {
 }
 
 // TODO have to set mRecreateMask to true if input change dimension
-void LaplacianOfGaussian::createMask(Image::pointer input) {
+void LaplacianOfGaussian::createMask(Image::pointer input, char maskSize) {
     if(!mRecreateMask)
         return;
 
-    unsigned char halfSize = (mMaskSize-1)/2;
+    unsigned char halfSize = (maskSize-1)/2;
     float sum = 0.0f;
     float sum2 = 0.0f;
 
     if(input->getDimensions() == 2) {
-        mMask = std::make_unique<float[]>(mMaskSize*mMaskSize);
+        mMask = std::make_unique<float[]>(maskSize*maskSize);
 
         for(int x = -halfSize; x <= halfSize; x++) {
         for(int y = -halfSize; y <= halfSize; y++) {
             float value = (x*x + y*y - 2.0f*mStdDev*mStdDev) * exp( -(float)(x*x + y*y)/(2.0f*mStdDev*mStdDev) ) /
                     (2.0f*M_PI*pow(mStdDev, 6.0f)); // Matlab only uses pow(mStdDev, 4.0) for some reason
-            mMask[x+halfSize+(y+halfSize)*mMaskSize] = value;
+            mMask[x+halfSize+(y+halfSize)*maskSize] = value;
             sum += exp( -(float)(x*x + y*y)/(2.0f*mStdDev*mStdDev) );
         }}
 
         // Normalize gaussian
-        for(int i = 0; i < mMaskSize*mMaskSize; i++) {
+        for(int i = 0; i < maskSize*maskSize; i++) {
             mMask[i] /= sum;
             sum2 += mMask[i];
         }
         // Make mask sum to zero
-        for(int i = 0; i < mMaskSize*mMaskSize; i++) {
-            mMask[i] = mMask[i] - sum2/(mMaskSize*mMaskSize);
+        for(int i = 0; i < maskSize*maskSize; i++) {
+            mMask[i] = mMask[i] - sum2/(maskSize*maskSize);
         }
     } else if(input->getDimensions() == 3) {
         throw NotImplementedException();
@@ -78,7 +78,7 @@ void LaplacianOfGaussian::createMask(Image::pointer input) {
     ExecutionDevice::pointer device = getMainDevice();
     if(!device->isHost()) {
         OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
-        unsigned int bufferSize = input->getDimensions() == 2 ? mMaskSize*mMaskSize : mMaskSize*mMaskSize*mMaskSize;
+        unsigned int bufferSize = input->getDimensions() == 2 ? maskSize*maskSize : maskSize*maskSize*maskSize;
         mCLMask = cl::Buffer(
                 clDevice->getContext(),
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -193,26 +193,31 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
 
 void LaplacianOfGaussian::execute() {
     auto input = getInputData<Image>(0);
-    auto output = Image::New();
+
+    char maskSize = mMaskSize;
+    if(maskSize <= 0) // If mask size is not set calculate it instead
+        maskSize = ceil(2*mStdDev)*2+1;
+    if(maskSize > 19)
+        maskSize = 19;
 
     if(input->getDimensions() != 2) {
         throw Exception("The LaplacianOfGaussian filter currently only accept 2D images");
     }
 
     // Initialize output image
-    ExecutionDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    output->create(
+    auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
+    auto output = Image::create(
             input->getWidth(),
             input->getHeight(),
             TYPE_FLOAT,
             1
     );
 
-    createMask(input);
+    createMask(input, maskSize);
 
     if(device->isHost()) {
         switch(input->getDataType()) {
-            fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask.get(), mMaskSize));
+            fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask.get(), maskSize));
         }
     } else {
         OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
@@ -240,7 +245,7 @@ void LaplacianOfGaussian::execute() {
         }
 
         mKernel.setArg(1, mCLMask);
-        mKernel.setArg(3, mMaskSize);
+        mKernel.setArg(3, maskSize);
 
         clDevice->getCommandQueue().enqueueNDRangeKernel(
                 mKernel,

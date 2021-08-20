@@ -22,8 +22,7 @@ We will start by importing an ultrasound image from disk stored in the metaimage
 
 ```py
 import fast
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 ```
 
 This code will create an ImageFileImporter process object and
@@ -34,7 +33,7 @@ you downloaded earlier is located.
 To execute the ImageFileImporter, and thereby loading the image, you can do the following:
 
 ```py
-image = importer.updateAndGetOutputImage()
+image = importer.runAndGetOutputImage()
 print("An image was imported with size: ", image.getWidth(), image.getHeight())
 ```
 
@@ -43,10 +42,10 @@ Display the image data
 To display the image data, we need two things: a Window and a Renderer.
 For this example, we will use the ImageRenderer which is used to display images,
 and the SimpleWindow in 2D mode.
-The renderer is connected to the importer using the following statement:
+The renderer is connected to the importer using the connect method:
 
 @code{.py}
-renderer.setInputConnection(importer.getOutputPort())
+renderer = fast.ImageRenderer.connect(importer)
 @endcode
 
 This will form an execution pipeline, so that executing the renderer will
@@ -56,18 +55,14 @@ Our entire example should now look like this:
 
 @code{.py}
 import fast
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
 # Set up a renderer and connect it to the importer
-renderer = fast.ImageRenderer.New()
-renderer.setInputConnection(importer.getOutputPort())
+renderer = fast.ImageRenderer.connect(importer)
 
 # Create a window, add the renderer and start the computation/rendering loop.
-window = fast.SimpleWindow.New()
-window.set2DMode()
-window.addRenderer(renderer)
-window.start()
+window = fast.SimpleWindow2D.create().connect(renderer)
+window.run()
 @endcode
 
 You should now see this image:
@@ -75,12 +70,12 @@ You should now see this image:
 
 @par Execution pipeline
     Each process object in FAST has zero or more input and outputs ports.
-    Process objects are connected together using the setInputConnection/getOutputPort methods thus forming
+    Process objects are connected together using the connect method thus forming
     a pipeline, or a computational graph if you will.
-    The process objects are not executed until update() or updateAndGetOutputData() is called.
-    The update call will recursively call update on all its parent process objects. A process object will execute if
+    The process objects are not executed until run() or runAndGetOutputData() is called.
+    The run call will recursively call run on all its parent process objects. A process object will execute if
     it has new/updated input data or if a parameter has changed i.e. it is marked as being modified.
-    In the example above, the computation/rendering loop started by the window will call update() repeatedly on the renderer,
+    In the example above, the computation/rendering loop started by the window will call run() repeatedly on the renderer,
     thereby triggering execution of the entire pipeline.
     [Read more about the concepts and glossary used in FAST here.](@ref concepts)
 
@@ -93,22 +88,17 @@ de-noising ultrasound images.
 
 @code{.py}
 import fast
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
 # Set up the NonLocalMeans processing step and connect it to the importer
-nlm = fast.NonLocalMeans.New()
-nlm.setInputConnection(importer.getOutputPort())
+nlm = fast.NonLocalMeans.create().connect(importer)
 
 # Set up a renderer and connect it to the NLM filter
-renderer = fast.ImageRenderer.New()
-renderer.setInputConnection(nlm.getOutputPort())
+renderer = fast.ImageRenderer.create().connect(nlm)
 
 # Create a window, add the renderer and start the computation/rendering loop.
-window = fast.SimpleWindow.New()
-window.set2DMode()
-window.addRenderer(renderer)
-window.start()
+window = fast.SimpleWindow2D.create().connect(renderer)
+window.run()
 @endcode
 
 The results should look like this:
@@ -122,28 +112,22 @@ therefore we will use the DualViewWindow instead. We also need an additional Ima
 Putting this all together, it should look like this:
 @code{.py}
 import fast
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
 # Set up the NonLocalMeans processing step and connect it to the importer
-nlm = fast.NonLocalMeans.New()
-nlm.setInputConnection(importer.getOutputPort())
+nlm = fast.NonLocalMeans.create().connect(importer)
 
 # Set a renderer and connect it to importer
-renderer = fast.ImageRenderer.New()
-renderer.setInputConnection(importer.getOutputPort())
+renderer = fast.ImageRenderer.create().connect(importer)
 
 # Set a renderer and connect it to the NonLocalMeans filter
-filterRenderer = fast.ImageRenderer.New()
-filterRenderer.setInputConnection(nlm.getOutputPort())
+filterRenderer = fast.ImageRenderer.create().connect(nlm)
 
 # Create a dual view window, add the renderers and start the computation/rendering loop.
-window = fast.DualViewWindow.New()
-window.getView(0).set2DMode()
-window.getView(1).set2DMode()
-window.addRendererToTopLeftView(renderer)
-window.addRendererToBottomRightView(filterRenderer)
-window.start()
+window = fast.DualViewWindow2D.create()\
+    .connectLeft(renderer)\
+    .connectRight(filterRenderer)
+window.run()
 @endcode
 
 The result should look like this:
@@ -158,9 +142,7 @@ First, we are going to try streaming from disk. To do this, simply
 replace the ImageFileImporter with an ImageFileStreamer in the previous code example:
 
 @code{.cpp}
-importer = fast.ImageFileStreamer.New()
-importer.setFilenameFormat(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
-importer.enableLooping()
+importer = fast.ImageFileStreamer.create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd', True)
 @endcode
 
 Compile and run the application, and you should now see an entire ultrasound recording being played back to you on screen.
@@ -172,23 +154,15 @@ Compile and run the application, and you should now see an entire ultrasound rec
 If you want to iterate through a stream of data manually, you this with a simply loop as follows:
 @code{.py}
 import fast
-streamer = fast.ImageFileStreamer.New()
-streamer.setFilenameFormat(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
+streamer = fast.ImageFileStreamer.create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
 
-nlm = fast.NonLocalMeans.New()
-nlm.setInputConnection(streamer.getOutputPort())
-dataChannel = nlm.getOutputPort()
+nlm = fast.NonLocalMeans.create().connect(streamer)
 
 # Iterate through all frames in data stream
 frameNr = 0
-while True:
-    nlm.update() # Update the pipeline
-    image = dataChannel.getNextImage() # Get next frame in data stream of type Image
+for image in fast.DataStream(nlm):
     print('Received image frame', frameNr, 'with size', image.getWidth(), image.getHeight())
     frameNr += 1
-    # Check if image was last frame in stream, if so: stop the loop
-    if image.isLastFrame():
-        break
 @endcode
 
 Integration with other Python libraries
@@ -203,9 +177,8 @@ import fast
 import numpy as np
 
 # Import an image to FAST
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
-fast_image = importer.updateAndGetOutputImage()
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+fast_image = importer.runAndGetOutputImage()
 
 # Convert the FAST image to a NumPy ndarray
 numpy_image = np.asarray(fast_image)
@@ -222,8 +195,7 @@ image = Image.open(fast.Config.getDocumentationPath() + 'images/FAST_logo_square
 numpy_image = np.asarray(image)
 
 # Create FAST image from the NumPy ndarray
-fast_image = fast.Image.New()
-fast_image.createFromArray(numpy_image)
+fast_image = fast.Image.createFromArray(numpy_image)
 ```
 
 ### Visualize FAST image with Matplotlib
@@ -233,9 +205,8 @@ import fast
 import matplotlib.pyplot as plt
 import numpy as np
 
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
-fast_image = importer.updateAndGetOutputImage()
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+fast_image = importer.runAndGetOutputImage()
 numpy_image = np.asarray(fast_image)
 
 plt.imshow(numpy_image[..., 0], cmap='gray')

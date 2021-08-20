@@ -266,18 +266,18 @@ void Tensor::deleteDimension(int i) {
 }
 
 DataBoundingBox Tensor::getTransformedBoundingBox() const {
-    AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromNode(getSceneGraphNode());
+    auto T = SceneGraph::getEigenTransformFromNode(getSceneGraphNode());
 
     // Add image spacing
-    T->getTransform().scale(Vector3f(getSpacing().x(), getSpacing().y(), getSpacing().z()));
+    T.scale(Vector3f(getSpacing().x(), getSpacing().y(), getSpacing().z()));
 
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
 DataBoundingBox Tensor::getBoundingBox() const {
     // Add image spacing
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->getTransform().scale(Vector3f(getSpacing().x(), getSpacing().y(), getSpacing().z()));
+    auto T = Affine3f::Identity();
+    T.scale(Vector3f(getSpacing().x(), getSpacing().y(), getSpacing().z()));
 
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }

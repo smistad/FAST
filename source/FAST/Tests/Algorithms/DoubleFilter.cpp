@@ -39,10 +39,9 @@ inline void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) 
 void DoubleFilter::execute() {
     // Get input and output data
     auto input = getInputData<Image>();
-    auto output = Image::New();
 
     // Initialize output image
-    output->createFromImage(input);
+    auto output = Image::createFromImage(input);
 
     if(getMainDevice()->isHost()) {
         // Execution device is Host, use the executeAlgorithmOnHost function with the given data type

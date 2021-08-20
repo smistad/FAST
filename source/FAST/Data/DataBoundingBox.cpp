@@ -85,16 +85,21 @@ DataBoundingBox::DataBoundingBox(std::vector<Vector3f> coordinates) {
 }
 
 DataBoundingBox DataBoundingBox::getTransformedBoundingBox(
-        AffineTransformation::pointer transform) const {
+        Affine3f transform) const {
     if(!mIsInitialized)
         throw Exception("Cannot getTransformedBoundingBox because bounding box was not initialized.");
     MatrixXf newCorners = MatrixXf::Constant(8,3,0);
     for(uint i = 0; i < 8; i++) {
         Vector3f vertex = mCorners.row(i);
-        Vector3f transformedVertex = (transform->getTransform().matrix()*vertex.homogeneous()).head(3);
+        Vector3f transformedVertex = (transform.matrix()*vertex.homogeneous()).head(3);
         newCorners.row(i) = transformedVertex;
     }
     return DataBoundingBox(newCorners);
+}
+
+DataBoundingBox DataBoundingBox::getTransformedBoundingBox(
+        Transform::pointer transform) const {
+    return getTransformedBoundingBox(transform->get());
 }
 
 std::ostream &operator<<(std::ostream &os, DataBoundingBox &object) {

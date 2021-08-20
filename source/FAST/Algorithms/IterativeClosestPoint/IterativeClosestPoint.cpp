@@ -8,17 +8,18 @@
 
 namespace fast {
 
-IterativeClosestPoint::IterativeClosestPoint() {
-    createInputPort<Mesh>(0);
-    createInputPort<Mesh>(1);
-    mMaxIterations = 100;
-    mMinErrorChange = 1e-5;
+IterativeClosestPoint::IterativeClosestPoint(TransformationType type, int maxIterations, float minErrorChange,
+                                                 float distanceThreshold, int randomSamplingPoints) {
+    createInputPort(0, "Mesh", "Fixed mesh");
+    createInputPort(1, "Mesh", "Moving mesh");
+    setMaximumNrOfIterations(maxIterations);
+    setMinimumErrorChange(minErrorChange);
+    setDistanceThreshold(distanceThreshold);
+    setRandomPointSampling(randomSamplingPoints);
     mError = -1;
-    mRandomSamplingPoints = 0;
-    mDistanceThreshold = -1;
     mTransformationType = IterativeClosestPoint::RIGID;
     mIsModified = true;
-    mTransformation = AffineTransformation::New();
+    mTransformation = Transform::create();
 }
 
 
@@ -35,7 +36,7 @@ void IterativeClosestPoint::setMovingMesh(Mesh::pointer data) {
     setInputData(1, data);
 }
 
-AffineTransformation::pointer IterativeClosestPoint::getOutputTransformation() {
+Transform::pointer IterativeClosestPoint::getOutputTransformation() {
     return mTransformation;
 }
 
@@ -134,20 +135,20 @@ void IterativeClosestPoint::setTransformationType(
 void IterativeClosestPoint::execute() {
     float error = std::numeric_limits<float>::max(), previousError;
     uint iterations = 0;
-    Mesh::pointer fixedMesh = getInputData<Mesh>(0);
-    Mesh::pointer movingMesh = getInputData<Mesh>(1);
+    auto fixedMesh = getInputData<Mesh>(0);
+    auto movingMesh = getInputData<Mesh>(1);
 
     // Get access to the two point sets
-    MeshAccess::pointer accessFixedSet = fixedMesh->getMeshAccess(ACCESS_READ);
-    MeshAccess::pointer accessMovingSet = movingMesh->getMeshAccess(ACCESS_READ);
+    auto accessFixedSet = fixedMesh->getMeshAccess(ACCESS_READ);
+    auto accessMovingSet = movingMesh->getMeshAccess(ACCESS_READ);
 
     // Get transformations of point sets
-    AffineTransformation::pointer fixedPointTransform2 = SceneGraph::getAffineTransformationFromData(fixedMesh);
+    auto fixedPointTransform2 = SceneGraph::getTransformFromData(fixedMesh);
     Affine3f fixedPointTransform;
-    fixedPointTransform.matrix() = fixedPointTransform2->getTransform().matrix();
-    AffineTransformation::pointer initialMovingTransform2 = SceneGraph::getAffineTransformationFromData(movingMesh);
+    fixedPointTransform.matrix() = fixedPointTransform2->get().matrix();
+    auto initialMovingTransform2 = SceneGraph::getTransformFromData(movingMesh);
     Affine3f initialMovingTransform;
-    initialMovingTransform.matrix() = initialMovingTransform2->getTransform().matrix();
+    initialMovingTransform.matrix() = initialMovingTransform2->get().matrix();
 
     // These matrices are 3xN, where N is number of vertices
     std::vector<MeshVertex> fixedVertices = accessFixedSet->getVertices();
@@ -237,7 +238,7 @@ void IterativeClosestPoint::execute() {
     }
     Affine3f currentTransformation = Affine3f::Identity();
     if(fixedPoints.size() == 0 || movingPoints.size() == 0) {
-        mTransformation->setTransform(currentTransformation);
+        mTransformation->set(currentTransformation);
         return;
     }
     fixedPoints = fixedPointTransform*fixedPoints.colwise().homogeneous();
@@ -322,7 +323,7 @@ void IterativeClosestPoint::execute() {
     reportInfo() << "Final transform: " << currentTransformation.matrix() << reportEnd();
 
     mError = error;
-    mTransformation->setTransform(currentTransformation);
+    mTransformation->set(currentTransformation);
 }
 
 void IterativeClosestPoint::setMaximumNrOfIterations(uint iterations) {

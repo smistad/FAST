@@ -18,8 +18,7 @@ KinectTracking::KinectTracking() {
     createOutputPort<Mesh>(2); // Target cloud
 
     // Create annotation image
-    mAnnotationImage = Image::New();
-    mAnnotationImage->create(640, 480, TYPE_UINT8, 1);
+    mAnnotationImage = Image::create(640, 480, TYPE_UINT8, 1);
     mAnnotationImage->fill(0);
 
     mTargetCloud = Mesh::create(0, 0, 0, false, false, false);
@@ -63,9 +62,9 @@ void KinectTracking::execute() {
         icp->update();
         reportInfo() << "Finished ICP in: " << reportEnd();
         icp->getAllRuntimes()->printAll();
-        AffineTransformation::pointer currentTransform = mTargetCloud->getSceneGraphNode()->getTransformation();
-        AffineTransformation::pointer newTransform = icp->getOutputTransformation();
-        mTargetCloud->getSceneGraphNode()->setTransformation(newTransform->multiply(currentTransform));
+        auto currentTransform = mTargetCloud->getSceneGraphNode()->getTransform();
+        auto newTransform = icp->getOutputTransformation();
+        mTargetCloud->getSceneGraphNode()->setTransform(newTransform->get() * currentTransform->get());
 
         if(mRecording) {
             VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();

@@ -463,59 +463,69 @@ ImageAccess::pointer Image::getImageAccess(accessType type) {
 	return std::move(accessObject);
 }
 
-void Image::create(
+Image::Image(
         VectorXui size,
         DataType type,
-        unsigned int nrOfChannels) {
+        unsigned int nrOfChannels) : Image() {
 
     if(size.rows() > 2 && size.z() > 1) {
         // 3D
-        create(size.x(), size.y(), size.z(), type, nrOfChannels);
+        init(size.x(), size.y(), size.z(), type, nrOfChannels);
     } else {
         // 2D
-        create(size.x(), size.y(), type, nrOfChannels);
+        init(size.x(), size.y(), type, nrOfChannels);
     }
 }
 
-void Image::create(
+Image::Image(
         VectorXui size,
         DataType type,
         unsigned int nrOfChannels,
         ExecutionDevice::pointer device,
-        const void* const data) {
+        const void* const data) : Image() {
 
     if(size.rows() > 2 && size.z() > 1) {
         // 3D
-        create(size.x(), size.y(), size.z(), type, nrOfChannels, device, data);
+        init(size.x(), size.y(), size.z(), type, nrOfChannels);
     } else {
         // 2D
-        create(size.x(), size.y(), type, nrOfChannels, device, data);
+        init(size.x(), size.y(), type, nrOfChannels);
     }
+    copyData(device, data);
 }
 
-void Image::create(
+Image::Image(
         VectorXui size,
         DataType type,
         unsigned int nrOfChannels,
-        const void* const data) {
+        const void* const data) : Image() {
 
     if(size.rows() > 2 && size.z() > 1) {
         // 3D
-        create(size.x(), size.y(), size.z(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
+        init(size.x(), size.y(), size.z(), type, nrOfChannels);
     } else {
         // 2D
-        create(size.x(), size.y(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
+        init(size.x(), size.y(), type, nrOfChannels);
     }
+    copyData(DeviceManager::getInstance()->getDefaultDevice(), data);
 }
 
 
-void Image::create(
+Image::Image(
+        unsigned int width,
+        unsigned int height,
+        unsigned int depth,
+        DataType type,
+        unsigned int nrOfChannels) : Image() {
+    init(width, height, depth, type, nrOfChannels);
+}
+
+void Image::init(
         unsigned int width,
         unsigned int height,
         unsigned int depth,
         DataType type,
         unsigned int nrOfChannels) {
-
     getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
 
@@ -531,37 +541,46 @@ void Image::create(
 }
 
 
-void Image::create(
+Image::Image(
         unsigned int width,
         unsigned int height,
         unsigned int depth,
         DataType type,
         unsigned int nrOfChannels,
         ExecutionDevice::pointer device,
-        const void* const data) {
+        const void* const data) : Image() {
 
-    create(width, height, depth, type, nrOfChannels);
-
+    init(width, height, depth, type, nrOfChannels);
     copyData(device, data);
 }
 
-void Image::create(
+Image::Image(
         unsigned int width,
         unsigned int height,
         unsigned int depth,
         DataType type,
         unsigned int nrOfChannels,
-        const void* const data) {
+        const void* const data) : Image() {
 
-	create(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
+	init(width, height, depth, type, nrOfChannels);
+	copyData(DeviceManager::getInstance()->getDefaultDevice(), data);
 }
 
-void Image::create(
+Image::Image(
         unsigned int width,
         unsigned int height,
         DataType type,
-        unsigned int nrOfChannels) {
+        unsigned int nrOfChannels
+        ) : Image() {
+    init(width, height, type, nrOfChannels);
+}
 
+void Image::init(
+        unsigned int width,
+        unsigned int height,
+        DataType type,
+        unsigned int nrOfChannels
+        ) {
     getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
 
@@ -576,28 +595,37 @@ void Image::create(
     mIsInitialized = true;
 }
 
-void Image::create(
+void Image::init(VectorXui size, DataType type, uint nrOfChannels) {
+    if(size.size() == 2 || size.z() == 1) {
+        init(size.x(), size.y(), type, nrOfChannels);
+    } else {
+        init(size.x(), size.y(), size.z(), type, nrOfChannels);
+    }
+}
+
+Image::Image(
         unsigned int width,
         unsigned int height,
         DataType type,
         unsigned int nrOfChannels,
         ExecutionDevice::pointer device,
-        const void* const data) {
+        const void* const data) : Image() {
 
-    create(width, height, type, nrOfChannels);
+    init(width, height, type, nrOfChannels);
 
     copyData(device, data);
 
 }
 
-void Image::create(
+Image::Image(
         unsigned int width,
         unsigned int height,
         DataType type,
         unsigned int nrOfChannels,
-        const void* const data) {
+        const void* const data) : Image() {
 
-	create(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), data);
+	init(width, height, type, nrOfChannels);
+	copyData(DeviceManager::getInstance()->getDefaultDevice(), data);
 }
 
 void Image::copyData(ExecutionDevice::pointer device, const void* const data) {
@@ -833,6 +861,8 @@ void Image::calculateMaxAndMinIntensity() {
                     }
                 }
             }
+            if(!found)
+                throw Exception(("Can't calculate max/min intensity of image because pixel data has not been initialized."));
         }
 
         // Update timestamp
@@ -943,10 +973,9 @@ float Image::calculateMinimumIntensity() {
     return mMinimumIntensity;
 }
 
-void Image::createFromImage(
-        Image::pointer image) {
+Image::Image(Image::pointer image) : Image() {
     // Create image first
-    create(image->getSize(), image->getDataType(), image->getNrOfChannels());
+    init(image->getSize(), image->getDataType(), image->getNrOfChannels());
 
     // Copy metadata
     setSpacing(image->getSpacing());
@@ -955,8 +984,7 @@ void Image::createFromImage(
 
 
 Image::pointer Image::copy(ExecutionDevice::pointer device) {
-    Image::pointer clone = Image::New();
-    clone->createFromImage(std::static_pointer_cast<Image>(mPtr.lock()));
+    Image::pointer clone = Image::createFromImage(std::static_pointer_cast<Image>(mPtr.lock()));
 
     // If device is host, get data from this image to host
     if(device->isHost()) {
@@ -1123,7 +1151,6 @@ void Image::fill(float value) {
 }
 
 Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBoundsCropping) {
-    Image::pointer newImage = Image::New();
 
     bool needInitialization = false;
     VectorXi newImageSize = size;
@@ -1167,10 +1194,11 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
         clDevice = std::static_pointer_cast<OpenCLDevice>(device);
     }
 
+    Image::pointer newImage;
     if(getDimensions() == 2) {
         if(offset.size() < 2 || size.size() < 2)
             throw Exception("offset and size vectors given to Image::crop must have at least 2 channels");
-        newImage->create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
+        newImage = Image::create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
         if(needInitialization)
             newImage->fill(0);
         OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
@@ -1198,7 +1226,7 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     } else {
         if(offset.size() < 3 || size.size() < 3)
             throw Exception("offset and size vectors given to Image::crop must have at least 3 channels");
-        newImage->create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
+        newImage = Image::create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
         if(needInitialization)
             newImage->fill(0);
         OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
@@ -1216,29 +1244,29 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     }
 
     // Fix placement and spacing of the new cropped image
-    AffineTransformation::pointer T = AffineTransformation::New();
     newImage->setSpacing(getSpacing());
     // Multiply with spacing here to convert voxel translation to world(mm) translation
-    T->getTransform().translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
-    newImage->getSceneGraphNode()->setTransformation(T);
+    Affine3f T;
+    T.translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
+    newImage->getSceneGraphNode()->setTransform(T);
     SceneGraph::setParentNode(newImage, std::static_pointer_cast<SpatialDataObject>(mPtr.lock()));
 
     return newImage;
 }
 
 DataBoundingBox Image::getTransformedBoundingBox() const {
-    AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromNode(getSceneGraphNode());
+    auto T = SceneGraph::getEigenTransformFromNode(getSceneGraphNode());
 
     // Add image spacing
-    T->getTransform().scale(getSpacing());
+    T.scale(getSpacing());
 
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
 DataBoundingBox Image::getBoundingBox() const {
     // Add image spacing
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->getTransform().scale(getSpacing());
+    auto T = Affine3f::Identity();
+    T.scale(getSpacing());
 
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
@@ -1395,6 +1423,12 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
     }
 
     return std::make_unique<OpenGLTextureAccess>(m_GLtextureID, std::dynamic_pointer_cast<Image>(mPtr.lock()));
+}
+
+bool Image::isSegmentationType() const {
+    if(!isInitialized())
+        throw Exception("Image was not initialized");
+    return mType == TYPE_UINT8 && mChannels == 1;
 }
 
 } // end namespace fast;

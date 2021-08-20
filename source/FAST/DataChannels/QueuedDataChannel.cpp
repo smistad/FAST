@@ -59,6 +59,10 @@ void QueuedDataChannel::setMaximumNumberOfFrames(uint frames) {
     m_emptyCount = std::make_unique<LightweightSemaphore>(mMaximumNumberOfFrames);
 }
 
+int QueuedDataChannel::getMaximumNumberOfFrames() const {
+    return mMaximumNumberOfFrames;
+}
+
 void QueuedDataChannel::stop() {
     DataChannel::stop();
     Reporter::info() << "SIGNALING SEMAPHORES in QueuedDataChannel" << Reporter::end();

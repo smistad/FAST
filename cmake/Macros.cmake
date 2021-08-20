@@ -1,3 +1,4 @@
+include(cmake/Externals.cmake)
 #### Macro for adding source files and directories
 macro (fast_add_sources)
     file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -161,4 +162,43 @@ macro(fast_add_inference_engine NAME)
         # propagate to parent directory
         set(FAST_INFERENCE_ENGINES ${FAST_INFERENCE_ENGINES} PARENT_SCOPE)
     endif()
+endmacro()
+
+# Macro for downloading a dependency
+macro(fast_download_dependency NAME VERSION SHA)
+    set(FILENAME ${NAME}_${VERSION}_${FAST_DEPENDENCY_TOOLSET}.tar.xz)
+    if(${NAME} STREQUAL qt5)
+        ExternalProject_Add(${NAME}
+                PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
+                URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
+                URL_HASH SHA256=${SHA}
+                UPDATE_COMMAND ""
+                CONFIGURE_COMMAND ""
+                BUILD_COMMAND ""
+                # On install: Copy contents of each subfolder to the build folder
+                INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
+                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/plugins ${FAST_EXTERNAL_INSTALL_DIR}/plugins COMMAND
+                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+        )
+    else()
+        ExternalProject_Add(${NAME}
+                PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
+                URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
+                URL_HASH SHA256=${SHA}
+                UPDATE_COMMAND ""
+                CONFIGURE_COMMAND ""
+                BUILD_COMMAND ""
+                # On install: Copy contents of each subfolder to the build folder
+                INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+            )
+    endif()
+    foreach(LIB ${ARGN})
+        list(APPEND LIBRARIES ${ARGN})
+    endforeach()
+    list(APPEND FAST_EXTERNAL_DEPENDENCIES ${NAME})
 endmacro()

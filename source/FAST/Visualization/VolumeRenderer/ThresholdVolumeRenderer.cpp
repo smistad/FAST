@@ -85,7 +85,7 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
     auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
     cl::Image3D *clImage = access->get3DImage();
 
-    Affine3f modelMatrix = SceneGraph::getEigenAffineTransformationFromData(input);
+    Affine3f modelMatrix = SceneGraph::getEigenTransformFromData(input);
     modelMatrix.scale(input->getSpacing());
     Matrix4f invModelViewMatrix = (viewingMatrix*modelMatrix.matrix()).inverse();
     
@@ -155,8 +155,9 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mainFBO);
 }
 
-ThresholdVolumeRenderer::ThresholdVolumeRenderer() {
+ThresholdVolumeRenderer::ThresholdVolumeRenderer(float threshold) {
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VolumeRenderer/ThresholdVolumeRenderer.cl");
+    setThreshold(threshold);
 }
 
 }

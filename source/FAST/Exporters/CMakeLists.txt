@@ -7,8 +7,6 @@ fast_add_sources(
     VTKMeshFileExporter.hpp
     FileExporter.cpp
     FileExporter.hpp
-    StreamExporter.cpp
-    StreamExporter.hpp
     ImageFileExporter.cpp
     ImageFileExporter.hpp
     StreamToFileExporter.cpp
@@ -19,7 +17,6 @@ fast_add_python_interfaces(Exporter.hpp FileExporter.hpp)
 fast_add_python_shared_pointers(Exporter FileExporter)
 fast_add_process_object(ImageExporter ImageExporter.hpp)
 fast_add_process_object(MetaImageExporter MetaImageExporter.hpp)
-fast_add_process_object(StreamExporter StreamExporter.hpp)
 fast_add_process_object(ImageFileExporter ImageFileExporter.hpp)
 fast_add_process_object(StreamToFileExporter StreamToFileExporter.hpp)
 fast_add_process_object(VTKMeshFileExporter VTKMeshFileExporter.hpp)

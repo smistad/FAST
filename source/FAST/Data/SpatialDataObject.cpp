@@ -1,5 +1,4 @@
 #include "SpatialDataObject.hpp"
-#include "FAST/AffineTransformation.hpp"
 
 namespace fast {
 
@@ -20,7 +19,7 @@ DataBoundingBox SpatialDataObject::getBoundingBox() const {
 }
 
 DataBoundingBox SpatialDataObject::getTransformedBoundingBox() const {
-    AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromNode(getSceneGraphNode());
+    auto T = SceneGraph::getTransformFromNode(getSceneGraphNode());
 
     return getBoundingBox().getTransformedBoundingBox(T);
 }

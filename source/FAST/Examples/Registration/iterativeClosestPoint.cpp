@@ -17,15 +17,15 @@ int main() {
     // Apply a transformation to point set B
     Vector3f translation(0.01, 0, 0.01);
     Vector3f rotation(0.5, 0, 0);
-    AffineTransformation::pointer transformation = AffineTransformation::New();
-    transformation->getTransform().translate(translation);
+    auto transformation = Transform::create();
+    transformation->get().translate(translation);
     Matrix3f R;
     R = Eigen::AngleAxisf(rotation.x(), Vector3f::UnitX())
     * Eigen::AngleAxisf(rotation.y(), Vector3f::UnitY())
     * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
     transformation->getTransform()->rotate(R);
     importerB->update();
-    importerB->getOutputData<PointSet>()->getSceneGraphNode()->setTransformation(transformation);
+    importerB->getOutputData<PointSet>()->getSceneGraphNode()->setTransform(transformation);
 
     // Perform the registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
@@ -34,11 +34,11 @@ int main() {
     icp->update();
 
     // Apply transformation to A
-    importerA->getOutputData<PointSet>()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getOutputData<PointSet>()->getSceneGraphNode()->setTransform(icp->getOutputTransformation());
 
     Reporter::info() << "Registration result: " << Reporter::end();
-    Reporter::info() << "Rotation: " << icp->getOutputTransformation()->getEulerAngles().transpose() << Reporter::end();
-    Reporter::info() << "Translation:" << icp->getOutputTransformation()->getTransform().translation().transpose() << Reporter::end();
+    Reporter::info() << "Rotation: " << icp->getOutputTransformation()->get().rotation().eulerAngles(0,1,2).transpose() << Reporter::end();
+    Reporter::info() << "Translation:" << icp->getOutputTransformation()->get().translation().transpose() << Reporter::end();
 
     // Visualize the two point sets
     VertexRenderer::pointer renderer = VertexRenderer::New();

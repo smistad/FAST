@@ -1,7 +1,5 @@
 /**
- * Examples/Segmentation/seededRegionGrowingSegmentation.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example seededRegionGrowingSegmentation.cpp
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Importers/ImageFileImporter.hpp"
@@ -20,30 +18,25 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     // Import CT image
-    auto importer = ImageFileImporter::New();
-    importer->setFilename(parser.get("filename"));
+    auto importer = ImageFileImporter::create(parser.get("filename"));
 
     // Perform region growing segmentation
-    auto segmentation = SeededRegionGrowing::New();
-    segmentation->setInputConnection(importer->getOutputPort());
-    segmentation->addSeedPoint(223,282,387);
-    segmentation->addSeedPoint(251,314,148);
-    segmentation->setIntensityRange(parser.get<int>("min-intensity"), parser.get<int>("max-intensity"));
+    auto segmentation = SeededRegionGrowing::create(parser.get<int>("min-intensity"), parser.get<int>("max-intensity"),
+                  {
+                        {223, 282, 387},
+                        {251, 314, 148}
+                  })->connect(importer);
 
     // Extraction surface mesh from segmentation
-    auto extraction = SurfaceExtraction::create();
-    extraction->setInputConnection(segmentation->getOutputPort());
+    auto extraction = SurfaceExtraction::create()->connect(segmentation);
 
     // Render and visualize the mesh
-    auto surfaceRenderer = TriangleRenderer::New();
-    surfaceRenderer->setInputConnection(extraction->getOutputPort());
-    surfaceRenderer->enableRuntimeMeasurements();
+    auto surfaceRenderer = TriangleRenderer::create()->connect(extraction);
 
-	auto window = SimpleWindow::New();
-    window->addRenderer(surfaceRenderer);
+	auto window = SimpleWindow3D::create()->connect(surfaceRenderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
-    window->start();
+    window->run();
 }

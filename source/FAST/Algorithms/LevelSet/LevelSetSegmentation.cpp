@@ -1,18 +1,28 @@
 #include "LevelSetSegmentation.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 #include "FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp"
 
 namespace fast {
 
 LevelSetSegmentation::LevelSetSegmentation() {
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LevelSet/LevelSetSegmentation.cl");
 
     mCurvatureWeight = 0.9;
     mIntensityMeanSet = false;
     mIntensityVarianceSet = false;
     mIterations = 1000;
+}
+
+LevelSetSegmentation::LevelSetSegmentation(std::vector<Vector3i> seedPoints, float seedRadius, float curvatureWeight,
+                                           int iterations) : LevelSetSegmentation() {
+    for(auto seed : seedPoints) {
+        addSeedPoint(seed, seedRadius);
+    }
+
+    setCurvatureWeight(curvatureWeight);
+    setMaxIterations(iterations);
 }
 
 void LevelSetSegmentation::setCurvatureWeight(float weight) {
@@ -57,8 +67,7 @@ void LevelSetSegmentation::execute() {
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Program program = getOpenCLProgram(device);
 
-    Image::pointer phi = Image::New();
-    phi->create(input->getSize(), TYPE_FLOAT, 1);
+    auto phi = Image::create(input->getSize(), TYPE_FLOAT, 1);
 
     OpenCLImageAccess::pointer phiAccess = phi->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
     cl::Image3D phi_1 = *phiAccess->get3DImage();
@@ -66,24 +75,26 @@ void LevelSetSegmentation::execute() {
     if(mSeeds.size() == 0)
         throw Exception("The LevelSetSegmentation algorithm must be given a seed point");
 
-    Vector3i seedPos = mSeeds[0].first;
-    reportInfo() << "Using seed: " << seedPos.transpose() << reportEnd();
-    float seedRadius = mSeeds[0].second;
     Vector3ui size = input->getSize();
+    for(auto seed : mSeeds) {
+        Vector3i seedPos = seed.first;
+        reportInfo() << "Using seed: " << seedPos.transpose() << reportEnd();
+        float seedRadius = seed.second;
 
-    // Create seed
-    cl::Kernel createSeedKernel(program, "initializeLevelSetFunction");
-    createSeedKernel.setArg(0, phi_1);
-    createSeedKernel.setArg(1, seedPos.x());
-    createSeedKernel.setArg(2, seedPos.y());
-    createSeedKernel.setArg(3, seedPos.z());
-    createSeedKernel.setArg(4, seedRadius);
-    queue.enqueueNDRangeKernel(
-            createSeedKernel,
-            cl::NullRange,
-            cl::NDRange(size.x(),size.y(),size.z()),
-            cl::NullRange
-    );
+        // Create seed
+        cl::Kernel createSeedKernel(program, "initializeLevelSetFunction");
+        createSeedKernel.setArg(0, phi_1);
+        createSeedKernel.setArg(1, seedPos.x());
+        createSeedKernel.setArg(2, seedPos.y());
+        createSeedKernel.setArg(3, seedPos.z());
+        createSeedKernel.setArg(4, seedRadius);
+        queue.enqueueNDRangeKernel(
+                createSeedKernel,
+                cl::NullRange,
+                cl::NDRange(size.x(), size.y(), size.z()),
+                cl::NullRange
+        );
+    }
 
     cl::Kernel kernel(program, "updateLevelSetFunction");
     cl::size_t<3> origin = createOrigoRegion();
@@ -122,10 +133,9 @@ void LevelSetSegmentation::execute() {
                 input->getDepth()
         );
 
-        Image::pointer speed = Image::New();
-        speed->create(input->getSize(), TYPE_FLOAT, 1);
+        auto speed = Image::create(input->getSize(), TYPE_FLOAT, 1);
 
-        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+        auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
         kernel.setArg(0, *access->get3DImage());
         kernel.setArg(3, mIntensityMean);
         kernel.setArg(4, mIntensityVariance);
@@ -171,7 +181,7 @@ void LevelSetSegmentation::execute() {
     thresholding->setInputData(phi);
     DataChannel::pointer port = thresholding->getOutputPort();
     thresholding->update();
-    Segmentation::pointer output = port->getNextFrame<Segmentation>();
+    auto output = port->getNextFrame<Image>();
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
     addOutputData(0, output);

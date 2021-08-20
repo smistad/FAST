@@ -2,10 +2,10 @@
 
 project(FAST)
 
-set(VERSION_MAJOR 3)
-set(VERSION_MINOR 3)
+set(VERSION_MAJOR 4)
+set(VERSION_MINOR 0)
 set(VERSION_PATCH 0)
-set(VERSION_SO 3)   # SO version, should be incremented by 1 every time the existing API changes
+set(VERSION_SO 4)   # SO version, should be incremented by 1 every time the existing API changes
 set(FAST_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 # set policies explicitly to avoid warnings.
@@ -42,6 +42,12 @@ option(FAST_BUILD_ALL_DEPENDENCIES "Download and build all dependencies" OFF)
 
 # Base URL for downloading prebuilt dependencies
 set(FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL "http://fast.eriksmistad.no/download/third_party_libraries/")
+set(FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW "https://github.com/smistad/FAST-dependencies/releases/download/v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}/")
+if(WIN32)
+    set(FAST_DEPENDENCY_TOOLSET msvc142)
+else()
+    set(FAST_DEPENDENCY_TOOLSET glibc2.31)
+endif()
 
 #### Set build type
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

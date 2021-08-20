@@ -8,25 +8,18 @@ import matplotlib.pyplot as plt
 
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
-importer = fast.WholeSlideImageImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'WSI/A05.svs')
+importer = fast.WholeSlideImageImporter.create(fast.Config.getTestDataPath() + 'WSI/A05.svs')
 
-tissueSegmentation = fast.TissueSegmentation.New()
-tissueSegmentation.setInputConnection(importer.getOutputPort())
+tissueSegmentation = fast.TissueSegmentation.create().connect(importer)
 
-patchGenerator = fast.PatchGenerator.New()
-patchGenerator.setInputConnection(0, importer.getOutputPort())
-patchGenerator.setInputConnection(1, tissueSegmentation.getOutputPort())
-patchGenerator.setPatchSize(512, 512)
+patchGenerator = fast.PatchGenerator.create(512, 512)\
+    .connect(0, importer)\
+    .connect(1, tissueSegmentation)
 
-dataChannel = patchGenerator.getOutputPort()
-patchGenerator.update() # Start patch generator pipeline
-
+# Create a 3x3 subplot for every set of 9 patches
 patch_list = []
-while True:
-    patch_list.append(dataChannel.getNextImage())
-    if patch_list[-1].isLastFrame():
-        break
+for patch in fast.DataStream(patchGenerator):
+    patch_list.append(patch)
     if len(patch_list) == 9:
         # Display the 9 last patches
         f, axes = plt.subplots(3,3, figsize=(10,10))

@@ -10,8 +10,9 @@ namespace fast {
  * has a new data frame, it send out the latest frame to all output connections.
  */
 class FAST_EXPORT PipelineSynchronizer : public ProcessObject {
-    FAST_OBJECT(PipelineSynchronizer)
+    FAST_PROCESS_OBJECT(PipelineSynchronizer)
     public:
+        FAST_CONSTRUCTOR(PipelineSynchronizer)
         /**
          * Adds a new input connection
          * @param port

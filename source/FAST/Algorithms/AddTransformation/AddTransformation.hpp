@@ -10,13 +10,19 @@ namespace fast {
  *
  * This class will add new scene graph node before the root node of the input data object.
  * This node will get the transformation supplied to the transformation input connection
+ *
+ * Inputs:
+ * - 0: SpatialDataObject - Object to add transform to
+ * - 1: AffineTransformation - Transform to add
+ *
+ * Outputs:
+ * - 0: SpatialDataObject - Same as input 0
  */
 class FAST_EXPORT AddTransformation : public ProcessObject {
-    FAST_OBJECT(AddTransformation)
+    FAST_PROCESS_OBJECT(AddTransformation)
     public:
-        void setTransformationInputConnection(DataChannel::pointer port);
+        FAST_CONSTRUCTOR(AddTransformation)
     private:
-        AddTransformation();
         void execute();
 
         SpatialDataObject::pointer mPrevious;

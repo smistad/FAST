@@ -36,10 +36,10 @@ void LinePlotter::execute() {
 			if(auto floatScalar = std::dynamic_pointer_cast<FloatScalar>(input)) {
 			    Vector2f point;
 			    point.x() = m_frameCounter;
-			    point.y() = floatScalar->getAccess(ACCESS_READ)->getData();
+			    point.y() = floatScalar->get();
                 newDataList[inputNr] = point;
             } else if(auto floatXY = std::dynamic_pointer_cast<FloatPoint>(input)) {
-                newDataList[inputNr] = floatXY->getAccess(ACCESS_READ)->getData();
+                newDataList[inputNr] = floatXY->get();
             } else {
 			    throw Exception("Incorrect input type to LinePlotter");
 			}

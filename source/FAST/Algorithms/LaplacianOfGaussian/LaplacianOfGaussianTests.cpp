@@ -7,12 +7,12 @@
 namespace fast {
 
 TEST_CASE("No input given to LaplacianOfGaussian throws exception", "[fast][LaplacianOfGaussian][LoG]") {
-    LaplacianOfGaussian::pointer filter = LaplacianOfGaussian::New();
+    auto filter = LaplacianOfGaussian::create();
     CHECK_THROWS(filter->update());
 }
 
 TEST_CASE("Negative or zero sigma and mask size input throws exception in LaplacianOfGaussian" , "[fast][LaplacianOfGaussian][LoG]") {
-    LaplacianOfGaussian::pointer filter = LaplacianOfGaussian::New();
+    auto filter = LaplacianOfGaussian::create();
 
     CHECK_THROWS(filter->setMaskSize(-4));
     CHECK_THROWS(filter->setMaskSize(0));
@@ -21,25 +21,19 @@ TEST_CASE("Negative or zero sigma and mask size input throws exception in Laplac
 }
 
 TEST_CASE("Even input as mask size throws exception in LaplacianOfGaussian", "[fast][LaplacianOfGaussian][LoG]") {
-    LaplacianOfGaussian::pointer filter = LaplacianOfGaussian::New();
+    auto filter = LaplacianOfGaussian::create();
 
     CHECK_THROWS(filter->setMaskSize(2));
 }
 
 TEST_CASE("Laplacian of Gaussian on 2D image with OpenCL", "[fast][LaplacianOfGaussian][LoG][visual]") {
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/US-2D.jpg");
 
-    LaplacianOfGaussian::pointer filter = LaplacianOfGaussian::New();
-    filter->setInputConnection(importer->getOutputPort());
-    filter->setMaskSize(9);
-    filter->setStandardDeviation(3);
+    auto filter = LaplacianOfGaussian::create(3, 9)->connect(importer);
 
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(filter->getOutputPort());
+    auto renderer = ImageRenderer::create()->connect(filter);
 
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
+    auto window = SimpleWindow2D::create()->connect(renderer);
     window->setTimeout(1000);
     window->start();
 }

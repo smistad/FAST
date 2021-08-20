@@ -1,8 +1,7 @@
 #include "TubeSegmentationAndCenterlineExtraction.hpp"
 #include "FAST/Data/Image.hpp"
-#include "FAST/Data/Segmentation.hpp"
 #include "FAST/Data/Mesh.hpp"
-#include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
+#include "FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp"
 #include "FAST/Algorithms/GradientVectorFlow/EulerGradientVectorFlow.hpp"
 #include "FAST/Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.hpp"
 #include "RidgeTraversalCenterlineExtraction.hpp"
@@ -10,11 +9,12 @@
 #include <stack>
 
 namespace fast {
-
-TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction() {
-
+TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction(float sensitivity, float minimumRadius,
+                                                                                 float maximumRadius, float radiusStep,
+                                                                                 bool extractBrightTupes,
+                                                                                 bool keepLargestTreeOnly) {
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
     createOutputPort<Mesh>(1);
     createOutputPort<Image>(2);
 
@@ -35,6 +35,13 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     mStDevBlurLarge = 1.0;
     mOnlyKeepLargestTree = false;
     mMinimumTreeSize = -1;
+    setSensitivity(sensitivity);
+    setMinimumRadius(minimumRadius);
+    setMaximumRadius(maximumRadius);
+    setRadiusStep(radiusStep);
+    if(!extractBrightTupes)
+        extractDarkTubes();
+    setKeepLargestTree(keepLargestTreeOnly);
 }
 
 void TubeSegmentationAndCenterlineExtraction::setMinimumRadius(
@@ -143,7 +150,7 @@ inline std::vector<Vector3i> floodFill(ImageAccess::pointer& access, Vector3ui s
     return thisObject;
 }
 
-void TubeSegmentationAndCenterlineExtraction::keepLargestObjects(Segmentation::pointer segmentation, Mesh::pointer& centerlines) {
+void TubeSegmentationAndCenterlineExtraction::keepLargestObjects(Image::pointer segmentation, Mesh::pointer& centerlines) {
     ImageAccess::pointer access = segmentation->getImageAccess(ACCESS_READ_WRITE);
     const int width = segmentation->getWidth();
     const int height = segmentation->getHeight();
@@ -246,7 +253,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         // Blur
         Image::pointer smoothedImage;
         if(mStDevBlurLarge > 0.1) {
-            GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+            GaussianSmoothing::pointer filter = GaussianSmoothing::New();
             filter->setInputData(input);
             filter->setStandardDeviation(mStDevBlurLarge);
             //filter->setMaskSize(7);
@@ -280,7 +287,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         // Blur
         Image::pointer smoothedImage;
         if(mStDevBlurSmall > 0.1) {
-            GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+            GaussianSmoothing::pointer filter = GaussianSmoothing::New();
             filter->setInputData(input);
             filter->setStandardDeviation(mStDevBlurSmall);
             //filter->setMaskSize(7);
@@ -350,7 +357,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
     auto segPort = segmentation->getOutputPort();
     segmentation->update();
-    Segmentation::pointer segmentationVolume = segPort->getNextFrame<Segmentation>();
+    auto segmentationVolume = segPort->getNextFrame<Image>();
 
     // TODO get largest segmentation object
     reportInfo() << "Removing small objects..." << Reporter::end();
@@ -379,10 +386,8 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
 
 Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::pointer image) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    Image::pointer floatImage = Image::New();
-    floatImage->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 1);
-    Image::pointer vectorField = Image::New();
-    vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_SNORM_INT16, 3);
+    auto floatImage = Image::create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 1);
+    auto vectorField = Image::create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_SNORM_INT16, 3);
     //vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 3);
     vectorField->setSpacing(image->getSpacing());
     SceneGraph::setParentNode(vectorField, image);
@@ -466,12 +471,10 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
 
 void TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::pointer vectorField, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    TDF = Image::New();
-    TDF->create(vectorField->getSize(), TYPE_FLOAT, 1);
+    TDF = Image::create(vectorField->getSize(), TYPE_FLOAT, 1);
     TDF->setSpacing(vectorField->getSpacing());
     SceneGraph::setParentNode(TDF, vectorField);
-    radius = Image::New();
-    radius->create(vectorField->getSize(), TYPE_FLOAT, 1);
+    radius = Image::create(vectorField->getSize(), TYPE_FLOAT, 1);
 
     OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
     OpenCLBufferAccess::pointer radiusAccess = radius->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
@@ -505,12 +508,10 @@ void TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::poin
 
 void TubeSegmentationAndCenterlineExtraction::runNonCircularTubeDetectionFilter(Image::pointer vectorField, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    TDF = Image::New();
-    TDF->create(vectorField->getSize(), TYPE_FLOAT, 1);
+    TDF = Image::create(vectorField->getSize(), TYPE_FLOAT, 1);
     TDF->setSpacing(vectorField->getSpacing());
     SceneGraph::setParentNode(TDF, vectorField);
-    radius = Image::New();
-    radius->create(vectorField->getSize(), TYPE_FLOAT, 1);
+    radius = Image::create(vectorField->getSize(), TYPE_FLOAT, 1);
 
     OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
     OpenCLBufferAccess::pointer radiusAccess = radius->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);

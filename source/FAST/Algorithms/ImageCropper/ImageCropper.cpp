@@ -24,7 +24,7 @@ void ImageCropper::setSize(VectorXi size) {
     }
 }
 
-ImageCropper::ImageCropper() {
+void ImageCropper::init() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
 
@@ -35,6 +35,20 @@ ImageCropper::ImageCropper() {
     mCropTop = 0;
 }
 
+ImageCropper::ImageCropper(VectorXi size, VectorXi offset) {
+    init();
+    setOffset(offset);
+    setSize(size);
+}
+
+ImageCropper::ImageCropper(float cropBottom, float cropTop) {
+    init();
+    if(cropBottom > 0)
+        setCropBottom(cropBottom);
+    if(cropTop > 0)
+        setCropTop(cropTop);
+}
+
 void ImageCropper::execute() {
     Image::pointer input = getInputData<Image>();
     Vector3i size = mSize;
@@ -42,11 +56,22 @@ void ImageCropper::execute() {
     if(size == Vector3i::Zero()) {
         if(mCropTop > 0) {
             size = input->getSize().cast<int>();
-            size.y() = (int)std::floor(size.y()*mCropTop);
+            if(input->getDimensions() == 2) {
+                size.y() = (int) std::floor(size.y() * mCropTop);
+            } else {
+                size.z() = (int) std::floor(size.z() * mCropTop);
+            }
         } else if(mCropBottom > 0) {
             size = input->getSize().cast<int>();
-            offset.y() = (int)std::floor(size.y()*(1.0f - mCropBottom));
-            size.y() = (int)std::floor(size.y()*mCropBottom);
+            if(input->getDimensions() == 2) {
+                offset.y() = (int) std::floor(size.y() * (1.0f - mCropBottom));
+                size.y() = (int) std::floor(size.y() * mCropBottom);
+            } else {
+                offset.z() = (int) std::floor(size.z() * (1.0f - mCropBottom));
+                size.z() = (int) std::floor(size.z() * mCropBottom);
+            }
+        } else {
+            throw Exception("ImageCropper need at least non-zero size or cropBottom/Top fraction");
         }
     }
 

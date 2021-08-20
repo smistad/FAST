@@ -1,8 +1,7 @@
-#ifndef SCENEGRAPH_HPP_
-#define SCENEGRAPH_HPP_
+#pragma once
 
-#include "FAST/AffineTransformation.hpp"
-#include "FAST/Object.hpp"
+#include <FAST/Data/DataBoundingBox.hpp>
+#include <FAST/Object.hpp>
 
 namespace fast {
 
@@ -10,10 +9,11 @@ namespace fast {
 class FAST_EXPORT  SceneGraphNode : public Object {
     FAST_OBJECT(SceneGraphNode)
     public:
-        void setTransformation(AffineTransformation::pointer transformation);
+        void setTransform(Affine3f transformation);
+        void setTransform(Transform::pointer transformation);
         void setParent(SceneGraphNode::pointer parent);
         SceneGraphNode::pointer getParent() const;
-        AffineTransformation::pointer getTransformation() const;
+        Transform::pointer getTransform() const;
         void reset();
         bool isDataNode() const;
         bool isRootNode() const;
@@ -22,23 +22,21 @@ class FAST_EXPORT  SceneGraphNode : public Object {
 
         SceneGraphNode::pointer mParent;
         bool mIsRootNode;
-        AffineTransformation::pointer mTransformation;
+        Transform::pointer mTransformation;
 };
 
 class SpatialDataObject;
 
 namespace SceneGraph {
-	FAST_EXPORT AffineTransformation::pointer getAffineTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
-	FAST_EXPORT AffineTransformation::pointer getAffineTransformationFromNode(SceneGraphNode::pointer node);
-	FAST_EXPORT AffineTransformation::pointer getAffineTransformationFromData(std::shared_ptr<SpatialDataObject> node);
-	FAST_EXPORT Affine3f getEigenAffineTransformationFromData(std::shared_ptr<SpatialDataObject> node);
+	FAST_EXPORT Transform::pointer getTransformBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
+	FAST_EXPORT Transform::pointer getTransformFromNode(SceneGraphNode::pointer node);
+	FAST_EXPORT Transform::pointer getTransformFromData(std::shared_ptr<SpatialDataObject> node);
+    FAST_EXPORT Affine3f getEigenTransformFromNode(SceneGraphNode::pointer node);
+	FAST_EXPORT Affine3f getEigenTransformFromData(std::shared_ptr<SpatialDataObject> node);
 	FAST_EXPORT void setParentNode(std::shared_ptr<SpatialDataObject> child, std::shared_ptr<SpatialDataObject> parent);
-	FAST_EXPORT SceneGraphNode::pointer insertParentNodeToData(std::shared_ptr<SpatialDataObject> child, AffineTransformation::pointer transform);
-	FAST_EXPORT SceneGraphNode::pointer insertParentNodeToNode(SceneGraphNode::pointer child, AffineTransformation::pointer transform);
+	FAST_EXPORT SceneGraphNode::pointer insertParentNodeToData(std::shared_ptr<SpatialDataObject> child, Transform::pointer transform);
+	FAST_EXPORT SceneGraphNode::pointer insertParentNodeToNode(SceneGraphNode::pointer child, Transform::pointer transform);
 };
 
 } // end namespace fast
 
-
-
-#endif /* SCENEGRAPH_HPP_ */

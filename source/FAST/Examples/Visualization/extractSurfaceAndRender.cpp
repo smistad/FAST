@@ -1,7 +1,5 @@
 /**
- * Examples/Visualization/extractSurfaceAndRender.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example extractSurfaceAndRender.cpp
  */
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
@@ -13,23 +11,18 @@ using namespace fast;
 
 int main() {
     // Import CT image
-    auto importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
     // Extract surface mesh using a threshold value
-    auto extraction = SurfaceExtraction::create();
-    extraction->setInputConnection(importer->getOutputPort());
-    extraction->setThreshold(300);
+    auto extraction = SurfaceExtraction::create(300)->connect(importer);
 
     // Render and visualize the mesh
-    auto surfaceRenderer = TriangleRenderer::New();
-    surfaceRenderer->setInputConnection(extraction->getOutputPort());
+    auto surfaceRenderer = TriangleRenderer::create()->connect(extraction);
 
-	auto window = SimpleWindow::New();
-    window->addRenderer(surfaceRenderer);
+	auto window = SimpleWindow3D::create()->connect(surfaceRenderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
-    window->start();
+    window->run();
 }

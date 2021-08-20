@@ -16,8 +16,21 @@ class TensorToSegmentation;
  * @ingroup neural-network
  */
 class FAST_EXPORT SegmentationNetwork : public NeuralNetwork {
-    FAST_OBJECT(SegmentationNetwork)
+    FAST_PROCESS_OBJECT(SegmentationNetwork)
     public:
+        FAST_CONSTRUCTOR(SegmentationNetwork,
+                         std::string, modelFilename,,
+                         float, scaleFactor, = 1.0f,
+                         bool, heatmapOutput, = false,
+                         float, threshold, = 0.5f,
+                         bool, hasBackgroundClass, = true,
+                         float, meanIntensity, = 0.0f,
+                         float, stanardDeviationIntensity, = 1.0f,
+                         std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::string, inferenceEngine, = "",
+                         std::vector<std::string>, customPlugins, = std::vector<std::string>()
+        )
         void setHeatmapOutput();
         void setSegmentationOutput();
         /**

@@ -26,25 +26,19 @@ TEST_CASE("Image sharpen", "[fast][ImageSharpening][visual]") {
 	auto image = port->getNextFrame<Image>();
 	generator->stop();
 
-	auto filter = ImageSharpening::New();
+	auto filter = ImageSharpening::create(1.0f, 1.5f)->connect(image);
 	filter->enableRuntimeMeasurements();
-	filter->setInputData(image);
-	filter->setGain(1.0f);
-	filter->setStandardDeviation(1.5);
 
-	auto renderer = ImageRenderer::New();
-	renderer->addInputData(image);
+	auto renderer = ImageRenderer::create()->connect(image);
 
-	auto renderer2 = ImageRenderer::New();
-	renderer2->addInputConnection(filter->getOutputPort());
+	auto renderer2 = ImageRenderer::create()->connect(filter);
 
-	auto window = DualViewWindow::New();
-	window->addRendererToBottomRightView(renderer);
-	window->addRendererToTopLeftView(renderer2);
-	window->getView(0)->set2DMode();
-	window->getView(1)->set2DMode();
+	auto window = DualViewWindow::create()
+	        ->connectLeft(renderer)
+	        ->connectRight(renderer2);
+	window->set2DMode();
 	window->setTimeout(2000);
-	window->start();
+	window->run();
 	filter->getRuntime()->print();
 
 }

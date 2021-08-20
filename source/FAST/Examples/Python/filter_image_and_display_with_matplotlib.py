@@ -13,10 +13,10 @@ importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Hea
 filter = fast.NonLocalMeans.create().connect(importer)
 
 # Execute pipeline and convert images to numpy arrays
-input_image = importer.updateAndGetOutputImage()
+input_image = importer.runAndGetOutputImage()
 pixel_spacing = input_image.getSpacing()
 input_image = np.asarray(input_image)
-filtered_image = np.asarray(filter.updateAndGetOutputImage())
+filtered_image = np.asarray(filter.runAndGetOutputImage())
 
 # Display using matplotlib
 f, axes = plt.subplots(1,2)

@@ -11,6 +11,10 @@ ImageToBatchGenerator::ImageToBatchGenerator() {
     m_maxBatchSize = -1;
 }
 
+ImageToBatchGenerator::ImageToBatchGenerator(int maxBatchSize) : ImageToBatchGenerator() {
+    setMaxBatchSize(maxBatchSize);
+}
+
 void ImageToBatchGenerator::generateStream() {
     std::vector<Image::pointer> imageList;
     imageList.reserve(m_maxBatchSize);
@@ -40,8 +44,7 @@ void ImageToBatchGenerator::generateStream() {
         lastFrame = image->isLastFrame();
         imageList.push_back(image);
         if(imageList.size() == m_maxBatchSize || lastFrame) {
-            auto batch = Batch::New();
-            batch->create(imageList);
+            auto batch = Batch::create(imageList);
             if(lastFrame)
                 batch->setLastFrame(getNameOfClass());
             try {

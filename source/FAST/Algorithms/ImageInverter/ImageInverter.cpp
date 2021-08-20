@@ -12,12 +12,11 @@ ImageInverter::ImageInverter() {
 
 void ImageInverter::execute() {
     auto input = getInputData<Image>();
-    auto output = Image::New();
 
     float max = input->calculateMaximumIntensity();
     float min = input->calculateMinimumIntensity();
 
-    output->createFromImage(input);
+    auto output = Image::createFromImage(input);
     Vector3ui size = input->getSize();
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());

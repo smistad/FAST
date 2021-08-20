@@ -1,6 +1,6 @@
 #include "InverseGradientSegmentation.hpp"
 #include "FAST/Data/Image.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 #include "FAST/Utility.hpp"
 
 namespace fast {
@@ -16,22 +16,22 @@ void InverseGradientSegmentation::setVectorFieldInputConnection(
 }
 
 InverseGradientSegmentation::InverseGradientSegmentation() {
-    createInputPort<Segmentation>(0);
+    createInputPort<Image>(0);
     createInputPort<Image>(1);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
 }
 
 void InverseGradientSegmentation::execute() {
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
-    auto centerline = getInputData<Segmentation>(0);
+    auto centerline = getInputData<Image>(0);
+    if(!centerline->isSegmentationType())
+        throw Exception("Input centerline must be segmentation image");
     Vector3ui size = centerline->getSize();
     auto vectorField = getInputData<Image>(1);
-    auto segmentation = Segmentation::New();
-    segmentation->createFromImage(centerline);
+    auto segmentation = Image::createFromImage(centerline);
     SceneGraph::setParentNode(segmentation, centerline);
-    Segmentation::pointer segmentation2 = Segmentation::New();
-    segmentation2->createFromImage(centerline);
+    auto segmentation2 = Image::createFromImage(centerline);
 
     OpenCLImageAccess::pointer centerlineAccess = centerline->getOpenCLImageAccess(ACCESS_READ, device);
     OpenCLImageAccess::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess(ACCESS_READ_WRITE, device);

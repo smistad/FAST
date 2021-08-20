@@ -1,12 +1,17 @@
-#ifndef PLANE_HPP_
-#define PLANE_HPP_
+#pragma once
 
 #include "FAST/Data/DataTypes.hpp"
 
 namespace fast {
 
+/**
+ * @brief Class for a 3D plane
+ *
+ * A plane is defined by a 3D position and a 3D normal
+ */
 class FAST_EXPORT  Plane {
     public:
+        Plane();
         Plane(Vector3f normal);
         Plane(Vector3f normal, Vector3f position);
         void setPosition(Vector3f position);
@@ -26,5 +31,3 @@ class FAST_EXPORT  Plane {
 };
 
 }
-
-#endif

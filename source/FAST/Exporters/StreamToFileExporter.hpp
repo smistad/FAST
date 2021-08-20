@@ -15,8 +15,12 @@ namespace fast {
  * @ingroup exporters
  */
 class FAST_EXPORT StreamToFileExporter : public ProcessObject {
-    FAST_OBJECT(StreamToFileExporter)
+    FAST_PROCESS_OBJECT(StreamToFileExporter)
     public:
+        FAST_CONSTRUCTOR(StreamToFileExporter,
+             std::string, path,,
+             std::string, recordingFolderName, = ""
+        )
         void setPath(std::string path);
         void setRecordingFolderName(std::string folder);
         void setFrameFilename(std::string name);

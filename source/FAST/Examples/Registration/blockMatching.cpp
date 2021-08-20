@@ -1,3 +1,6 @@
+/**
+ * @example blockMatching.cpp
+ */
 #include <FAST/Algorithms/BlockMatching/BlockMatching.hpp>
 #include <FAST/Streamers/ImageFileStreamer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
@@ -6,6 +9,7 @@
 #include <FAST/Visualization/VectorFieldRenderer/VectorFieldColorRenderer.hpp>
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Algorithms/VectorMedianFilter/VectorMedianFilter.hpp>
+#include <FAST/Exporters/StreamToFileExporter.hpp>
 #include <FAST/Exporters/ImageFileExporter.hpp>
 
 using namespace fast;
@@ -25,57 +29,51 @@ int main(int argc, char** argv) {
     parser.addOption("disable-compression", "Disable compression when saving as mhd (.zraw)");
     parser.parse(argc, argv);
 
-    auto streamer = ImageFileStreamer::New();
-    streamer->setFilenameFormat(parser.get("path"));
+    auto streamer = ImageFileStreamer::create(parser.get("path"));
 
-    auto blockMatching = BlockMatching::New();
-    blockMatching->setInputConnection(streamer->getOutputPort());
+    auto blockMatching = BlockMatching::create(
+            parser.get<int>("block-size"),
+            parser.get<int>("search-size"),
+            BlockMatching::stringToMetric(parser.get("matching-metric"))
+            )->connect(streamer);
     blockMatching->setIntensityThreshold(parser.get<float>("intensity-threshold"));
-    blockMatching->setBlockSize(parser.get<int>("block-size"));
-    blockMatching->setSearchSize(parser.get<int>("search-size"));
-    blockMatching->setMatchingMetric(BlockMatching::stringToMetric(parser.get("matching-metric")));
     blockMatching->enableRuntimeMeasurements();
 
     ProcessObject::pointer source = blockMatching;
     if(parser.get<int>("median-filter-size") > 0) {
-        auto filter = VectorMedianFilter::New();
-        filter->setWindowSize(parser.get<int>("median-filter-size"));
-        filter->setInputConnection(blockMatching->getOutputPort());
+        auto filter = VectorMedianFilter::create(parser.get<int>("median-filter-size"))->connect(blockMatching);
         source = filter;
     }
 
     if(!parser.gotValue("export-to")) {
         streamer->enableLooping();
         // Visualize
-        auto renderer = ImageRenderer::New();
-        renderer->addInputConnection(streamer->getOutputPort());
+        auto renderer = ImageRenderer::create()->connect(streamer);
 
         Renderer::pointer vectorRenderer;
         if (parser.getOption("display-lines")) {
-            vectorRenderer = VectorFieldRenderer::New();
+            vectorRenderer = VectorFieldRenderer::create();
         } else {
-            vectorRenderer = VectorFieldColorRenderer::New();
+            vectorRenderer = VectorFieldColorRenderer::create();
         }
-        vectorRenderer->addInputConnection(source->getOutputPort());
+        vectorRenderer->connect(source);
 
-        auto window = SimpleWindow::New();
-        window->addRenderer(renderer);
-        window->addRenderer(vectorRenderer);
-        window->getView()->setBackgroundColor(Color::Black());
-        window->set2DMode();
-        window->start();
+        auto window = SimpleWindow2D::create(Color::Black())->connect(renderer)->connect(vectorRenderer);
+        window->run();
     } else {
+        // TODO Use StreamToFileExporter instead..
         // Export vector fields to disk
         std::string exportPath = parser.get("export-to");
         int timestep = 0;
-        ImageFileExporter::pointer exporter = ImageFileExporter::New();
-        exporter->setCompression(!parser.getOption("disable-compression"));
-        exporter->setInputConnection(source->getOutputPort());
-        while(streamer->getNrOfFrames() > timestep) {
-            std::cout << "Processing frame: " << timestep << std::endl;
+        auto dataStream = DataStream(source);
+        while(!dataStream.isDone()) {
+            auto frame = dataStream.getNextFrame<Image>();
+            std::cout << "Processing frame: " << timestep << " " << frame.get() << std::endl;
             const std::string path = join(exportPath, "frame_" + std::to_string(timestep) + "." + parser.get("export-format"));
-            exporter->setFilename(path);
-            exporter->update();
+            auto exporter = ImageFileExporter::create(path);
+            exporter->setInputData(frame);
+            exporter->setCompression(!parser.getOption("disable-compression"));
+            exporter->run();
             ++timestep;
         }
     }

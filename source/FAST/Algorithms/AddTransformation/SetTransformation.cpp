@@ -4,23 +4,18 @@
 
 namespace fast {
 
-
-void SetTransformation::setTransformationInputConnection(DataChannel::pointer port) {
-    setInputConnection(1, port);
-}
-
 SetTransformation::SetTransformation() {
     createInputPort<SpatialDataObject>(0);
-    createInputPort<AffineTransformation>(1);
+    createInputPort<Transform>(1);
     createOutputPort<SpatialDataObject>(0);
 }
 
 void SetTransformation::execute() {
-    SpatialDataObject::pointer data = getInputData<SpatialDataObject>(0);
-    AffineTransformation::pointer transform = getInputData<AffineTransformation>(1);
-    SceneGraphNode::pointer dataNode = data->getSceneGraphNode();
+    auto data = getInputData<SpatialDataObject>(0);
+    auto transform = getInputData<Transform>(1);
+    auto dataNode = data->getSceneGraphNode();
 
-    dataNode->setTransformation(transform);
+    dataNode->setTransform(transform);
 
     addOutputData(0, data);
 }

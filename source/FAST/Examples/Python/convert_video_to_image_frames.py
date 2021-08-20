@@ -13,19 +13,12 @@ import numpy as np
 
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
-streamer = fast.MovieStreamer.New()
-streamer.setFilename(fast.Config.getTestDataPath() + 'US/sagittal_spine.avi')
-
-dataChannel = streamer.getOutputPort()
-streamer.update() # Start pipeline
+streamer = fast.MovieStreamer.create(fast.Config.getTestDataPath() + 'US/sagittal_spine.avi')
 
 frame_list = []
 counter = 0
-while True:
-    frame = dataChannel.getNextImage()
+for frame in fast.DataStream(streamer):
     counter += 1
-    if frame.isLastFrame():
-        break
 
     # Only show every X frame
     if counter % 20 == 0: frame_list.append((np.asarray(frame), counter))

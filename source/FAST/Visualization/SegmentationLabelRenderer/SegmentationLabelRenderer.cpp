@@ -116,7 +116,7 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
         textimg.fill(QColor(0, 0, 0, 0));
         QPainter painter(&textimg);
         float pixelArea = spacing.x()*spacing.y();
-        for(auto& region : m_regions[inputNr]->getAccess(ACCESS_READ)->getData()) {
+        for(auto& region : m_regions[inputNr]->get()) {
 
             if(region.area*pixelArea < m_areaThreshold) // If object to small.. (area in mm^2)
                 continue;
@@ -235,21 +235,20 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
     for(auto it : mImageUsed) {
         const uint inputNr = it.first;
 
-        AffineTransformation::pointer transform;
-        if(mode2D) {
-            // If rendering is in 2D mode we skip any transformations
-            transform = AffineTransformation::New();
-        } else {
-            transform = SceneGraph::getAffineTransformationFromData(it.second);
+
+        Affine3f transform = Affine3f::Identity();
+        // If rendering is in 2D mode we skip any transformations
+        if(!mode2D) {
+            transform = SceneGraph::getEigenTransformFromData(it.second);
         }
 
         auto spacing = it.second->getSpacing();
-        transform->getTransform().scale(Vector3f(spacing.x(), spacing.x(), 1.0f)/mScales[inputNr]);
+        transform.scale(Vector3f(spacing.x(), spacing.x(), 1.0f)/mScales[inputNr]);
 
         // Get width and height of texture
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[inputNr]);
         uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
         transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
         transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");

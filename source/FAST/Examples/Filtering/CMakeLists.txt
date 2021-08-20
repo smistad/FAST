@@ -1,2 +1,2 @@
-fast_add_example(gaussianSmoothingFilter gaussianSmoothingFilter.cpp)
+fast_add_example(gaussianSmoothing gaussianSmoothing.cpp)
 fast_add_example(nonLocalMeans nonLocalMeans.cpp)

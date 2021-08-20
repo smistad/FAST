@@ -11,15 +11,17 @@ namespace fast {
 /**
  * \brief A 2D bounding box data object.
  *
- * \ingroup data
+ * \ingroup data bounding-box
  */
 class FAST_EXPORT BoundingBox : public SpatialDataObject {
-    FAST_OBJECT(BoundingBox)
+    FAST_OBJECT_V4(BoundingBox)
     public:
-        /**
-         * Create bounding box object with position and size set in millimeters
-         */
-        void create(Vector2f position, Vector2f size, uchar label = 1, float score = 0.0f);
+        FAST_CONSTRUCTOR(BoundingBox,
+                Vector2f, position,,
+                Vector2f, size,,
+                uchar, label, = 1,
+                float, score, = 0.0f
+        )
         void setLabel(uchar label);
         uchar getLabel();
         /**
@@ -54,12 +56,12 @@ class FAST_EXPORT BoundingBox : public SpatialDataObject {
 /**
  * \brief A data object representing a (large) set of bounding boxes.
  *
- * \ingroup data
+ * \ingroup data bounding-box
  */
 class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
-    FAST_OBJECT(BoundingBoxSet)
+    FAST_OBJECT_V4(BoundingBoxSet)
     public:
-        void create();
+        FAST_CONSTRUCTOR(BoundingBoxSet)
         int getNrOfLines();
         int getNrOfVertices();
         BoundingBoxSetAccess::pointer getAccess(accessType type);
@@ -69,7 +71,6 @@ class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
         ~BoundingBoxSet();
         virtual DataBoundingBox getBoundingBox() const override;
     protected:
-        BoundingBoxSet();
         void setAllDataToOutOfDate();
 
 		// OpenGL data
@@ -94,13 +95,16 @@ class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
 };
 
 /**
- * Process object which accumulates incoming bounding box sets to a single bounding box set.
+ * @brief Accumulate a stream of bounding box sets to a single large bounding box set.
+ *
+ * @todo move to algorithms folder
+ * @ingroup bounding-box
  */
 class FAST_EXPORT BoundingBoxSetAccumulator : public ProcessObject {
-    FAST_OBJECT(BoundingBoxSetAccumulator)
+    FAST_PROCESS_OBJECT(BoundingBoxSetAccumulator)
 	public:
+        FAST_CONSTRUCTOR(BoundingBoxSetAccumulator)
 	protected:
-        BoundingBoxSetAccumulator();
         void execute() override;
 
         BoundingBoxSet::pointer m_accumulatedBBset;

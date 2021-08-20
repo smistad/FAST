@@ -8,11 +8,16 @@ namespace fast {
 /**
  * @brief Export an ImagePyramid to disk in the tiled pyramid TIFF format.
  *
+ * @ingroup exporter wsi
  * @sa TIFFImagePyramidImporter
  */
 class FAST_EXPORT TIFFImagePyramidExporter : public FileExporter {
-    FAST_OBJECT(TIFFImagePyramidExporter)
+    FAST_PROCESS_OBJECT(TIFFImagePyramidExporter)
 public:
+    FAST_CONSTRUCTOR(TIFFImagePyramidExporter,
+                     std::string, filename,,
+                     ImageCompression, compression, = ImageCompression::UNSPECIFIED
+    )
     void setCompression(ImageCompression compression);
     void loadAttributes() override;
 protected:

@@ -7,7 +7,7 @@
 using namespace fast;
 
 TEST_CASE("No filename given to the MetaImageExporter", "[fast][MetaImageExporter]") {
-    Image::pointer image = Image::New();
+    Image::pointer image = Image::create(32, 32, TYPE_UINT8, 1);
     MetaImageExporter::pointer exporter = MetaImageExporter::New();
     exporter->setInputData(image);
     CHECK_THROWS(exporter->update());
@@ -40,9 +40,9 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
     transformMatrix(1,2) = 7.0;
     transformMatrix(2,2) = 8.0;
 
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->getTransform().translation() = offset;
-    T->getTransform().linear() = transformMatrix;
+    auto T = Affine3f::Identity();
+    T.translation() = offset;
+    T.linear() = transformMatrix;
 
     unsigned int width = 32;
     unsigned int height = 46;
@@ -50,13 +50,12 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             DataType type = (DataType)typeNr;
 
-            Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*channels, type);
-            image->create(width, height, type, channels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
-            image->getSceneGraphNode()->setTransformation(T);
+            image->getSceneGraphNode()->setTransform(T);
 
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
@@ -70,16 +69,16 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
             DataChannel::pointer port = importer->getOutputPort();
             importer->update();
             Image::pointer image2 = port->getNextFrame<Image>();
-            AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
+            auto T2 = image2->getSceneGraphNode()->getTransform()->get();
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {
                 CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-                CHECK(offset[i] == Approx(T2->getTransform().translation()[i]));
+                CHECK(offset[i] == Approx(T2.translation()[i]));
             }
             for(unsigned int i = 0; i < 3; i++) {
             for(unsigned int j = 0; j < 3; j++) {
-                CHECK(transformMatrix(i,j) == Approx(T2->getTransform().linear()(i,j)));
+                CHECK(transformMatrix(i,j) == Approx(T2.linear()(i,j)));
             }}
 
 
@@ -120,9 +119,9 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
     transformMatrix(1,2) = 7.0;
     transformMatrix(2,2) = 8.0;
 
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->getTransform().translation() = offset;
-    T->getTransform().linear() = transformMatrix;
+    auto T = Affine3f::Identity();
+    T.translation() = offset;
+    T.linear() = transformMatrix;
 
     unsigned int width = 32;
     unsigned int height = 22;
@@ -131,13 +130,12 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             DataType type = (DataType)typeNr;
 
-            Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*depth*channels, type);
-            image->create(width, height, depth, type, channels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, depth, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
-            image->getSceneGraphNode()->setTransformation(T);
+            image->getSceneGraphNode()->setTransform(T);
 
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
@@ -151,16 +149,16 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
             DataChannel::pointer port = importer->getOutputPort();
             importer->update();
             Image::pointer image2 = port->getNextFrame<Image>();
-            AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
+            auto T2 = image2->getSceneGraphNode()->getTransform()->get();
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {
                 CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-                CHECK(offset[i] == Approx(T2->getTransform().translation()[i]));
+                CHECK(offset[i] == Approx(T2.translation()[i]));
             }
             for(unsigned int i = 0; i < 3; i++) {
             for(unsigned int j = 0; j < 3; j++) {
-                CHECK(transformMatrix(i,j) == Approx(T2->getTransform().linear()(i,j)));
+                CHECK(transformMatrix(i,j) == Approx(T2.linear()(i,j)));
             }}
 
             CHECK(image2->getWidth() == width);
@@ -199,9 +197,9 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
     transformMatrix(1,2) = 7.0;
     transformMatrix(2,2) = 8.0;
 
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->getTransform().translation() = offset;
-    T->getTransform().linear() = transformMatrix;
+    auto T = Affine3f::Identity();
+    T.translation() = offset;
+    T.linear() = transformMatrix;
 
     unsigned int width = 32;
     unsigned int height = 46;
@@ -211,13 +209,12 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
             INFO("Type nr: " << typeNr);
             DataType type = (DataType)typeNr;
 
-            Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*channels, type);
-            image->create(width, height, type, channels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
-            image->getSceneGraphNode()->setTransformation(T);
+            image->getSceneGraphNode()->setTransform(T);
 
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
@@ -232,16 +229,16 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
             auto port = importer->getOutputPort();
             importer->update();
             Image::pointer image2 = port->getNextFrame<Image>();
-            AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
+            auto T2 = image2->getSceneGraphNode()->getTransform()->get();
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {
                 CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-                CHECK(offset[i] == Approx(T2->getTransform().translation()[i]));
+                CHECK(offset[i] == Approx(T2.translation()[i]));
             }
             for(unsigned int i = 0; i < 3; i++) {
             for(unsigned int j = 0; j < 3; j++) {
-                CHECK(transformMatrix(i,j) == Approx(T2->getTransform().linear()(i,j)));
+                CHECK(transformMatrix(i,j) == Approx(T2.linear()(i,j)));
             }}
 
             CHECK(image2->getWidth() == width);
@@ -281,9 +278,9 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
     transformMatrix(2,2) = 8.0;
 
 
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->getTransform().translation() = offset;
-    T->getTransform().linear() = transformMatrix;
+    auto T = Affine3f::Identity();
+    T.translation() = offset;
+    T.linear() = transformMatrix;
 
     unsigned int width = 32;
     unsigned int height = 22;
@@ -292,13 +289,12 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             DataType type = (DataType)typeNr;
 
-            Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*depth*channels, type);
-            image->create(width, height, depth, type, channels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, depth, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
-            image->getSceneGraphNode()->setTransformation(T);
+            image->getSceneGraphNode()->setTransform(T);
 
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
@@ -313,16 +309,16 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
             auto port = importer->getOutputPort();
             importer->update();
             Image::pointer image2 = port->getNextFrame<Image>();
-            AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
+            auto T2 = image2->getSceneGraphNode()->getTransform()->get();
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {
                 CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-                CHECK(offset[i] == Approx(T2->getTransform().translation()[i]));
+                CHECK(offset[i] == Approx(T2.translation()[i]));
             }
             for(unsigned int i = 0; i < 3; i++) {
             for(unsigned int j = 0; j < 3; j++) {
-                CHECK(transformMatrix(i,j) == Approx(T2->getTransform().linear()(i,j)));
+                CHECK(transformMatrix(i,j) == Approx(T2.linear()(i,j)));
             }}
 
             CHECK(image2->getWidth() == width);

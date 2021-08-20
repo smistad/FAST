@@ -9,6 +9,11 @@ namespace fast {
 class ImagePyramid;
 class ImageSharpening;
 
+/**
+ * @brief Renders tiled image pyramids
+ *
+ * @ingroup renderer wsi
+ */
 class FAST_EXPORT ImagePyramidRenderer : public Renderer {
     FAST_PROCESS_OBJECT(ImagePyramidRenderer)
     public:

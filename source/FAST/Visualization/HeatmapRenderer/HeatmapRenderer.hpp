@@ -20,7 +20,7 @@ class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
                          bool, useInterpolation, = true,
                          float, minConfidence, = 0.5f,
                          float, maxOpacity, = 0.3f,
-                         FAST_P(std::map<uint, Color>), channelColors, = FAST_P(std::map<uint, Color>)()
+                         LabelColors, channelColors, = LabelColors()
         )
         void setMinConfidence(float confidence);
         void setMaxOpacity(float opacity);

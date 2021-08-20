@@ -10,8 +10,12 @@ namespace fast {
  * @ingroup neural-network
  */
 class FAST_EXPORT TensorToSegmentation : public ProcessObject {
-    FAST_OBJECT(TensorToSegmentation)
+    FAST_PROCESS_OBJECT(TensorToSegmentation)
     public:
+        FAST_CONSTRUCTOR(TensorToSegmentation,
+                         float, threshold, = 0.5f,
+                         bool, hasBackgroundClass, = true
+        )
         /**
          * Threshold to accept a channel X as being class X.
          *
@@ -28,7 +32,6 @@ class FAST_EXPORT TensorToSegmentation : public ProcessObject {
         void setBackgroundClass(bool hasBackgroundClass);
         void loadAttributes();
     protected:
-        TensorToSegmentation();
         void execute() override;
         float m_threshold = 0.5f;
         bool m_hasBackgroundClass = true;

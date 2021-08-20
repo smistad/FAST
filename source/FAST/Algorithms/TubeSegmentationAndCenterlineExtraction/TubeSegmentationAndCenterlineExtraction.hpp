@@ -1,16 +1,41 @@
-#ifndef TUBE_SEGMENTATION_AND_CENTERLINE_EXTRACTION_HPP
-#define TUBE_SEGMENTATION_AND_CENTERLINE_EXTRACTION_HPP
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
-class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObject {
-    FAST_OBJECT(TubeSegmentationAndCenterlineExtraction)
+/**
+ * @brief Segmentation and centerline extraction of tubular structures
+ *
+ * This implementation is described in the article
+ * "GPU Accelerated Segmentation and Centerline Extraction of TubularStructures from Medical Images"
+ * by Smistad et al. 2014
+ * https://www.eriksmistad.no/wp-content/uploads/gpu_accelerated_extraction_of_tubular_structures.pdf
+ *
+ * Inputs:
+ * - 0: Image 3D
+ *
+ * Outputs:
+ * - 0: Image segmentation 3D
+ * - 1: Mesh centerline
+ * - 2: Image 3D tubular detection heatmap
+ *
+ * @ingroup segmentation
+ */
+class FAST_EXPORT TubeSegmentationAndCenterlineExtraction : public ProcessObject {
+    FAST_PROCESS_OBJECT(TubeSegmentationAndCenterlineExtraction)
     public:
+        FAST_CONSTRUCTOR(TubeSegmentationAndCenterlineExtraction,
+            float, sensitivity, = 0.5f,
+            float, minimumRadius, = 1.0f,
+            float, maximumRadius, = 5.0f,
+            float, radiusStep, = 0.5f,
+            bool, extractBrightTubes, = false,
+            bool, keepLargestTreeOnly, = false
+        )
         void setKeepLargestTree(bool keep);
         void setMinimumTreeSize(int nrOfVoxels);
         void setMinimumRadius(float radius);
@@ -32,14 +57,13 @@ class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObjec
         DataChannel::pointer getCenterlineOutputPort();
         DataChannel::pointer getTDFOutputPort();
     private:
-        TubeSegmentationAndCenterlineExtraction();
         void execute();
 
         Image::pointer createGradients(Image::pointer image);
         void runTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius);
         void runNonCircularTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius);
         Image::pointer runGradientVectorFlow(Image::pointer vectorField);
-        void keepLargestObjects(Segmentation::pointer segmentation, Mesh::pointer& centerlines);
+        void keepLargestObjects(Image::pointer segmentation, Mesh::pointer& centerlines);
 
         // Parameters
 
@@ -60,5 +84,3 @@ class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObjec
 };
 
 } // end namespace fast
-
-#endif

@@ -46,13 +46,17 @@ class FAST_EXPORT DataStream : public Object {
         std::vector<std::shared_ptr<DataChannel>> m_outputPorts;
         std::map<uint, std::shared_ptr<DataObject>> m_nextDataObjects;
         bool m_done = false;
-        uint m_executeToken = 0;
+        int m_executeToken = 0;
         std::shared_ptr<DataObject> getNextDataObject(uint portID);
 };
 
 template<typename DataType>
 std::shared_ptr<DataType> DataStream::getNextFrame(uint portID) {
-    return std::dynamic_pointer_cast<DataType>(getNextDataObject(portID));
+    auto dataObject = getNextDataObject(portID);
+    auto converted = std::dynamic_pointer_cast<DataType>(dataObject);
+    if(converted == nullptr)
+        throw Exception("Failed to cast data object to " + DataType::getStaticNameOfClass() + " in DataStream::getNextFrame(). Object is  " + dataObject->getNameOfClass());
+    return converted;
 }
 
 }

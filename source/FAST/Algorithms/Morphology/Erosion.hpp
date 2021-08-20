@@ -3,9 +3,16 @@
 #include "FAST/ProcessObject.hpp"
 
 namespace fast {
-    class FAST_EXPORT Erosion : public ProcessObject {
-    FAST_OBJECT(Erosion)
+
+/**
+ * @brief Perform binary erosion with disk structuring element
+ *
+ * @ingroup morphology segmentation
+ */
+class FAST_EXPORT Erosion : public ProcessObject {
+    FAST_PROCESS_OBJECT(Erosion)
     public:
+        FAST_CONSTRUCTOR(Erosion, int, size, = 3)
         /**
          * Set size of structuring element, must be odd
          * @param size
@@ -13,7 +20,6 @@ namespace fast {
         void setStructuringElementSize(int size);
         void loadAttributes() override;
     private:
-        Erosion();
         void execute() override;
 
         int mSize;

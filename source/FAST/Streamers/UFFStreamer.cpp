@@ -432,8 +432,7 @@ void UFFStreamer::generateStream() {
 
             int frameNr = getCurrentFrameIndexAndUpdate();
 
-            auto image = Image::New();
-            image->create(m_uffData->width, m_uffData->height, DataType::TYPE_UINT8, 1,
+            auto image = Image::create(m_uffData->width, m_uffData->height, DataType::TYPE_UINT8, 1,
                           m_uffData->dataScanconverted[frameNr].data());
             image->setSpacing(m_uffData->spacing.x(), m_uffData->spacing.y(), m_uffData->spacing.z());
 
@@ -471,8 +470,7 @@ void UFFStreamer::generateStream() {
 
             int frameNr = getCurrentFrameIndexAndUpdate();
 
-            auto image = Image::New();
-            image->create(m_uffData->width, m_uffData->height, DataType::TYPE_UINT8, 1,
+            auto image = Image::create(m_uffData->width, m_uffData->height, DataType::TYPE_UINT8, 1,
                           m_uffData->dataScanconverted[frameNr].data());
             image->setSpacing(m_uffData->spacing.x(), m_uffData->spacing.y(), m_uffData->spacing.z());
             addOutputData(0, image);

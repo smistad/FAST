@@ -6,6 +6,12 @@
 
 namespace fast {
 
+/**
+ * @brief Object representing the shape of a Tensor
+ *
+ * @ingroup neural-network
+ * @sa Tensor
+ */
 class FAST_EXPORT TensorShape {
     public:
         /**

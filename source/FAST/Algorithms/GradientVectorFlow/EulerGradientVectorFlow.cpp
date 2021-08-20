@@ -38,13 +38,13 @@ inline uint getPeakMemoryUsage(Image::pointer input, bool use16bit, bool writing
     return result;
 }
 
-EulerGradientVectorFlow::EulerGradientVectorFlow() {
+EulerGradientVectorFlow::EulerGradientVectorFlow(float mu, uint iterations, bool use16bitStorage) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cl");
-    mIterations = 0;
-    mMu = 0.05f;
-    mUse16bitFormat = true;
+    mIterations = iterations;
+    setMuConstant(mu);
+    mUse16bitFormat = use16bitStorage;
 }
 
 void EulerGradientVectorFlow::setIterations(uint iterations) {
@@ -414,8 +414,7 @@ void EulerGradientVectorFlow::execute() {
         iterations = std::max(input->getWidth(), std::max(input->getHeight(), input->getDepth()));
 
     // Create output, currently only type float is output, not normalized 16 bit
-    auto output = Image::New();
-    output->create(input->getSize(), TYPE_FLOAT, input->getNrOfChannels());
+    auto output = Image::create(input->getSize(), TYPE_FLOAT, input->getNrOfChannels());
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
 

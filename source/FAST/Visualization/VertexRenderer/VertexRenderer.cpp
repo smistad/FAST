@@ -46,8 +46,8 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
 
-        auto transform = SceneGraph::getAffineTransformationFromData(points);
-        setShaderUniform("transform", transform->getTransform());
+        auto transform = SceneGraph::getEigenTransformFromData(points);
+        setShaderUniform("transform", transform);
         setShaderUniform("pointSize", pointSize);
 
         auto access = points->getVertexBufferObjectAccess(ACCESS_READ);
@@ -145,11 +145,11 @@ void VertexRenderer::draw2D(
     queue.enqueueReleaseGLObjects(&v);
 }
 
-VertexRenderer::VertexRenderer() {
-    mDefaultPointSize = 10;
-    mDefaultColorSet = false;
-    mDefaultDrawOnTop = false;
-    createInputPort<Mesh>(0, false);
+VertexRenderer::VertexRenderer(float size, Color color, bool drawOnTop) {
+    setDefaultSize(size);
+    setDefaultColor(color);
+    setDefaultDrawOnTop(drawOnTop);
+    createInputPort(0, "Mesh");
 
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.vert",

@@ -4,15 +4,13 @@ namespace fast {
 
 void ImageSharpening::loadAttributes() {
 	setGain(getFloatAttribute("gain"));
-	GaussianSmoothingFilter::loadAttributes();
+	GaussianSmoothing::loadAttributes();
 }
 
-ImageSharpening::ImageSharpening() {
-	createInputPort<Image>(0);
-	createOutputPort<Image>(0);
-
+ImageSharpening::ImageSharpening(float gain, float stddev, uchar maskSize) : GaussianSmoothing(stddev, maskSize) {
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSharpening/ImageSharpening.cl");
     createFloatAttribute("gain", "Unsharp masking gain", "Unsharp masking gain", m_gain);
+    setGain(gain);
 }
 
 void ImageSharpening::setGain(float gain) {
@@ -26,7 +24,6 @@ void ImageSharpening::execute() {
     if(input->getDimensions() != 2)
         throw Exception("ImageSharpening only supports 2D images");
 
-    auto output = Image::New();
 
     char maskSize = mMaskSize;
     if(maskSize <= 0) // If mask size is not set calculate it instead
@@ -36,11 +33,12 @@ void ImageSharpening::execute() {
         maskSize = 19;
 
     // Initialize output image
+    Image::pointer output;
     if(mOutputTypeSet) {
-        output->create(input->getSize(), mOutputType, input->getNrOfChannels());
+        output = Image::create(input->getSize(), mOutputType, input->getNrOfChannels());
         output->setSpacing(input->getSpacing());
     } else {
-        output->createFromImage(input);
+        output = Image::createFromImage(input);
     }
     mOutputType = output->getDataType();
     SceneGraph::setParentNode(output, input);

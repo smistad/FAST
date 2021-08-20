@@ -15,50 +15,37 @@
 using namespace fast;
 
 TEST_CASE("TIFFImagePyramidExporter", "[fast][TIFFImagePyramidExporter][wsi][visual]") {
-    auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
 
-    auto exporter = TIFFImagePyramidExporter::New();
-    exporter->setFilename("image-pyramid-test.tiff");
-    exporter->setInputConnection(importer->getOutputPort());
+    auto exporter = TIFFImagePyramidExporter::create("image-pyramid-test.tiff")
+            ->connect(importer);
     exporter->enableRuntimeMeasurements();
-    exporter->update();
+    exporter->run();
 
-    auto importer2 = WholeSlideImageImporter::New();
-    importer2->setFilename("image-pyramid-test.tiff");
+    auto importer2 = WholeSlideImageImporter::create("image-pyramid-test.tiff");
 
-    auto renderer = ImagePyramidRenderer::New();
-    renderer->setInputConnection(importer2->getOutputPort());
+    auto renderer = ImagePyramidRenderer::create()->connect(importer2);
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->set2DMode();
+    auto window = SimpleWindow2D::create()->connect(renderer);
     window->setTimeout(2000);
-    window->start();
+    window->run();
     exporter->getAllRuntimes()->printAll();
 }
 
 TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExporter][wsi][visual]") {
-    auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
     //importer->setFilename("/home/smistad/Downloads/OS-1.tiff");
 
-    auto tissue = TissueSegmentation::New();
-    tissue->setInputConnection(importer->getOutputPort());
+    auto tissue = TissueSegmentation::create()->connect(importer);
 
-    auto generator = PatchGenerator::New();
-    generator->setInputConnection(importer->getOutputPort());
-    generator->setPatchLevel(1);
-    generator->setPatchSize(512, 512);
-    generator->setInputConnection(1, tissue->getOutputPort());
+    auto generator = PatchGenerator::create(512, 512, 1, 1)
+            ->connect(0, importer)
+            ->connect(1, tissue);
     //generator->setOverlap(0.1);
 
-    auto segmentation = BinaryThresholding::New();
-    segmentation->setInputConnection(generator->getOutputPort());
-    segmentation->setLowerThreshold(200);
+    auto segmentation = BinaryThresholding::create(200)->connect(generator);
 
-    auto stitcher = PatchStitcher::New();
-    stitcher->setInputConnection(segmentation->getOutputPort());
+    auto stitcher = PatchStitcher::create()->connect(segmentation);
     stitcher->enableRuntimeMeasurements();
     auto port = stitcher->getOutputPort();
 

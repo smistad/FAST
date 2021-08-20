@@ -1,9 +1,16 @@
 #pragma once
 
-#include "FAST/AffineTransformation.hpp"
-#include "FAST/Data/DataTypes.hpp"
+#include <FAST/Data/DataTypes.hpp>
+#include <FAST/Data/SimpleDataObject.hpp>
 
 namespace fast {
+
+/**
+ * @brief Data object for a 3D affine transform.
+ *
+ * The 3D transform is stored as an Eigen Affine3f object (4x4 32 bit float matrix)
+ */
+FAST_SIMPLE_DATA_OBJECT2(Transform, Affine3f, Affine3f::Identity())
 
 /**
  * \brief Defines the extent of a spatial data object.
@@ -21,7 +28,8 @@ class FAST_EXPORT DataBoundingBox {
         DataBoundingBox(MatrixXf corners);
         DataBoundingBox();
         MatrixXf getCorners() const;
-        DataBoundingBox getTransformedBoundingBox(AffineTransformation::pointer transform) const;
+        DataBoundingBox getTransformedBoundingBox(Transform::pointer transform) const;
+        DataBoundingBox getTransformedBoundingBox(Affine3f transform) const;
         bool isInitialized() const;
     private:
         void initialize(std::vector<Vector3f>);

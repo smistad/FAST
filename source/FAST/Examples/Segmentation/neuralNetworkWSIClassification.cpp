@@ -1,7 +1,5 @@
 /**
- * Examples/Segmentation/neuralNetworkWSISegmentation.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example neuralNetworkWSIClassification.cpp
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngineManager.hpp>

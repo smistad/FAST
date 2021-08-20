@@ -35,7 +35,6 @@ void ImageImporter::execute() {
     // Get pixel data
     convertedPixelData = convertedImage.bits();
 
-    auto output = Image::New();
     if(convertedImage.width()*convertedImage.depth()/8 != convertedImage.bytesPerLine()) {
         const int bytesPerPixel = (convertedImage.depth()/8);
         std::unique_ptr<uchar[]> fixedPixelData = std::make_unique<uchar[]>(image.width()*image.height()*bytesPerPixel);
@@ -47,7 +46,7 @@ void ImageImporter::execute() {
                     image.width()*bytesPerPixel
             );
         }
-        output->create(
+        auto output = Image::create(
             image.width(),
             image.height(),
             TYPE_UINT8,
@@ -55,8 +54,9 @@ void ImageImporter::execute() {
             getMainDevice(),
             fixedPixelData.get()
         );
+        addOutputData(0, output);
     } else {
-        output->create(
+        auto output = Image::create(
             image.width(),
             image.height(),
             TYPE_UINT8,
@@ -64,8 +64,8 @@ void ImageImporter::execute() {
             getMainDevice(),
             convertedPixelData
         );
+        addOutputData(0, output);
     }
-    addOutputData(0, output);
 }
 
 void ImageImporter::loadAttributes() {

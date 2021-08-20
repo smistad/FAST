@@ -11,6 +11,13 @@ namespace fast {
  * from a 3D Image. This GPU OpenCL implementation uses histogram pyramids and is documented in the article
  * "Real-time surface extraction and visualization of medical images using OpenCL and GPUs" Smistad et al. 2012
  *
+ * Inputs:
+ * - 0: Image 3D
+ *
+ * Outputs:
+ * - 0: Mesh - Surface triangle mesh extracted from input image
+ *
+ * @ingroup segmentation
  */
 class FAST_EXPORT  SurfaceExtraction : public ProcessObject {
     FAST_PROCESS_OBJECT(SurfaceExtraction)

@@ -64,15 +64,12 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, 
         mVAO[it.first] = VAO_ID;
         glBindVertexArray(VAO_ID);
 
-        AffineTransformation::pointer transform;
-        if(mode2D) {
-            // If rendering is in 2D mode we skip any transformations
-            transform = AffineTransformation::New();
-        } else {
-            transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
+        Affine3f transform = Affine3f::Identity();
+        // If rendering is in 2D mode we skip any transformations
+        if(!mode2D) {
+            transform = SceneGraph::getEigenTransformFromData(surfaceToRender);
         }
-
-        setShaderUniform("transform", transform->getTransform());
+        setShaderUniform("transform", transform);
 
         float opacity = mDefaultOpacity;
         if(mInputOpacities.count(it.first) > 0) {

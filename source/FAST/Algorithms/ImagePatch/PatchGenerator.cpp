@@ -7,7 +7,6 @@ namespace fast {
 PatchGenerator::PatchGenerator() {
     createInputPort<SpatialDataObject>(0); // Either ImagePyramid or Image/Volume
     createInputPort<Image>(1, false); // Optional mask
-
     createOutputPort<Image>(0);
 
     m_width = -1;
@@ -23,6 +22,13 @@ PatchGenerator::PatchGenerator() {
     createIntegerAttribute("patch-level", "Patch level", "Patch level used for image pyramid inputs", m_level);
     createFloatAttribute("patch-overlap", "Patch overlap", "Patch overlap in percent", m_overlapPercent);
     createFloatAttribute("mask-threshold", "Mask threshold", "Threshold, in percent, for how much of the candidate patch must be inside the mask to be accepted", m_maskThreshold);
+}
+
+PatchGenerator::PatchGenerator(int width, int height, int depth, int level, float percent, float maskThreshold) : PatchGenerator() {
+    setPatchSize(width, height, depth);
+    setPatchLevel(level);
+    setOverlap(percent);
+    setMaskThreshold(maskThreshold);
 }
 
 void PatchGenerator::loadAttributes() {
@@ -151,7 +157,7 @@ void PatchGenerator::generateStream() {
         const int width = m_inputVolume->getWidth();
         const int height = m_inputVolume->getHeight();
         const int depth = m_inputVolume->getDepth();
-        auto transformData = SceneGraph::getEigenAffineTransformationFromData(m_inputVolume).data();
+        auto transformData = SceneGraph::getEigenTransformFromData(m_inputVolume).data();
         std::string transformString;
         for(int i = 0; i < 16; ++i)
             transformString += std::to_string(transformData[i]) + " ";

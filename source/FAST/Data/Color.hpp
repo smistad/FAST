@@ -77,5 +77,7 @@ class FAST_EXPORT  Color {
 };
 
 
+using LabelColors = std::map<uint, Color>;
+
 }
 

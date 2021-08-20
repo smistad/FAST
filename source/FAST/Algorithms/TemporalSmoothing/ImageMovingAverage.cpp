@@ -3,14 +3,14 @@
 
 namespace fast {
 
-ImageMovingAverage::ImageMovingAverage() {
+ImageMovingAverage::ImageMovingAverage(int frameCount, bool keepDataType) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/TemporalSmoothing/ImageMovingAverage.cl");
 
-    m_frameCount = 10;
-    m_keepDataType = false;
+    setFrameCount(frameCount);
+    setKeepDataType(keepDataType);
     createIntegerAttribute("frame-count", "Frame count", "Nr of frames to use in moving average", m_frameCount);
     createBooleanAttribute("keep-datatype", "Keep data type", "Whether to keep data type of input image for output image, or use float instead", m_keepDataType);
 }
@@ -38,15 +38,15 @@ void ImageMovingAverage::loadAttributes() {
 
 void ImageMovingAverage::execute() {
     auto input = getInputData<Image>(0);
-    auto output = Image::New();
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto program = getOpenCLProgram(device);
 
+    Image::pointer output;
     if(m_keepDataType) {
-        output->create(input->getSize(), input->getDataType(), 1);
+        output = Image::create(input->getSize(), input->getDataType(), 1);
     } else {
-        output->create(input->getSize(), TYPE_FLOAT, 1);
+        output = Image::create(input->getSize(), TYPE_FLOAT, 1);
     }
     SceneGraph::setParentNode(output, input);
     output->setSpacing(input->getSpacing());
@@ -54,8 +54,7 @@ void ImageMovingAverage::execute() {
     if(m_buffer.empty()) {
         // Fill buffer with duplicates
         if(!m_memory) {
-            m_memory = Image::New();
-            m_memory->create(input->getSize(), TYPE_FLOAT, 1);
+            m_memory = Image::create(input->getSize(), TYPE_FLOAT, 1);
         }
 
         auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -92,8 +91,7 @@ void ImageMovingAverage::execute() {
     if(input->getSize() != m_memory->getSize())
         throw Exception("Image input to ImageMovingAverage suddenly changed size.");
 
-    auto memoryOut = Image::New();
-    memoryOut->createFromImage(m_memory);
+    auto memoryOut = Image::createFromImage(m_memory);
 
     auto last = m_buffer.front();
 

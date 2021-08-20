@@ -1,14 +1,19 @@
-#ifndef IMAGE_GRADIENT_HPP
-#define IMAGE_GRADIENT_HPP
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Image.hpp"
 
 namespace fast {
 
+/**
+ * @brief Calculate image gradient using central finite difference method
+ *
+ * @ingroup filter
+ */
 class FAST_EXPORT  ImageGradient : public ProcessObject {
-    FAST_OBJECT(ImageGradient);
+    FAST_PROCESS_OBJECT(ImageGradient);
     public:
+        FAST_CONSTRUCTOR(ImageGradient, bool, use16BitFormat, = false);
         /**
          * Use 16 bit format to reduce memory usage
          */
@@ -18,13 +23,9 @@ class FAST_EXPORT  ImageGradient : public ProcessObject {
          */
         void set32bitStorageFormat();
     private:
-        ImageGradient();
         void execute();
 
         bool mUse16bitFormat;
 };
 
 }
-
-
-#endif

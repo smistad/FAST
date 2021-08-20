@@ -1,22 +1,21 @@
-#include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
+#include <FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp>
 #include "SegmentationVolumeReconstructor.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
 SegmentationVolumeReconstructor::SegmentationVolumeReconstructor() {
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
 }
 
 void SegmentationVolumeReconstructor::execute() {
     Image::pointer input = getInputData<Image>();
 
-    auto T_I = SceneGraph::getEigenAffineTransformationFromData(input);
+    auto T_I = SceneGraph::getEigenTransformFromData(input);
     if(!m_volume) {
         // Initialize volume
-        m_volume = Segmentation::New();
-        m_volume->create(512, 512, 512, TYPE_UINT8, 1);
+        m_volume = Image::create(512, 512, 512, TYPE_UINT8, 1);
         m_volume->fill(0);
         // TODO calculate transformation
 
@@ -29,12 +28,12 @@ void SegmentationVolumeReconstructor::execute() {
         //auto T_T = Affine3f::Identity();
         //T_T.translation() = Vector3f(input->getWidth(), input->getHeight(), 0)/2.0f*input->getSpacing().x();
         auto transform = T_I*T_C;
-        m_volume->getSceneGraphNode()->getTransformation()->setTransform(transform);
+        m_volume->getSceneGraphNode()->setTransform(transform);
     }
 
     // Add input to m_volume
     // Calculate transform form current image to the volume
-    auto T_V = SceneGraph::getEigenAffineTransformationFromData(m_volume);
+    auto T_V = SceneGraph::getEigenTransformFromData(m_volume);
 
     auto T_C = Affine3f::Identity();
     T_C.translation() = m_volume->getSize().cast<float>()/2.0f*m_volume->getSpacing().x();
@@ -69,7 +68,7 @@ void SegmentationVolumeReconstructor::execute() {
 
     addOutputData(0, m_volume);
     /*
-    GaussianSmoothingFilter::pointer smoother = GaussianSmoothingFilter::New();
+    GaussianSmoothing::pointer smoother = GaussianSmoothing::New();
     smoother->setInputData(m_volume);
     smoother->setStandardDeviation(1);
     //smoother->setMaskSize(3);

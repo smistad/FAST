@@ -22,7 +22,6 @@ TEST_CASE("Level set segmentation", "[fast][levelset][visual]") {
     segmentation->setMaxIterations(5000);
     segmentation->addSeedPoint(Vector3i(149, 210, 345), 10);
     segmentation->setInputConnection(importer->getOutputPort());
-    segmentation->update();
 
     SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
     extraction->setInputConnection(segmentation->getOutputPort());
@@ -39,9 +38,7 @@ TEST_CASE("Level set segmentation", "[fast][levelset][visual]") {
     DualViewWindow::pointer window = DualViewWindow::New();
     window->getTopLeftView()->addRenderer(renderer);
     window->getTopLeftView()->set3DMode();
-    window->getBottomRightView()->addRenderer(imageRenderer);
-    window->getBottomRightView()->addRenderer(segRenderer);
-    window->getBottomRightView()->set2DMode();
     window->start();
 }
-    */
+
+ */

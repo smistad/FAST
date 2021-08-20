@@ -155,13 +155,13 @@ std::shared_ptr<Image> ImagePyramidAccess::getLevelAsImage(int level) {
     if(width > 16384 || height > 16384)
         throw Exception("Image level is too large to convert into a FAST image");
 
-    auto image = Image::New();
+    Image::pointer image;
     if(m_fileHandle == nullptr) {
-		image->create(width, height, TYPE_UINT8, 4, m_levels[level].data);
+		image = Image::create(width, height, TYPE_UINT8, 4, m_levels[level].data);
     } else {
 		auto data = make_uninitialized_unique<uchar[]>(width*height*4);
         openslide_read_region(m_fileHandle, (uint32_t*)data.get(), 0, 0, level, width, height);
-		image->create(width, height, TYPE_UINT8, 4, std::move(data));
+		image = Image::create(width, height, TYPE_UINT8, 4, std::move(data));
     }
     image->setSpacing(Vector3f(
             (float)m_image->getFullWidth() / width,
@@ -189,11 +189,10 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     if(offsetX + width >= m_image->getLevelWidth(level) || offsetY + height >= m_image->getLevelHeight(level))
         throw Exception("offset + size exceeds level size");
 
-    auto image = Image::New();
     auto data = getPatchData(level, offsetX, offsetY, width, height);
     float scale = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
     auto spacing = m_image->getSpacing();
-    image->create(width, height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
+    auto image = Image::create(width, height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
     // TODO, we should have added spacing here to scale, but then rendering doesn't work
     image->setSpacing(Vector3f(
             scale,
@@ -235,9 +234,8 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     // Read the actual data
     auto data = getPatchData(level, tile.offsetX, tile.offsetY, tile.width, tile.height);
 
-    auto image = Image::New();
     float scale = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
-    image->create(tile.width, tile.height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
+    auto image = Image::create(tile.width, tile.height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
     image->setSpacing(Vector3f(
             scale,
             scale,
@@ -265,8 +263,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
 
     if(m_image->getLevelTileWidth(level) > patch->getWidth() || m_image->getLevelTileHeight(level) > patch->getHeight()) {
         // Padding needed
-        auto paddedImage = Image::New();
-        paddedImage->create(m_image->getLevelTileWidth(level), m_image->getLevelTileHeight(level), patch->getDataType(), m_image->getNrOfChannels());
+        auto paddedImage = Image::create(m_image->getLevelTileWidth(level), m_image->getLevelTileHeight(level), patch->getDataType(), m_image->getNrOfChannels());
         if(m_image->getNrOfChannels() >= 3) {
             paddedImage->fill(255);
         } else {

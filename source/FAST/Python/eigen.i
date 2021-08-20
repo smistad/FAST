@@ -37,6 +37,7 @@
  Changes:
  Erik Smistad:
   * Added support for float and uint, removed double
+  * Added typemaps for std::vector<std::vector<>> containers
  Robin Deits:
   * modified the typemaps to throw SWIG_fail when errors occur, which results in helpful Python errors being thrown when the type conversions fail
   * added typemaps for std::vector containers
@@ -323,7 +324,7 @@
   $result = PyList_New($1.size());
   if (!$result)
     SWIG_fail;
-  for (size_t i=0; i != $1.size(); ++i) {
+  for (Py_ssize_t i=0; i != $1.size(); ++i) {
     PyObject *out;
     if (!ConvertFromEigenToNumPyMatrix(&out, &$1[i]))
       SWIG_fail;
@@ -337,9 +338,47 @@
   if (!PyList_Check($input))
     SWIG_fail;
   temp.resize(PyList_Size($input));
-  for (size_t i=0; i != PyList_Size($input); ++i) {
+  for (Py_ssize_t i=0; i != PyList_Size($input); ++i) {
     if (!ConvertFromNumpyToEigenMatrix<CLASS >(&(temp[i]), PyList_GetItem($input, i)))
       SWIG_fail;
+  }
+  $1 = temp;
+}
+
+
+%typemap(out, fragment="Eigen_Fragments") std::vector<std::vector<CLASS >>
+{
+  $result = PyList_New($1.size());
+  if (!$result)
+    SWIG_fail;
+  for (Py_ssize_t i=0; i != $1.size(); ++i) {
+    PyObject* innerList = PyList_New($1[i].size());
+    for(Py_ssize_t j=0; j != $1[i].size(); j++) {
+        PyObject *out;
+        if (!ConvertFromEigenToNumPyMatrix(&out, &$1[i][j]))
+          SWIG_fail;
+        if (PyList_SetItem(innerList, i, out) == -1)
+          SWIG_fail;
+    }
+    if(PyList_SetItem($result, i, innerList) == -1)
+        SWIG_fail;
+  }
+}
+
+%typemap(in, fragment="Eigen_Fragments") std::vector<std::vector<CLASS >> (std::vector<std::vector<CLASS >> temp)
+{
+  if (!PyList_Check($input))
+    SWIG_fail;
+  temp.resize(PyList_Size($input));
+  for (Py_ssize_t i=0; i != PyList_Size($input); ++i) {
+    PyObject* innerList = PyList_GetItem($input, i);
+    if(!PyList_Check(innerList))
+        SWIG_fail;
+    temp[i].resize(PyList_Size(innerList));
+    for(Py_ssize_t j = 0; j != PyList_Size(innerList); ++j) {
+        if (!ConvertFromNumpyToEigenMatrix <CLASS>(&(temp[i][j]), PyList_GetItem(innerList, j)))
+            SWIG_fail;
+    }
   }
   $1 = temp;
 }

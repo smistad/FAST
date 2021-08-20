@@ -4,10 +4,6 @@
 
 namespace fast {
 
-VectorFieldRenderer::VectorFieldRenderer() {
-    createInputPort<Image>(0, false);
-}
-
 void VectorFieldRenderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
     if(m_disabled)

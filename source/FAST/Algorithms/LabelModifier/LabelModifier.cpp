@@ -1,16 +1,26 @@
-#include <FAST/Data/Segmentation.hpp>
+#include <FAST/Data/Image.hpp>
 #include "LabelModifier.hpp"
 
 namespace fast {
 
 
 LabelModifier::LabelModifier() {
-    createInputPort<Segmentation>(0);
-    createOutputPort<Segmentation>(0);
+    createInputPort<Image>(0);
+    createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LabelModifier/LabelModifier.cl");
 
     createIntegerAttribute("label-changes", "Label changes", "List of label pairs oldValue1 newValue1 oldValue2 newValue2 ...", 0);
+}
+
+
+LabelModifier::LabelModifier(std::vector<uchar> oldLabels, std::vector<uchar> newLabels) : LabelModifier() {
+    if(oldLabels.size() != newLabels.size())
+        throw Exception("Old label and new label vectors given to LabelModified must have the same size");
+
+    for(int i = 0; i < oldLabels.size(); ++i) {
+        setLabelChange(oldLabels[i], newLabels[i]);
+    }
 }
 
 void LabelModifier::execute() {
@@ -28,8 +38,7 @@ void LabelModifier::execute() {
     if(input->getDimensions() != 2 || input->getDataType() != TYPE_UINT8)
         throw Exception("Input to LabelModifier must be 2D image of type uint8");
 
-    auto output = Image::New();
-    output->createFromImage(input);
+    auto output = Image::createFromImage(input);
 
     auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
     auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);

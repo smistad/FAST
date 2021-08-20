@@ -12,13 +12,12 @@ using namespace fast;
 #undef max
 
 TEST_CASE("Create a 2D image on host", "[fast][image]") {
-    Image::pointer image = Image::New();
 
     unsigned int width = 256;
     unsigned int height = 512;
     unsigned int nrOfChannels = 1;
     DataType type = TYPE_FLOAT;
-    image->create(width, height, type, nrOfChannels);
+    auto image = Image::create(width, height, type, nrOfChannels);
 
     CHECK(image->getWidth() == width);
     CHECK(image->getHeight() == height);
@@ -32,14 +31,13 @@ TEST_CASE("Create a 2D image on host", "[fast][image]") {
 }
 
 TEST_CASE("Create a 3D image on host", "[fast][image]") {
-    Image::pointer image = Image::New();
 
     unsigned int width = 256;
     unsigned int height = 512;
     unsigned int depth = 45;
     unsigned int nrOfChannels = 2;
     DataType type = TYPE_INT8;
-    image->create(width, height, depth, type, nrOfChannels);
+    Image::pointer image = Image::create(width, height, depth, type, nrOfChannels);
 
     CHECK(image->getWidth() == width);
     CHECK(image->getHeight() == height);
@@ -61,8 +59,7 @@ TEST_CASE("Create a 2D image on an OpenCL device", "[fast][image]") {
     // Test for having channels 1 to 4 and for all data types
     for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
-            Image::pointer image = Image::New();
-            CHECK_NOTHROW(image->create(width, height, (DataType)typeNr, nrOfChannels));
+            CHECK_NOTHROW(Image::create(width, height, (DataType)typeNr, nrOfChannels));
         }
     }
 }
@@ -77,8 +74,7 @@ TEST_CASE("Create a 3D image on an OpenCL device", "[fast][image]") {
     // Test for having channels 1 to 4 and for all data types
     for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
-            Image::pointer image = Image::New();
-            CHECK_NOTHROW(image->create(width, height, depth, (DataType)typeNr, nrOfChannels));
+            CHECK_NOTHROW(Image::create(width, height, depth, (DataType)typeNr, nrOfChannels));
         }
     }
 }
@@ -94,8 +90,8 @@ TEST_CASE("Create a 2D image on an OpenCL device with data", "[fast][image]") {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
             void* data = allocateRandomData(width*height*nrOfChannels, (DataType)typeNr);
-            Image::pointer image = Image::New();
-            CHECK_NOTHROW(image->create(width, height, type, nrOfChannels, device, data));
+            Image::pointer image;
+            CHECK_NOTHROW(image = Image::create(width, height, type, nrOfChannels, device, data));
             ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
             CHECK(compareDataArrays(data, access->get(), width*height*nrOfChannels, type) == true);
             deleteArray(data, type);
@@ -115,8 +111,8 @@ TEST_CASE("Create a 3D image on an OpenCL device with data", "[fast][image]") {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
-            Image::pointer image = Image::New();
-            CHECK_NOTHROW(image->create(width, height, depth, type, nrOfChannels, device, data));
+            Image::pointer image;
+            CHECK_NOTHROW(image = Image::create(width, height, depth, type, nrOfChannels, device, data));
             ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
             CHECK(compareDataArrays(data, access->get(), width*height*depth*nrOfChannels, type) == true);
             deleteArray(data, type);
@@ -136,8 +132,7 @@ TEST_CASE("Create a 2D image on host with input data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
             CHECK(compareDataArrays(data, access->get(), width*height*nrOfChannels, type) == true);
@@ -160,8 +155,7 @@ TEST_CASE("Create a 3D image on host with input data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
+            auto image = Image::create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
             CHECK(compareDataArrays(data, access->get(), width*height*depth*nrOfChannels, type) == true);
@@ -186,8 +180,7 @@ TEST_CASE("Create a 2D image on host and request access to OpenCL buffer", "[fas
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
+            auto image = Image::create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
@@ -213,8 +206,7 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL buffer", "[fas
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
@@ -240,8 +232,7 @@ TEST_CASE("Create a 2D image on host and request access to OpenCL Image", "[fast
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
             cl::Image2D* clImage = access->get2DImage();
@@ -268,8 +259,7 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL Image", "[fast
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
             cl::Image3D* clImage = access->get3DImage();
@@ -295,8 +285,7 @@ TEST_CASE("Create a 2D image on a CL device and request access to OpenCL buffer"
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, device, data);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
@@ -323,8 +312,7 @@ TEST_CASE("Create a 3D image on CL device and request access to OpenCL buffer", 
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, device, data);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
@@ -350,8 +338,7 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, device, data);
             deleteArray(data, type);
 
             // Put the data as buffer and host data as well
@@ -398,8 +385,7 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, device, data);
             deleteArray(data, type);
 
             // Put the data as buffer and host data as well
@@ -446,8 +432,7 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, device, data);
 
             // Change buffer data
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
@@ -524,8 +509,7 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, device, data);
 
             // Change buffer data
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
@@ -600,8 +584,7 @@ TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, device, data);
 
             // Change image data
             OpenCLImageAccess::pointer access3 = image->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
@@ -678,8 +661,7 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, device, data);
 
             // Change image data
             OpenCLImageAccess::pointer access3 = image->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
@@ -757,8 +739,7 @@ TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL
             // Create a data array with random data
             void* data = allocateRandomData(width*height, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, 1, devices[from], data);
+            Image::pointer image = Image::create(width, height, type, 1, devices[from], data);
 
             // Request image on "to" device
             OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, devices[to]);
@@ -794,8 +775,7 @@ TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, 1, devices[from], data);
+            Image::pointer image = Image::create(width, height, depth, type, 1, devices[from], data);
 
             // Request image on "to" device
             OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, devices[to]);
@@ -831,8 +811,7 @@ TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL
             // Create a data array with random data
             void* data = allocateRandomData(width*height, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, 1, devices[from], data);
+            Image::pointer image = Image::create(width, height, type, 1, devices[from], data);
 
             // Request image on "to" device
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, devices[to]);
@@ -868,8 +847,7 @@ TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, 1, devices[from], data);
+            Image::pointer image = Image::create(width, height, depth, type, 1, devices[from], data);
 
             // Request image on "to" device
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, devices[to]);
@@ -880,29 +858,10 @@ TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL
     }
 }
 
-TEST_CASE("Uninitialized image throws exception", "[fast][image]") {
-    DeviceManager* deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
-    Image::pointer image = Image::New();
-
-    CHECK_THROWS(image->getImageAccess(ACCESS_READ));
-    CHECK_THROWS(image->getOpenCLBufferAccess(ACCESS_READ, device));
-    CHECK_THROWS(image->getOpenCLImageAccess(ACCESS_READ, device));
-    CHECK_THROWS(image->getOpenCLImageAccess(ACCESS_READ, device));
-
-    CHECK_THROWS(image->getWidth());
-    CHECK_THROWS(image->getHeight());
-    CHECK_THROWS(image->getDepth());
-    CHECK_THROWS(image->getDimensions());
-    CHECK_THROWS(image->getNrOfChannels());
-    CHECK_THROWS(image->getDataType());
-}
-
 TEST_CASE("Multiple read access to 2D image should not throw exception", "[fast][image]") {
     DeviceManager* deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
-    Image::pointer image = Image::New();
-    image->create(256, 256, TYPE_FLOAT, 1);
+    Image::pointer image = Image::create(256, 256, TYPE_FLOAT, 1);
 
     CHECK_NOTHROW(ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ));
     CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
@@ -913,8 +872,7 @@ TEST_CASE("Multiple read access to 2D image should not throw exception", "[fast]
 TEST_CASE("Multiple read access to 3D image should not throw exception", "[fast][image]") {
     DeviceManager* deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
-    Image::pointer image = Image::New();
-    image->create(64, 64, 32, TYPE_FLOAT, 1);
+    Image::pointer image = Image::create(64, 64, 32, TYPE_FLOAT, 1);
 
     CHECK_NOTHROW(
             ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ);
@@ -998,8 +956,7 @@ TEST_CASE("Requesting access to a 2D image that has been released should not thr
 
     DeviceManager* deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
-    Image::pointer image = Image::New();
-    image->create(256, 256, TYPE_FLOAT, 1);
+    Image::pointer image = Image::create(256, 256, TYPE_FLOAT, 1);
 
     {
         ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ_WRITE);
@@ -1032,8 +989,7 @@ TEST_CASE("Requesting access to a 2D image that has been released should not thr
 TEST_CASE("Requesting access to a 3D image that has been released should not throw exception", "[fast][image]") {
     DeviceManager* deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
-    Image::pointer image = Image::New();
-    image->create(32,32,32, TYPE_FLOAT, 1);
+    Image::pointer image = Image::create(32,32,32, TYPE_FLOAT, 1);
 
     {
         ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ_WRITE);
@@ -1118,8 +1074,7 @@ TEST_CASE("Requesting write access to a 3D image that is being read from should 
 TEST_CASE("Requesting write access to a 2D image that has been released should not throw exception", "[fast][image]") {
     DeviceManager* deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
-    Image::pointer image = Image::New();
-    image->create(256, 256, TYPE_FLOAT, 1);
+    Image::pointer image = Image::create(256, 256, TYPE_FLOAT, 1);
 
     {
         ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ);
@@ -1146,8 +1101,7 @@ TEST_CASE("Requesting write access to a 2D image that has been released should n
 TEST_CASE("Requesting write access to a 3D image that has been released should not throw exception", "[fast][image]") {
     DeviceManager* deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
-    Image::pointer image = Image::New();
-    image->create(32,32,32, TYPE_FLOAT, 1);
+    Image::pointer image = Image::create(32,32,32, TYPE_FLOAT, 1);
 
     {
         ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ);
@@ -1172,14 +1126,12 @@ TEST_CASE("Requesting write access to a 3D image that has been released should n
 }
 
 TEST_CASE("Initialize an image twice does not throw exception", "[fast][image]") {
-    Image::pointer image = Image::New();
-
-    image->create(256, 256, TYPE_FLOAT, 1);
-    CHECK_NOTHROW(image->create(256, 256, TYPE_FLOAT, 1));
+    Image::pointer image = Image::create(256, 256, TYPE_FLOAT, 1);
+    CHECK_NOTHROW(Image::create(256, 256, TYPE_FLOAT, 1));
 }
 
 TEST_CASE("Calling calculate max or min intensity on uninitialized image throws an exception", "[fast][image]") {
-    Image::pointer image = Image::New();
+    Image::pointer image = Image::create(32, 32, TYPE_UINT8, 1);
     CHECK_THROWS(image->calculateMaximumIntensity());
     CHECK_THROWS(image->calculateMinimumIntensity());
 }
@@ -1242,8 +1194,7 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, device, data);
 
             float average = getSumFromData(data, width*height*nrOfChannels, type) / (width*height);
             CHECK(image->calculateAverageIntensity() == Approx(average));
@@ -1265,8 +1216,7 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             float average = getSumFromData(data, width*height*nrOfChannels, type) / (width*height);
             CHECK(image->calculateAverageIntensity() == Approx(average));
@@ -1289,8 +1239,7 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 3D image
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             float average = getSumFromData(data, width*height*depth*nrOfChannels, type) / (width*height*depth);
             CHECK(image->calculateAverageIntensity() == Approx(average));
@@ -1314,8 +1263,7 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, device, data);
 
             float min,max;
             getMaxAndMinFromData(data, width*height*nrOfChannels, &min, &max, type);
@@ -1342,8 +1290,7 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, device, data);
+            Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, device, data);
 
             float min,max;
             getMaxAndMinFromData(data, width*height*depth*nrOfChannels, &min, &max, type);
@@ -1376,8 +1323,7 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             float min,max;
             getMaxAndMinFromData(data, width*height*nrOfChannels, &min, &max, type);
@@ -1401,8 +1347,7 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
-            Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
+            Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             float min,max;
             getMaxAndMinFromData(data, width*height*depth*nrOfChannels, &min, &max, type);
@@ -1415,14 +1360,12 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
 
 TEST_CASE("createFromImage on 2D image", "[fast][image]") {
 
-    Image::pointer image1 = Image::New();
-    Image::pointer image2 = Image::New();
 
     unsigned int width = 256;
     unsigned int height = 512;
     unsigned int nrOfChannels = 2;
     DataType type = TYPE_INT8;
-    image1->create(width, height, type, nrOfChannels);
+    auto image1 = Image::create(width, height, type, nrOfChannels);
 
     // Create some metadata
     Vector3f spacing;
@@ -1432,7 +1375,7 @@ TEST_CASE("createFromImage on 2D image", "[fast][image]") {
 
     image1->setSpacing(spacing);
 
-    image2->createFromImage(image1);
+    auto image2 = Image::createFromImage(image1);
 
     CHECK(image2->getWidth() == width);
     CHECK(image2->getHeight() == height);
@@ -1448,16 +1391,12 @@ TEST_CASE("createFromImage on 2D image", "[fast][image]") {
 }
 
 TEST_CASE("createFromImage on 3D image", "[fast][image]") {
-
-    Image::pointer image1 = Image::New();
-    Image::pointer image2 = Image::New();
-
     unsigned int width = 256;
     unsigned int height = 512;
     unsigned int depth = 45;
     unsigned int nrOfChannels = 2;
     DataType type = TYPE_INT8;
-    image1->create(width, height, depth, type, nrOfChannels);
+    auto image1 = Image::create(width, height, depth, type, nrOfChannels);
 
     // Create some metadata
     Vector3f spacing;
@@ -1467,7 +1406,7 @@ TEST_CASE("createFromImage on 3D image", "[fast][image]") {
 
     image1->setSpacing(spacing);
 
-    image2->createFromImage(image1);
+    auto image2 = Image::createFromImage(image1);
 
     CHECK(image2->getWidth() == width);
     CHECK(image2->getHeight() == height);

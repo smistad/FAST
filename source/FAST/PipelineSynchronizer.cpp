@@ -2,6 +2,10 @@
 
 namespace fast {
 
+PipelineSynchronizer::PipelineSynchronizer() {
+
+}
+
 uint PipelineSynchronizer::addInputConnection(DataChannel::pointer channel) {
     uint nr = getNrOfInputConnections();
     createInputPort<DataObject>(nr);

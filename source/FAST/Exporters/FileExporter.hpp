@@ -15,7 +15,7 @@ class FAST_EXPORT FileExporter : public Exporter {
    protected:
        FileExporter();
        FileExporter(std::string filename) {
-           setFilename(m_filename);
+           setFilename(filename);
        }
        void execute() = 0;
 

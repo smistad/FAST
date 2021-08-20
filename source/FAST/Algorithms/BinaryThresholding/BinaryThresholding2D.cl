@@ -16,7 +16,6 @@ float getIntensity(__read_only image2d_t image, int2 pos) {
 __kernel void thresholding(
         __read_only image2d_t image,
         __write_only image2d_t segmentation,
-        __private uchar label,
         __private float lowerThreshold,
         __private float upperThreshold
         ) {
@@ -26,14 +25,13 @@ __kernel void thresholding(
    
     uchar writeValue = 0;
     if(value >= lowerThreshold && value <= upperThreshold) {
-        writeValue = label;
+        writeValue = 1;
     }
     write_imageui(segmentation, pos, writeValue);
 }
 __kernel void thresholdingWithOnlyLower(
         __read_only image2d_t image,
         __write_only image2d_t segmentation,
-        __private uchar label,
         __private float lowerThreshold
         ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
@@ -42,14 +40,13 @@ __kernel void thresholdingWithOnlyLower(
 
     uchar writeValue = 0;
     if(value >= lowerThreshold) {
-        writeValue = label;
+        writeValue = 1;
     }
     write_imageui(segmentation, pos, writeValue);
 }
 __kernel void thresholdingWithOnlyUpper(
         __read_only image2d_t image,
         __write_only image2d_t segmentation,
-        __private uchar label,
         __private float upperThreshold
         ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
@@ -58,7 +55,7 @@ __kernel void thresholdingWithOnlyUpper(
 
     uchar writeValue = 0;
     if(value <= upperThreshold) {
-        writeValue = label;
+        writeValue = 1;
     }
     write_imageui(segmentation, pos, writeValue);
 }

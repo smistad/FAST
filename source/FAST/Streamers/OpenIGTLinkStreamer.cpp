@@ -1,6 +1,5 @@
 #include "OpenIGTLinkStreamer.hpp"
 #include "FAST/Data/Image.hpp"
-#include "FAST/AffineTransformation.hpp"
 #include <igtl/igtlOSUtil.h>
 #include <igtl/igtlMessageHeader.h>
 #include <igtl/igtlTransformMessage.h>
@@ -42,6 +41,15 @@ DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(uint portID) {
 	return ProcessObject::getOutputPort(portID);
 }
 
+uint OpenIGTLinkStreamer::getOutputPortNumber(std::string deviceName) {
+    if(mOutputPortDeviceNames.count(deviceName) == 0) {
+        uint portID = getNrOfOutputPorts();
+        createOutputPort(portID);
+        mOutputPortDeviceNames[deviceName] = portID;
+    }
+    return mOutputPortDeviceNames[deviceName];
+}
+
 uint OpenIGTLinkStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
@@ -77,7 +85,6 @@ std::vector<std::string> OpenIGTLinkStreamer::getActiveTransformStreamNames() {
 }
 
 static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
-    Image::pointer image = Image::New();
     int width, height, depth;
     message->GetDimensions(width, height, depth);
     void* data = message->GetScalarPointer();
@@ -103,10 +110,11 @@ static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
             break;
     }
 
+    Image::pointer image;
     if(depth == 1) {
-        image->create(width, height, type, message->GetNumComponents(), device, data);
+        image = Image::create(width, height, type, message->GetNumComponents(), device, data);
     } else {
-        image->create(width, height, depth, type, message->GetNumComponents(), device, data);
+        image = Image::create(width, height, depth, type, message->GetNumComponents(), device, data);
     }
 
     auto spacing = std::make_unique<float[]>(3);
@@ -116,15 +124,15 @@ static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     igtl::Matrix4x4 matrix;
     message->GetMatrix(matrix);
     image->setSpacing(Vector3f(spacing[0], spacing[1], spacing[2]));
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->getTransform().translation() = Vector3f(offset[0], offset[1], offset[2]);
+    auto T = Affine3f::Identity();
+    T.translation() = Vector3f(offset[0], offset[1], offset[2]);
     Matrix3f fastMatrix;
     for(int i = 0; i < 3; i++) {
     for(int j = 0; j < 3; j++) {
         fastMatrix(i,j) = matrix[i][j];
     }}
-    T->getTransform().linear() = fastMatrix;
-    image->getSceneGraphNode()->setTransformation(T);
+    T.linear() = fastMatrix;
+    image->getSceneGraphNode()->setTransform(T);
 
 
     return image;
@@ -233,16 +241,15 @@ void OpenIGTLinkStreamer::generateStream() {
                 // Retrive the transform data
                 igtl::Matrix4x4 matrix;
                 transMsg->GetMatrix(matrix);
-                Matrix4f fastMatrix;
+                Affine3f fastTransform;
                 for(int i = 0; i < 4; i++) {
                 for(int j = 0; j < 4; j++) {
-                    fastMatrix(i,j) = matrix[i][j];
+                    fastTransform.matrix()(i,j) = matrix[i][j];
                 }}
-                reportInfo() << fastMatrix << Reporter::end();
+                reportInfo() << fastTransform.matrix() << Reporter::end();
 
                 try {
-                    AffineTransformation::pointer T = AffineTransformation::New();
-                    T->getTransform().matrix() = fastMatrix;
+                    auto T = Transform::create(fastTransform);
                     T->setCreationTimestamp(timestamp);
                     addTimestamp(timestamp);
                     addOutputData(mOutputPortDeviceNames[deviceName], T);

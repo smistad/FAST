@@ -17,12 +17,14 @@ class Image;
  * @ingroup neural-network
  */
 class FAST_EXPORT ImagesToSequence : public ProcessObject {
-    FAST_OBJECT(ImagesToSequence)
+    FAST_PROCESS_OBJECT(ImagesToSequence)
     public:
+        FAST_CONSTRUCTOR(ImagesToSequence,
+                         int, sequenceSize, = 2
+        )
         void setSequenceSize(int size);
         void loadAttributes() override;
     protected:
-        ImagesToSequence();
         void execute() override;
 
         int m_sequenceSize = 2;
@@ -39,11 +41,11 @@ class FAST_EXPORT ImagesToSequence : public ProcessObject {
  * @ingroup neural-network
  */
 class FAST_EXPORT FlowNetwork : public NeuralNetwork {
-    FAST_OBJECT(FlowNetwork)
+    FAST_PROCESS_OBJECT(FlowNetwork)
     public:
+        FAST_CONSTRUCTOR(FlowNetwork)
     protected:
         void execute() override;
-        FlowNetwork();
 };
 
 }

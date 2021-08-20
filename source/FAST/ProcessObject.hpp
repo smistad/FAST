@@ -20,6 +20,49 @@ namespace fast {
 class OpenCLProgram;
 class ProcessObject;
 
+/**
+ * @defgroup segmentation Segmentation
+ * Objects and functions for image segmentation.
+ */
+
+/**
+ * @defgroup filter Filter
+ * Objects and functions for image filtering.
+ */
+
+/**
+ * @defgroup registration Registration
+ * Objects and functions for image and feature registration.
+ */
+
+/**
+ * @defgroup motion-and-tracking Motion and Tracking
+ * Objects and functions for motion and tracking.
+ */
+
+/**
+ * @defgroup morphology Morphology
+ * Objects and functions for morphology
+ */
+
+/**
+ * @defgroup bounding-box Bounding Box
+ * Objects and functions for bounding box detection etc.
+ */
+
+/**
+ * @defgroup ultrasound Ultrasound
+ * Objects and functions used for ultrasound imaging.
+ */
+
+/**
+ * @defgroup wsi Whole Slide Images (WSI)
+ * Objects and functions used for whole slide images (WSI) in digital pathology.
+ */
+
+/**
+ * @brief Abstract base class for all process objects
+ */
 class FAST_EXPORT  ProcessObject : public Object {
     public:
         virtual ~ProcessObject();
@@ -102,6 +145,8 @@ class FAST_EXPORT  ProcessObject : public Object {
         template <class DataType>
         std::shared_ptr<DataType> updateAndGetOutputData(uint portID = 0);
 
+        template <class DataType>
+        std::shared_ptr<DataType> runAndGetOutputData(uint portID = 0);
 
         //// NEW V4 PO SEMANTICS
         void run(int executeToken = -1);
@@ -109,6 +154,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0);
         std::shared_ptr<ProcessObject> connect(std::shared_ptr<DataObject> inputDataObject);
         std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<DataObject> inputDataObject);
+        int getLastExecuteToken() const;
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
@@ -252,8 +298,14 @@ std::shared_ptr<DataType> ProcessObject::getOutputData(uint portID) {
 
 template<class DataType>
 std::shared_ptr<DataType> ProcessObject::updateAndGetOutputData(uint portID) {
+    return runAndGetOutputData<DataType>();
+}
+
+
+template<class DataType>
+std::shared_ptr<DataType> ProcessObject::runAndGetOutputData(uint portID) {
     auto port = getOutputPort(portID);
-    update();
+    run();
     return port->getNextFrame<DataType>();
 }
 

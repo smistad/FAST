@@ -8,7 +8,7 @@ namespace fast {
 class FAST_EXPORT LabelColorRenderer : public virtual Renderer {
     public:
         void setColor(int label, Color color);
-        void setColors(std::map<uint, Color> colors);
+        void setColors(LabelColors colors);
         ~LabelColorRenderer();
     protected:
         void createColorUniformBufferObject();

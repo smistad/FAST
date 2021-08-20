@@ -8,11 +8,7 @@
 
 namespace fast {
 
-BoundingBox::BoundingBox() {
-	m_initialized = false;
-}
-
-void BoundingBox::create(Vector2f position, Vector2f size, uchar label, float score) {
+BoundingBox::BoundingBox(Vector2f position, Vector2f size, uchar label, float score) {
 	if(size.x() <= 0 || size.y() <= 0)
 		throw Exception("Size must be > 0, got: " + std::to_string(size.x()) + " " + std::to_string(size.y()));
 	std::lock_guard<std::mutex> lock(m_mutex);
@@ -89,14 +85,8 @@ float BoundingBox::intersectionOverUnion(BoundingBox::pointer bb2) const {
 }
 
 BoundingBoxSet::BoundingBoxSet() {
-    mIsInitialized = false;
     mVBOHasData = false;
     mVBODataIsUpToDate = false;
-    mHostHasData = false;
-    mHostDataIsUpToDate = false;
-}
-
-void BoundingBoxSet::create() {
     mIsInitialized = true;
     mHostHasData = true;
     mHostDataIsUpToDate = true;
@@ -375,8 +365,7 @@ BoundingBoxSetAccumulator::BoundingBoxSetAccumulator() {
 void BoundingBoxSetAccumulator::execute() {
     auto input = getInputData<BoundingBoxSet>();
     if(!m_accumulatedBBset) {
-        m_accumulatedBBset = BoundingBoxSet::New();
-        m_accumulatedBBset->create();
+        m_accumulatedBBset = BoundingBoxSet::create();
     }
 
     auto outputAccess = m_accumulatedBBset->getAccess(ACCESS_READ_WRITE);

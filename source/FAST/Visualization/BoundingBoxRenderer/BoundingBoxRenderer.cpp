@@ -64,14 +64,12 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
         mVAO[it.first] = VAO_ID;
         glBindVertexArray(VAO_ID);
 
-        AffineTransformation::pointer transform;
-        if(mode2D) {
-            // If rendering is in 2D mode we skip any transformations
-            transform = AffineTransformation::New();
-        } else {
-            transform = SceneGraph::getAffineTransformationFromData(it.second);
+        Affine3f transform = Affine3f::Identity();
+        // If rendering is in 2D mode we skip any transformations
+        if(!mode2D) {
+            transform = SceneGraph::getEigenTransformFromData(it.second);
         }
-        setShaderUniform("transform", transform->getTransform());
+        setShaderUniform("transform", transform);
 
         Color color = m_defaultColor;
         

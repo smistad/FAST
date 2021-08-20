@@ -64,6 +64,33 @@ void NeuralNetwork::setInputSize(std::string name, std::vector<int> size) {
     mInputSizes[name] = size;
 }
 
+NeuralNetwork::NeuralNetwork(std::string modelFilename, float scaleFactor, float meanIntensity,
+                             float stanardDeviationIntensity,
+                             std::vector<NeuralNetworkNode> inputNodes,
+                             std::vector<NeuralNetworkNode> outputNodes,
+                             std::string inferenceEngine,
+                             std::vector<std::string> customPlugins) {
+    mPreserveAspectRatio = false;
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
+    if(inferenceEngine.empty()) {
+        m_engine = InferenceEngineManager::loadBestAvailableEngine();
+        reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
+    } else {
+        setInferenceEngine(inferenceEngine);
+    }
+    setScaleFactor(scaleFactor);
+    setMeanAndStandardDeviation(meanIntensity, stanardDeviationIntensity);
+    for(int i = 0; i < inputNodes.size(); ++i) {
+        auto node = inputNodes[i];
+        setInputNode(i, node.name, node.type, node.shape);
+    }
+    for(int i = 0; i < outputNodes.size(); ++i) {
+        auto node = outputNodes[i];
+        setOutputNode(i, node.name, node.type, node.shape);
+    }
+    load(modelFilename, customPlugins);
+}
+
 NeuralNetwork::NeuralNetwork() {
 	mPreserveAspectRatio = false;
 	mScaleFactor = 1.0f;
@@ -107,8 +134,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
             std::vector<Image::pointer> inputImages;
             std::vector<Tensor::pointer> inputTensors;
             if(batch) {
-                Batch::access access = batch->getAccess(ACCESS_READ);
-                auto dataList = access->getData();
+                auto dataList = batch->get();
                 if(dataList.isImages()) {
                     inputImages = dataList.getImages();
                 } else {
@@ -124,8 +150,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 m_batchSize = 1;
                 Sequence::pointer sequence = std::dynamic_pointer_cast<Sequence>(data);
                 if(sequence) {
-                    Sequence::access access = sequence->getAccess(ACCESS_READ);
-                    auto dataList = access->getData();
+                    auto dataList = sequence->get();
                     if(dataList.isImages()) {
                         inputImages = dataList.getImages();
                     } else {
@@ -326,8 +351,7 @@ void NeuralNetwork::run() {
                 newTensor = standardizeOutputTensorData(newTensor, i);
                 tensorList.push_back(newTensor);
             }
-            auto outputBatch = Batch::New();
-            outputBatch->create(tensorList);
+            auto outputBatch = Batch::create(tensorList);
             m_processedOutputData[node.second.portID] = outputBatch;
         } else {
             // Remove first dimension as it is 1, due to batch size 1
@@ -564,6 +588,21 @@ void NeuralNetwork::setMinAndMaxIntensity(float min, float max) {
     mMaxIntensity = max;
     mMinAndMaxIntensitySet = true;
     mIsModified = true;
+}
+
+
+Sequence::Sequence(std::vector<std::shared_ptr<Image>> images) {
+    m_data = InferenceDataList(std::move(images));
+}
+Sequence::Sequence(std::vector<std::shared_ptr<Tensor>> tensors) {
+    m_data = InferenceDataList(std::move(tensors));
+}
+
+Batch::Batch(std::vector<std::shared_ptr<Image>> images) {
+    m_data = InferenceDataList(std::move(images));
+}
+Batch::Batch(std::vector<std::shared_ptr<Tensor>> tensors) {
+    m_data = InferenceDataList(std::move(tensors));
 }
 
 };

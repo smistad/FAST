@@ -3,11 +3,11 @@
 
 namespace fast {
 
-Erosion::Erosion() {
+Erosion::Erosion(int size) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Morphology/Erosion.cl");
-    mSize = 3;
+    setStructuringElementSize(size);
 
     createIntegerAttribute("kernel-size", "Kernel size", "Kernel size used for erosion", mSize);
 }
@@ -32,8 +32,7 @@ void Erosion::execute() {
         throw Exception("Data type of image given to Dilation must be UINT8");
     }
 
-    auto output = Image::New();
-    output->createFromImage(input);
+    auto output = Image::createFromImage(input);
     SceneGraph::setParentNode(output, input);
     output->fill(0);
 

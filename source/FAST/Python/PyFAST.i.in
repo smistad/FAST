@@ -16,6 +16,7 @@ import $module
 %{
 
 
+#include <FAST/Object.hpp>
 #include <FAST/ProcessObject.hpp>
 #include <FAST/Reporter.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
@@ -28,6 +29,16 @@ using namespace fast;
 #undef slots
 
 %}
+
+// General exception handler to avoid crashing python when something in FAST triggers an exception
+%exception {
+    try {
+        $action
+    } catch(std::exception &e) {
+        PyErr_SetString(PyExc_RuntimeError, e.what());
+        SWIG_fail;
+    }
+}
 
 // Third party stuff
 %include <std_string.i>
@@ -50,15 +61,32 @@ using namespace fast;
 %eigen_typemaps(Matrix3f)
 %eigen_typemaps(Matrix4f)
 
-// Enable std::vector <-> python conversion
+
+// Define FAST_EXPORT to nothing to avoid compile errors
+%define FAST_EXPORT
+%enddef
+%define Q_OBJECT
+%enddef
+%define Q_SLOTS
+%enddef
+%define Q_SIGNALS
+public
+%enddef
+
+// Enable std::vector and std::map <-> python conversion
+%include <FAST/Data/DataTypes.hpp>
 %template(vectori) std::vector<int>;
 %template(vectorf) std::vector<float>;
 %template(vectorui) std::vector<uint>;
 %template(vectorc) std::vector<char>;
 %template(vectoruc) std::vector<uchar>;
 %template(vectors) std::vector<std::string>;
-%template(labelColors) std::map<uint, fast::Color>;
-%template(labelNames) std::map<uint, std::string>;
+%ignore std::vector<fast::NeuralNetworkNode>::vector(size_type);
+%ignore std::vector<fast::NeuralNetworkNode>::resize;
+%ignore std::vector<fast::NeuralNetworkNode>::pop;
+%template(NeuralNetworkNodes) std::vector<fast::NeuralNetworkNode>;
+%template(ColorMap) std::map<uint, fast::Color>;
+%template(LabelNames) std::map<uint, std::string>;
 // This avoids the no default constructor available problem for this vector types:
 %ignore std::vector<fast::MeshVertex>::vector(size_type);
 %ignore std::vector<fast::MeshVertex>::resize;
@@ -75,16 +103,7 @@ using namespace fast;
 
 // FAST CORE LIBRARY
 
-// Define FAST_EXPORT to nothing to avoid compile errors
-%define FAST_EXPORT
-%enddef
-%define Q_OBJECT
-%enddef
-%define Q_SLOTS
-%enddef
-%define Q_SIGNALS
-public
-%enddef
+
 
 // Ignore statements
 %ignore getDevice;
@@ -144,7 +163,6 @@ public
 %include <FAST/Attribute.hpp>
 %include <FAST/ProcessObject.hpp>
 %include <FAST/Config.hpp>
-%include <FAST/Data/DataTypes.hpp>
 %include <FAST/Data/Access/Access.hpp>
 %include <FAST/Data/Color.hpp>
 %include <FAST/Data/DataObject.hpp>
@@ -161,6 +179,7 @@ public
 
 %define ADD_TEMPLATE_METHODS(TYPE)
 %template(updateAndGetOutput ## TYPE) fast::ProcessObject::updateAndGetOutputData<fast::TYPE>;
+%template(runAndGetOutput ## TYPE) fast::ProcessObject::runAndGetOutputData<fast::TYPE>;
 %template(getNext ## TYPE) fast::DataChannel::getNextFrame<fast::TYPE>;
 %{
 std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::DataObject> dataObject) {
@@ -170,9 +189,10 @@ std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::Data
 std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::DataObject> dataObject);
 %enddef
 
+
+
 ADD_TEMPLATE_METHODS(Image)
 ADD_TEMPLATE_METHODS(ImagePyramid)
-ADD_TEMPLATE_METHODS(Segmentation)
 ADD_TEMPLATE_METHODS(Tensor)
 ADD_TEMPLATE_METHODS(Mesh)
 ADD_TEMPLATE_METHODS(BoundingBox)
@@ -186,7 +206,7 @@ std::size_t _getHostDataPointer() {
     auto access = $self->getImageAccess(ACCESS_READ);
     return (std::size_t)access->get();
 }
-void* _intToVoidPointer(std::size_t intPointer) {
+static void* _intToVoidPointer(std::size_t intPointer) {
     return (void*)intPointer;
 }
 %pythoncode %{
@@ -212,11 +232,14 @@ void* _intToVoidPointer(std::size_t intPointer) {
       'strides': None,
     }
 
-
-  def createFromArray(self, ndarray):
+  @staticmethod
+  def createFromArray(ndarray):
     """Create a FAST image from a N-D array (e.g. numpy ndarray)"""
+    import numpy as np
     if not hasattr(ndarray, '__array_interface__'):
-      raise ValueError('Input to Image createFromArray() must have the array_interface property')
+        raise ValueError('Input to Image createFromArray() must have the array_interface property')
+    # ndarray must be C contiguous
+    ndarray = np.ascontiguousarray(ndarray)
     array_interface = ndarray.__array_interface__
     shape = array_interface['shape']
     is_2d = True
@@ -229,21 +252,21 @@ void* _intToVoidPointer(std::size_t intPointer) {
         is_2d = False
         has_channels = True
     if is_2d:
-        self.create(
+        return Image.create(
             shape[1],
             shape[0],
-            self._str_to_data_type[array_interface['typestr'][1:]],
+            Image._str_to_data_type[array_interface['typestr'][1:]],
             shape[-1] if has_channels else 1,
-                self._intToVoidPointer(array_interface['data'][0])
+            Image._intToVoidPointer(array_interface['data'][0])
         )
     else:
-        self.create(
+        return Image.create(
             shape[2],
             shape[1],
             shape[0],
-            self._str_to_data_type[array_interface['typestr'][1:]],
+            Image._str_to_data_type[array_interface['typestr'][1:]],
             shape[-1] if has_channels else 1,
-                self._intToVoidPointer(array_interface['data'][0])
+            Image._intToVoidPointer(array_interface['data'][0])
         )
 %}
 }
@@ -254,7 +277,7 @@ std::size_t _getHostDataPointer() {
     auto access = $self->getAccess(ACCESS_READ);
     return (std::size_t)access->getRawData();
 }
-float* _intToFloatPointer(std::size_t intPointer) {
+static float* _intToFloatPointer(std::size_t intPointer) {
     return (float*)intPointer;
 }
 %pythoncode %{
@@ -268,28 +291,25 @@ float* _intToFloatPointer(std::size_t intPointer) {
       'strides': None,
     }
 
-
-  def createFromArray(self, ndarray):
+  @staticmethod
+  def createFromArray(ndarray):
     """Create a FAST Tensor from a N-D array (e.g. numpy ndarray)"""
+    import numpy as np
     if not hasattr(ndarray, '__array_interface__'):
-      raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
-    array_interface = ndarray.__array_interface__
+        raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
+
     # Check data type if it is correct
-    if array_interface['typestr'] != 'f4':
-      import numpy as np
-      # Convert if numpy, else raise error
-      if isinstance(ndarray, np.ndarray):
+    if ndarray.__array_interface__['typestr'] != 'f4': # Is Float 32 bit?
         print('WARNING: ndarray given to fast::Tensor::createFromArray was not 32 bit float and will now be converted.')
-        ndarray = ndarray.astype(np.float32)
-        array_interface = ndarray.__array_interface__
-      else:
-        raise ValueError('Array given to Tensor::createFromArray must be 32 bit float, but you sent ' + array_interface['typestr'])
+    # Make sure it is C contiguous first
+    ndarray = np.ascontiguousarray(ndarray, dtype=np.float32)
+    array_interface = ndarray.__array_interface__
     shape = array_interface['shape']
     fast_shape = TensorShape()
     for i in shape:
         fast_shape.addDimension(i)
 
-    self.create(self._intToFloatPointer(array_interface['data'][0]), fast_shape)
+    return Tensor.create(Tensor._intToFloatPointer(array_interface['data'][0]), fast_shape)
 %}
 }
 
@@ -335,7 +355,6 @@ namespace fast {
 
         ADD_GET_INPUT_DATA_METHOD(Image)
         ADD_GET_INPUT_DATA_METHOD(ImagePyramid)
-        ADD_GET_INPUT_DATA_METHOD(Segmentation)
         ADD_GET_INPUT_DATA_METHOD(Tensor)
         ADD_GET_INPUT_DATA_METHOD(Mesh)
         ADD_GET_INPUT_DATA_METHOD(BoundingBox)
@@ -362,11 +381,36 @@ namespace fast {
 
 %pythoncode %{
 @classmethod
-def New(cls):
-    instance = cls()
+def create(cls, *args, **kwargs):
+    instance = cls(*args, **kwargs)
     return instance
+
+def connect(self, *args):
+    inputPortID = 0
+    outputPortID = 0
+    if len(args) == 1:
+        parentProcessObject = args[0]
+    elif len(args) == 2:
+        if isinstance(args[0], int):
+            inputPortID = int(args[0])
+            parentProcessObject = args[1]
+        else:
+            parentProcessObject = args[0]
+            outputPortID = int(args[1])
+    elif len(args) == 3:
+        inputPortID = int(args[0])
+        parentProcessObject = args[1]
+        outputPortID = int(args[2])
+    else:
+        raise TypeError("Incorrect arguemnts to connect()")
+
+    super().connect(inputPortID, parentProcessObject, outputPortID)
+    return self
+
 %}
 }
+
+
 
 // Get proper error messages if python error occurs in PythonProcessObject director
 // This was taken from https://github.com/swig/swig/issues/1117

@@ -10,30 +10,22 @@
 using namespace fast;
 
 TEST_CASE("Image slicer", "[fast][ImageSlicer][visual]") {
-	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
+	auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
 
-	ImageSlicer::pointer slicer = ImageSlicer::New();
-	slicer->setInputConnection(importer->getOutputPort());
-	slicer->setOrthogonalSlicePlane(PLANE_Y);
+	auto slicer = ImageSlicer::create(PLANE_Y)->connect(importer);
 
-	ImageRenderer::pointer renderer = ImageRenderer::New();
-	renderer->addInputConnection(slicer->getOutputPort());
+	auto renderer = ImageRenderer::create()->connect(slicer);
 
-	SimpleWindow::pointer window = SimpleWindow::New();
-	window->addRenderer(renderer);
-	window->set2DMode();
+	auto window = SimpleWindow2D::create()->connect(renderer);
 	window->setTimeout(1000);
-	window->start();
+	window->run();
 }
 
 TEST_CASE("Image slicer arbitrary slice", "[fast][ImageSlicer][visual][asdasd]") {
-	ImageFileImporter::pointer importer = ImageFileImporter::New();
+	auto importer = ImageFileImporter::New();
 	importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
-	ImageSlicer::pointer slicer = ImageSlicer::New();
-	slicer->setInputConnection(importer->getOutputPort());
-    slicer->setArbitrarySlicePlane(Plane(Vector3f(0, 0, 1)));
+	auto slicer = ImageSlicer::create(Plane(Vector3f(0, 0, 1)))->connect(importer);
 
 	ImageRenderer::pointer renderer = ImageRenderer::New();
 	renderer->addInputConnection(slicer->getOutputPort());

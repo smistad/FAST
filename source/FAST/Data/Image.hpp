@@ -39,7 +39,7 @@ unique_pixel_ptr allocatePixelArray(std::size_t size, DataType type);
  * @ingroup data
  */
 class FAST_EXPORT Image : public SpatialDataObject {
-    FAST_OBJECT(Image)
+    FAST_OBJECT_V4(Image)
     public:
         /**
          * @brief Create an image with same size and type as another image.
@@ -49,7 +49,20 @@ class FAST_EXPORT Image : public SpatialDataObject {
          *
          * @param image to copy size and pixel spacing from
          */
-        void createFromImage(Image::pointer image);
+        static std::shared_ptr<Image> createFromImage(Image::pointer image) {
+            auto ptr = std::shared_ptr<Image>(new Image(std::move(image)));
+            ptr->setPtr(ptr);
+            return ptr;
+        }
+        static std::shared_ptr<Image> createSegmentationFromImage(Image::pointer image) {
+            auto ptr = std::shared_ptr<Image>(new Image(image->getSize(), TYPE_UINT8, 1));
+            ptr->setSpacing(image->getSpacing());
+            SceneGraph::setParentNode(ptr, image);
+            ptr->setPtr(ptr);
+            return ptr;
+        }
+        Image(Image::pointer image);
+#ifndef SWIG
         /**
          * Setup a 2D/3D image object, but does not allocate any memory
          *
@@ -57,7 +70,8 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param type
          * @param nrOfChannels
          */
-        void create(VectorXui size, DataType type, uint nrOfChannels);
+        FAST_CONSTRUCTOR(Image, VectorXui, size,, DataType, type,, uint, nrOfChannels,);
+#endif
         /**
          * Setup a 2D image object, but does not allocate any memory
          *
@@ -66,7 +80,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param type
          * @param nrOfChannels
          */
-        void create(uint width, uint height, DataType type, uint nrOfChannels);
+        FAST_CONSTRUCTOR(Image, uint, width,, uint, height,, DataType, type,, uint, nrOfChannels,);
         /**
          * Setup a 3D image object, but does not allocate any memory.
          *
@@ -76,7 +90,8 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param type
          * @param nrOfChannels
          */
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels);
+        FAST_CONSTRUCTOR(Image, uint, width,, uint, height,, uint, depth,, DataType, type,, uint, nrOfChannels,);
+#ifndef SWIG
         /**
          * Copies 2D/3D data to given device
          *
@@ -86,8 +101,9 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param device
          * @param data
          */
-        void create(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device,
-                    const void *const data);
+        FAST_CONSTRUCTOR(Image, VectorXui, size,, DataType, type,, uint, nrOfChannels,, ExecutionDevice::pointer, device,,
+                    const void *const, data,);
+#endif
         /**
          * Copies 2D data to given device
          *
@@ -98,7 +114,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param device
          * @param data
          */
-        void create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * const data);
+        FAST_CONSTRUCTOR(Image, uint, width,, uint, height,, DataType, type,, uint, nrOfChannels,, ExecutionDevice::pointer, device,, const void * const, data,);
         /**
          * Copies 3D data to given device
          *
@@ -110,7 +126,8 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param device
          * @param data
          */
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * const data);
+        FAST_CONSTRUCTOR(Image, uint, width,, uint, height,, uint, depth,, DataType, type,, uint, nrOfChannels,, ExecutionDevice::pointer, device,, const void * const, data,);
+#ifndef SWIG
         /**
          * Copies 2D/3D data to default device
          *
@@ -119,7 +136,8 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param nrOfChannels
          * @param data
          */
-        void create(VectorXui size, DataType type, uint nrOfChannels, const void* const data);
+        FAST_CONSTRUCTOR(Image, VectorXui, size,, DataType, type,, uint, nrOfChannels,, const void* const, data,);
+#endif
         /**
          * Copies 2D data to default device
          *
@@ -129,7 +147,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param nrOfChannels
          * @param data
          */
-        void create(uint width, uint height, DataType type, uint nrOfChannels, const void* const data);
+         FAST_CONSTRUCTOR(Image, uint, width,, uint, height,, DataType, type,, uint, nrOfChannels,, const void* const, data,);
         /**
          * Copies 3D data to default device
          *
@@ -140,7 +158,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param nrOfChannels
          * @param data
          */
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, const void* const data);
+        FAST_CONSTRUCTOR(Image, uint, width,, uint, height,, uint, depth,, DataType, type,, uint, nrOfChannels,, const void* const, data,);
 
         /**
          * Moves the 2D data pointer to the given device
@@ -153,7 +171,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param data
          */
         template <class T>
-        void create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> data);
+        static Image::pointer create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> data);
         /**
          * Moves the 3D pointer to the given device
          *
@@ -166,7 +184,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param data
          */
         template <class T>
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> data);
+        static Image::pointer create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> data);
 
         /**
          * Moves the 2D/3D pointer to the given device
@@ -178,7 +196,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param ptr
          */
         template <class T>
-        void create(VectorXui, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr);
+        static Image::pointer create(VectorXui, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr);
 
         /**
          * Moves the 2D data pointer to the default device
@@ -190,7 +208,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param data
          */
         template <class T>
-        void create(uint width, uint height, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr);
+        static Image::pointer create(uint width, uint height, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr);
         /**
          * Moves the 3D data pointer to the default device
          *
@@ -202,7 +220,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param data
          */
         template <class T>
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr);
+        static Image::pointer create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr);
 
         /**
          * Moves the 2D/3D data pointer to the default device
@@ -213,7 +231,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param ptr
          */
         template <class T>
-        void create(VectorXui, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr);
+        static Image::pointer create(VectorXui, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr);
 
         OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
@@ -256,6 +274,12 @@ class FAST_EXPORT Image : public SpatialDataObject {
          * @param value
          */
         void fill(float value);
+
+        /**
+         * Checks wheter this image is of segmentation type (UINT8 and 1 channel)
+         * @return
+         */
+        bool isSegmentationType() const;
 
         // Override
         DataBoundingBox getTransformedBoundingBox() const override;
@@ -334,56 +358,53 @@ class FAST_EXPORT Image : public SpatialDataObject {
         friend class ImageAccess;
         friend class OpenCLBufferAccess;
         friend class OpenCLImageAccess;
+
+        void init(VectorXui, DataType type, uint nrOfChannels);
+        void init(uint width, uint height, DataType type, uint nrOfChannels);
+        void init(uint width, uint height, uint depth, DataType type, uint nrOfChannels);
+
 };
 
 template <class T>
-void Image::create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) {
-    create(width, height, type, nrOfChannels);
-
-    setData(device, ptr.release());
+Image::pointer Image::create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) {
+    auto resPtr = std::shared_ptr<Image>(new Image(width, height, type, nrOfChannels, device, ptr.release()));
+    resPtr->setPtr(resPtr);
+    return resPtr;
 }
 
 template <class T>
-void Image::create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) {
-    create(width, height, depth, type, nrOfChannels);
-
-    setData(device, ptr.release());
+Image::pointer Image::create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) {
+    auto resPtr = std::shared_ptr<Image>(new Image(width, height, depth, type, nrOfChannels, device, ptr.release()));
+    resPtr->setPtr(resPtr);
+    return resPtr;
 }
 
 template <class T>
-void Image::create(uint width, uint height, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
-    create(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), std::move(ptr));
+Image::pointer Image::create(uint width, uint height, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
+    auto resPtr = std::shared_ptr<Image>(new Image(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), ptr.release()));
+    resPtr->setPtr(resPtr);
+    return resPtr;
 }
 
 template <class T>
-void Image::create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
-    create(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), std::move(ptr));
+Image::pointer Image::create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
+    auto resPtr = std::shared_ptr<Image>(new Image(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), ptr.release()));
+    resPtr->setPtr(resPtr);
+    return resPtr;
 }
 
 template <class T>
-void Image::create(VectorXui size, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
-    if(size.size() == 3) {
-        create(size.x(), size.y(), size.z(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(),
-               std::move(ptr));
-    } else if(size.size() == 2) {
-        create(size.x(), size.y(), type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(),
-               std::move(ptr));
-    } else {
-        throw Exception("Incorrect size");
-    }
+Image::pointer Image::create(VectorXui size, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
+    auto resPtr = std::shared_ptr<Image>(new Image(size, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), ptr.release()));
+    resPtr->setPtr(resPtr);
+    return resPtr;
 }
 
 template <class T>
-void Image::create(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) {
-    if(size.size() == 3) {
-        create(size.x(), size.y(), size.z(), type, nrOfChannels, device,
-               std::move(ptr));
-    } else if(size.size() == 2) {
-        create(size.x(), size.y(), type, nrOfChannels, device,
-               std::move(ptr));
-    } else {
-        throw Exception("Incorrect size");
-    }
+Image::pointer Image::create(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) {
+    auto resPtr = std::shared_ptr<Image>(new Image(size, type, nrOfChannels, device, ptr.release()));
+    resPtr->setPtr(resPtr);
+    return resPtr;
 }
 
 } // end namespace fast

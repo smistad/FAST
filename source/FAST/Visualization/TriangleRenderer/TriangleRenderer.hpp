@@ -14,7 +14,12 @@ namespace fast {
 class FAST_EXPORT TriangleRenderer : public Renderer {
     FAST_PROCESS_OBJECT(TriangleRenderer)
     public:
-        FAST_CONSTRUCTOR(TriangleRenderer, Color, color, = Color::Green(), float, opacity, = 1, bool, wireframe, = false, float, specularReflection, = 0.8f)
+        FAST_CONSTRUCTOR(TriangleRenderer,
+                         Color, color, = Color::Green(),
+                         float, opacity, = 1,
+                         bool, wireframe, = false,
+                         float, specularReflection, = 0.8f
+        )
         uint addInputConnection(DataChannel::pointer port) override;
         uint addInputConnection(DataChannel::pointer port, Color color, float opacity);
         void setDefaultOpacity(float opacity);

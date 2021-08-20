@@ -3,14 +3,14 @@
 
 namespace fast {
 
-ImageWeightedMovingAverage::ImageWeightedMovingAverage() {
+ImageWeightedMovingAverage::ImageWeightedMovingAverage(int frameCount, bool keepDataType) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/TemporalSmoothing/ImageWeightedMovingAverage.cl");
 
-    m_frameCount = 10;
-    m_keepDataType = false;
+    setFrameCount(frameCount);
+    setKeepDataType(keepDataType);
     createIntegerAttribute("frame-count", "Frame count", "Nr of frames to use in moving average", m_frameCount);
     createBooleanAttribute("keep-datatype", "Keep data type", "Whether to keep data type of input image for output image, or use float instead", m_keepDataType);
 }
@@ -38,7 +38,6 @@ void ImageWeightedMovingAverage::loadAttributes() {
 
 void ImageWeightedMovingAverage::execute() {
     auto input = getInputData<Image>(0);
-    auto output = Image::New();
     m_buffer.push_back(input);
 
     if(input->getDimensions() != 2)
@@ -47,20 +46,19 @@ void ImageWeightedMovingAverage::execute() {
         reportWarning() << "ImageWeightedMovingAverage only supports single channel images" << reportEnd();
 
     if(!m_memory) {
-        m_memory = Image::New();
-        m_memory->create(input->getSize(), TYPE_FLOAT, 2);
+        m_memory = Image::create(input->getSize(), TYPE_FLOAT, 2);
         m_memory->fill(0);
     }
     if(input->getSize() != m_memory->getSize())
         throw Exception("Image input to ImageWeightedMovingAverage suddenly changed size.");
 
-    auto memoryOut = Image::New();
-    memoryOut->createFromImage(m_memory);
+    auto memoryOut = Image::createFromImage(m_memory);
 
+    Image::pointer output;
     if(m_keepDataType) {
-        output->create(input->getSize(), input->getDataType(), 1);
+        output = Image::create(input->getSize(), input->getDataType(), 1);
     } else {
-        output->create(input->getSize(), TYPE_FLOAT, 1);
+        output = Image::create(input->getSize(), TYPE_FLOAT, 1);
     }
     SceneGraph::setParentNode(output, input);
     output->setSpacing(input->getSpacing());

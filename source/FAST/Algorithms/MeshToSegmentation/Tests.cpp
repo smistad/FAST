@@ -31,25 +31,22 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d][visual]") {
 
     auto mesh = Mesh::create(vertices, lines);
 
-    MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
-    meshToSeg->setInputData(0, mesh);
-    meshToSeg->setInputConnection(1, importer->getOutputPort());
+    auto meshToSeg = MeshToSegmentation::create()
+            ->connect(mesh)
+            ->connect(1, importer);
     //meshToSeg->setOutputImageResolution(50, 50);
 
-    SegmentationRenderer::pointer segRenderer = SegmentationRenderer::New();
+    auto segRenderer = SegmentationRenderer::New();
     segRenderer->addInputConnection(meshToSeg->getOutputPort());
-    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+    auto imageRenderer = ImageRenderer::New();
     imageRenderer->addInputConnection(importer->getOutputPort());
 
-    DualViewWindow::pointer window = DualViewWindow::New();
-    window->setWidth(1024);
-    window->addRendererToBottomRightView(segRenderer);
-    window->addRendererToTopLeftView(imageRenderer);
-    window->addRendererToTopLeftView(segRenderer);
-    window->getBottomRightView()->set2DMode();
-    window->getTopLeftView()->set2DMode();
+    auto window = DualViewWindow::create()
+            ->connectRight(segRenderer)
+            ->connectLeft({imageRenderer, segRenderer});
+    window->set2DMode();
     window->setTimeout(500);
-    window->start();
+    window->run();
 }
 
 TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
@@ -96,12 +93,11 @@ TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
     TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
     TriangleRenderer->setInputConnection(extraction->getOutputPort());
 
-    DualViewWindow::pointer window = DualViewWindow::New();
-    window->setWidth(1024);
-    window->addRendererToBottomRightView(TriangleRenderer);
-    window->addRendererToTopLeftView(imageRenderer);
+    auto window = DualViewWindow::create(Color::White(), 1024)
+            ->connectLeft(imageRenderer)
+            ->connectRight(TriangleRenderer);
     //window->getBottomRightView()->set2DMode();
     //window->getTopLeftView()->set2DMode();
     window->setTimeout(500);
-    window->start();
+    window->run();
 }

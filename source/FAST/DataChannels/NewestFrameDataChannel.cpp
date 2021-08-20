@@ -39,6 +39,10 @@ void NewestFrameDataChannel::setMaximumNumberOfFrames(uint frames) {
 
 }
 
+int NewestFrameDataChannel::getMaximumNumberOfFrames() const {
+    return 1;
+}
+
 void NewestFrameDataChannel::stop() {
     DataChannel::stop();
 

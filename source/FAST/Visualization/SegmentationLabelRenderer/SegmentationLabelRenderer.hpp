@@ -7,6 +7,7 @@ namespace fast {
 
 class RegionList;
 class Image;
+using LabelNames = std::map<uint, std::string>;
 
 /**
  * @brief Renders text labels on top of Segmentation data
@@ -20,8 +21,8 @@ class FAST_EXPORT SegmentationLabelRenderer : public LabelColorRenderer {
     FAST_PROCESS_OBJECT(SegmentationLabelRenderer)
     public:
         FAST_CONSTRUCTOR(SegmentationLabelRenderer,
-                         FAST_P(std::map<uint, std::string>), labelNames, = FAST_P(std::map<uint, std::string>)(),
-                         FAST_P(std::map<uint, Color>), labelColors, = FAST_P(std::map<uint, Color>)(),
+                         LabelNames, labelNames, = LabelNames(),
+                         LabelColors, labelColors, = LabelColors(),
                          float, areaThreshold, = 1.0f
         )
         void setLabelNames(std::map<uint, std::string> labelNames);

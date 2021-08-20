@@ -1,7 +1,5 @@
 /**
- * Examples/Segmentation/airwaySegmentation.cpp
- *
- * If you edit this example, please also update the wiki and source code file in the repository.
+ * @example airwaySegmentation.cpp
  */
 #include <FAST/Exporters/MetaImageExporter.hpp>
 #include <FAST/Exporters/VTKMeshFileExporter.hpp>
@@ -27,58 +25,44 @@ int main(int argc, char** argv) {
 	parser.parse(argc, argv);
 
 	// Import CT data
-	auto importer = ImageFileImporter::New();
-	importer->setFilename(parser.get(1));
+	auto importer = ImageFileImporter::create(parser.get(1));
 
 	// Do airway segmentation
-	auto segmentation = AirwaySegmentation::New();
-	segmentation->setInputConnection(importer->getOutputPort());
-	segmentation->setSmoothing(parser.get<float>("smoothing"));
+	auto segmentation = AirwaySegmentation::create(parser.get<float>("smoothing"))->connect(importer);
 	if(parser.gotValue("seed"))
         segmentation->setSeedPoint(parser.get<Vector3i>("seed"));
 
 	// Extract centerline from segmentation
-	auto centerline = CenterlineExtraction::New();
-	centerline->setInputConnection(segmentation->getOutputPort());
+	auto centerline = CenterlineExtraction::create()->connect(segmentation);
 
     // Export data if user has specified to do so
     if(parser.gotValue("export_segmentation")) {
-        auto exporter = MetaImageExporter::New();
-        exporter->setFilename(parser.get("export_segmentation"));
-        exporter->setInputConnection(segmentation->getOutputPort());
-        exporter->update();
+        auto exporter = MetaImageExporter::create(parser.get("export_segmentation"))
+                ->connect(segmentation);
+        exporter->run();
     }
     if(parser.gotValue("export_centerline")) {
-        auto exporter = VTKMeshFileExporter::New();
-        exporter->setFilename(parser.get("export_centerline"));
-        exporter->setInputConnection(centerline->getOutputPort());
-        exporter->update();
-		
+        auto exporter = VTKMeshFileExporter::create(parser.get("export_centerline"))
+                ->connect(centerline);
+        exporter->run();
     }
 	if(parser.gotValue("export_segmentation") || parser.gotValue("export_centerline"))
 		return 0; // Dont render if exporting..
 
 	// Extract surface from segmentation
-	auto extraction = SurfaceExtraction::create();
-	extraction->setInputConnection(segmentation->getOutputPort());
+	auto extraction = SurfaceExtraction::create()->connect(segmentation);
 
 	// Set up renderers and window
-	auto renderer = TriangleRenderer::New();
-	renderer->addInputConnection(extraction->getOutputPort());
+	auto renderer = TriangleRenderer::create()->connect(extraction);
 
-	auto lineRenderer = LineRenderer::New();
-	lineRenderer->addInputConnection(centerline->getOutputPort());
-	lineRenderer->setDefaultDrawOnTop(true);
-	lineRenderer->setDefaultColor(Color::Blue());
+	auto lineRenderer = LineRenderer::create(Color::Blue(), true)->connect(centerline);
 
-	auto window = SimpleWindow::New();
-	window->addRenderer(renderer);
-	window->addRenderer(lineRenderer);
+	auto window = SimpleWindow3D::create()->connect({renderer, lineRenderer});
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
-	window->start();
+	window->run();
 
 
 }

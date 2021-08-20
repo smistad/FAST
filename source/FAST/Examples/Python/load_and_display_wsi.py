@@ -7,7 +7,6 @@ fast.downloadTestDataIfNotExists() # This will download the test data needed to 
 
 importer = fast.WholeSlideImageImporter.create(fast.Config.getTestDataPath() + 'WSI/A05.svs')
 
-renderer = fast.ImagePyramidRenderer.New()
-renderer.setInputConnection(importer.getOutputPort())
+renderer = fast.ImagePyramidRenderer.create().connect(importer)
 
-window = fast.SimpleWindow2D.create().connect(renderer).run()
+fast.SimpleWindow2D.create().connect(renderer).run()

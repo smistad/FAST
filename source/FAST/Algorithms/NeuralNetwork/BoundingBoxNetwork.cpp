@@ -37,7 +37,19 @@ BoundingBoxNetwork::BoundingBoxNetwork() {
     createStringAttribute("anchors", "Anchors", "Should be formatted like: x1,y1,x2,y2;x1,y1,x2,y2", "");
 }
 
+BoundingBoxNetwork::BoundingBoxNetwork(std::string modelFilename, float scaleFactor, float threshold,
+                                       std::vector<std::vector<Vector2f>> anchors, BoundingBoxNetworkType type,
+                                       float meanIntensity, float stanardDeviationIntensity,
+                                       std::vector<NeuralNetworkNode> inputNodes,
+                                       std::vector<NeuralNetworkNode> outputNodes, std::string inferenceEngine,
+                                       std::vector<std::string> customPlugins) : NeuralNetwork(modelFilename, scaleFactor, meanIntensity, stanardDeviationIntensity, inputNodes, outputNodes, inferenceEngine, customPlugins) {
+    createInputPort<Image>(0);
+    createOutputPort<BoundingBoxSet>(0);
+    m_tensorToBoundingBoxSet = TensorToBoundingBoxSet::New();
 
+    setThreshold(threshold);
+    setAnchors(anchors);
+}
 
 void BoundingBoxNetwork::execute() {
     run();

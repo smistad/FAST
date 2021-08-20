@@ -1,19 +1,23 @@
 #pragma once
 
-#include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
+#include <FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp>
 
 namespace fast {
 
 /**
-Image sharpening by the unsharp masking method.
+* @brief Image sharpening by the unsharp masking method.
 */
-class FAST_EXPORT ImageSharpening : public GaussianSmoothingFilter {
-	FAST_OBJECT(ImageSharpening)
+class FAST_EXPORT ImageSharpening : public GaussianSmoothing {
+	FAST_PROCESS_OBJECT(ImageSharpening)
 	public:
+        FAST_CONSTRUCTOR(ImageSharpening,
+                         float, gain, = 1.0f,
+                         float, stddev, = 0.5f,
+                         uchar, maskSize, = 0
+        )
 		void setGain(float gain);
 		void loadAttributes();
 	protected:
-		ImageSharpening();
 		void execute();
 
 		float m_gain = 1.0;

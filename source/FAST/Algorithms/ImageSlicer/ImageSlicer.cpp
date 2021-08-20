@@ -19,18 +19,31 @@ void ImageSlicer::setArbitrarySlicePlane(Plane slicePlane) {
     mIsModified = true;
 }
 
-ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
-	createInputPort(0);
-	createOutputPort(0);
-	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSlicer/ImageSlicer.cl");
+void ImageSlicer::init() {
+    createInputPort(0);
+    createOutputPort(0);
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSlicer/ImageSlicer.cl");
 
-	mArbitrarySlicing = false;
-	mOrthogonalSlicing = false;
+    mArbitrarySlicing = false;
+    mOrthogonalSlicing = false;
+}
+
+ImageSlicer::ImageSlicer(Plane slicePlane) {
+    init();
+    setArbitrarySlicePlane(slicePlane);
+}
+
+ImageSlicer::ImageSlicer(PlaneType orthogoalSlicePlane, int sliceNr) {
+    init();
+    setOrthogonalSlicePlane(orthogoalSlicePlane, sliceNr);
+}
+
+ImageSlicer::ImageSlicer() {
+    init();
 }
 
 void ImageSlicer::execute() {
 	auto input = getInputData<Image>();
-	auto output = Image::New();
 
 	if(input->getDimensions() != 3)
 		throw Exception("Image slicer can only be used for 3D images");
@@ -38,15 +51,16 @@ void ImageSlicer::execute() {
 	if(!mArbitrarySlicing && !mOrthogonalSlicing)
 		throw Exception("No slice plane given to the ImageSlicer");
 
+	Image::pointer output;
 	if(mOrthogonalSlicing) {
-		orthogonalSlicing(input, output);
+		output = orthogonalSlicing(input);
 	} else {
-		arbitrarySlicing(input, output);
+		output = arbitrarySlicing(input);
 	}
 	addOutputData(0, output);
 }
 
-void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output) {
+Image::pointer ImageSlicer::orthogonalSlicing(Image::pointer input) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     // Determine slice nr and width and height
@@ -114,11 +128,10 @@ void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output)
             break;
     }
 
-    output->create(width, height, input->getDataType(), input->getNrOfChannels());
+    auto output = Image::create(width, height, input->getDataType(), input->getNrOfChannels());
     output->setSpacing(spacing);
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->setTransform(transform);
-    output->getSceneGraphNode()->setTransformation(T);
+    auto T = Transform::create(transform);
+    output->getSceneGraphNode()->setTransform(T);
     SceneGraph::setParentNode(output, input);
 
     OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -140,14 +153,15 @@ void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output)
     );
 
     // TODO set scene graph transformation
+    return output;
 }
 
 bool inline cornersAreAdjacent(Vector3f cornerA, Vector3f cornerB, Image::pointer input) {
     // Check if cornerA and cornerB are lying in any of the planes of the BB
-    AffineTransformation::pointer transformation = SceneGraph::getAffineTransformationFromData(input);
+    auto transformation = SceneGraph::getTransformFromData(input);
     // Transform back to pixel space
-    cornerA = transformation->getTransform().inverse()*cornerA;
-    cornerB = transformation->getTransform().inverse()*cornerB;
+    cornerA = transformation->get().inverse()*cornerA;
+    cornerB = transformation->get().inverse()*cornerB;
     // Define the eight planes of the image
     std::vector<Plane> planes;
     planes.push_back(Plane(Vector3f(0,1,0), Vector3f(0, input->getHeight(), 0))); // Top
@@ -178,7 +192,7 @@ void inline getWidth(std::vector<Vector3f> intersectionPoints, Image::pointer in
 
 }
 
-void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) {
+Image::pointer ImageSlicer::arbitrarySlicing(Image::pointer input) {
     DataBoundingBox transformedBB = input->getTransformedBoundingBox();
     MatrixXf transformedCorners = transformedBB.getCorners();
     if(!mArbitrarySlicePlane.hasPosition()) {
@@ -221,7 +235,7 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
        throw Exception("Failed to find intersection points");
 
     std::cout << "Found " << intersectionPoints.size() << " intersection points" << std::endl;
-    AffineTransformation::pointer transformation = SceneGraph::getAffineTransformationFromData(input);
+    auto transformation = SceneGraph::getTransformFromData(input);
     float longestEdgeMM = -1;
     int longestEdgePixels;
     for(Vector3f cornerA : intersectionPoints) {
@@ -233,15 +247,15 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
                 float lengthMM = (cornerA - cornerB).norm();
                 if(longestEdgeMM < lengthMM) {
                     longestEdgeMM = lengthMM;
-                    Vector3f cornerApixels = transformation->getTransform().inverse()*cornerA;
-                    Vector3f cornerBpixels = transformation->getTransform().inverse()*cornerB;
+                    Vector3f cornerApixels = transformation->get().inverse()*cornerA;
+                    Vector3f cornerBpixels = transformation->get().inverse()*cornerB;
                     longestEdgePixels = (int)round((cornerApixels - cornerBpixels).norm());
                 }
             //}
         }
     }
 
-    output->create(longestEdgePixels, longestEdgePixels, input->getDataType(), input->getNrOfChannels());
+    auto output = Image::create(longestEdgePixels, longestEdgePixels, input->getDataType(), input->getNrOfChannels());
     float spacing = longestEdgeMM / longestEdgePixels;
     output->setSpacing(spacing, spacing, 1);
 
@@ -288,10 +302,10 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     // Get transform of the image
-    AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
+    auto dataTransform = SceneGraph::getTransformFromData(input);
 
     // Transfer transformations
-    Eigen::Affine3f transform = dataTransform->getTransform().scale(input->getSpacing()).inverse()*sliceTransformation;
+    Eigen::Affine3f transform = dataTransform->get().scale(input->getSpacing()).inverse()*sliceTransformation;
 
     cl::Buffer transformBuffer(
             device->getContext(),
@@ -319,10 +333,8 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
     );
     device->getCommandQueue().finish();
 
-
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->setTransform(sliceTransformation);
-    output->getSceneGraphNode()->setTransformation(T);
+    output->getSceneGraphNode()->setTransform(sliceTransformation);
+    return output;
 }
 
 }

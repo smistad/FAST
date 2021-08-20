@@ -88,6 +88,11 @@ StreamToFileExporter::StreamToFileExporter() {
     createOutputPort<DataObject>(0);
 }
 
+StreamToFileExporter::StreamToFileExporter(std::string path, std::string recordingFolderName) : StreamToFileExporter() {
+    setPath(path);
+    setRecordingFolderName(recordingFolderName);
+}
+
 bool StreamToFileExporter::isEnabled() {
     return m_enabled;
 }

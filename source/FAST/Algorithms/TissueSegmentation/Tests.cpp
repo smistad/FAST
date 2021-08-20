@@ -10,7 +10,7 @@
 
 using namespace fast;
 
-TEST_CASE("Tissue segmentation", "[fast][wsi][TissueSegmentation]") {
+TEST_CASE("Tissue segmentation", "[fast][wsi][TissueSegmentation][visual]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 

@@ -2,18 +2,21 @@
 #include "TissueSegmentation.hpp"
 #include <FAST/Algorithms/Morphology/Dilation.hpp>
 #include <FAST/Algorithms/Morphology/Erosion.hpp>
-#include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
+#include <FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp>
 
 namespace fast {
 
-TissueSegmentation::TissueSegmentation() {
+TissueSegmentation::TissueSegmentation(int threshold, int dilationSize, int erosionSize) {
     createInputPort<ImagePyramid>(0);
-    createOutputPort<Segmentation>(0);
+    createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/TissueSegmentation/TissueSegmentation.cl");
     createIntegerAttribute("threshold", "Intensity threshold", "", m_thresh);
     createIntegerAttribute("dilate-kernel-size", "Kernel size for dilation", "", m_dilate);
     createIntegerAttribute("erode-kernel-size", "Kernel size for erosion", "", m_erode);
+    setThreshold(threshold);
+    setDilate(dilationSize);
+    setErode(erosionSize);
 }
 
 void TissueSegmentation::loadAttributes() {
@@ -51,8 +54,7 @@ void TissueSegmentation::execute() {
     auto access = wsi->getAccess(ACCESS_READ);
     auto input = access->getLevelAsImage(wsi->getNrOfLevels()-1);
 
-    auto output = Segmentation::New();
-    output->createFromImage(input);
+    auto output = Image::createSegmentationFromImage(input);
 
     {
         auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());

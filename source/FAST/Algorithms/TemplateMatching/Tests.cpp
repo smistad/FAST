@@ -15,15 +15,12 @@ TEST_CASE("Template matching NCC", "[fast][NCC][TemplateMatching][visual]") {
     auto port = importer->getOutputPort();
     importer->update();
     auto image = port->getNextFrame<Image>();
-    Vector2i size(32, 32);
+    Vector2i size(33, 33);
     Vector2i position = Vector2i(120, 100) + size/2;
     auto templateImage = image->crop(position - size/2, size);
 
-    auto matching = TemplateMatching::New();
+    auto matching = TemplateMatching::create(MatchingMetric::NORMALIZED_CROSS_CORRELATION, position, Vector2i(16, 16))->connect(image)->connect(1, templateImage);
     matching->enableRuntimeMeasurements();
-    matching->setRegionOfInterest(position, Vector2i(16, 16));
-    matching->setInputData(0, image);
-    matching->setInputData(1, templateImage);
 
     auto renderer = ImageRenderer::New();
     renderer->addInputConnection(matching->getOutputPort());
@@ -32,16 +29,13 @@ TEST_CASE("Template matching NCC", "[fast][NCC][TemplateMatching][visual]") {
     auto renderer3 = ImageRenderer::New();
     renderer3->addInputData(templateImage);
 
-    auto window = MultiViewWindow::New();
-    window->setNrOfViews(3);
-    window->getView(0)->addRenderer(renderer);
-    window->getView(0)->set2DMode();
-    window->getView(1)->addRenderer(renderer2);
-    window->getView(1)->set2DMode();
-    window->getView(2)->addRenderer(renderer3);
-    window->getView(2)->set2DMode();
+    auto window = MultiViewWindow::create(3)
+            ->connect(0, renderer)
+            ->connect(1, renderer2)
+            ->connect(2, renderer3);
+    window->set2DMode();
     window->setTimeout(1000);
-    window->start();
+    window->run();
 
     //matching->update();
     matching->getRuntime()->print();

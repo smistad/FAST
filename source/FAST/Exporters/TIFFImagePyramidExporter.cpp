@@ -32,7 +32,7 @@ void TIFFImagePyramidExporter::execute() {
     const Vector3f spacing = imagePyramid->getSpacing();
 
     ImageCompression compression = m_compression;
-    if(!m_compressionSet) {
+    if(!m_compressionSet || m_compression == ImageCompression::UNSPECIFIED) {
         // Default compression
         if(imagePyramid->getNrOfChannels() == 1) {
             compression = ImageCompression::LZW;
@@ -120,8 +120,7 @@ void TIFFImagePyramidExporter::execute() {
             if(image->getWidth() != imagePyramid->getLevelTileWidth(level) || image->getHeight() != imagePyramid->getLevelTileHeight(level)) {
                 // Have to pad the image, TIFF expects all tiles to be equal
                 // TODO improve
-                auto paddedImage = Image::New();
-                paddedImage->create(imagePyramid->getLevelTileWidth(level), imagePyramid->getLevelTileHeight(level), image->getDataType(), image->getNrOfChannels());
+                auto paddedImage = Image::create(imagePyramid->getLevelTileWidth(level), imagePyramid->getLevelTileHeight(level), image->getDataType(), image->getNrOfChannels());
                 if(imagePyramid->getNrOfChannels() >= 3) {
                     paddedImage->fill(255);
                 } else {
@@ -155,8 +154,13 @@ void TIFFImagePyramidExporter::execute() {
     TIFFClose(tiff);
 }
 
-TIFFImagePyramidExporter::TIFFImagePyramidExporter() {
+TIFFImagePyramidExporter::TIFFImagePyramidExporter() : TIFFImagePyramidExporter("") {
+}
+
+TIFFImagePyramidExporter::TIFFImagePyramidExporter(std::string filename, ImageCompression compression) : FileExporter(filename) {
     createInputPort<ImagePyramid>(0);
+    if(compression != ImageCompression::UNSPECIFIED)
+        setCompression(compression);
 }
 
 void TIFFImagePyramidExporter::setCompression(ImageCompression compression) {

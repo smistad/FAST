@@ -1,6 +1,5 @@
 #pragma once
 
-#include "FAST/AffineTransformation.hpp"
 #include "FAST/Data/Color.hpp"
 #include "Renderer.hpp"
 #include "Plane.hpp"

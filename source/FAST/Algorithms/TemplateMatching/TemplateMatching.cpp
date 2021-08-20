@@ -4,11 +4,15 @@
 namespace fast {
 
 
-TemplateMatching::TemplateMatching() {
+TemplateMatching::TemplateMatching(MatchingMetric matchingType, Vector2i center, Vector2i offset) {
     createInputPort<Image>(0); // Image to search in
     createInputPort<Image>(1); // Template
 
     createOutputPort<Image>(0); // Match scores
+    if(center != Vector2i(-1,-1)) {
+        setRegionOfInterest(center, offset);
+    }
+    setMatchingMetric(matchingType);
 }
 
 static float calculateMeanIntensity(ImageAccess::pointer& access, const Vector2i start, const Vector2i size) {
@@ -29,8 +33,7 @@ void TemplateMatching::execute() {
     if(templateImage->getWidth() % 2 == 0 || templateImage->getHeight() % 2 == 0)
         throw Exception("Template image size for template matching must be odd");
 
-    outputScores = Image::New();
-    outputScores->create(image->getSize(), TYPE_FLOAT, 1);
+    outputScores = Image::create(image->getSize(), TYPE_FLOAT, 1);
     outputScores->fill(0);
     auto outputAccess = outputScores->getImageAccess(ACCESS_READ_WRITE);
     auto templateAccess = templateImage->getImageAccess(ACCESS_READ);

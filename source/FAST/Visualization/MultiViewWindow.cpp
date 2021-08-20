@@ -18,12 +18,18 @@ void MultiViewWindow::removeAllRenderers() {
         view->removeAllRenderers();
     }
 }
-
-void MultiViewWindow::setNrOfViews(int viewCount) {
+MultiViewWindow::MultiViewWindow(int viewCount, Color bgcolor, int width, int height, bool verticalMode) {
     mWidget->clearViews();
     for(int i = 0; i < viewCount; i++) {
-        createView();
+        auto view = createView();
     }
+    setBackgroundColor(bgcolor);
+    if(width > 0)
+        setWidth(width);
+    if(height > 0)
+        setHeight(height);
+    if(verticalMode)
+        setVerticalMode();
 }
 
 void MultiViewWindow::setHorizontalMode() {
@@ -37,10 +43,6 @@ void MultiViewWindow::setVerticalMode() {
 }
 
 MultiViewWindow::~MultiViewWindow() {
-}
-
-MultiViewWindow::MultiViewWindow() {
-    mVerticalMode = false;
 }
 
 void MultiViewWindow::createLayout() {
@@ -74,6 +76,23 @@ void MultiViewWindow::addView(View* view) {
 void MultiViewWindow::start() {
     createLayout();
     Window::start();
+}
+
+std::shared_ptr<MultiViewWindow> MultiViewWindow::connect(int viewNr, std::shared_ptr<Renderer> renderer) {
+    addRenderer(viewNr, renderer);
+    return std::dynamic_pointer_cast<MultiViewWindow>(mPtr.lock());
+}
+
+std::shared_ptr<MultiViewWindow>
+MultiViewWindow::connect(int viewNr, std::vector<std::shared_ptr<Renderer>> renderers) {
+    for(auto renderer : renderers)
+        addRenderer(viewNr, renderer);
+    return std::dynamic_pointer_cast<MultiViewWindow>(mPtr.lock());
+}
+
+void MultiViewWindow::setBackgroundColor(Color color) {
+    for(auto view : getViews())
+        view->setBackgroundColor(color);
 }
 
 } // end namespace fast

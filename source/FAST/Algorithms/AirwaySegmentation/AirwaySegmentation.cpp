@@ -1,20 +1,24 @@
 #include "AirwaySegmentation.hpp"
-#include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp"
+#include "FAST/Data/Image.hpp"
 #include <unordered_set>
 #include <stack>
 
 namespace fast {
 
-AirwaySegmentation::AirwaySegmentation() {
+AirwaySegmentation::AirwaySegmentation(float smoothing, Vector3i seed) {
 	createInputPort<Image>(0);
-	createOutputPort<Segmentation>(0);
+	createOutputPort<Image>(0);
 
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/AirwaySegmentation/AirwaySegmentation.cl");
 	createFloatAttribute("smoothing", "Smoothing amount", "Gaussian smoothing standard deviation", mSmoothingSigma);
 	createIntegerAttribute("seed-x", "Seed position X", "Seed voxel position X", -1);
 	createIntegerAttribute("seed-y", "Seed position Y", "Seed voxel position Y", -1);
 	createIntegerAttribute("seed-z", "Seed position Z", "Seed voxel position Z", -1);
+
+    setSmoothing(smoothing);
+    if(seed.x() >= 0)
+        setSeedPoint(seed);
 }
 
 void AirwaySegmentation::loadAttributes() {
@@ -128,11 +132,10 @@ static int grow(uchar* segmentation, std::vector<Vector3i> neighbors, std::vecto
     return voxels.size();
 }
 
-void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, const Vector3i seed) {
+void regionGrowing(Image::pointer volume, Image::pointer segmentation, const Vector3i seed) {
     const int width = volume->getWidth();
     const int height = volume->getHeight();
     const int depth = volume->getDepth();
-	segmentation->createFromImage(volume);
 	ImageAccess::pointer access = volume->getImageAccess(ACCESS_READ);
 	short* data = (short*)access->get();
 	ImageAccess::pointer access2 = segmentation->getImageAccess(ACCESS_READ_WRITE);
@@ -190,8 +193,7 @@ Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
 	cl::Program program = getOpenCLProgram(device);
 
 	OpenCLImageAccess::pointer input = image->getOpenCLImageAccess(ACCESS_READ, device);
-	Image::pointer newImage = Image::New();
-	newImage->create(image->getSize(), TYPE_INT16, 1);
+	auto newImage = Image::create(image->getSize(), TYPE_INT16, 1);
 	newImage->setSpacing(image->getSpacing());
 	SceneGraph::setParentNode(newImage, image);
 
@@ -216,7 +218,7 @@ Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
 	return newImage;
 }
 
-void AirwaySegmentation::morphologicalClosing(Segmentation::pointer segmentation) {
+void AirwaySegmentation::morphologicalClosing(Image::pointer segmentation) {
 	int width = segmentation->getWidth();
 	int height = segmentation->getHeight();
 	int depth = segmentation->getDepth();
@@ -225,8 +227,7 @@ void AirwaySegmentation::morphologicalClosing(Segmentation::pointer segmentation
 	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 	cl::Program program = getOpenCLProgram(device);
 
-	Segmentation::pointer segmentation2 = Segmentation::New();
-	segmentation2->create(segmentation->getSize(), TYPE_UINT8, 1);
+	auto segmentation2 = Image::create(segmentation->getSize(), TYPE_UINT8, 1);
 	ImageAccess::pointer access = segmentation2->getImageAccess(ACCESS_READ_WRITE);
 	uchar* data = (uchar*)access->get();
 	memset(data, 0, width*height*depth);
@@ -288,7 +289,7 @@ void AirwaySegmentation::execute() {
 
 	// Smooth image
 	if(mSmoothingSigma > 0) {
-		GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+		GaussianSmoothing::pointer filter = GaussianSmoothing::New();
         filter->setInputData(image);
         filter->setStandardDeviation(mSmoothingSigma);
         DataChannel::pointer port = filter->getOutputPort();
@@ -316,7 +317,7 @@ void AirwaySegmentation::execute() {
 	reportInfo() << "Using seed point: " << seed.transpose() << reportEnd();
 
 	// Do the region growing
-	auto segmentation = Segmentation::New();
+	auto segmentation = Image::createSegmentationFromImage(image);
 	regionGrowing(image, segmentation, seed);
 
 	// Do morphological closing to remove holes in segmentation

@@ -142,7 +142,6 @@ void MetaImageImporter::execute() {
     VectorXui size;
     unsigned int nrOfComponents = 1;
     uint64_t timestamp = 0;
-    auto output = Image::New();
 
     Vector3f spacing(1,1,1), offset(0,0,0), centerOfRotation(0,0,0);
     Matrix3f transformMatrix = Matrix3f::Identity();
@@ -343,6 +342,7 @@ void MetaImageImporter::execute() {
         throw Exception("Error reading the mhd file", __LINE__, __FILE__);
 
 
+    Image::pointer output;
     std::size_t voxels = size.x()*size.y();
     if(size.size() == 3)
         voxels *= size.z();
@@ -359,7 +359,7 @@ void MetaImageImporter::execute() {
 
             data = std::move(tmp2);
         }
-        output->create(size,TYPE_INT16,nrOfComponents,getMainDevice(),std::move(data));
+        output = Image::create(size,TYPE_INT16,nrOfComponents,getMainDevice(),std::move(data));
 
     } else if(typeName == "MET_USHORT" || typeName == "MET_UINT") {
         std::unique_ptr<ushort[]> data;
@@ -374,16 +374,16 @@ void MetaImageImporter::execute() {
 
             data = std::move(tmp2);
         }
-        output->create(size,TYPE_UINT16,nrOfComponents,getMainDevice(),std::move(data));
+        output = Image::create(size,TYPE_UINT16,nrOfComponents,getMainDevice(),std::move(data));
     } else if(typeName == "MET_CHAR") {
         auto data = readRawData<char>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
-        output->create(size,TYPE_INT8,nrOfComponents,getMainDevice(),std::move(data));
+        output = Image::create(size,TYPE_INT8,nrOfComponents,getMainDevice(),std::move(data));
     } else if(typeName == "MET_UCHAR") {
         auto data = readRawData<unsigned char>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
-        output->create(size,TYPE_UINT8,nrOfComponents,getMainDevice(),std::move(data));
+        output = Image::create(size,TYPE_UINT8,nrOfComponents,getMainDevice(),std::move(data));
     } else if(typeName == "MET_FLOAT") {
         auto data = readRawData<float>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
-        output->create(size,TYPE_FLOAT,nrOfComponents,getMainDevice(),std::move(data));
+        output = Image::create(size,TYPE_FLOAT,nrOfComponents,getMainDevice(),std::move(data));
     }
 
     output->setSpacing(spacing);
@@ -397,8 +397,6 @@ void MetaImageImporter::execute() {
 	Affine3f matrix = Affine3f::Identity();
 	matrix.translation() = offset;
 	matrix.linear() = transformMatrix;
-	AffineTransformation::pointer T = AffineTransformation::New();
-	T->setTransform(matrix);
-    output->getSceneGraphNode()->setTransformation(T);
+    output->getSceneGraphNode()->setTransform(matrix);
     addOutputData(0, output);
 }

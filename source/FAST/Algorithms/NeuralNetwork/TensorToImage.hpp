@@ -10,10 +10,10 @@ namespace fast {
  * @ingroup neural-network
  */
 class FAST_EXPORT TensorToImage : public ProcessObject {
-    FAST_OBJECT(TensorToImage)
+    FAST_PROCESS_OBJECT(TensorToImage)
     public:
+        FAST_CONSTRUCTOR(TensorToImage)
     protected:
-        TensorToImage();
         void execute() override;
 };
 

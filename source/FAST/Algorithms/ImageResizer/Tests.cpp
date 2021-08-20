@@ -10,10 +10,7 @@ using namespace fast;
 TEST_CASE("ImageResizer 2D", "[fast][ImageResizer]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
 	importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_9.mhd");
-	ImageResizer::pointer resizer = ImageResizer::New();
-	resizer->setInputConnection(importer->getOutputPort());
-	resizer->setWidth(64);
-	resizer->setHeight(64);
+	ImageResizer::pointer resizer = ImageResizer::create(64, 64)->connect(importer);
 	auto port = resizer->getOutputPort();
 	resizer->update();
 
@@ -25,10 +22,7 @@ TEST_CASE("ImageResizer 2D", "[fast][ImageResizer]") {
 TEST_CASE("ImageResizer 2D preserve aspect", "[fast][ImageResizer]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
 	importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_9.mhd");
-	ImageResizer::pointer resizer = ImageResizer::New();
-	resizer->setInputConnection(importer->getOutputPort());
-	resizer->setWidth(256);
-	resizer->setHeight(256);
+	ImageResizer::pointer resizer = ImageResizer::create(256,256)->connect(importer);
 	resizer->setPreserveAspectRatio(true);
 	auto port = resizer->getOutputPort();
 	resizer->update();
@@ -49,11 +43,7 @@ TEST_CASE("ImageResizer 2D preserve aspect", "[fast][ImageResizer]") {
 TEST_CASE("ImageResizer 3D", "[fast][ImageResizer]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
 	importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
-	ImageResizer::pointer resizer = ImageResizer::New();
-	resizer->setInputConnection(importer->getOutputPort());
-	resizer->setWidth(64);
-	resizer->setHeight(64);
-	resizer->setDepth(64);
+	ImageResizer::pointer resizer = ImageResizer::create(64, 64, 64)->connect(importer);
 	auto port = resizer->getOutputPort();
 	resizer->update();
 

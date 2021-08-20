@@ -71,4 +71,9 @@ bool Plane::hasPosition() const {
     return mHasPosition;
 }
 
+Plane::Plane() {
+    mPosition = Vector3f::Zero();
+    mNormal = Vector3f::UnitX();
+}
+
 }

@@ -2,9 +2,10 @@
 
 namespace fast {
 
-void Text::create(std::string text, Color color) {
+Text::Text(std::string text, Color color) {
     m_text = text;
     m_color = color;
+    updateModifiedTimestamp();
 }
 
 void Text::setText(std::string text) {
@@ -26,9 +27,7 @@ Color Text::getColor() const {
 void Text::setPosition(Vector2f position) {
     Affine3f transform = Affine3f::Identity();
     transform.translate(Vector3f(position.x(), position.y(), 0.0f));
-    auto T = AffineTransformation::New();
-    T->setTransform(transform);
-    getSceneGraphNode()->setTransformation(T);
+    getSceneGraphNode()->setTransform(transform);
 }
 
 void Text::setTextHeight(float millimeters) {

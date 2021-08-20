@@ -1,19 +1,37 @@
-#ifndef BINARY_THRESHOLDING_HPP
-#define BINARY_THRESHOLDING_HPP
+#pragma once
 
-#include "FAST/Algorithms/SegmentationAlgorithm.hpp"
+#include <FAST/ProcessObject.hpp>
 
 namespace fast {
 
-class FAST_EXPORT  BinaryThresholding : public SegmentationAlgorithm {
-    FAST_OBJECT(BinaryThresholding)
+/**
+ * @brief Segmentation using a threshold value
+ *
+ * Any pixel with intensity between lower and upper threshold is labeled as 1, the rest is background 0.
+ *
+ * Inputs:
+ * - 0: Image
+ *
+ * Outputs:
+ * - 0: Image segmentation
+ *
+ * @ingroup segmentation
+ */
+class FAST_EXPORT BinaryThresholding : public ProcessObject {
+    FAST_PROCESS_OBJECT(BinaryThresholding)
     public:
+        FAST_CONSTRUCTOR(BinaryThresholding,
+                         float, lowerThreshold,,
+                         float, upperThreshold, = std::numeric_limits<float>::max()
+        );
         void setLowerThreshold(float threshold);
         void setUpperThreshold(float threshold);
         void loadAttributes() override;
     private:
         BinaryThresholding();
+
         void execute();
+
         void waitToFinish();
 
         float mLowerThreshold;
@@ -23,5 +41,3 @@ class FAST_EXPORT  BinaryThresholding : public SegmentationAlgorithm {
 };
 
 }
-
-#endif

@@ -35,7 +35,7 @@ void VTKMeshFileExporter::execute() {
     Mesh::pointer mesh = getInputData<Mesh>();
 
     // Get transformation
-    AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(mesh);
+    auto transform = SceneGraph::getEigenTransformFromData(mesh);
 
     std::ofstream file(m_filename.c_str());
 
@@ -54,7 +54,7 @@ void VTKMeshFileExporter::execute() {
     file << "POINTS " << vertices.size() << " float\n";
     for(int i = 0; i < vertices.size(); i++) {
         MeshVertex vertex = vertices[i];
-        vertex.getPosition() = (transform->getTransform().matrix()*vertex.getPosition().homogeneous()).head(3);
+        vertex.getPosition() = (transform.matrix()*vertex.getPosition().homogeneous()).head(3);
         file << vertex.getPosition().x() << " " << vertex.getPosition().y() << " " << vertex.getPosition().z() << "\n";
     }
 
@@ -83,7 +83,7 @@ void VTKMeshFileExporter::execute() {
             MeshVertex vertex = vertices[i];
             VectorXf normal = vertex.getNormal();
 
-            normal = transform->getTransform().linear() * normal; // Transform the normal
+            normal = transform.linear() * normal; // Transform the normal
 
             // Normalize it
             float length = normal.norm();

@@ -12,7 +12,9 @@ namespace fast {
 class FAST_EXPORT VectorFieldColorRenderer : public ImageRenderer {
     FAST_PROCESS_OBJECT(VectorFieldColorRenderer)
     public:
-        FAST_CONSTRUCTOR(VectorFieldColorRenderer, float, maxOpacity, = 0.5f, float, maxLength, = -1.0f)
+        FAST_CONSTRUCTOR(VectorFieldColorRenderer,
+                         float, maxOpacity, = 0.5f,
+                         float, maxLength, = -1.0f)
         /**
          * Set the maximum opacity for the color overlay.
          *

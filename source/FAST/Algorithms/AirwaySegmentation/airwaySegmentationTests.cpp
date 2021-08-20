@@ -47,30 +47,22 @@ TEST_CASE("Airway segmentation ALL", "[fast][AirwaySegmentation]") {
 */
 
 TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation][visual]") {
-	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
+	auto importer = ImageFileImporter::create(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
 
-	AirwaySegmentation::pointer segmentation = AirwaySegmentation::New();
-	segmentation->setInputConnection(importer->getOutputPort());
+	auto segmentation = AirwaySegmentation::create()->connect(importer);
 	segmentation->enableRuntimeMeasurements();
 
-	CenterlineExtraction::pointer centerline = CenterlineExtraction::New();
+	auto centerline = CenterlineExtraction::New();
 	centerline->setInputConnection(segmentation->getOutputPort());
 
-	SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
-	extraction->setInputConnection(segmentation->getOutputPort());
+	auto extraction = SurfaceExtraction::create()->connect(segmentation);
 
-	TriangleRenderer::pointer renderer = TriangleRenderer::New();
-	renderer->addInputConnection(extraction->getOutputPort());
+	auto renderer = TriangleRenderer::create()->connect(extraction);
 
-	LineRenderer::pointer lineRenderer = LineRenderer::New();
-	lineRenderer->addInputConnection(centerline->getOutputPort());
-	lineRenderer->setDefaultDrawOnTop(true);
+	auto lineRenderer = LineRenderer::create(Color::Blue(), true)->connect(centerline);
 
-	SimpleWindow::pointer window = SimpleWindow::New();
-	window->addRenderer(renderer);
-	window->addRenderer(lineRenderer);
+	auto window = SimpleWindow3D::create()->connect({renderer, lineRenderer});
 	window->setTimeout(1000);
-	window->start();
+	window->run();
 	//segmentation->getRuntime()->print();
 }

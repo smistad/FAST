@@ -1,23 +1,28 @@
 #pragma once
 
 #include <FAST/ProcessObject.hpp>
+#include <FAST/Algorithms/BlockMatching/BlockMatching.hpp>
 
 namespace fast {
 
 class Image;
 
 /**
+ * @brief Match a template image to an image
+ *
  * This algorithms matches a template image to an image using normalized cross correlation (NCC),
  * sum of absolute differences (SAD) or sum of squared differences (SSD).
+ *
+ * @ingroup motion-and-tracking
  */
 class FAST_EXPORT TemplateMatching : public ProcessObject {
-    FAST_OBJECT(TemplateMatching)
+    FAST_PROCESS_OBJECT(TemplateMatching)
     public:
-        enum class MatchingMetric {
-            NORMALIZED_CROSS_CORRELATION,
-            SUM_OF_SQUARED_DIFFERENCES,
-            SUM_OF_ABSOLUTE_DIFFERENCES,
-        };
+        FAST_CONSTRUCTOR(TemplateMatching,
+                         MatchingMetric, matchingType, = MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES,
+                         Vector2i, center, = Vector2i(-1,-1),
+                         Vector2i, offset, = Vector2i(-1, -1)
+        )
         /**
          * Set region of interest of where to do the template matching.
          * @param center 2D position
@@ -40,7 +45,6 @@ class FAST_EXPORT TemplateMatching : public ProcessObject {
          */
         void setMatchingMetric(MatchingMetric type);
     private:
-        TemplateMatching();
         void execute() override;
 
         MatchingMetric m_type = MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES;
