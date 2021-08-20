@@ -1,12 +1,17 @@
 # OpenIGTLink module
 
 if(FAST_MODULE_OpenIGTLink)
-    include(cmake/ExternalOpenIGTLink.cmake)
-    #set(LIBRARY_OUTPUT_PATH  "${FAST_BINARY_DIR}") # Needed to output the libraries in the correct folder
-    #set(EXECUTABLE_OUTPUT_PATH "${FAST_BINARY_DIR}") # Needed to output the executables in correct folder
-    #add_subdirectory(source/OpenIGTLink)
-    #find_package(OpenIGTLink PATHS "${FAST_BINARY_DIR}/source/OpenIGTLink/" REQUIRED)
-    #include(${OpenIGTLink_USE_FILE})
-    #list(APPEND FAST_INCLUDE_DIRS ${OpenIGTLink_INCLUDE_DIRS})
-    #list(APPEND LIBRARIES ${OpenIGTLink_LIBRARIES})
+    if(WIN32)
+        fast_download_dependency(OpenIGTLink
+                2.1
+                f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
+                OpenIGTLink.lib
+        )
+    else()
+        fast_download_dependency(OpenIGTLink
+                2.1
+                e88b83e9c6ea295a90c7926b0cbde26f86b6e38eb5682b0685c6c8fcea3711ed
+                libOpenIGTLink.so
+        )
+    endif()
 endif()

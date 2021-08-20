@@ -24,7 +24,19 @@ endif()
 if(FAST_MODULE_Visualization)
     if(FAST_BUILD_QT5)
         # Let FAST build Qt 5
-        include(cmake/ExternalQt5.cmake)
+        if(WIN32)
+            fast_download_dependency(qt5
+                    5.14.0
+                    f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
+                    Qt5Core.lib Qt5Gui.lib Qt5Widgets.lib Qt5OpenGL.lib Qt5Multimedia.lib Qt5MultimediaWidgets.lib Qt5Network.lib Qt5PrintSupport.lib Qt5SerialPort.lib
+            )
+        else()
+            fast_download_dependency(qt5
+                    5.14.0
+                    0a12a16324c03fc4ed94cb0414dfc42ab9dfe7bd79dff440c8c6dff722f94d7a
+                    libQt5Core.so libQt5Gui.so libQt5Widgets.so libQt5OpenGL.so libQt5Multimedia.so libQt5MultimediaWidgets.so libQt5Network.so libQt5PrintSupport.so libQt5SerialPort.so
+            )
+        endif()
         # MOC setup
         set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                 PROPERTY Qt5Core_VERSION_MAJOR "5")
@@ -45,15 +57,15 @@ if(FAST_MODULE_Visualization)
         endif()
         set(Qt5_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5/)
         find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport Network PATHS ${PROJECT_SOURCE_DIR}/cmake/)
-        list(APPEND LIBRARIES ${Qt5Core_LIBRARY})
-        list(APPEND LIBRARIES ${Qt5Gui_LIBRARY})
-        list(APPEND LIBRARIES ${Qt5Widgets_LIBRARY})
-        list(APPEND LIBRARIES ${Qt5OpenGL_LIBRARY})
-        list(APPEND LIBRARIES ${Qt5Multimedia_LIBRARY})
-        list(APPEND LIBRARIES ${Qt5MultimediaWidgets_LIBRARY})
-        list(APPEND LIBRARIES ${Qt5PrintSupport_LIBRARY})
-        list(APPEND LIBRARIES ${Qt5Network_LIBRARY})
         set(Qt5Core_VERSION "5.14.0")
+        set(Qt5Core_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtCore)
+        set(Qt5Gui_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtGui)
+        set(Qt5Widgets_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtWidgets)
+        set(Qt5OpenGL_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtOpenGL)
+        set(Qt5Multimedia_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtMultimedia)
+        set(Qt5MultimediaWidgets_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtMultimediaWidgets)
+        set(Qt5PrintSupport_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtPrintSupport)
+        set(Qt5Network_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtNetwork)
     else(FAST_BUILD_QT5)
         # Use system Qt
         find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport Network)
