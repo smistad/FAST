@@ -7,7 +7,7 @@
 FAST is an open-source cross-platform framework with the main goal of making it easier to do high-performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
 
 ### Get started
-See installation instructions for [Windows](https://fast.eriksmistad.no/install-windows.html), [Ubuntu Linux](https://fast.eriksmistad.no/install-linux.html) and [Python](https://fast.eriksmistad.no/install-python.html).
+See installation instructions for [Windows](https://fast.eriksmistad.no/install-windows.html), [Ubuntu Linux](https://fast.eriksmistad.no/install-ubuntu-linux.html) and [Python](https://fast.eriksmistad.no/install-python.html).
 
 To start using the framework, check out the [C++ Intro Tutorial](https://fast.eriksmistad.no/cpp-tutorial-intro.html) or the [Python Intro Tutorial](https://fast.eriksmistad.no/python-tutorial-intro.html).
 
