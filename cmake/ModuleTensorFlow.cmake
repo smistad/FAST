@@ -6,7 +6,7 @@ if(FAST_MODULE_TensorFlow)
     if(WIN32)
         fast_download_dependency(tensorflow
                 2.4.0
-                f3a024f501df6daa5b91edc75c77a8c46bab3574583ade49a7c83c801bb2fca3
+                ff6b590025dd7b9a736987ff082ef0af20fe4f91a9b3fe846d25828d806a094b
                 tensorflow_cc.lib
         )
     else()
