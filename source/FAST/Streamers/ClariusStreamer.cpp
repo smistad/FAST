@@ -36,13 +36,14 @@ void ClariusStreamer::execute() {
         std::string keydir = Config::getKernelBinaryPath();
         // TODO A hack here to get this to work. Fix later
         static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
-        int success = clariusInitCast(argc, nullptr, keydir.c_str(),
+        int success = cusCastInit(argc, nullptr, keydir.c_str(),
             // new image callback
             [](const void* img, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
             {
                 self->newImageFn(img, nfo, npos, pos);
             },
             nullptr/*pre-scanconverted image*/, 
+            nullptr/*spectral image*/, 
 		    nullptr/*freeze*/, 
 		    nullptr/*button*/, 
 		    nullptr/*progress*/, 
@@ -50,7 +51,6 @@ void ClariusStreamer::execute() {
 			[](const char* msg) { 
                 self->getReporter().error() << msg << self->getReporter().end(); 
             }, 
-			nullptr/*return callback*/, 
 			512, 
 			512
 		);
@@ -58,7 +58,7 @@ void ClariusStreamer::execute() {
             throw Exception("Unable to initialize clarius cast");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
-        success = clariusConnect(mIPAddress.c_str(), mPort, nullptr);
+        success = cusCastConnect(mIPAddress.c_str(), mPort, nullptr);
         if(success < 0)
             throw Exception("Unable to connect to clarius scanner");
         reportInfo() << "Clarius streamer connected." << reportEnd();
@@ -115,10 +115,10 @@ ClariusStreamer::~ClariusStreamer() {
 }
 
 void ClariusStreamer::stop() {
-    int success = clariusDisconnect(nullptr);
+    int success = cusCastDisconnect(nullptr);
     if(success < 0)
         throw Exception("Unable to disconnect from clarius scanner");
-    success = clariusDestroyCast();
+    success = cusCastDestroy();
     if(success < 0)
         throw Exception("Unable to destroy clarius cast");
 
@@ -136,27 +136,27 @@ void ClariusStreamer::setConnectionPort(int port) {
 }
 
 void ClariusStreamer::toggleFreeze() {
-    if(clariusUserFunction(USER_FN_TOGGLE_FREEZE, 0.0, nullptr) < 0)
+    if(cusCastUserFunction(USER_FN_TOGGLE_FREEZE, 0.0, nullptr) < 0)
         reportError() << "Error toggling freeze" << reportEnd();
 }
 
 void ClariusStreamer::increaseDepth() {
-	if(clariusUserFunction(USER_FN_DEPTH_INC, 0.0, nullptr) < 0)
+	if(cusCastUserFunction(USER_FN_DEPTH_INC, 0.0, nullptr) < 0)
         reportError() << "Error increasing depth" << reportEnd();
 }
 
 void ClariusStreamer::decreaseDepth() {
-	if(clariusUserFunction(USER_FN_DEPTH_DEC, 0.0, nullptr) < 0)
+	if(cusCastUserFunction(USER_FN_DEPTH_DEC, 0.0, nullptr) < 0)
         reportError() << "Error decreasing depth" << reportEnd();
 }
 
 void ClariusStreamer::setDepth(float depth) {
-	if(clariusUserFunction(USER_FN_SET_DEPTH, depth, nullptr) < 0)
+	if(cusCastUserFunction(USER_FN_SET_DEPTH, depth, nullptr) < 0)
         reportError() << "Error setting depth to " << depth << reportEnd();
 }
 
 void ClariusStreamer::setGain(float gain) {
-	if(clariusUserFunction(USER_FN_SET_GAIN, gain, nullptr) < 0)
+	if(cusCastUserFunction(USER_FN_SET_GAIN, gain, nullptr) < 0)
         reportError() << "Error setting gain to " << gain << reportEnd();
 }
 

@@ -3,7 +3,7 @@ include(cmake/Externals.cmake)
 
 ExternalProject_Add(clarius_headers
     PREFIX ${FAST_EXTERNAL_BUILD_DIR}/clarius
-    URL https://github.com/clariusdev/cast/archive/f21f9de7ae7740e61eb1ca0c73c43592e5b2f766.zip #v7.30 with export header fix
+    URL https://github.com/clariusdev/cast/archive/refs/tags/8.0.1.zip #v8.0.1 with export header fix
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -11,9 +11,9 @@ ExternalProject_Add(clarius_headers
 )
 
 if(WIN32)
-    set(URL "https://github.com/clariusdev/cast/releases/download/v7.3.0/clarius-cast-v730-windows.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/8.0.1/clarius-cast-v801-windows.zip")
 else()
-    set(URL "https://github.com/clariusdev/cast/releases/download/v7.3.0/clarius-cast-v730-linux.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/v8.0.1/clarius-cast-v801-linux.zip")
 endif()
 
 if(WIN32)
