@@ -102,6 +102,7 @@ class FAST_EXPORT NeuralNetworkNode {
 class FAST_EXPORT NeuralNetwork : public ProcessObject {
     FAST_PROCESS_OBJECT(NeuralNetwork)
     public:
+        // Python friendly constructor with almost all parameters
         FAST_CONSTRUCTOR(NeuralNetwork,
                          std::string, modelFilename,,
                          float, scaleFactor, = 1.0f,
@@ -112,6 +113,16 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
                          std::string, inferenceEngine, = "",
                          std::vector<std::string>, customPlugins, = std::vector<std::string>()
         )
+#ifndef SWIG
+        // C++ friendly create with parameters that must be set before loading
+        FAST_CONSTRUCTOR(NeuralNetwork,
+                 std::string, modelFilename,,
+                 std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
+                 std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
+                 std::string, inferenceEngine, = "",
+                 std::vector<std::string>, customPlugins, = std::vector<std::string>()
+        )
+#endif
         /**
          * Load a given network model file. This takes time. The second argument can be used
          * to specify files for loading custom plugins/operators needed by the network model.

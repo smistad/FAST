@@ -31,16 +31,12 @@ Displaying a WSI is done with the ImagePyramidRenderer. The example below shows 
 in the test dataset.
 
 @code{.cpp}
-auto importer = WholeSlideImageImporter::New();
-importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
 
-auto renderer = ImagePyramidRenderer::New();
-renderer.setInputConnection(importer.getOutputPort());
+auto renderer = ImagePyramidRenderer::create()->connect(importer);
 
-auto window = SimpleWindow::New();
-window->set2DMode()
-window->addRenderer(renderer);
-window->start();
+auto window = SimpleWindow2D::create()->connect(renderer);
+window->run();
 @endcode
 
 Patch-wise processing

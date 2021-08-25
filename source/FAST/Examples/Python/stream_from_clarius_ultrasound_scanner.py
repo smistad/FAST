@@ -15,8 +15,7 @@ renderer = fast.ImageRenderer.create().connect(streamer)
 
 renderer2 = fast.ImageRenderer.create().connect(filter)
 
-window = fast.DualViewWindow.create()
-window.set2DMode()
-window.addRendererToLeftView(renderer)
-window.addRendererToRightView(renderer2)
-window.run()
+fast.DualViewWindow2D.create()\
+    .connectLeft(renderer)\
+    .connectRight(renderer2)\
+    .run()

@@ -26,12 +26,10 @@ int main(int argc, char** argv) {
             "CT volume to process");
     parser.parse(argc, argv);
 
-    auto importer = ImageFileImporter::New();
-    importer->setFilename(parser.get("filename"));
+    auto importer = ImageFileImporter::create(parser.get("filename"));
 
-    auto generator = PatchGenerator::New();
-    generator->setPatchSize(512, 512, 32);
-    generator->setInputConnection(importer->getOutputPort());
+    auto generator = PatchGenerator::create(512, 512, 32)
+            ->connect(importer);
     generator->enableRuntimeMeasurements();
 
     auto network = SegmentationNetwork::New();
@@ -47,19 +45,14 @@ int main(int argc, char** argv) {
     network->setThreshold(0.3);
     network->enableRuntimeMeasurements();
 
-    auto stitcher = PatchStitcher::New();
-    stitcher->setInputConnection(network->getOutputPort());
+    auto stitcher = PatchStitcher::create()->connect(network);
     stitcher->enableRuntimeMeasurements();
 
-    auto renderer = AlphaBlendingVolumeRenderer::New();
-    renderer->setTransferFunction(TransferFunction::CT_Blood_And_Bone());
-    renderer->addInputConnection(importer->getOutputPort());
+    auto renderer = AlphaBlendingVolumeRenderer::create(TransferFunction::CT_Blood_And_Bone())
+            ->connect(importer);
 
-    auto renderer2 = ThresholdVolumeRenderer::New();
-    renderer2->addInputConnection(stitcher->getOutputPort());
+    auto renderer2 = ThresholdVolumeRenderer::create()->connect(stitcher);
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->addRenderer(renderer2);
-    window->start();
+    auto window = SimpleWindow3D::create()->connect({renderer, renderer2});
+    window->run();
 }

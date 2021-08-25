@@ -64,11 +64,8 @@ void NeuralNetwork::setInputSize(std::string name, std::vector<int> size) {
     mInputSizes[name] = size;
 }
 
-NeuralNetwork::NeuralNetwork(std::string modelFilename, float scaleFactor, float meanIntensity,
-                             float stanardDeviationIntensity,
-                             std::vector<NeuralNetworkNode> inputNodes,
-                             std::vector<NeuralNetworkNode> outputNodes,
-                             std::string inferenceEngine,
+NeuralNetwork::NeuralNetwork(std::string modelFilename, std::vector<NeuralNetworkNode> inputNodes,
+                             std::vector<NeuralNetworkNode> outputNodes, std::string inferenceEngine,
                              std::vector<std::string> customPlugins) {
     mPreserveAspectRatio = false;
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
@@ -78,8 +75,6 @@ NeuralNetwork::NeuralNetwork(std::string modelFilename, float scaleFactor, float
     } else {
         setInferenceEngine(inferenceEngine);
     }
-    setScaleFactor(scaleFactor);
-    setMeanAndStandardDeviation(meanIntensity, stanardDeviationIntensity);
     for(int i = 0; i < inputNodes.size(); ++i) {
         auto node = inputNodes[i];
         setInputNode(i, node.name, node.type, node.shape);
@@ -89,6 +84,16 @@ NeuralNetwork::NeuralNetwork(std::string modelFilename, float scaleFactor, float
         setOutputNode(i, node.name, node.type, node.shape);
     }
     load(modelFilename, customPlugins);
+}
+
+NeuralNetwork::NeuralNetwork(std::string modelFilename, float scaleFactor, float meanIntensity,
+                             float stanardDeviationIntensity,
+                             std::vector<NeuralNetworkNode> inputNodes,
+                             std::vector<NeuralNetworkNode> outputNodes,
+                             std::string inferenceEngine,
+                             std::vector<std::string> customPlugins) : NeuralNetwork(modelFilename, inputNodes, outputNodes, inferenceEngine, customPlugins) {
+    setScaleFactor(scaleFactor);
+    setMeanAndStandardDeviation(meanIntensity, stanardDeviationIntensity);
 }
 
 NeuralNetwork::NeuralNetwork() {
