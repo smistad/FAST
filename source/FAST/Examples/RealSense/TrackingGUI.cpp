@@ -1,5 +1,5 @@
-#include "KinectTrackingGUI.hpp"
-#include "KinectTracking.hpp"
+#include "TrackingGUI.hpp"
+#include "Tracking.hpp"
 #include "FAST/Streamers/RealSenseStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <QVBoxLayout>
@@ -22,25 +22,25 @@ namespace fast {
 
 class MouseListener : public QObject {
     public:
-        MouseListener(KinectTracking::pointer tracking, View* view);
+        MouseListener(Tracking::pointer tracking, View* view);
     protected:
         bool eventFilter(QObject *obj, QEvent *event);
     private:
-        KinectTracking::pointer mTracking;
+        Tracking::pointer mTracking;
         Vector2i mPreviousMousePosition;
         View* mView;
 };
 
 class KeyPressListener : public QObject {
     public:
-        KeyPressListener(KinectTrackingGUI* gui, QWidget* widget);
+        KeyPressListener(TrackingGUI* gui, QWidget* widget);
     protected:
         bool eventFilter(QObject *obj, QEvent *event);
     private:
-        KinectTrackingGUI* mGUI;
+        TrackingGUI* mGUI;
 };
 
-MouseListener::MouseListener(KinectTracking::pointer tracking, View* view) : QObject(view) {
+MouseListener::MouseListener(Tracking::pointer tracking, View* view) : QObject(view) {
     mTracking = tracking;
     mPreviousMousePosition = Vector2i(-1, -1);
     mView = view;
@@ -71,7 +71,7 @@ bool MouseListener::eventFilter(QObject *obj, QEvent *event) {
 }
 
 
-KeyPressListener::KeyPressListener(KinectTrackingGUI* gui, QWidget* parent) : QObject(parent) {
+KeyPressListener::KeyPressListener(TrackingGUI* gui, QWidget* parent) : QObject(parent) {
     mGUI = gui;
 }
 
@@ -90,31 +90,29 @@ bool KeyPressListener::eventFilter(QObject *obj, QEvent *event) {
     }
 }
 
-KinectTrackingGUI::KinectTrackingGUI() {
+TrackingGUI::TrackingGUI() {
     View* view = createView();
 
     mRecordTimer = new QElapsedTimer;
 
     // Setup streaming
-    mStreamer = RealSenseStreamer::New();
+    mStreamer = RealSenseStreamer::create();
     mStreamer->getReporter().setReportMethod(Reporter::COUT);
     mStreamer->setMaxRange(3*1000); // All points above x meters are excluded
 
     // Tracking
-    mTracking = KinectTracking::New();
-    mTracking->setInputConnection(0, mStreamer->getOutputPort(0));
-    mTracking->setInputConnection(1, mStreamer->getOutputPort(2));
+    mTracking = Tracking::create()
+            ->connect(0, mStreamer, 0)
+            ->connect(1, mStreamer, 2);
 
     // Set up mouse and key listener
     view->installEventFilter(new MouseListener(mTracking, view));
     mWidget->installEventFilter(new KeyPressListener(this, mWidget));
 
     // Renderer RGB image
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(mTracking->getOutputPort(0));
+    auto renderer = ImageRenderer::create()->connect(mTracking);
 
-    SegmentationRenderer::pointer annotationRenderer = SegmentationRenderer::New();
-    annotationRenderer->addInputConnection(mTracking->getOutputPort(1));
+    auto annotationRenderer = SegmentationRenderer::create()->connect(mTracking, 1);
     const int menuWidth = 300;
 
     setTitle("FAST - Kinect Object Tracking");
@@ -153,7 +151,7 @@ KinectTrackingGUI::KinectTrackingGUI() {
     QPushButton* restartButton = new QPushButton;
     restartButton->setText("Restart");
     restartButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
-    QObject::connect(restartButton, &QPushButton::clicked, std::bind(&KinectTrackingGUI::restart, this));
+    QObject::connect(restartButton, &QPushButton::clicked, std::bind(&TrackingGUI::restart, this));
     menuLayout->addWidget(restartButton);
 
     QLabel* storageDirLabel = new QLabel;
@@ -176,7 +174,7 @@ KinectTrackingGUI::KinectTrackingGUI() {
     mRecordButton = new QPushButton;
     mRecordButton->setText("Record");
     mRecordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
-    QObject::connect(mRecordButton, &QPushButton::clicked, std::bind(&KinectTrackingGUI::toggleRecord, this));
+    QObject::connect(mRecordButton, &QPushButton::clicked, std::bind(&TrackingGUI::toggleRecord, this));
     menuLayout->addWidget(mRecordButton);
 
     mRecordingInformation = new QLabel;
@@ -195,7 +193,7 @@ KinectTrackingGUI::KinectTrackingGUI() {
     mPlayButton->setText("Play");
     mPlayButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
     menuLayout->addWidget(mPlayButton);
-    QObject::connect(mPlayButton, &QPushButton::clicked, std::bind(&KinectTrackingGUI::playRecording, this));
+    QObject::connect(mPlayButton, &QPushButton::clicked, std::bind(&TrackingGUI::playRecording, this));
 
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addLayout(menuLayout);
@@ -206,11 +204,11 @@ KinectTrackingGUI::KinectTrackingGUI() {
     QTimer* timer = new QTimer(this);
     timer->start(1000/5); // in milliseconds
     timer->setSingleShot(false);
-    QObject::connect(timer, &QTimer::timeout, std::bind(&KinectTrackingGUI::updateMessages, this));
+    QObject::connect(timer, &QTimer::timeout, std::bind(&TrackingGUI::updateMessages, this));
 
 }
 
-void KinectTrackingGUI::playRecording() {
+void TrackingGUI::playRecording() {
     mPlaying = !mPlaying;
     if(!mPlaying) {
         mPlayButton->setText("Play");
@@ -236,8 +234,7 @@ void KinectTrackingGUI::playRecording() {
 
 
         // Set up streaming from disk
-        auto streamer = MeshFileStreamer::New();
-        streamer->setFilenameFormat(selectedRecording + "#.vtk");
+        auto streamer = MeshFileStreamer::create(selectedRecording + "#.vtk");
 
         // Get the number of files
         QDirIterator it(selectedRecording.c_str());
@@ -270,8 +267,7 @@ void KinectTrackingGUI::playRecording() {
         getView(0)->removeAllRenderers();
 
         // Load target cloud
-        auto importer = VTKMeshFileImporter::New();
-        importer->setFilename(selectedRecording + "target.vtk");
+        auto importer = VTKMeshFileImporter::create(selectedRecording + "target.vtk");
         auto port = importer->getOutputPort();
         importer->update();
         auto targetCloud = port->getNextFrame<Mesh>();
@@ -298,7 +294,7 @@ void KinectTrackingGUI::playRecording() {
 
 
 
-void KinectTrackingGUI::extractPointCloud() {
+void TrackingGUI::extractPointCloud() {
     stopComputationThread();
     getView(0)->removeAllRenderers();
 
@@ -342,13 +338,13 @@ void KinectTrackingGUI::extractPointCloud() {
     startComputationThread();
 }
 
-void KinectTrackingGUI::restart() {
+void TrackingGUI::restart() {
     View* view = getView(0);
     stopComputationThread();
     view->removeAllRenderers();
 
     // Setup streaming
-    mStreamer = RealSenseStreamer::New();
+    mStreamer = RealSenseStreamer::create();
     mStreamer->getReporter().setReportMethod(Reporter::COUT);
     mStreamer->setMaxRange(3*1000); // All points above x meters are excluded
 
@@ -357,11 +353,11 @@ void KinectTrackingGUI::restart() {
     mTracking->restart();
 
     // Renderer RGB image
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(mTracking->getOutputPort(0));
+    auto renderer = ImageRenderer::create()
+            ->connect(mTracking);
 
-    SegmentationRenderer::pointer annotationRenderer = SegmentationRenderer::New();
-    annotationRenderer->addInputConnection(mTracking->getOutputPort(1));
+    auto annotationRenderer = SegmentationRenderer::create()
+            ->connect(mTracking, 1);
 
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
@@ -372,7 +368,7 @@ void KinectTrackingGUI::restart() {
     startComputationThread();
 }
 
-void KinectTrackingGUI::toggleRecord() {
+void TrackingGUI::toggleRecord() {
     mRecording = !mRecording;
     if(mRecording) {
         mRecordButton->setText("Stop recording");
@@ -388,7 +384,7 @@ void KinectTrackingGUI::toggleRecord() {
     }
 }
 
-void KinectTrackingGUI::updateMessages() {
+void TrackingGUI::updateMessages() {
     if(mTracking->isRecording()) {
         std::string msg = "Recording to: " + mRecordingName + "\n";
         msg += std::to_string(mTracking->getFramesStored()) + " frames stored\n";
@@ -397,7 +393,7 @@ void KinectTrackingGUI::updateMessages() {
     }
 }
 
-void KinectTrackingGUI::refreshRecordingsList() {
+void TrackingGUI::refreshRecordingsList() {
     // Get all folders in the folder mStorageDir
     QDirIterator it(mStorageDir->text());
     mRecordingsList->clear();

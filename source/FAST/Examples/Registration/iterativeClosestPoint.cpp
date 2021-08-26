@@ -1,56 +1,64 @@
+/**
+ * @example iterativeClosestPoint.cpp
+ *
+ * Iterative closest point (ICP) registration of two point sets A and B.
+ */
 #include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
-#include "FAST/Importers/VTKPointSetFileImporter.hpp"
+#include <FAST/Importers/VTKMeshFileImporter.hpp>
+#include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Visualization/VertexRenderer/VertexRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 
 using namespace fast;
 
-int main() {
-    // Import two point sets A and B
-    VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
-    importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
+int main(int argc, char** argv) {
+    CommandLineParser parser("Iterative closest point example (ICP)");
+    parser.parse(argc, argv);
 
-    VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
-    importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
+    // Import two point sets A and B
+    auto importerA = VTKMeshFileImporter::create(Config::getTestDataPath() + "Surface_LV.vtk");
+    auto A = importerA->runAndGetOutputData<Mesh>();
+
+    auto importerB = VTKMeshFileImporter::create(Config::getTestDataPath() + "Surface_LV.vtk");
+    auto B = importerB->runAndGetOutputData<Mesh>();
 
     // Apply a transformation to point set B
     Vector3f translation(0.01, 0, 0.01);
     Vector3f rotation(0.5, 0, 0);
-    auto transformation = Transform::create();
-    transformation->get().translate(translation);
+    Affine3f transform = Affine3f::Identity();
+    transform.translate(translation);
     Matrix3f R;
     R = Eigen::AngleAxisf(rotation.x(), Vector3f::UnitX())
     * Eigen::AngleAxisf(rotation.y(), Vector3f::UnitY())
     * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
-    transformation->getTransform()->rotate(R);
-    importerB->update();
-    importerB->getOutputData<PointSet>()->getSceneGraphNode()->setTransform(transformation);
+    transform.rotate(R);
+    B->getSceneGraphNode()->setTransform(transform);
 
     // Perform the registration
-    IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
-    icp->setMovingPointSetPort(importerA->getOutputPort());
-    icp->setFixedPointSetPort(importerB->getOutputPort());
-    icp->update();
+    auto icp = IterativeClosestPoint::create()
+            ->connectMoving(A)
+            ->connectFixed(B);
+    icp->run();
 
     // Apply transformation to A
-    importerA->getOutputData<PointSet>()->getSceneGraphNode()->setTransform(icp->getOutputTransformation());
+    A->getSceneGraphNode()->setTransform(icp->getOutputTransformation());
 
-    Reporter::info() << "Registration result: " << Reporter::end();
-    Reporter::info() << "Rotation: " << icp->getOutputTransformation()->get().rotation().eulerAngles(0,1,2).transpose() << Reporter::end();
-    Reporter::info() << "Translation:" << icp->getOutputTransformation()->get().translation().transpose() << Reporter::end();
+    std::cout << "Registration result: " << std::endl;
+    std::cout << "Rotation: " << icp->getOutputTransformation()->get().rotation().eulerAngles(0,1,2).transpose() << std::endl;
+    std::cout << "Translation:" << icp->getOutputTransformation()->get().translation().transpose() << std::endl;
 
     // Visualize the two point sets
-    VertexRenderer::pointer renderer = VertexRenderer::New();
-    renderer->addInputConnection(importerA->getOutputPort(), Color::Blue(), 10);
-    renderer->addInputConnection(importerB->getOutputPort(), Color::Green(), 5);
-    renderer->setDefaultDrawOnTop(true);
+    auto renderer = VertexRenderer::create(10, Color::Blue(), true)
+            ->connect(importerA);
+    auto renderer2 = VertexRenderer::create(5, Color::Green(), true)
+            ->connect(importerB);
 
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
+    auto window = SimpleWindow3D::create()
+            ->connect({renderer, renderer2});
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
-    window->start();
+    window->run();
 }
