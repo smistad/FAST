@@ -30,29 +30,33 @@ int main(int argc, char** argv) {
 
     auto generator = PatchGenerator::create(512, 512, 32)
             ->connect(importer);
-    generator->enableRuntimeMeasurements();
 
-    auto network = SegmentationNetwork::New();
-    if(parser.get("inference-engine") != "default")
-        network->setInferenceEngine(parser.get("inference-engine"));
-    const auto engine = network->getInferenceEngine()->getName();
-    network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation." + getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
+    InferenceEngine::pointer engine;
+    if(parser.get("inference-engine") == "default") {
+        engine = InferenceEngineManager::loadBestAvailableEngine();
+    } else {
+        engine = InferenceEngineManager::loadEngine(parser.get("inference-engine"));
+    }
+    auto network = SegmentationNetwork::create(
+            Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation." + getModelFileExtension(engine->getPreferredModelFormat()),
+            {}, {}, engine->getName()
+    )->connect(generator);
     network->setMinAndMaxIntensity(-1200.0f, 400.0f);
     network->setScaleFactor(1.0f / (400 + 1200));
     network->setMeanAndStandardDeviation(-1200.0f, 1.0f);
-    network->setInputConnection(generator->getOutputPort());
     network->setResizeBackToOriginalSize(true);
     network->setThreshold(0.3);
-    network->enableRuntimeMeasurements();
 
-    auto stitcher = PatchStitcher::create()->connect(network);
-    stitcher->enableRuntimeMeasurements();
+    auto stitcher = PatchStitcher::create()
+            ->connect(network);
 
     auto renderer = AlphaBlendingVolumeRenderer::create(TransferFunction::CT_Blood_And_Bone())
             ->connect(importer);
 
-    auto renderer2 = ThresholdVolumeRenderer::create()->connect(stitcher);
+    auto renderer2 = ThresholdVolumeRenderer::create()
+            ->connect(stitcher);
 
-    auto window = SimpleWindow3D::create()->connect({renderer, renderer2});
+    auto window = SimpleWindow3D::create()
+            ->connect({renderer, renderer2});
     window->run();
 }

@@ -66,7 +66,7 @@ void NeuralNetwork::setInputSize(std::string name, std::vector<int> size) {
 
 NeuralNetwork::NeuralNetwork(std::string modelFilename, std::vector<NeuralNetworkNode> inputNodes,
                              std::vector<NeuralNetworkNode> outputNodes, std::string inferenceEngine,
-                             std::vector<std::string> customPlugins) {
+                             std::vector<std::string> customPlugins) : NeuralNetwork() {
     mPreserveAspectRatio = false;
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
     if(inferenceEngine.empty()) {

@@ -9,12 +9,13 @@ using namespace fast;
 
 int main() {
     Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
-    Reporter::setGlobalReportMethod(Reporter::COUT);
     auto streamer = ClariusStreamer::create();
 
-    auto renderer = ImageRenderer::create()->connect(streamer);
+    auto renderer = ImageRenderer::create()
+            ->connect(streamer);
 
-    auto window = SimpleWindow2D::create()->connect(renderer);
+    auto window = SimpleWindow2D::create()
+            ->connect(renderer);
     window->getView()->setAutoUpdateCamera(true);
     window->run();
 }

@@ -42,7 +42,7 @@ Many of the examples include command line options which can you can discover by 
 | [Neural network ultasound segmentation](@ref neuralNetworkUltrasoundSegmentation.cpp) | |
 | [Neural network CT volume segmentation](@ref neuralNetworkCTSegmentation.cpp) | |
 | [Neural network whole slide microscopy image (WSI) segmentation](@ref neuralNetworkWSIClassification.cpp) | |
-| [Extract surface mesh using marching cubes](@ref extractSurfaceAndRender.cpp)
+| [Extract surface mesh using marching cubes](@ref extractSurfaceAndRender.cpp) | |
 
 ## Registration and motion estimation
 |Example|Result|

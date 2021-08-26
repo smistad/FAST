@@ -34,21 +34,26 @@ int main(int argc, char** argv) {
             ->connect(importer)
             ->connect(1, tissueSegmentation);
 
-    auto network = NeuralNetwork::New();
-    if(parser.get("inference-engine") != "default")
-        network->setInferenceEngine(parser.get("inference-engine"));
-    const auto engine = network->getInferenceEngine()->getName();
-    network->setInferenceEngine(engine);
-    network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." + getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
-    network->setInputConnection(generator->getOutputPort());
+    InferenceEngine::pointer engine;
+    if(parser.get("inference-engine") == "default") {
+        engine = InferenceEngineManager::loadBestAvailableEngine();
+    } else {
+        engine = InferenceEngineManager::loadEngine(parser.get("inference-engine"));
+    }
+    auto network = NeuralNetwork::create(
+            Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." + getModelFileExtension(engine->getPreferredModelFormat()),
+            {}, {}, engine->getName())
+        ->connect(generator);
     network->setScaleFactor(1.0f / 255.0f);
 
-    auto stitcher = PatchStitcher::create()->connect(network);
+    auto stitcher = PatchStitcher::create()
+            ->connect(network);
 
-    auto renderer = ImagePyramidRenderer::create()->connect(importer);
+    auto renderer = ImagePyramidRenderer::create()
+            ->connect(importer);
 
-    auto heatmapRenderer = HeatmapRenderer::create()->connect(stitcher);
-    heatmapRenderer->setMaxOpacity(0.3);
+    auto heatmapRenderer = HeatmapRenderer::create(true, true, 0.5, 0.3)
+            ->connect(stitcher);
 
     auto window = SimpleWindow2D::create()
             ->connect({renderer, heatmapRenderer});

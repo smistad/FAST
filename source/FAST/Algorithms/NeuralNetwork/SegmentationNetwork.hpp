@@ -31,6 +31,16 @@ class FAST_EXPORT SegmentationNetwork : public NeuralNetwork {
                          std::string, inferenceEngine, = "",
                          std::vector<std::string>, customPlugins, = std::vector<std::string>()
         )
+#ifndef SWIG
+        // C++ friendly create with parameters that must be set before loading
+        FAST_CONSTRUCTOR(SegmentationNetwork,
+                         std::string, modelFilename,,
+                         std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::string, inferenceEngine, = "",
+                         std::vector<std::string>, customPlugins, = std::vector<std::string>()
+        )
+#endif
         void setHeatmapOutput();
         void setSegmentationOutput();
         /**
