@@ -9,8 +9,6 @@ struct _ClariusPosInfo;
 
 namespace fast {
 
-class ClariusCast;
-
 /**
  * @brief Stream ultrasound images from a Clarius scanner
  *
@@ -53,6 +51,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 	private:
         void execute();
         void generateStream() override {};
+        void* getFunc(std::string name);
 
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;
@@ -64,7 +63,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 
         std::mutex mFirstFrameMutex;
         std::condition_variable mFirstFrameCondition;
-        ClariusCast* m_clarius;
+        void* m_handle;
 };
 
 }
