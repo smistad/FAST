@@ -5,7 +5,6 @@ using namespace fast;
 
 // Stream data only tests
 TEST_CASE("Simple pipeline with stream", "[process_all_frames][ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     auto streamer = DummyStreamer::New();
     streamer->setSleepTime(10);
     streamer->setTotalFrames(20);
@@ -29,7 +28,6 @@ TEST_CASE("Simple pipeline with stream", "[process_all_frames][ProcessObject][fa
 }
 
 TEST_CASE("Two step pipeline with stream", "[two_step][process_all_frames][ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     auto streamer = DummyStreamer::New();
     streamer->setSleepTime(10);
     streamer->setTotalFrames(20);
@@ -55,8 +53,8 @@ TEST_CASE("Two step pipeline with stream", "[two_step][process_all_frames][Proce
 }
 
 TEST_CASE("Simple pipeline with stream NEWEST_FRAME_ONLY", "[ProcessObject][fast][newest_frame_only]") {
-    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     auto streamer = DummyStreamer::New();
+    streamer->setStreamingMode(StreamingMode::NewestFrameOnly);
     streamer->setSleepTime(100);
     streamer->setTotalFrames(20);
 
@@ -76,12 +74,11 @@ TEST_CASE("Simple pipeline with stream NEWEST_FRAME_ONLY", "[ProcessObject][fast
         CHECK(image->getID() != previousID); // TODO Should never get the same frame, or??
         previousID = image->getID();
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 TEST_CASE("Two step pipeline with stream NEWEST_FRAME_ONLY", "[two_step][ProcessObject][fast][newest_frame_only]") {
-    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     auto streamer = DummyStreamer::New();
+    streamer->setStreamingMode(StreamingMode::NewestFrameOnly);
     streamer->setSleepTime(100);
     streamer->setTotalFrames(20);
 
@@ -104,7 +101,6 @@ TEST_CASE("Two step pipeline with stream NEWEST_FRAME_ONLY", "[two_step][Process
         CHECK(image->getID() != previousID); // Should never get the same frame
         previousID = image->getID();
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 /*
@@ -164,7 +160,6 @@ TEST_CASE("Two step pipeline with stream STORE_ALL", "[two_step][ProcessObject][
 
 // Static data only tests
 TEST_CASE("Simple pipeline with static data", "[process_all_frames][ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     auto importer = DummyImporter::New();
 
     auto po1 = DummyProcessObject::New();
@@ -199,11 +194,9 @@ TEST_CASE("Simple pipeline with static data", "[process_all_frames][ProcessObjec
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 1); // Should always get the same frame
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 TEST_CASE("Simple pipeline with static data NEWEST_FRAME", "[ProcessObject][fast][newest_frame_only]") {
-    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     auto importer = DummyImporter::New();
 
     auto po1 = DummyProcessObject::New();
@@ -227,7 +220,6 @@ TEST_CASE("Simple pipeline with static data NEWEST_FRAME", "[ProcessObject][fast
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 1); // Should always get the same frame
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 /*
@@ -260,7 +252,6 @@ TEST_CASE("Simple pipeline with static data, STORE_ALL", "[ProcessObject][fast]"
 
 // Static + stream data tests
 TEST_CASE("Simple pipeline with static and stream data PROCESS_ALL", "[process_all_frames][static_and_stream][ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     int frames = 10;
     auto streamer = DummyStreamer::New();
     streamer->setSleepTime(10);
@@ -291,11 +282,9 @@ TEST_CASE("Simple pipeline with static and stream data PROCESS_ALL", "[process_a
         CHECK(po1->getStaticDataID() == 1);
         timestep++;
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 TEST_CASE("Static data with multiple receiver POs PROCESS_ALL", "[process_all_frames][ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     const int frames = 4;
     auto importer = DummyImporter::New();
 
@@ -322,11 +311,9 @@ TEST_CASE("Static data with multiple receiver POs PROCESS_ALL", "[process_all_fr
         CHECK(image2->getID() == 0);
         timestep++;
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 TEST_CASE("Static data with multiple receiver POs NEWEST_FRAME", "[ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     const int frames = 4;
     auto importer = DummyImporter::New();
 
@@ -353,7 +340,6 @@ TEST_CASE("Static data with multiple receiver POs NEWEST_FRAME", "[ProcessObject
         CHECK(image2->getID() == 0);
         timestep++;
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 /*
@@ -389,7 +375,6 @@ TEST_CASE("Static data with multiple receiver POs STORE_ALL", "[ProcessObject][f
  */
 
 TEST_CASE("Stream with multiple receiver POs PROCESS_ALL", "[process_all_frames][ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     const int frames = 20;
     auto streamer = DummyStreamer::New();
     streamer->setSleepTime(10);
@@ -418,14 +403,13 @@ TEST_CASE("Stream with multiple receiver POs PROCESS_ALL", "[process_all_frames]
         CHECK(image2->getID() == timestep);
         timestep++;
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 
 TEST_CASE("Stream with multiple receiver POs, NEWEST_FRAME", "[ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     const int frames = 20;
     auto streamer = DummyStreamer::New();
+    streamer->setStreamingMode(StreamingMode::NewestFrameOnly);
     streamer->setSleepTime(10);
     streamer->setTotalFrames(frames);
 
@@ -457,7 +441,6 @@ TEST_CASE("Stream with multiple receiver POs, NEWEST_FRAME", "[ProcessObject][fa
         previousID2 = image2->getID();
         timestep++;
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 /*
@@ -498,7 +481,6 @@ TEST_CASE("Stream with multiple receiver POs STORE_ALL", "[ProcessObject][fast]"
 
 // Static data only tests using setInputData
 TEST_CASE("Simple pipeline with static data using setInputData", "[process_all_frames][ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     auto image = DummyDataObject::New();
     image->create(0);
 
@@ -514,11 +496,9 @@ TEST_CASE("Simple pipeline with static data using setInputData", "[process_all_f
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 0); // Should always get the same frame
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 TEST_CASE("Simple pipeline with static data using setInputData NEWEST_FRAME", "[ProcessObject][fast]") {
-    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     auto image = DummyDataObject::New();
     image->create(0);
 
@@ -534,7 +514,6 @@ TEST_CASE("Simple pipeline with static data using setInputData NEWEST_FRAME", "[
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 0); // Should always get the same frame
     }
-    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 }
 
 /*

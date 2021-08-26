@@ -16,6 +16,8 @@ class CameraWorker;
  * This streamer uses Qt 5 to connect a (web)camera and creates
  * a stream of FAST images from it.
  *
+ * Default streaming mode is StreamingMode::NewestFrameOnly
+ *
  * <h3>Output ports</h3>
  * - 0: Image
  *

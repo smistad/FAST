@@ -83,7 +83,6 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	streamer->setFilenameFormat("/home/smistad/Cardiac_2D/test3/labelImage#.mhd");
 	streamer->setZeroFilling(2);
 	streamer->enableLooping();
-	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	//streamer->setSleepTime(500);
 
 	// Control points for spline model
@@ -149,7 +148,6 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric aorta US d
 	streamer->setFilenameFormat("/home/smistad/Data/aorta_us/labelImage#.mhd");
 	streamer->setZeroFilling(2);
 	streamer->enableLooping();
-	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	streamer->update(); // TODO this should not be needed
 	streamer->setSleepTime(1000);
 
@@ -200,7 +198,6 @@ TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block
 	streamer->setFilenameFormat("/home/smistad/AssistantTestData/0/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
 	streamer->setStartNumber(26);
 	streamer->enableLooping();
-	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	streamer->setSleepTime(100);
 
 	EllipseModel::pointer shapeModel = EllipseModel::New();
@@ -238,7 +235,6 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 	//streamer->setFilenameFormat("/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCL8Q/US-2D_#.mhd");
 
 	streamer->enableLooping();
-	//streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	streamer->setSleepTime(50);
 
 	// Control points for spline model

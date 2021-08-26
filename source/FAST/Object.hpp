@@ -237,8 +237,6 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
  */
 namespace fast {
 
-enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_FRAMES, STREAMING_MODE_PROCESS_ALL_FRAMES };
-
 /**
  * \brief Base class for all FAST objects.
  *

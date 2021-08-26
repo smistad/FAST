@@ -47,4 +47,12 @@ void Streamer::setMaximumNrOfFrames(int frames) {
     m_maximumNrOfFrames = frames;
 }
 
+StreamingMode Streamer::getStreamingMode() const {
+    return m_streamingMode;
+}
+
+void Streamer::setStreamingMode(StreamingMode mode) {
+    m_streamingMode = mode;
+}
+
 }

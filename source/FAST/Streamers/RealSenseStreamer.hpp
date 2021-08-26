@@ -18,6 +18,8 @@ class MeshVertex;
  * The RGB camera and depth stream are registered so that a color value for each point in the
  * point cloud is established.
  *
+ * Default streaming mode is StreamingMode::NewestFrameOnly
+ *
  * <h3>Output ports</h3>
  * - 0: Image - Registered RGB image
  * - 1: Image - Registered depth image

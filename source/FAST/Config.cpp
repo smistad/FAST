@@ -34,7 +34,6 @@ namespace fast {
 			std::string mPipelinePath;
 			std::string mLibraryPath;
 			std::string mQtPluginsPath;
-			StreamingMode m_streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
 			bool m_visualization = true;
 			bool m_terminateHandlerDisabled = false;
 		}
@@ -303,14 +302,6 @@ namespace fast {
 
 		void Config::setPipelinePath(std::string path) {
 			mPipelinePath = path;
-		}
-
-		void Config::setStreamingMode(StreamingMode mode) {
-		    m_streamingMode = mode;
-		}
-
-		StreamingMode Config::getStreamingMode() {
-		    return m_streamingMode;
 		}
 
 		void Config::setVisualization(bool visualization) {

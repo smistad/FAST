@@ -7,7 +7,6 @@ namespace fast {
 
 
 ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale) {
-	Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     createOutputPort<Image>(0);
     mNrOfFrames = 0;
     mFirstFrameIsInserted = false;
@@ -21,6 +20,7 @@ ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale
 
     setConnectionAddress(ipAddress);
     setConnectionPort(port);
+    setStreamingMode(StreamingMode::NewestFrameOnly);
 }
 
 void ClariusStreamer::loadAttributes() {

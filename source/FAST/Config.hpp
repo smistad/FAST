@@ -17,9 +17,7 @@ public:
     static std::string getPipelinePath();
     static std::string getLibraryPath();
     static std::string getQtPluginsPath();
-    static StreamingMode getStreamingMode();
     static bool getVisualization();
-    static void setStreamingMode(StreamingMode mode);
     static void setTestDataPath(std::string path);
     static void setKernelSourcePath(std::string path);
     static void setKernelBinaryPath(std::string path);

@@ -19,7 +19,6 @@ class FAST_EXPORT  ManualImageStreamer : public Streamer {
         void setStepSize(uint step);
         void setZeroFilling(uint digits);
         void setNumberOfReplays(uint replays);
-        void setStreamingMode(StreamingMode mode);
         void enableLooping();
         void disableLooping();
         /**

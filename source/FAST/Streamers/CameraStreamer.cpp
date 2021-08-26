@@ -40,7 +40,11 @@ public:
         const int width = frame.width();
         const int height = frame.height();
         QImage image(cloneFrame.bits(), width, height, frame.bytesPerLine(), QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat()));
+#ifdef WIN32
         image = image.mirrored(true, true);
+#else
+        image = image.mirrored(true, false);
+#endif
 
         QImage::Format format;
         if(streamer->getGrayscale()) {
@@ -71,6 +75,8 @@ CameraStreamer::CameraStreamer(bool grayscale, uchar cameraIndex) {
 
     createBooleanAttribute("grayscale", "Grayscale", "Convert camera to grayscale while streaming", grayscale);
     createIntegerAttribute("camera", "Camera Index", "Select which camera to use", cameraIndex);
+    setStreamingMode(StreamingMode::NewestFrameOnly);
+    setModified(true);
 }
 
 void CameraStreamer::loadAttributes() {

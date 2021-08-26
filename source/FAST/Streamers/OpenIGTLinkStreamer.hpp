@@ -20,6 +20,8 @@ class IGTLSocketWrapper;
  *
  * This streamer uses the OpenIGTLink protocol and library to stream data such as images and transforms from a server
  *
+ * Default streaming mode is StreamingMode::NewestFrameOnly
+ *
  * <h3>Output ports</h3>
  * Multiple ports possible dependeing on number of streams from OpenIGTLink server
  *

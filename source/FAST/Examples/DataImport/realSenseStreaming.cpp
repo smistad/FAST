@@ -9,7 +9,6 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     // Setup streaming
     auto streamer = RealSenseStreamer::create();
 

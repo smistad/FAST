@@ -35,7 +35,6 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothing and ImageRe
 TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothing and SliceRenderer on OpenCL device", "[fast][SystemTests][visual]") {
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
-    //mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     GaussianSmoothing::pointer filter = GaussianSmoothing::New();
     filter->setInputConnection(mhdStreamer->getOutputPort());
@@ -56,7 +55,6 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothing and SliceRe
 TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothing, SurfaceExtraction and TriangleRenderer on OpenCL device", "[fast][SystemTests][visual]") {
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
-    //mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     GaussianSmoothing::pointer filter = GaussianSmoothing::New();
     filter->setInputConnection(mhdStreamer->getOutputPort());
@@ -82,7 +80,6 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothing and SliceRe
     ExecutionDevice::pointer host = Host::getInstance();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
-    //mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setMainDevice(host);
 
     GaussianSmoothing::pointer filter = GaussianSmoothing::New();

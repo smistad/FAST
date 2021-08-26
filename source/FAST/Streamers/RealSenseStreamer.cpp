@@ -13,7 +13,8 @@ RealSenseStreamer::RealSenseStreamer() {
     createOutputPort<Image>(1); // Depth image
     createOutputPort<Mesh>(2); // Point cloud
     mNrOfFrames = 0;
-    mIsModified = true;
+    setModified(true);
+    setStreamingMode(StreamingMode::NewestFrameOnly);
 }
 
 void RealSenseStreamer::execute() {

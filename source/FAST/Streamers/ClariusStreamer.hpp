@@ -15,6 +15,8 @@ namespace fast {
  * Uses the [Clarius cast API](https://github.com/clariusdev/cast) library to stream images
  * from a Clarius ultrasound scanner in real-time.
  *
+ * Default streaming mode is StreamingMode::NewestFrameOnly
+ *
  * <h3>Output ports</h3>
  * - 0: Image - Ultrasound image
  *
