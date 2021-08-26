@@ -32,7 +32,7 @@ option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_MODULE_RealSense "Build real sense module" ON)
 option(FAST_MODULE_WholeSlideImaging "Build whole slide imaging module" ON)
-option(FAST_MODULE_Clarius "Build clarius ultrasound module" OFF)
+option(FAST_MODULE_Clarius "Build clarius ultrasound module" ON)
 option(FAST_MODULE_Dicom "Build DICOM module (DCMTK)" ON)
 option(FAST_MODULE_HDF5 "Build HDF5 module" OFF)
 option(FAST_MODULE_Plotting "Build plotting module (JKQTPlotter)" OFF)
@@ -46,7 +46,7 @@ set(FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW "https://github.com/smistad/FAST-d
 if(WIN32)
     set(FAST_DEPENDENCY_TOOLSET msvc142)
 else()
-    set(FAST_DEPENDENCY_TOOLSET glibc2.31)
+    set(FAST_DEPENDENCY_TOOLSET glibc2.27)
 endif()
 
 #### Set build type

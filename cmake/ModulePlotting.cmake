@@ -9,7 +9,7 @@ if(FAST_MODULE_Plotting)
     else()
         fast_download_dependency(jkqtplotter
                 2020.10
-                7ee607557e8401abec3cddcbcb49a3d63c3bd59461c231c65711978467971c77
+                545bd83788c605d8650c5ecf4ce673fa44f4908e100af42001ed08de9bebfbd1
                 libJKQTCommonSharedLib_Release.so libJKQTPlotterSharedLib_Release.so libJKQTFastPlotterSharedLib_Release.so libJKQTMathTextSharedLib_Release.so
         )
     endif()

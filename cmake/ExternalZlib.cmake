@@ -9,7 +9,7 @@ if(WIN32)
 else()
 	fast_download_dependency(zlib
 			1.2.9
-			9d26c12164262b1d20bdc3c6e2a37fa93d1398801ebf4f52076e5130a4a61296
+			72d5aa4d2e12266858ff668ad9e0d44e707a42112008f566777f9bea1a792274
 			libz.so
 			)
 endif()
