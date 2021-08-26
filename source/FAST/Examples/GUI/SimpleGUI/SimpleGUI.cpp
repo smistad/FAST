@@ -28,30 +28,28 @@ SimpleGUI::SimpleGUI() {
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
     // Smooth image
-    mSmoothing = GaussianSmoothing::New();
-    mSmoothing->setInputConnection(importer->getOutputPort());
-    mSmoothing->setStandardDeviation(1);
+    mSmoothing = GaussianSmoothing::create(1.0f)
+            ->connect(importer);
 
     // Set up surface extraction
-    mSurfaceExtraction = SurfaceExtraction::create();
-    mSurfaceExtraction->setInputConnection(mSmoothing->getOutputPort());
-    mSurfaceExtraction->setThreshold(100);
+    mSurfaceExtraction = SurfaceExtraction::create(100)
+            ->connect(mSmoothing);
 
     // Set up rendering
-    TriangleRenderer::pointer renderer = TriangleRenderer::New();
-    renderer->addInputConnection(mSurfaceExtraction->getOutputPort());
+    auto renderer = TriangleRenderer::create()
+            ->connect(mSurfaceExtraction);
     view->addRenderer(renderer);
 
     // Create and add GUI elements
 
     // First create the menu layout
-    QVBoxLayout* menuLayout = new QVBoxLayout;
+    auto menuLayout = new QVBoxLayout;
 
 	// Menu items should be aligned to the top
     menuLayout->setAlignment(Qt::AlignTop);
 
     // Title label
-    QLabel* title = new QLabel;
+    auto title = new QLabel;
     title->setText("Simple GUI<br>Example");
     QFont font;
     font.setPointSize((int)round(18*getScalingFactor()));
@@ -60,7 +58,7 @@ SimpleGUI::SimpleGUI() {
 
 	// Quit button
     const int width = getScreenWidth()/6.0f;
-    QPushButton* quitButton = new QPushButton;
+    auto quitButton = new QPushButton;
     quitButton->setText("Quit");
     quitButton->setFixedWidth(width);
     menuLayout->addWidget(quitButton);
@@ -74,7 +72,7 @@ SimpleGUI::SimpleGUI() {
     menuLayout->addWidget(mSmoothingLabel);
 
     // Smoothing parameter slider
-    QSlider* slider = new QSlider(Qt::Horizontal);
+    auto slider = new QSlider(Qt::Horizontal);
     slider->setMinimum(0);
     slider->setMaximum(3);
     slider->setValue(1);
@@ -90,7 +88,7 @@ SimpleGUI::SimpleGUI() {
     menuLayout->addWidget(mThresholdLabel);
 
     // Threshold slider
-    QSlider* slider2 = new QSlider(Qt::Horizontal);
+    auto slider2 = new QSlider(Qt::Horizontal);
     slider2->setMinimum(-100);
     slider2->setMaximum(300);
     slider2->setValue(100);
@@ -101,7 +99,7 @@ SimpleGUI::SimpleGUI() {
     QObject::connect(slider2, &QSlider::valueChanged, std::bind(&SimpleGUI::updateThreshold, this, std::placeholders::_1));
 
     // Add menu and view to main layout
-    QHBoxLayout* layout = new QHBoxLayout;
+    auto layout = new QHBoxLayout;
     layout->addLayout(menuLayout);
     layout->addWidget(view);
 

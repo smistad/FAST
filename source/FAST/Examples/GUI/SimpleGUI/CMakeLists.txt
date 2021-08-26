@@ -1,1 +1,1 @@
-fast_add_example(simpleGUI main.cpp SimpleGUI.hpp SimpleGUI.cpp)
+fast_add_example(surfaceExtractionGUIExample main.cpp SimpleGUI.hpp SimpleGUI.cpp)

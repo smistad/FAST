@@ -54,4 +54,4 @@ Many of the examples include command line options which can you can discover by 
 ## Graphical user interface
 |Example|Result|
 |----|----|
-| [Simple GUI to change parameters of algorithms and visualize the result](https://github.com/smistad/FAST/wiki/Example:-Simple-GUI) | Window, GaussianSmoothing, SurfaceExtraction, MeshRenderer, ImageFileImporter |
+| [Simple GUI for surface extraction](@ref surfaceExtractionGUIExample.cpp) | |
