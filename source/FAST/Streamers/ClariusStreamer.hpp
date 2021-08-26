@@ -63,7 +63,11 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 
         std::mutex mFirstFrameMutex;
         std::condition_variable mFirstFrameCondition;
+#ifdef WIN32
+        HMODULE m_handle;
+#else
         void* m_handle;
+#endif
 };
 
 }

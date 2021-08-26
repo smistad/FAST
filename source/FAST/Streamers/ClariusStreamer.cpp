@@ -9,6 +9,30 @@
 
 namespace fast {
 
+#ifdef WIN32
+//Returns the last Win32 error, in string format. Returns an empty string if there is no error.
+static std::string GetLastErrorAsString()
+{
+    //Get the error message, if any.
+    DWORD errorMessageID = ::GetLastError();
+    if(errorMessageID == 0)
+        return std::string(); //No error message has been recorded
+
+    LPSTR messageBuffer = nullptr;
+    size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                 NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+    std::string message(messageBuffer, size);
+
+    //Free the buffer.
+    LocalFree(messageBuffer);
+
+    return message;
+}
+#endif
+
+
+
 ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale) {
     createOutputPort<Image>(0);
     mNrOfFrames = 0;
@@ -29,7 +53,7 @@ ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale
     reportInfo() << "Loading clarius cast library" << reportEnd();
 #ifdef WIN32
     SetErrorMode(SEM_FAILCRITICALERRORS); // TODO To avoid diaglog box, when not able to load a DLL
-    auto m_handle = LoadLibrary("cast.dll");
+    m_handle = LoadLibrary("cast.dll");
     if(!m_handle) {
         std::string msg = GetLastErrorAsString();
         throw Exception("Failed to use load Clarius Cast library. Note that this only supports Ubuntu 20.04, see https://github.com/clariusdev/cast. Error message: " + msg);
@@ -56,7 +80,7 @@ void* ClariusStreamer::getFunc(std::string name) {
     if(!func) {
         std::string msg = GetLastErrorAsString();
         FreeLibrary(m_handle);
-        throw Exception("Failed to get address of load function in ClariusStreamer. Error message: " + msg);
+        throw Exception("Failed to get address of function in ClariusStreamer. Error message: " + msg);
     }
     return func;
 #else
@@ -64,7 +88,7 @@ void* ClariusStreamer::getFunc(std::string name) {
     if(!func) {
         std::string msg = dlerror();
         dlclose(m_handle);
-        throw Exception("Failed to get address of load function in ClariusStreamer. Error message: " + msg);
+        throw Exception("Failed to get address of function in ClariusStreamer. Error message: " + msg);
     }
     return func;
 #endif
