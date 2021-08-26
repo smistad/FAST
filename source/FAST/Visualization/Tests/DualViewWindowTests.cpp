@@ -18,7 +18,6 @@ TEST_CASE("DualViewWindow with horizontal mode", "[fast][DualViewWindow][visual]
 
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"/US/Ball/US-3Dt_#.mhd");
-    //mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     SurfaceExtraction::pointer extractor = SurfaceExtraction::create();
     extractor->setInputConnection(mhdStreamer->getOutputPort());
@@ -44,7 +43,6 @@ TEST_CASE("DualViewWindow with vertical mode", "[fast][DualViewWindow][visual]")
 
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"/US/Ball/US-3Dt_#.mhd");
-    //mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     SurfaceExtraction::pointer extractor = SurfaceExtraction::create();
     extractor->setInputConnection(mhdStreamer->getOutputPort());

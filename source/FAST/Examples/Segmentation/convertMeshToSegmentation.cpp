@@ -38,9 +38,8 @@ int main(int argc, char** argv) {
                             " expected: X,Y,Z");
         }
     } else if(parser.gotValue("image-filename")) {
-        auto importer2 = MetaImageImporter::New();
-        importer2->setFilename(parser.get("image-filename"));
-        converter->setInputConnection(1, importer2->getOutputPort());
+        auto importer2 = MetaImageImporter::create(parser.get("image-filename"));
+        converter->connect(1, importer2);
     } else {
         throw Exception("Need to supply program with either segmentation-size or image-filename");
     }

@@ -39,18 +39,19 @@ Many of the examples include command line options which can you can discover by 
 | [Seeded region growing](@ref seededRegionGrowingSegmentation.cpp) | |
 | [Airway segmentation and centerline extraction](@ref airwaySegmentation.cpp) | |
 | [Lung segmentation](@ref lungSegmentation.cpp) | |
-| [Neural network ultasound segmentation](@ref neuralNetworkUltrasoundSegmentation.cpp) | |
+| [Neural network ultrasound segmentation](@ref neuralNetworkUltrasoundSegmentation.cpp) | |
 | [Neural network CT volume segmentation](@ref neuralNetworkCTSegmentation.cpp) | |
 | [Neural network whole slide microscopy image (WSI) segmentation](@ref neuralNetworkWSIClassification.cpp) | |
-| [Extract surface mesh using marching cubes](@ref extractSurfaceAndRender.cpp)
+| [Extract surface mesh using marching cubes](@ref extractSurfaceAndRender.cpp) | |
 
 ## Registration and motion estimation
 |Example|Result|
 |----|----|
 | [Block matching ultrasound tracking](@ref blockMatching.cpp) | |
-| [Iterative closest point](@ref iterativeClosestPoint.cpp) | |
+| [Iterative closest point (ICP)](@ref iterativeClosestPoint.cpp) | |
+| [Coherent point drift (CPD)](@ref coherentPointDriftExample.cpp) | |
 
 ## Graphical user interface
 |Example|Result|
 |----|----|
-| [Simple GUI to change parameters of algorithms and visualize the result](https://github.com/smistad/FAST/wiki/Example:-Simple-GUI) | Window, GaussianSmoothing, SurfaceExtraction, MeshRenderer, ImageFileImporter |
+| [Simple GUI for surface extraction](@ref surfaceExtractionGUIExample.cpp) | |

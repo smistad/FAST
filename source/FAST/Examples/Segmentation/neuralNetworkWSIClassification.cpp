@@ -26,43 +26,37 @@ int main(int argc, char** argv) {
             "WSI to process");
     parser.parse(argc, argv);
 
-    auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(parser.get("filename"));
+    auto importer = WholeSlideImageImporter::create(parser.get("filename"));
 
-    auto tissueSegmentation = TissueSegmentation::New();
-    tissueSegmentation->setInputConnection(importer->getOutputPort());
+    auto tissueSegmentation = TissueSegmentation::create()->connect(importer);
 
-    auto generator = PatchGenerator::New();
-    generator->setPatchSize(512, 512);
-    generator->setPatchLevel(0);
-    generator->setInputConnection(importer->getOutputPort());
-    generator->setInputConnection(1, tissueSegmentation->getOutputPort());
+    auto generator = PatchGenerator::create(512, 512, 1, 0)
+            ->connect(importer)
+            ->connect(1, tissueSegmentation);
 
-    auto network = NeuralNetwork::New();
-    if(parser.get("inference-engine") != "default")
-        network->setInferenceEngine(parser.get("inference-engine"));
-    const auto engine = network->getInferenceEngine()->getName();
-    network->setInferenceEngine(engine);
-    network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." + getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat()));
-    network->setInputConnection(generator->getOutputPort());
+    InferenceEngine::pointer engine;
+    if(parser.get("inference-engine") == "default") {
+        engine = InferenceEngineManager::loadBestAvailableEngine();
+    } else {
+        engine = InferenceEngineManager::loadEngine(parser.get("inference-engine"));
+    }
+    auto network = NeuralNetwork::create(
+            Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." + getModelFileExtension(engine->getPreferredModelFormat()),
+            {}, {}, engine->getName())
+        ->connect(generator);
     network->setScaleFactor(1.0f / 255.0f);
 
-    auto stitcher = PatchStitcher::New();
-    stitcher->setInputConnection(network->getOutputPort());
+    auto stitcher = PatchStitcher::create()
+            ->connect(network);
 
-    auto renderer = ImagePyramidRenderer::New();
-    renderer->addInputConnection(importer->getOutputPort());
+    auto renderer = ImagePyramidRenderer::create()
+            ->connect(importer);
 
-    auto heatmapRenderer = HeatmapRenderer::New();
-    heatmapRenderer->addInputConnection(stitcher->getOutputPort());
-    //heatmapRenderer->setMinConfidence(0.5);
-    heatmapRenderer->setMaxOpacity(0.3);
-    //heatmapRenderer->setInterpolation(false);
+    auto heatmapRenderer = HeatmapRenderer::create(true, true, 0.5, 0.3)
+            ->connect(stitcher);
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->addRenderer(heatmapRenderer);
+    auto window = SimpleWindow2D::create()
+            ->connect({renderer, heatmapRenderer});
     window->enableMaximized();
-    window->set2DMode();
-    window->start();
+    window->run();
 }

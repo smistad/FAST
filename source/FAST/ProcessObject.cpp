@@ -122,12 +122,12 @@ DataChannel::pointer ProcessObject::getOutputPort(uint portID) {
     // Create DataChannel, and it to list and return it
     DataChannel::pointer dataChannel;
     if(isStreamer(this)) {
-        auto streamingMode = Config::getStreamingMode();
-        if(streamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        auto streamingMode = std::dynamic_pointer_cast<Streamer>(mPtr.lock())->getStreamingMode();
+        if(streamingMode == StreamingMode::ProcessAllFrames) {
             dataChannel = QueuedDataChannel::New();
             if(m_maximumNrOfFrames > 0)
                 dataChannel->setMaximumNumberOfFrames(m_maximumNrOfFrames);
-        } else if(streamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
+        } else if(streamingMode == StreamingMode::NewestFrameOnly) {
             dataChannel = NewestFrameDataChannel::New();
         } else {
             throw Exception("Unsupported streaming mode");

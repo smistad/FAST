@@ -46,7 +46,7 @@ set(FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW "https://github.com/smistad/FAST-d
 if(WIN32)
     set(FAST_DEPENDENCY_TOOLSET msvc142)
 else()
-    set(FAST_DEPENDENCY_TOOLSET glibc2.31)
+    set(FAST_DEPENDENCY_TOOLSET glibc2.27)
 endif()
 
 #### Set build type

@@ -1,3 +1,7 @@
+/**
+ * @example coherentPointDriftExample.cpp
+ * Registration of two point sets using coherent point drift (CPD) algorithm
+ */
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Importers/VTKMeshFileImporter.hpp>
 #include <FAST/Importers/ImageFileImporter.hpp>
@@ -8,11 +12,9 @@
 #include "FAST/Algorithms/CoherentPointDrift/CoherentPointDrift.hpp"
 #include "FAST/Algorithms/CoherentPointDrift/Rigid.hpp"
 #include "FAST/Algorithms/CoherentPointDrift/Affine.hpp"
-
-
 #include <random>
 #include <iostream>
-
+#include <FAST/Tools/CommandLineParser.hpp>
 
 using namespace fast;
 
@@ -74,17 +76,13 @@ void modifyPointCloud(Mesh::pointer &pointCloud, double fractionOfPointsToKeep, 
 }
 
 Mesh::pointer getPointCloud(std::string filename) {
-    auto importer = VTKMeshFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + filename);
-    auto port = importer->getOutputPort();
-    importer->update();
-    return port->getNextFrame<Mesh>();
+    auto importer = VTKMeshFileImporter::create(Config::getTestDataPath() + filename);
+    return importer->runAndGetOutputData<Mesh>();
 }
 
-
-
-int main() {
-
+int main(int argc, char ** argv) {
+    CommandLineParser parser("Coherent point drift registration example");
+    parser.parse(argc, argv);
     auto dataset1 = "Surface_LV.vtk";
     auto dataset2 = "Surface_LV.vtk";
 
@@ -128,20 +126,24 @@ int main() {
 
 
     // Run Coherent Point Drift
-    auto cpd = CoherentPointDriftAffine::New();
-    cpd->setFixedMesh(cloud1);
-    cpd->setMovingMesh(cloud2);
+    auto cpd = CoherentPointDriftAffine::create()
+        ->connectFixed(cloud1)
+        ->connectMoving(cloud2);
     cpd->setMaximumIterations(50);
     cpd->setTolerance(tolerance);
     cpd->setUniformWeight(uniformWeight);
 
-    auto renderer = VertexRenderer::New();
-    renderer->addInputData(cloud1, Color::Green(), 3.0);                        // Fixed points
-    renderer->addInputData(cloud3, Color::Blue(), 2.0);                         // Moving points
-    renderer->addInputConnection(cpd->getOutputPort(), Color::Red(), 2.0);      // Moving points registered
+    // Fixed
+    auto renderer = VertexRenderer::create(10.0, Color::Green())
+            ->connect(cloud1);
+    // Moving
+    auto renderer2 = VertexRenderer::create(5.0, Color::Blue())
+            ->connect(cloud3);
+    // Moving registered
+    auto renderer3 = VertexRenderer::create(5.0, Color::Red())
+            ->connect(cpd);
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    //window->setTimeout(1000);
-    window->start();
+    auto window = SimpleWindow3D::create()
+            ->connect({renderer, renderer2, renderer3});
+    window->run();
 }

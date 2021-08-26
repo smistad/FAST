@@ -65,7 +65,6 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
 TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath()+"/US/Ball/US-3Dt_#.mhd");
-    //streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     streamer->enableRuntimeMeasurements();
 
     GaussianSmoothing::pointer filter = GaussianSmoothing::New();

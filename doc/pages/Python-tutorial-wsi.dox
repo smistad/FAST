@@ -29,16 +29,12 @@ Displaying a WSI is done with the ImagePyramidRenderer. The example below shows 
 in the test dataset.
 
 @code{.py}
-importer = fast.WholeSlideImageImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+importer = fast.WholeSlideImageImporter.create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
 
-renderer = fast.ImagePyramidRenderer.New()
-renderer.setInputConnection(importer.getOutputPort())
+renderer = fast.ImagePyramidRenderer.create().connect(importer)
 
-window = fast.SimpleWindow.New()
-window.set2DMode()
-window.addRenderer(renderer)
-window.start()
+window = fast.SimpleWindow2D.create().connect(renderer)
+window.run()
 @endcode
 
 Patch-wise processing

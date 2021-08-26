@@ -1,5 +1,4 @@
-#ifndef FAST_KINECT_TRACKING_GUI_HPP_
-#define FAST_KINECT_TRACKING_GUI_HPP_
+#pragma once
 
 #include "FAST/Visualization/Window.hpp"
 
@@ -12,10 +11,10 @@ class QListWidget;
 namespace fast {
 
 class RealSenseStreamer;
-class KinectTracking;
+class Tracking;
 
-class KinectTrackingGUI : public Window {
-    FAST_OBJECT(KinectTrackingGUI)
+class TrackingGUI : public Window {
+    FAST_OBJECT(TrackingGUI)
     public:
         void extractPointCloud();
         void restart();
@@ -24,10 +23,10 @@ class KinectTrackingGUI : public Window {
         void playRecording();
         void refreshRecordingsList();
     private:
-        KinectTrackingGUI();
+        TrackingGUI();
 
         std::shared_ptr<RealSenseStreamer> mStreamer;
-        std::shared_ptr<KinectTracking> mTracking;
+        std::shared_ptr<Tracking> mTracking;
         QPushButton* mRecordButton;
         QPushButton* mPlayButton;
         QLineEdit* mStorageDir;
@@ -43,5 +42,3 @@ class KinectTrackingGUI : public Window {
 };
 
 }
-
-#endif

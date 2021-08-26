@@ -7,6 +7,14 @@
 
 namespace fast {
 
+/**
+ * @brief Defines the streaming mode for a streamer
+ */
+enum class StreamingMode {
+    NewestFrameOnly,
+    ProcessAllFrames,
+    StoreAllFrames
+};
 
 class FAST_EXPORT  NoMoreFramesException : public Exception {
     public:
@@ -39,6 +47,9 @@ class FAST_EXPORT Streamer : public ProcessObject {
         virtual void stop();
 
         virtual void setMaximumNrOfFrames(int maximumNrOfFrames);
+
+        void setStreamingMode(StreamingMode mode);
+        StreamingMode getStreamingMode() const;
     protected:
         /**
          * Block until the first data frame has been sent using a condition variable
@@ -63,6 +74,7 @@ class FAST_EXPORT Streamer : public ProcessObject {
         bool m_firstFrameIsInserted = false;
         bool m_streamIsStarted = false;
         bool m_stop = false;
+        StreamingMode m_streamingMode = StreamingMode::ProcessAllFrames;
 
         std::mutex m_firstFrameMutex;
         std::mutex m_stopMutex;

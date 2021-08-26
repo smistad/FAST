@@ -13,7 +13,7 @@ ExternalProject_Add(clarius_headers
 if(WIN32)
     set(URL "https://github.com/clariusdev/cast/releases/download/8.0.1/clarius-cast-v801-windows.zip")
 else()
-    set(URL "https://github.com/clariusdev/cast/releases/download/v8.0.1/clarius-cast-v801-linux.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/8.0.1/clarius-cast-v801-linux.zip")
 endif()
 
 if(WIN32)

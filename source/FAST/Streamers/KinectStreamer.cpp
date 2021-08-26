@@ -22,6 +22,7 @@ KinectStreamer::KinectStreamer() {
     mIsModified = true;
     mPointCloudFilterEnabled = false;
     registration = NULL;
+    setStreamingMode(StreamingMode::NewestFrameOnly);
 }
 
 void KinectStreamer::setPointCloudFiltering(bool enabled) {

@@ -1,5 +1,5 @@
 #include <FAST/Streamers/RealSenseStreamer.hpp>
-#include "KinectTracking.hpp"
+#include "Tracking.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
@@ -8,7 +8,7 @@
 
 namespace fast {
 
-KinectTracking::KinectTracking() {
+Tracking::Tracking() {
 
     createInputPort<Image>(0);
     createInputPort<Mesh>(1);
@@ -26,23 +26,23 @@ KinectTracking::KinectTracking() {
     getReporter().setReportMethod(Reporter::COUT);
 }
 
-void KinectTracking::restart() {
+void Tracking::restart() {
     stopRecording();
     mTargetCloudExtracted = false;
     mAnnotationImage->fill(0);
 }
 
-void KinectTracking::startRecording(std::string path) {
+void Tracking::startRecording(std::string path) {
     mStoragePath = path;
     mFrameCounter = 0;
     mRecording = true;
 }
 
-void KinectTracking::stopRecording() {
+void Tracking::stopRecording() {
     mRecording = false;
 }
 
-void KinectTracking::execute() {
+void Tracking::execute() {
     std::cout << "Kinect tracking execute.." << std::endl;
 
     // When target cloud has been extracted, run ICP, and output this mesh
@@ -84,7 +84,7 @@ void KinectTracking::execute() {
     addOutputData(2, mTargetCloud);
 }
 
-void KinectTracking::calculateTargetCloud(std::shared_ptr<RealSenseStreamer> streamer) {
+void Tracking::calculateTargetCloud(std::shared_ptr<RealSenseStreamer> streamer) {
     std::cout << "Creating target cloud..." << std::endl;
     ImageAccess::pointer access = mAnnotationImage->getImageAccess(ACCESS_READ);
     MeshAccess::pointer meshAccess = mCurrentCloud->getMeshAccess(ACCESS_READ);
@@ -112,7 +112,7 @@ void KinectTracking::calculateTargetCloud(std::shared_ptr<RealSenseStreamer> str
     mTargetCloudExtracted = true;
 }
 
-void KinectTracking::addLine(Vector2i start, Vector2i end) {
+void Tracking::addLine(Vector2i start, Vector2i end) {
     if(mTargetCloudExtracted)
         return;
     std::cout << "Drawing from: " << start.transpose() << " to " << end.transpose() << std::endl;
@@ -140,19 +140,19 @@ void KinectTracking::addLine(Vector2i start, Vector2i end) {
     }
 }
 
-uint KinectTracking::getFramesStored() const {
+uint Tracking::getFramesStored() const {
     return mFrameCounter;
 }
 
-bool KinectTracking::isRecording() const {
+bool Tracking::isRecording() const {
     return mRecording;
 }
 
-std::shared_ptr<Mesh> KinectTracking::getTargetCloud() const {
+std::shared_ptr<Mesh> Tracking::getTargetCloud() const {
     return mTargetCloud;
 }
 
-void KinectTracking::setTargetCloud(std::shared_ptr<Mesh> target) {
+void Tracking::setTargetCloud(std::shared_ptr<Mesh> target) {
     mTargetCloud = target;
     mTargetCloudExtracted = true;
 }

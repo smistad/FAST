@@ -17,14 +17,11 @@ int main(int argc, char** argv) {
     }
     std::string filename = argv[1];
 
-    auto importer = ImageFileImporter::New();
-    importer->setFilename(filename);
+    auto importer = ImageFileImporter::create(filename);
 
-    auto converter = HounsefieldConverter::New();
-    converter->setInputConnection(importer->getOutputPort());
+    auto converter = HounsefieldConverter::create()->connect(importer);
 
-    auto tubeExtraction = TubeSegmentationAndCenterlineExtraction::New();
-    tubeExtraction->setInputConnection(converter->getOutputPort());
+    auto tubeExtraction = TubeSegmentationAndCenterlineExtraction::create()->connect(converter);
 
     // Parameters
     tubeExtraction->extractBrightTubes();
@@ -38,22 +35,20 @@ int main(int argc, char** argv) {
     tubeExtraction->setKeepLargestTree(true);
     tubeExtraction->enableAutomaticCropping();
 
-    auto renderer = SliceRenderer::New();
-    renderer->addInputConnection(importer->getOutputPort(), PLANE_Z);
+    auto renderer = SliceRenderer::create(PLANE_Z)->connect(importer);
 
-    auto lineRenderer = LineRenderer::New();
-    lineRenderer->addInputConnection(tubeExtraction->getCenterlineOutputPort(), Color::Blue(), 1);
-    lineRenderer->setDefaultDrawOnTop(true);
+    auto lineRenderer = LineRenderer::create(Color::Blue(), true)
+            ->connect(tubeExtraction);
 
-    auto surfaceExtraction = SurfaceExtraction::create();
-    surfaceExtraction->setInputConnection(tubeExtraction->getSegmentationOutputPort());
+    auto surfaceExtraction = SurfaceExtraction::create()
+            ->connect(tubeExtraction);
 
-    auto triangleRenderer = TriangleRenderer::New();
-    triangleRenderer->addInputConnection(surfaceExtraction->getOutputPort());
+    auto triangleRenderer = TriangleRenderer::create()->connect(surfaceExtraction);
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->addRenderer(triangleRenderer);
-    window->addRenderer(lineRenderer);
-    window->start();
+    auto window = SimpleWindow3D::create()->connect({
+        renderer,
+        triangleRenderer,
+        lineRenderer
+    });
+    window->run();
 }

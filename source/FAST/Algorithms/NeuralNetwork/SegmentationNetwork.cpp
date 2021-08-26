@@ -1,7 +1,6 @@
 #include <FAST/Data/Image.hpp>
 #include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include "SegmentationNetwork.hpp"
-#include "FAST/Data/Image.hpp"
 #include "TensorToSegmentation.hpp"
 
 namespace fast {
@@ -32,6 +31,16 @@ SegmentationNetwork::SegmentationNetwork(std::string modelFilename, float scaleF
     }
     setThreshold(threshold);
     setBackgroundClass(hasBackgroundClass);
+}
+
+SegmentationNetwork::SegmentationNetwork(std::string modelFilename, std::vector<NeuralNetworkNode> inputNodes,
+                                         std::vector<NeuralNetworkNode> outputNodes, std::string inferenceEngine,
+                                         std::vector<std::string> customPlugins) : NeuralNetwork(modelFilename, inputNodes, outputNodes, inferenceEngine, customPlugins) {
+    createInputPort<Image>(0);
+    createOutputPort<Image>(0);
+
+    m_tensorToSegmentation = TensorToSegmentation::New();
+    mHeatmapOutput = false;
 }
 
 SegmentationNetwork::SegmentationNetwork() {

@@ -15,6 +15,8 @@ namespace fast {
  * Uses the [Clarius cast API](https://github.com/clariusdev/cast) library to stream images
  * from a Clarius ultrasound scanner in real-time.
  *
+ * Default streaming mode is StreamingMode::NewestFrameOnly
+ *
  * <h3>Output ports</h3>
  * - 0: Image - Ultrasound image
  *
@@ -49,6 +51,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 	private:
         void execute();
         void generateStream() override {};
+        void* getFunc(std::string name);
 
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;
@@ -60,6 +63,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 
         std::mutex mFirstFrameMutex;
         std::condition_variable mFirstFrameCondition;
+        void* m_handle;
 };
 
 }

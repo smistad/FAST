@@ -9,7 +9,6 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     // Setup streaming
     auto streamer = RealSenseStreamer::create();
 
@@ -30,6 +29,7 @@ int main(int argc, char** argv) {
     window->setTitle("FAST Real Sense Streaming");
     window->getView(0)->set2DMode();
     window->getView(1)->set2DMode();
+    window->getView(2)->set3DMode();
     // Adjust camera
     window->getView(2)->setLookAt(Vector3f(0,-500,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 1, 5000);
     window->getView(2)->setBackgroundColor(Color::Black());

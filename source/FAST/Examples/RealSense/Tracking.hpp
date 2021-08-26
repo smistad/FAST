@@ -1,5 +1,4 @@
-#ifndef FAST_KINECT_TRACKING_HPP_
-#define FAST_KINECT_TRACKING_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 
@@ -9,9 +8,10 @@ class Image;
 class Mesh;
 class RealSenseStreamer;
 
-class KinectTracking : public ProcessObject {
-    FAST_OBJECT(KinectTracking)
+class Tracking : public ProcessObject {
+    FAST_PROCESS_OBJECT(Tracking)
     public:
+        FAST_CONSTRUCTOR(Tracking)
         void addLine(Vector2i start, Vector2i end);
         void calculateTargetCloud(std::shared_ptr<RealSenseStreamer> streamer);
         void restart();
@@ -22,7 +22,6 @@ class KinectTracking : public ProcessObject {
         uint getFramesStored() const;
         bool isRecording() const;
     private:
-        KinectTracking();
         void execute();
 
         std::shared_ptr<Image> mAnnotationImage;
@@ -36,5 +35,3 @@ class KinectTracking : public ProcessObject {
 };
 
 }
-
-#endif

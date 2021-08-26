@@ -9,7 +9,7 @@ if(WIN32)
 else()
     fast_download_dependency(zip
             0.2.0
-            4969fd278910a83efbada9aeb496b656135ba7009c0a08c3cfde3543d5b89a86
+            091a2f73263ebdfe36d0a489db8b758c9bac77169f133274513bc862a2f09eef
             libzip.a
     )
 endif()

@@ -10,7 +10,7 @@ if(FAST_MODULE_RealSense)
     else()
         fast_download_dependency(realsense
                 2.40.0
-                19ab75148489d860ec2b73ad5edaad9000a6d155efb90ce6b4603aaf355bcd74
+                a18181ea9c4ce56e117882f441c59f528fca9181087da9ac29e870046dbd2906
                 librealsense2.so
         )
     endif()

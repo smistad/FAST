@@ -1,8 +1,7 @@
 /**
  * @example SimpleGUI.hpp
  */
-#ifndef SIMPLE_GUI_HPP_
-#define SIMPLE_GUI_HPP_
+#pragma once
 
 #include "FAST/Visualization/Window.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
@@ -12,12 +11,12 @@
 namespace fast {
 
 class SimpleGUI : public Window {
-	FAST_OBJECT(SimpleGUI)
+	FAST_OBJECT_V4(SimpleGUI)
 	public:
+        FAST_CONSTRUCTOR(SimpleGUI)
 		void updateThreshold(int value);
 		void updateSmoothingParameter(int value);
 	private:
-		SimpleGUI();
 
 		SurfaceExtraction::pointer mSurfaceExtraction;
 		GaussianSmoothing::pointer mSmoothing;
@@ -26,5 +25,3 @@ class SimpleGUI : public Window {
 };
 
 } // end namespace fast
-
-#endif

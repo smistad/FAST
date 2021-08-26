@@ -92,25 +92,20 @@ on the output as shown here:
 auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/US/JugularVein/US-2D_100.mhd");
 
 // Use SegmentationNetwork instead of NeuralNetwork which applies TensorToSegmentation
-auto network = SegmentationNetwork::New();
+auto network = SegmentationNetwork::create(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx")
+    ->connect(importer);
 network->setScaleFactor(1.0f/255.0f); // Add a preprocessing step: multiply each pixel with 1/255, thus normalizing the intensity
-network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx");
-network->setInputConnection(importer->getOutputPort());
 
 // Setup visualization
-auto renderer = ImageRenderer::New();
-renderer->addInputConnection(importer->getOutputPort());
+auto renderer = ImageRenderer::create()->connect(importer);
 
-auto segRenderer = SegmentationRenderer::New();
-segRenderer->addInputConnection(network->getOutputPort());
-segRenderer->setColor(1, Color::Red()); // Set color for class 1
-segRenderer->setColor(2, Color::Blue()); // Set color for class 2
+auto segRenderer = SegmentationRenderer::create()->connect(network);
+segRenderer->setColors({{1, Color::Red()}, {2, Color::Blue()}});
 
-auto window = SimpleWindow::New();
-window->addRenderer(renderer);
-window->addRenderer(segRenderer);
-window->set2DMode();
-window->start();
+auto window = SimpleWindow2D::create()
+    ->connect(renderer)
+    ->connect(segRenderer);
+window->run();
 @endcode
 
 
@@ -131,31 +126,24 @@ Here is an example showing how a streaming pipeline with an optical flow network
 
 @code{.cpp}
 // Setup image stream
-auto streamer = ImageFileStreamer::New();
-streamer->setFilenameFormat("path/to/image/sequence/frame_#.mhd");
+auto streamer = ImageFileStreamer::create("path/to/image/sequence/frame_#.mhd");
 
 // Convert image stream to a stream of sequences with length 2
-auto sequence = ImagesToSequence::New();
-sequence->setLength(2);
-sequence->setInputConnection(streamer->getOutputPort());
+auto sequence = ImagesToSequence::create(2)
+    ->connect(streamer);
 
 // Setup neural network
-auto flowNetwork = FlowNetwork::New();
-flowNetwork->load("some-flow-network.onnx");
-flowNetwork->setInputConnection(sequence->getOutputPort());
+auto flowNetwork = FlowNetwork::create("some-flow-network.onnx")
+    ->connect(sequence);
 
 // Setup visualization
-auto imageRenderer = ImageRenderer::New();
-imageRenderer->setInputConnection(streamer->getOutputPort());
+auto imageRenderer = ImageRenderer::create()->connect(streamer);
 
-auto flowRenderer = VectorFieldColorRenderer::New();
-flowRenderer->setInputConnection(flowNetwork->getOutputPort());
+auto flowRenderer = VectorFieldColorRenderer::create()->connect(flowNetwork);
 
-auto window = SimpleWindow::New();
-window->set2DMode();
-window->addRenderer(imageRenderer);
-window->addRenderer(flowRenderer);
-window->start();
+auto window = SimpleWindow2D::create()
+    ->connect({imageRenderer, flowRenderer});
+window->run();
 @endcode
 
 Bounding box detection
@@ -173,23 +161,19 @@ This enables you to create complex processing pipelines with multi-input and mul
 
 For example, if you have a NeuralNetwork which takes an image and a tensor as inputs, and provides two output tensors, it may look something like this:
 @code{.cpp}
-auto importer = ImageFileImporter::New();
-importer->setFilename("someimage.jpg");
+auto importer = ImageFileImporter::create("someimage.jpg");
 
-auto tensor = Tensor::New();
-tensor->create({1.0f, 0.0f, 3.0f}, TensorShape({1, 3}));
+auto tensor = Tensor::create({1.0f, 0.0f, 3.0f}, TensorShape({1, 3}));
 
-auto network = NeuralNetwork::New();
-network->load("some-multi-input-output-network.onnx");
-network->setInputConnection(0, importer->getOutputPort());
-network->setInputData(1, tensor);
+auto network = NeuralNetwork::create("some-multi-input-output-network.onnx")
+    ->connect(0, importer)
+    ->connect(1, tensor);
 
-auto port1 = network->getOutputPort(0);
-auto port2 = network->getOutputPort(1);
-network->update(); // Run neural network
+network->run(); // Run neural network
 
-auto tensor1 = port1->getNextFrame<Tensor>();
-auto tensor2 = port2->getNextFrame<Tensor>();
+// Get output data
+auto tensor1 = network->getOutputData<Tensor>(0);
+auto tensor2 = network->getOutputData<Tensor>(1);
 @endcode
 
 Batch processing
@@ -204,16 +188,14 @@ Then give this Batch data object to the NeuralNetwork instead.
 @code{.cpp}
 // Assuming we have 3 image data objects stored in variables image1, image2, image3:
 // Create batch data object, and add the 3 images
-auto batch = Batch::New();
-batch->create({image1, image2, image3});
+auto batch = Batch::create({image1, image2, image3});
 
 // Give the batch to your neural network
-auto neuralNetwork = NeuralNetwork::New();
-neuralNetwork->load("some-neural-network.onnx");
-neuralNetwork->setInputData(batch);
+auto neuralNetwork = NeuralNetwork::create("some-neural-network.onnx")
+    ->connect(batch);
 
 // The output will be a Batch object as well, consisting of one output tensor for each input sample
-auto outputBatch = neuralNetwork->updateAndGetOutputData<Batch>();
+auto outputBatch = neuralNetwork->runAndGetOutputData<Batch>();
 @endcode
 
 Sequence processing
@@ -230,8 +212,7 @@ If your model needs a custom operator, layer or plugin, you can specify these in
 when you load your model. Specify the full path to your plugin/operator files (.so/.dll/.xml files), like so:
 
 @code{.cpp}
-auto network = NeuralNetwork::New();
-network->load("some-network-model.pb", {"path/to/plugin1.so", "path/to/plugin2.so"});
+auto network = NeuralNetwork::create("some-network-model.pb", "", {}, {}, {"path/to/plugin1.so", "path/to/plugin2.so"});
 @endcode
 
 

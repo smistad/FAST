@@ -386,6 +386,7 @@ OpenIGTLinkStreamer::OpenIGTLinkStreamer(std::string ipAddress, int port) {
 
     setConnectionAddress(ipAddress);
     setConnectionPort(port);
+    setStreamingMode(StreamingMode::NewestFrameOnly);
 }
 
 void OpenIGTLinkStreamer::execute() {
