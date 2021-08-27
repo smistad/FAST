@@ -131,9 +131,15 @@ void Window::initializeQtApp() {
         }
 #endif
 
+
         // Set default window icon
         QApplication::setWindowIcon(QIcon((Config::getDocumentationPath() + "images/fast_icon.png").c_str()));
 
+#ifndef WIN32
+        // Get rid of font warning on linux
+        std::string env = Config::getDocumentationPath()+"/fonts/";
+        setenv("QT_QPA_FONTDIR", env.c_str(), 1);
+#endif
         // Add all fonts in fonts folder
         for(auto&& filename : getDirectoryList(join(Config::getDocumentationPath(), "fonts"))) {
             if(filename.substr(filename.size()-4) == ".ttf") {
