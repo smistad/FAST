@@ -250,7 +250,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
 # Install license files for depedencies
 # Eigen
 install(DIRECTORY ${FAST_EXTERNAL_BUILD_DIR}/eigen/src/eigen/
-		DESTINATION fast/licences/eigen/
+		DESTINATION fast/licenses/eigen/
 		COMPONENT fast
 		FILES_MATCHING PATTERN "COPYING.*")
 
@@ -269,9 +269,9 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 		DESTINATION fast/licenses/semaphore/
 		COMPONENT fast
 )
-# Install licences
-install(DIRECTORY ${PROJECT_BINARY_DIR}/licences
-		DESTINATION fast/licences
+# Install licenses
+install(DIRECTORY ${PROJECT_BINARY_DIR}/licenses
+		DESTINATION fast/licenses
         COMPONENT fast
 )
 if(FAST_MODULE_OpenVINO)
