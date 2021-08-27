@@ -9,10 +9,10 @@
 #include <FAST/Config.hpp>
 
 #define CUDA_CHECK(status)                             \
-    if(status != 0)                             \
-    {                                         \
-        throw Exception("CUDA failure: " + std::string(cudaGetErrorString(cudaGetLastError())));    \
-    }                                         \
+if(status != 0)                             \
+{                                         \
+    throw Exception("CUDA failure: " + std::string(cudaGetErrorString(cudaGetLastError())));    \
+}                                         \
 
 
 namespace fast {
@@ -21,7 +21,7 @@ namespace fast {
  * Logger object for TensorRT
  */
 class Logger : public nvinfer1::ILogger {
-    void log(Severity severity, const char* msg) override {
+    void log(Severity severity, const char* msg) noexcept override {
         switch(severity) {
             case Severity::kINFO:
                 Reporter::info() << msg << Reporter::end();
@@ -206,13 +206,8 @@ void TensorRTEngine::load() {
         std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network;
         std::unique_ptr<nvuffparser::IUffParser, decltype(Destroy())> uffparser(nvuffparser::createUffParser(),
                                                                              Destroy()); // IMPORTANT! UFF parser must be alive even after parse
-        if(filename.substr(filename.size()-4) == ".uff") {
-            network = {builder->createNetwork(),
-                       Destroy()}; // createNetworkV2 not working with UFF for some reason..
-        } else {
-            network = {builder->createNetworkV2(flags),
+        network = {builder->createNetworkV2(flags),
                        Destroy()};
-        }
         std::unique_ptr<nvonnxparser::IParser, decltype(Destroy())> onnxparser(nvonnxparser::createParser(*network, gLogger),
                                                                            Destroy()); // IMPORTANT! Parser must be alive even after parse
 
