@@ -11,7 +11,8 @@ Some [optional requirements](@ref requirements) are needed for video streaming a
 
 Download and install
 -----------------
-Download a Windows installer (fast_windows_X.X.X.exe) from the [FAST release page](https://github.com/smistad/FAST/releases).
+Download and run a Windows installer (fast_windows_X.X.X.exe) from the [FAST release page](https://github.com/smistad/FAST/releases).
+Windows might prompt you with a security warning, to proceed you must press "More info" followed by "Run anyway".
 The installer will install FAST on your computer and the default location is **C:/Program Files/FAST/**.
 The installer will also add start menu shortcuts.
 
@@ -30,6 +31,8 @@ and the [C++ examples page](@ref cpp-examples).
 
 Troubleshoot
 -------------------
+
+Windows might prompt you with a security warning when running the installer, to proceed you must press "More info" followed by "Run anyway".
 
 If the installer fails you can download zip file instead, and just extract it to anywhere on your drive.
 
