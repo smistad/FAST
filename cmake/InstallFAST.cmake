@@ -270,10 +270,12 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 		COMPONENT fast
 )
 # Install licenses
+if(EXISTS ${PROJECT_BINARY_DIR}/licenses)
 install(DIRECTORY ${PROJECT_BINARY_DIR}/licenses/
 		DESTINATION fast/licenses
         COMPONENT fast
 )
+endif()
 install(DIRECTORY ${PROJECT_BINARY_DIR}/licences/
 		DESTINATION fast/licenses
         COMPONENT fast
