@@ -243,6 +243,12 @@ void InferenceEngineManager::loadAll() {
         setenv("TF_CPP_MIN_LOG_LEVEL", "2", 1);
         setenv("TF_CPP_MIN_VLOG_LEVEL", "2", 1);
     }
+#else
+	if(Reporter::getGlobalReportMethod(Reporter::INFO) != Reporter::COUT) {
+        // Disable tensorflow error messages
+		_putenv_s("TF_CPP_MIN_LOG_LEVEL", "2");
+		_putenv_s("TF_CPP_MIN_VLOG_LEVEL", "2");
+    }
 #endif
     Reporter::info() << "Loading inference engines in folder " << Config::getLibraryPath() << Reporter::end();
     for(auto&& item : getDirectoryList(Config::getLibraryPath(), true, false)) {
