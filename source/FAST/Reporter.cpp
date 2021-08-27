@@ -117,4 +117,8 @@ ReporterEnd Reporter::end() {
 
 }
 
+Reporter::Method Reporter::getGlobalReportMethod(Type type) {
+    return mGlobalReporterMethods[type];
+}
+
 } // end namespace fast

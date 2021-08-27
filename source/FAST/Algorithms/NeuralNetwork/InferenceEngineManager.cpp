@@ -237,6 +237,12 @@ void InferenceEngineManager::loadAll() {
     std::string prefix = "InferenceEngine";
 #ifndef WIN32
     prefix = "lib" + prefix;
+
+    if(Reporter::getGlobalReportMethod(Reporter::INFO) != Reporter::COUT) {
+        // Disable tensorflow error messages
+        setenv("TF_CPP_MIN_LOG_LEVEL", "2", 1);
+        setenv("TF_CPP_MIN_VLOG_LEVEL", "2", 1);
+    }
 #endif
     Reporter::info() << "Loading inference engines in folder " << Config::getLibraryPath() << Reporter::end();
     for(auto&& item : getDirectoryList(Config::getLibraryPath(), true, false)) {

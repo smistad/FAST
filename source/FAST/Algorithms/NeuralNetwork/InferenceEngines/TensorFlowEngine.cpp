@@ -1,7 +1,5 @@
 #include "TensorFlowEngine.hpp"
 
-//#define TF_CPP_MIN_LOG_LEVEL 5
-//#define TF_CPP_MIN_VLOG_LEVEL 5
 // Windows hack for removing need for protobuf
 #ifdef WIN32
 #include <google/protobuf/stubs/logging.h>
@@ -288,7 +286,6 @@ void TensorFlowEngine::load() {
 }
 
 TensorFlowEngine::TensorFlowEngine() {
-
 }
 
 TensorFlowEngine::~TensorFlowEngine() {

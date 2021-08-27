@@ -35,6 +35,7 @@ class FAST_EXPORT  Reporter {
         void setReportMethod(Type type, Method method);
         static void setGlobalReportMethod(Method method);
         static void setGlobalReportMethod(Type type, Method method);
+        static Method getGlobalReportMethod(Type type);
     private:
         Method getMethod(Type) const;
         Type mType;
