@@ -15,8 +15,8 @@ ExternalProject_Add(tiff
           -Dzlib=ON
           -DJPEG_INCLUDE_DIR=${FAST_EXTERNAL_BUILD_DIR}/libjpeg/src/libjpeg/LibJPEG/9d/include/
           -DJPEG_LIBRARY_RELEASE=${FAST_EXTERNAL_BUILD_DIR}/libjpeg/src/libjpeg/LibJPEG/9d/lib/libjpeg.lib
-          -DZLIB_INCLUDE_DIR=${FAST_EXTERNAL_INSTALL_DIR}/include/
-          -DZLIB_LIBRARY_RELEASE=${FAST_EXTERNAL_BUILD_DIR}/zlib/Release/zlib.lib
+          -DZLIB_INCLUDE_DIR=${FAST_EXTERNAL_INSTALL_DIR}/include/zlib/
+          -DZLIB_LIBRARY_RELEASE=${FAST_EXTERNAL_INSTALL_DIR}/lib/zlib.lib
         CMAKE_CACHE_ARGS
           -DCMAKE_BUILD_TYPE:STRING=Release
           -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF

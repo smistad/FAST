@@ -167,6 +167,7 @@ endmacro()
 # Macro for downloading a dependency
 macro(fast_download_dependency NAME VERSION SHA)
     set(FILENAME ${NAME}_${VERSION}_${FAST_DEPENDENCY_TOOLSET}.tar.xz)
+    # TODO correct spelling mistake: licences
     if(WIN32)
     if(${NAME} STREQUAL qt5)
         ExternalProject_Add(${NAME}
@@ -181,7 +182,7 @@ macro(fast_download_dependency NAME VERSION SHA)
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/plugins ${FAST_EXTERNAL_INSTALL_DIR}/plugins COMMAND
-                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licenses
         )
     else()
         ExternalProject_Add(${NAME}
@@ -195,7 +196,7 @@ macro(fast_download_dependency NAME VERSION SHA)
                 INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
-                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licenses
                 )
     endif()
     else(WIN32)

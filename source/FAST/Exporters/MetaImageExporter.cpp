@@ -1,7 +1,7 @@
 #include "MetaImageExporter.hpp"
 #include "FAST/Data/Image.hpp"
 #include <fstream>
-#include <zlib.h>
+#include <zlib/zlib.h>
 
 namespace fast {
 

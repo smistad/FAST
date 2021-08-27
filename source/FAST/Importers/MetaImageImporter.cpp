@@ -4,8 +4,7 @@
 #include "FAST/Utility.hpp"
 #include <fstream>
 #include <set>
-
-#include <zlib.h>
+#include <zlib/zlib.h>
 using namespace fast;
 
 MetaImageImporter::MetaImageImporter() {
