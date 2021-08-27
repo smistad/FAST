@@ -167,6 +167,7 @@ endmacro()
 # Macro for downloading a dependency
 macro(fast_download_dependency NAME VERSION SHA)
     set(FILENAME ${NAME}_${VERSION}_${FAST_DEPENDENCY_TOOLSET}.tar.xz)
+    if(WIN32)
     if(${NAME} STREQUAL qt5)
         ExternalProject_Add(${NAME}
                 PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
@@ -192,10 +193,43 @@ macro(fast_download_dependency NAME VERSION SHA)
                 BUILD_COMMAND ""
                 # On install: Copy contents of each subfolder to the build folder
                 INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
-                ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
-            )
+                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
+                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
+                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licences
+                )
+    endif()
+    else(WIN32)
+        # copy_directory doesn't support symlinks, use cp on linux:
+        if(${NAME} STREQUAL qt5)
+        ExternalProject_Add(${NAME}
+                PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
+                URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
+                URL_HASH SHA256=${SHA}
+                UPDATE_COMMAND ""
+                CONFIGURE_COMMAND ""
+                BUILD_COMMAND ""
+                # On install: Copy contents of each subfolder to the build folder
+                INSTALL_COMMAND cp -r <SOURCE_DIR>/include/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
+                cp -r <SOURCE_DIR>/bin/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
+                cp -r <SOURCE_DIR>/lib/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
+                cp -r <SOURCE_DIR>/plugins/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
+                cp -r <SOURCE_DIR>/licences/ ${FAST_EXTERNAL_INSTALL_DIR}/
+                )
+            else()
+                ExternalProject_Add(${NAME}
+                    PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
+                    URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
+                    URL_HASH SHA256=${SHA}
+                    UPDATE_COMMAND ""
+                    CONFIGURE_COMMAND ""
+                    BUILD_COMMAND ""
+                    # On install: Copy contents of each subfolder to the build folder
+                    INSTALL_COMMAND cp -r <SOURCE_DIR>/include/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
+                        cp -r <SOURCE_DIR>/bin/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
+                        cp -r <SOURCE_DIR>/lib/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
+                        cp -r <SOURCE_DIR>/licences/ ${FAST_EXTERNAL_INSTALL_DIR}/
+                )
+        endif()
     endif()
     foreach(LIB ${ARGN})
         list(APPEND LIBRARIES ${ARGN})
