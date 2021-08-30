@@ -4,6 +4,7 @@ Download Statistics {#download-stats}
 GitHub Downloads
 --------------------
 
+* ![](https://shields.io/github/downloads/smistad/fast/v4.0.0/total)
 * ![](https://shields.io/github/downloads/smistad/fast/v3.3.0/total)
 * ![](https://shields.io/github/downloads/smistad/fast/v3.2.0/total)
 * ![](https://shields.io/github/downloads/smistad/fast/v3.1.0/total)
