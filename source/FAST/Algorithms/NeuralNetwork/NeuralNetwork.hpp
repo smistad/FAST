@@ -28,13 +28,13 @@ class FAST_EXPORT InferenceDataList {
         }
         std::vector<std::shared_ptr<Image>> getImages() const {
             if(!isImages())
-                throw Exception("The inference that list contains tensors, not images");
+                throw Exception("The inference data list contains tensors, not images");
 
             return m_images;
         }
         std::vector<std::shared_ptr<Tensor>> getTensors() const {
             if(!isTensors())
-                throw Exception("The inference that list contains images, not tensors");
+                throw Exception("The inference data list contains images, not tensors");
 
             return m_tensors;
         }

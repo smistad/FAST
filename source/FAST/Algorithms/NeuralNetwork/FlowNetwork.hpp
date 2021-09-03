@@ -43,9 +43,29 @@ class FAST_EXPORT ImagesToSequence : public ProcessObject {
 class FAST_EXPORT FlowNetwork : public NeuralNetwork {
     FAST_PROCESS_OBJECT(FlowNetwork)
     public:
-        FAST_CONSTRUCTOR(FlowNetwork)
+    FAST_CONSTRUCTOR(FlowNetwork,
+                     std::string, modelFilename,,
+                     float, scaleFactor, = 1.0f,
+                     float, meanIntensity, = 0.0f,
+                     float, stanardDeviationIntensity, = 1.0f,
+                     std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
+                     std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
+                     std::string, inferenceEngine, = "",
+                     std::vector<std::string>, customPlugins, = std::vector<std::string>()
+    )
+    #ifndef SWIG
+    // C++ friendly create with parameters that must be set before loading
+        FAST_CONSTRUCTOR(FlowNetwork,
+                         std::string, modelFilename,,
+                         std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::string, inferenceEngine, = "",
+                         std::vector<std::string>, customPlugins, = std::vector<std::string>()
+        )
+#endif
     protected:
+        FlowNetwork();
         void execute() override;
-};
+    };
 
 }

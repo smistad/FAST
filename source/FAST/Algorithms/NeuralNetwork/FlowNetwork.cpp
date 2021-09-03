@@ -3,8 +3,22 @@
 #include "TensorToImage.hpp"
 
 namespace fast {
-
 FlowNetwork::FlowNetwork() {
+    createInputPort<Sequence>(0);
+    createOutputPort<Image>(0);
+}
+
+FlowNetwork::FlowNetwork(std::string modelFilename, std::vector<NeuralNetworkNode> inputNodes,
+                         std::vector<NeuralNetworkNode> outputNodes, std::string inferenceEngine,
+                         std::vector<std::string> customPlugins) : NeuralNetwork(modelFilename, inputNodes, outputNodes, inferenceEngine, customPlugins) {
+    createInputPort<Sequence>(0);
+    createOutputPort<Image>(0);
+}
+
+FlowNetwork::FlowNetwork(std::string modelFilename, float scaleFactor, float meanIntensity,
+                         float stanardDeviationIntensity, std::vector<NeuralNetworkNode> inputNodes,
+                         std::vector<NeuralNetworkNode> outputNodes, std::string inferenceEngine,
+                         std::vector<std::string> customPlugins) : NeuralNetwork(modelFilename, scaleFactor, meanIntensity, stanardDeviationIntensity, inputNodes, outputNodes, inferenceEngine, customPlugins) {
     createInputPort<Sequence>(0);
     createOutputPort<Image>(0);
 }
