@@ -261,6 +261,7 @@ void TensorRTEngine::load() {
             for(int inputNr = 0; inputNr < network->getNbInputs(); ++inputNr) {
                 auto input = network->getInput(inputNr);
                 auto dims = input->getDimensions();
+                reportInfo() << "TensorRT found input node " << input->getName() << "with shape: " << getTensorShape(dims).toString() << reportEnd();
                 dims.d[0] = 1;
                 profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, dims);
                 profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);
