@@ -45,8 +45,11 @@ DualViewWindow::DualViewWindow(Color bgcolor, int width, int height, bool vertic
     View* view2 = createView();
 
     createLayout();
-    if(verticalMode)
+    if(verticalMode) {
         setVerticalMode();
+    } else {
+        setHorizontalMode();
+    }
     if(width > 0)
         setWidth(width);
     if(height > 0)
