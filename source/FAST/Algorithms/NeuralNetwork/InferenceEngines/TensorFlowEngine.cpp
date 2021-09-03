@@ -241,9 +241,6 @@ void TensorFlowEngine::load() {
 				auto shape = getShape(node);
 				reportInfo() << "Node has shape " << shape.toString() << reportEnd();
 				if(mInputNodes.count(node.name()) == 0) {
-					if(nodesSpecified) {
-						throw Exception("Encountered unknown node " + node.name());
-					}
 					reportInfo() << "Node was not specified by user" << reportEnd();
 					// If node has not been specified by user, we need to add it
 					// and thus know its type (fast image or tensor)
@@ -258,6 +255,9 @@ void TensorFlowEngine::load() {
 						reportInfo() << "Node has dimension 0, skipping.." << reportEnd();
 						continue;
 					}
+                    if(nodesSpecified) {
+                        throw Exception("Encountered unknown node " + node.name());
+                    }
 					addInputNode(inputCounter, node.name(), type, shape);
 					++inputCounter;
 				} else {
