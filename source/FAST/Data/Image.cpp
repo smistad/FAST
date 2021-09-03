@@ -433,7 +433,7 @@ Image::Image() {
     mHostDataIsUpToDate = false;
     mSpacing = Vector3f(1,1,1);
     mMaxMinInitialized = false;
-    mAverageInitialized = false;
+    mSumInitialized = false;
     mIsInitialized = false;
 }
 
@@ -871,33 +871,33 @@ void Image::calculateMaxAndMinIntensity() {
     }
 }
 
-float Image::calculateAverageIntensity() {
-     if(!isInitialized())
+float Image::calculateSumIntensity() {
+    if(!isInitialized())
         throw Exception("Image has not been initialized.");
 
-    // Calculate max and min if image has changed or it is the first time
-    if(!mAverageInitialized || mAverageIntensityTimestamp != getTimestamp()) {
+    // Calculate sum if image has changed or it is the first time
+    if(!mSumInitialized || mSumIntensityTimestamp != getTimestamp()) {
         unsigned int nrOfElements = mWidth*mHeight*mDepth;
         if(mHostHasData && mHostDataIsUpToDate) {
             // Host data is up to date, calculate min and max on host
             ImageAccess::pointer access = getImageAccess(ACCESS_READ);
             void* data = access->get();
             switch(mType) {
-            case TYPE_FLOAT:
-                mAverageIntensity = getSumFromData<float>(data,nrOfElements) / nrOfElements;
-                break;
-            case TYPE_INT8:
-                mAverageIntensity = getSumFromData<char>(data,nrOfElements) / nrOfElements;
-                break;
-            case TYPE_UINT8:
-                mAverageIntensity = getSumFromData<uchar>(data,nrOfElements) / nrOfElements;
-                break;
-            case TYPE_INT16:
-                mAverageIntensity = getSumFromData<short>(data,nrOfElements) / nrOfElements;
-                break;
-            case TYPE_UINT16:
-                mAverageIntensity = getSumFromData<ushort>(data,nrOfElements) / nrOfElements;
-                break;
+                case TYPE_FLOAT:
+                    mSumIntensity = getSumFromData<float>(data,nrOfElements);
+                    break;
+                case TYPE_INT8:
+                    mSumIntensity = getSumFromData<char>(data,nrOfElements);
+                    break;
+                case TYPE_UINT8:
+                    mSumIntensity = getSumFromData<uchar>(data,nrOfElements);
+                    break;
+                case TYPE_INT16:
+                    mSumIntensity = getSumFromData<short>(data,nrOfElements);
+                    break;
+                case TYPE_UINT16:
+                    mSumIntensity = getSumFromData<ushort>(data,nrOfElements);
+                    break;
             }
         } else {
             // TODO the logic here can be improved. For instance choose the best device
@@ -929,7 +929,7 @@ float Image::calculateAverageIntensity() {
                             //getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
                         }
                     }
-                    mAverageIntensity = sum / nrOfElements;
+                    mSumIntensity = sum;
                     found = true;
                 }
             }
@@ -941,7 +941,7 @@ float Image::calculateAverageIntensity() {
                         OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
                         cl::Buffer* buffer = access->get();
                         // TODO
-                            throw Exception("Not implemented yet");
+                        throw Exception("Not implemented yet");
                         //getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
                         found = true;
                     }
@@ -950,11 +950,18 @@ float Image::calculateAverageIntensity() {
         }
 
         // Update timestamp
-        mAverageIntensityTimestamp = getTimestamp();
-        mAverageInitialized = true;
+        mSumIntensityTimestamp = getTimestamp();
+        mSumInitialized = true;
     }
 
-    return mAverageIntensity;
+    return mSumIntensity;
+}
+
+float Image::calculateAverageIntensity() {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+
+    return calculateSumIntensity() / getNrOfVoxels();
 }
 
 float Image::calculateMaximumIntensity() {
