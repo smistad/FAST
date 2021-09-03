@@ -20,8 +20,16 @@ Mesh::Mesh(
         // Delete old data
         freeAll();
     }
-    if(vertices.size() == 0) {
-    	create(0, 0, 0, false, false, false);
+    if(vertices.empty()) {
+        mBoundingBox = DataBoundingBox(Vector3f(1,1,1));
+        mIsInitialized = true;
+        mNrOfVertices = 0;
+        mNrOfLines = 0;
+        mUseColorVBO = false;
+        mUseNormalVBO = false;
+        mUseEBO = false;
+        mNrOfTriangles = 0;
+        updateModifiedTimestamp();
     	return;
     }
 
