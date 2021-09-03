@@ -14,14 +14,14 @@ void TensorToImage::execute() {
     const auto shape = tensor->getShape();
     auto access = tensor->getAccess(ACCESS_READ);
     const int dims = shape.getDimensions();
-    const int channels = shape[0];
-    const int outputHeight = shape[dims-3];
+    const int channels = shape[dims-1];
     const int outputWidth = shape[dims-2];
+    const int outputHeight = shape[dims-3];
     int outputDepth = 1;
-    float* tensorData = access->getRawData();
     if(dims == 5) {
         outputDepth = shape[dims - 4];
     }
+    float* tensorData = access->getRawData();
 
     Image::pointer image;
     if(outputDepth == 1) {
