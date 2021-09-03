@@ -27,16 +27,15 @@ Then write the following python code, which should display the FAST logo on your
 ```py
 import fast
 
-importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getDocumentationPath() + '/images/FAST_logo_square.png')
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getDocumentationPath() + '/images/FAST_logo_square.png')
 
-renderer = fast.ImageRenderer.New()
-renderer.setInputConnection(importer.getOutputPort())
+renderer = fast.ImageRenderer.create()\
+    .connect(importer)
 
-window = fast.SimpleWindow.New()
-window.set2DMode()
-window.addRenderer(renderer)
-window.start()
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
 ```
 
 To start using FAST, you might want to look at the [Python introduction tutorial](@ref python-tutorial-intro)

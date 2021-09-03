@@ -45,7 +45,7 @@ and the SimpleWindow in 2D mode.
 The renderer is connected to the importer using the connect method:
 
 @code{.py}
-renderer = fast.ImageRenderer.connect(importer)
+renderer = fast.ImageRenderer.create().connect(importer)
 @endcode
 
 This will form an execution pipeline, so that executing the renderer will
@@ -58,7 +58,7 @@ import fast
 importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
 # Set up a renderer and connect it to the importer
-renderer = fast.ImageRenderer.connect(importer)
+renderer = fast.ImageRenderer.create().connect(importer)
 
 # Create a window, add the renderer and start the computation/rendering loop.
 window = fast.SimpleWindow2D.create().connect(renderer)
