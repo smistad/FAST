@@ -16,7 +16,30 @@ typedef std::map<std::string, float> classifications;
  *
  * @ingroup neural-network
  */
-FAST_SIMPLE_DATA_OBJECT(ImageClassification, classifications)
+class FAST_EXPORT ImageClassification : public SimpleDataObject<classifications> {
+    FAST_OBJECT_V4(ImageClassification)
+    public:
+        static std::shared_ptr<ImageClassification> create(classifications data) {                                                         \
+            std::shared_ptr<ImageClassification> ptr(new ImageClassification(std::move(data)));
+            ptr->setPtr(ptr);
+            return ptr;
+        }
+        /**
+         * Get classification with highest confidence score
+         *
+         * @return pair of label name and confidence value
+         */
+        std::pair<std::string, float> getTopClassification() const {
+            std::pair<std::string, float> max = {"", 0.0f};
+            for(auto item : m_data) {
+                if(item.second > max.second)
+                    max = item;
+            }
+            return max;
+        }
+    protected:
+        ImageClassification(classifications data) : SimpleDataObject<classifications>(data) {};                                                                                            \
+};
 
 /**
  * @brief Image classification neural network
@@ -36,12 +59,23 @@ class FAST_EXPORT ImageClassificationNetwork : public NeuralNetwork {
                          float, scaleFactor, = 1.0f,
                          float, meanIntensity, = 0.0f,
                          float, stanardDeviationIntensity, = 1.0f,
+                         int, temporalWindow, = 1,
                          std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
                          std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
                          std::string, inferenceEngine, = "",
                          std::vector<std::string>, customPlugins, = std::vector<std::string>()
          )
-		void setLabels(std::vector<std::string> labels);
+#ifndef SWIG
+        FAST_CONSTRUCTOR(ImageClassificationNetwork,
+                         std::string, modelFilename,,
+                         std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
+                         std::string, inferenceEngine, = "",
+                         std::vector<std::string>, customPlugins, = std::vector<std::string>()
+        )
+#endif
+        void setTemporalWindow(int window);
+        void setLabels(std::vector<std::string> labels);
         void loadAttributes();
 	private:
 		ImageClassificationNetwork();
@@ -49,6 +83,8 @@ class FAST_EXPORT ImageClassificationNetwork : public NeuralNetwork {
 
 		// A map of label -> score
 		std::vector<std::string> mLabels;
+		std::deque<std::map<std::string, float>> m_results;
+		int m_temporalWindow = 1;
 
 };
 
