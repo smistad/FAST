@@ -44,7 +44,6 @@ void ImageClassificationNetwork::execute() {
     if(!tensor)
         throw Exception("ImageClassificationNetwork batch support not implemented");
     auto access = tensor->getAccess(ACCESS_READ);
-    std::cout << tensor->getShape().toString() << std::endl;
 
     auto data = access->getData<1>();
     if(mLabels.size() != data.dimension(0)) {

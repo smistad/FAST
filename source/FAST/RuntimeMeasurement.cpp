@@ -13,15 +13,22 @@ RuntimeMeasurement::RuntimeMeasurement(){
     mRunningVariance = 0.0;
 }
 
-RuntimeMeasurement::RuntimeMeasurement(std::string name) {
+RuntimeMeasurement::RuntimeMeasurement(std::string name, int warmupRounds) {
 	mSum = 0.0;
 	mSamples = 0;
 	mRunningMean = 0.0;
     mRunningVariance = 0.0;
 	this->mName = name;
+	if(warmupRounds < 0)
+		throw Exception("Warmup rounds must be > 0");
+	m_warmupRounds = warmupRounds;
 }
 
 void RuntimeMeasurement::addSample(double runtime) {
+	if(m_warmupRounds > 0) {
+		--m_warmupRounds;
+		return;
+	}
 	mSamples++;
 	mSum += runtime;
     if(mSamples > 1) {

@@ -581,6 +581,10 @@ int ProcessObject::getLastExecuteToken() const {
     return m_lastExecuteToken;
 }
 
+RuntimeMeasurementsManager::pointer ProcessObject::getRuntimeManager() {
+    return getAllRuntimes();
+}
+
 DataObject::pointer ProcessObject::getOutputData(uint portID) {
     validateOutputPortExists(portID);
 

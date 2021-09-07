@@ -17,7 +17,7 @@ namespace fast {
 class FAST_EXPORT  RuntimeMeasurement : public Object {
 public:
 	typedef std::shared_ptr<RuntimeMeasurement> pointer;
-	RuntimeMeasurement(std::string name);
+	RuntimeMeasurement(std::string name, int warmupRounds = 0);
 	void addSample(double runtime);
 	double getSum() const;
 	double getAverage() const;
@@ -37,7 +37,9 @@ private:
 	double mRunningMean;
 	double mMin;
 	double mMax;
+	double mFirstSample;
 	std::string mName;
+	int m_warmupRounds;
 };
 
 }; // end namespace

@@ -85,6 +85,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         RuntimeMeasurement::pointer getRuntime();
         RuntimeMeasurement::pointer getRuntime(std::string name);
         RuntimeMeasurementsManager::pointer getAllRuntimes();
+        RuntimeMeasurementsManager::pointer getRuntimeManager();
         void enableRuntimeMeasurements();
         void disableRuntimeMeasurements();
 

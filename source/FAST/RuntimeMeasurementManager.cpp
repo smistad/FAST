@@ -59,7 +59,7 @@ void RuntimeMeasurementsManager::stopCLTimer(std::string name, cl::CommandQueue 
 	endEvent.getProfilingInfo<cl_ulong>(CL_PROFILING_COMMAND_START, &end);
 	if (timings.count(name) == 0) {
 		// No timings with this name exists, create a new one
-		RuntimeMeasurement::pointer runtime(new RuntimeMeasurement(name));
+		RuntimeMeasurement::pointer runtime(new RuntimeMeasurement(name, m_warmupRounds));
 		runtime->addSample((end - start) * 1.0e-6);
 		timings[name] =  runtime;
 	} else {
@@ -87,7 +87,7 @@ void RuntimeMeasurementsManager::stopRegularTimer(std::string name) {
 	std::chrono::duration<double, std::milli> time = std::chrono::system_clock::now() - startTimes[name];
     if (timings.count(name) == 0) {
 		// No timings with this name exists, create a new one
-		RuntimeMeasurement::pointer runtime(new RuntimeMeasurement(name));
+		RuntimeMeasurement::pointer runtime(new RuntimeMeasurement(name, m_warmupRounds));
 
 		runtime->addSample(time.count());
 		timings[name] =  runtime;
@@ -121,7 +121,7 @@ void RuntimeMeasurementsManager::stopNumberedRegularTimer(std::string name) {
 RuntimeMeasurement::pointer RuntimeMeasurementsManager::getTiming(std::string name) {
     if(timings.count(name) == 0) {
         // Create a new empty timing
-		RuntimeMeasurement::pointer runtime(new RuntimeMeasurement(name));
+		RuntimeMeasurement::pointer runtime(new RuntimeMeasurement(name, m_warmupRounds));
 		timings[name] = runtime;
     }
 
@@ -151,6 +151,16 @@ RuntimeMeasurementsManager::RuntimeMeasurementsManager() {
 
 bool RuntimeMeasurementsManager::isEnabled() {
 	return enabled;
+}
+
+void RuntimeMeasurementsManager::setWarmupRounds(int rounds) {
+    if(rounds < 0)
+        throw Exception("Warmup rounds must be > 0");
+    m_warmupRounds = rounds;
+}
+
+int RuntimeMeasurementsManager::getWarmupRounds() const {
+    return m_warmupRounds;
 }
 
 } //namespace fast
