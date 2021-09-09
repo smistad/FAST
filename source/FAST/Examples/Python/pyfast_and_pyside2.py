@@ -28,7 +28,7 @@ window.setTitle('pyFAST+PySide2=TRUE')
 # Add Qt button to the FAST window
 button = QPushButton("Press here!")
 # Convert FAST QWidget pointer to a PySide2 QWidget
-mainWidget = wrapInstance(window.getWidget(), QWidget)
+mainWidget = wrapInstance(int(window.getWidget()), QWidget)
 layout = mainWidget.layout()
 layout.addWidget(button)
 

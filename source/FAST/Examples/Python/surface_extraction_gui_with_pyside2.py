@@ -37,7 +37,7 @@ window = fast.SimpleWindow3D.create(width=1024, height=512)\
     .connect(renderer)
 
  # Get the underlying QtWidget of the FAST window and convert it to pyside2
-mainWidget = wrapInstance(window.getWidget(), QWidget)
+mainWidget = wrapInstance(int(window.getWidget()), QWidget)
 
 # Create GUI in Qt
 layout = mainWidget.layout()
