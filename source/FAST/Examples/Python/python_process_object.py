@@ -1,5 +1,6 @@
 ## @example python_process_object.py
 # An example showing how to make FAST process object in python.
+# @image html images/examples/python/python_process_object.jpg width=400px;
 import fast
 import numpy as np
 

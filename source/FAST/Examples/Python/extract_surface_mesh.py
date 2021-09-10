@@ -2,6 +2,7 @@
 # This examples extract a surface mesh with over 3 million triangles from a CT volume
 # using the Marching Cubes algorithm.
 # It also shows how you can access the vertex and triangle data directly.
+# @image html images/examples/python/extract_surface_and_render.jpg width=400px;
 import fast
 
 importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + "/CT/CT-Abdomen.mhd")

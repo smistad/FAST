@@ -6,6 +6,8 @@
 #     For this example you <b>must</b> use the same Qt version of PySide2 as used in FAST (5.14.0)
 #     Do this with: <b>pip install pyside2==5.14.0</b>
 # @endparblock
+#
+# @image html images/examples/python/pyfast_and_pyside.jpg width=400px;
 
 from PySide2.QtWidgets import *
 from PySide2.QtCore import Slot

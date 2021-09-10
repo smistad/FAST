@@ -15,7 +15,7 @@ All the Python examples can be found in the [repository](https://github.com/smis
 |[Block matching based ultrasound speckle tracking](@ref block_matching_speckle_tracking.py)| @image html images/examples/python/block_matching_tracking.jpg width=350px; |
 |[Stream images from webcamera and apply edge detection](@ref stream_from_webcamera.py)| @image html images/examples/python/webcamera.jpg width=350px; |
 |[Stream images from Clarius ultrasound scanner and apply a non-local means (NLM) filter](@ref stream_from_clarius_ultrasound_scanner.py)| @image html images/examples/python/clarius_streaming.jpg width=350px; |
-|[Extract surface mesh from CT volume and render using GPU-based Marching Cubes algorithm](@ref extract_surface_mesh.py)| |
-|[Inject Python code into a FAST pipeline by creating a custom Python process object](@ref python_process_object.py)||
-|[Creating a Qt GUI with PySide2 along FAST](@ref pyfast_and_pyside2.py)||
-|[Controlling a FAST surface extraction pipeline with a Qt GUI using PySide2](@ref surface_extraction_gui_with_pyside2.py)||
+|[Extract surface mesh from CT volume and render using GPU-based Marching Cubes algorithm](@ref extract_surface_mesh.py)| @image html images/examples/python/extract_surface_and_render.jpg width=350px; |
+|[Inject Python code into a FAST pipeline by creating a custom Python process object](@ref python_process_object.py)| @image html images/examples/python/python_process_object.jpg width=350px; |
+|[Creating a Qt GUI with PySide2 along FAST](@ref pyfast_and_pyside2.py)| @image html images/examples/python/pyfast_and_pyside.jpg width=350px; |
+|[Controlling a FAST surface extraction pipeline with a Qt GUI using PySide2](@ref surface_extraction_gui_with_pyside2.py)|@image html images/examples/python/pyside_surface_extraction.jpg width=350px;|

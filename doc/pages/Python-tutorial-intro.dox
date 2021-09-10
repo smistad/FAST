@@ -213,6 +213,54 @@ plt.imshow(numpy_image[..., 0], cmap='gray')
 plt.show()
 ```
 
+### Create FAST image from an OpenCV image
+
+Like with numpy, and OpenCV image can easily be converted to a FAST image using the createFromArray method:
+```py
+import fast
+import cv2
+
+# Load image from disk with OpenCV
+cv_image = cv2.imread(fast.Config.getTestDataPath() + "US/US-2D.jpg")
+
+# Convert OpenCV image to FAST
+fast_image = fast.Image.createFromArray(cv_image)
+
+# Visualize with FAST
+renderer = fast.ImageRenderer.create().connect(fast_image)
+fast.SimpleWindo2D.create().connect(renderer).run()
+```
+
+### Create OpenCV image from a FAST image
+
+An OpenCV image in Python is basically just a NumPy array, therefore you can use np.asarray function
+to convert a FAST image to an OpenCV image.
+
+```py
+import fast
+import cv2
+import numpy as np
+
+# Import image with FAST
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + "US/US-2D.jpg")
+fast_image = importer.runAndGetOutputImage()
+
+# Convert FAST image to a NumPy array/OpenCV image
+cv_image = np.asarray(fast_image)
+
+# Visualize the image with OpenCV
+cv2.imshow('FAST image!', cv_image)
+cv2.waitKey(1000*3) # Display for 3 seconds
+cv2.destroyAllWindows()
+```
+
+### Use Python code (NumPy, scikit-image, OpenCV ++) in a FAST pipeline
+
+You can inject any Python code into a FAST processing pipeline by extending the PythonProcessObject class.
+Here is a complete example on how to do this:
+
+@include Python/python_process_object.py
+
 Exporting data
 ---------------------
 @todo
