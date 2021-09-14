@@ -228,12 +228,12 @@ fast_image = fast.Image.createFromArray(cv_image)
 
 # Visualize with FAST
 renderer = fast.ImageRenderer.create().connect(fast_image)
-fast.SimpleWindo2D.create().connect(renderer).run()
+fast.SimpleWindow2D.create().connect(renderer).run()
 ```
 
 ### Create OpenCV image from a FAST image
 
-An OpenCV image in Python is basically just a NumPy array, therefore you can use np.asarray function
+An OpenCV image in Python is basically just a NumPy array, therefore you can use the np.asarray function
 to convert a FAST image to an OpenCV image.
 
 ```py
