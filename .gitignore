@@ -8,3 +8,5 @@ TestData/
 *.xml
 /data/
 *.zip
+cmake-*
+*.pyc
