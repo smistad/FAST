@@ -25,6 +25,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
         void mousePressEvent(QMouseEvent* event);
         void mouseReleaseEvent(QMouseEvent* event);
         void wheelEvent(QWheelEvent* event);
+        void setSynchronizedRendering(bool sync);
         void setMaximumFramerate(unsigned int framerate);
         void setCameraInputConnection(DataChannel::pointer port);
         void set2DMode();

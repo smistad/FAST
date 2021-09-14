@@ -8,16 +8,32 @@ namespace fast {
 
 void WindowWidget::keyPressEvent(QKeyEvent *event) {
     // Close window if user presses Q or escape
-    switch (event->key()) {
-        case Qt::Key_Q:
+    switch(event->key()) {
         case Qt::Key_Escape:
             Reporter::info() << "Close key pressed" << Reporter::end();
             close();
             return;
             break;
     }
-    for (View *view : mViews)
+    for(View *view : mViews)
         view->keyPressEvent(event);
+}
+
+void WindowWidget::changeEvent(QEvent* event) {
+    if(event->type() == QEvent::WindowStateChange) {
+        if(isMinimized()) {
+            Reporter::info() << "Window minimized; turning OFF synchronized rendering" << Reporter::end();
+			for(auto view : mViews) {
+				view->setSynchronizedRendering(false);
+			}
+        } else {
+            Reporter::info() << "Window not minimized; turning ON synchronized rendering" << Reporter::end();
+			for(auto view : mViews) {
+				view->setSynchronizedRendering(true);
+			}
+        }
+    }
+
 }
 
 void WindowWidget::dragEnterEvent(QDragEnterEvent *event) {

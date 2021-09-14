@@ -772,6 +772,24 @@ void View::mouseReleaseEvent(QMouseEvent *event) {
     }
 }
 
+void View::setSynchronizedRendering(bool sync) {
+	// Copy list of renderers while locked
+	std::unique_lock<std::mutex> lock(m_mutex);
+	auto nonVolumeRenderers = mNonVolumeRenderers;
+	auto volumeRenderers = mVolumeRenderers;
+	lock.unlock();
+
+	for(auto renderer : nonVolumeRenderers) {
+		renderer->setSynchronizedRendering(sync);
+        renderer->postDraw(); // TODO HACK
+	}
+	for(auto renderer : volumeRenderers) {
+		renderer->setSynchronizedRendering(sync);
+        renderer->postDraw(); // TODO HACK
+	}
+
+}
+
 void View::set2DMode() {
     mIsIn2DMode = true;
 }
