@@ -46,6 +46,15 @@ struct Destroy {
     }
 };
 
+static TensorShape getTensorShape(nvinfer1::Dims dims) {
+    TensorShape shape;
+    for(int j = 0; j < dims.nbDims; ++j) {
+        auto size = dims.d[j];
+        shape.addDimension(size);
+    }
+    return shape;
+}
+
 inline unsigned int elementSize(nvinfer1::DataType t) {
     switch (t)
     {
@@ -93,13 +102,15 @@ void TensorRTEngine::run() {
     for(int i = 0; i < nbBindings; ++i) {
         auto name = m_engine->getBindingName(i);
         TensorShape shape;
-        if (m_engine->bindingIsInput(i)) {
+        if(m_engine->bindingIsInput(i) && mInputNodes.count(name) > 0) {
             inputIndexes[name] = i;
             shape = mInputNodes[name].shape;
-        } else {
+        } else if(!m_engine->bindingIsInput(i) && mOutputNodes.count(name) > 0) {
             outputIndexes[name] = i;
             shape = mOutputNodes[name].shape;
-         }
+        } else {
+            shape = getTensorShape(m_engine->getBindingDimensions(i));
+        }
         shape[0] = batchSize;
         // Allocate data
         nvinfer1::DataType dtype = m_engine->getBindingDataType(i);
@@ -160,15 +171,6 @@ void TensorRTEngine::run() {
         CUDA_CHECK(cudaFree(buffers[index]));
         reportInfo() << "Finished freeing output data TensorRT" << reportEnd();
     }
-}
-
-static TensorShape getTensorShape(nvinfer1::Dims dims) {
-    TensorShape shape;
-    for(int j = 0; j < dims.nbDims; ++j) {
-        auto size = dims.d[j];
-        shape.addDimension(size);
-    }
-    return shape;
 }
 
 void TensorRTEngine::load() {
@@ -297,6 +299,8 @@ void TensorRTEngine::load() {
         m_engine = runtime->deserializeCudaEngine(buffer.data(), buffer.size(), nullptr);
     }
 
+    const bool inputsDefined = !mInputNodes.empty();
+    const bool outputsDefined = !mOutputNodes.empty();
     // Get input and output nodes from the CUDA engine
     if(filename.substr(filename.size()-4) != ".uff") {
         int inputCount = 0;
@@ -320,14 +324,36 @@ void TensorRTEngine::load() {
             } else {
                 type = NodeType::TENSOR;
             }
-            if (m_engine->bindingIsInput(i)) {
+            if(m_engine->bindingIsInput(i)) {
                 reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
-                addInputNode(inputCount, name, type, shape);
-                ++inputCount;
+                if(inputsDefined) {
+                    if(mInputNodes.count(name) > 0) {
+                        reportInfo() << "Node was defined by user at id " << mInputNodes[name].portID  << reportEnd();
+                        if(mInputNodes[name].shape.empty())
+                            mInputNodes[name].shape = shape;
+                    } else {
+                        reportInfo() << "Ignored input node " << name << " because input nodes were specified, but not this one." << reportEnd();
+                    }
+                } else {
+                    addInputNode(inputCount, name, type, shape);
+                    ++inputCount;
+                }
             } else {
                 reportInfo() << "Found output node " << name << " with shape " << shape.toString() << reportEnd();
-                addOutputNode(outputCount, name, type, shape);
-                ++outputCount;
+                if(outputsDefined) {
+                    if(mOutputNodes.count(name) > 0) {
+                        reportInfo() << "Node was defined by user at id " << mOutputNodes[name].portID  << reportEnd();
+                        if(mOutputNodes[name].shape.empty()) {
+                            reportInfo() << "Shape was empty, setting it to " << shape.toString() << reportEnd();
+                            mOutputNodes[name].shape = shape;
+                        }
+                    } else {
+                        reportInfo() << "Ignored output node " << name << " because output nodes were specified, but not this one." << reportEnd();
+                    }
+                } else {
+                    addOutputNode(outputCount, name, type, shape);
+                    ++outputCount;
+                }
             }
         }
     }

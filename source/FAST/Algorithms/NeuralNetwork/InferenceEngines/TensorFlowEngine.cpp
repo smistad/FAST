@@ -218,18 +218,29 @@ void TensorFlowEngine::load() {
         tensorflow_graph = metaGraphDef.graph_def();
 	}
 
-	// Analyze nodes to find input node
-	bool nodesSpecified = true;
+	// Analyze nodes
     int inputCounter = 0;
-	if(mInputNodes.size() == 0) {
-		nodesSpecified = false;
-	}
+	int outputCounter = 0;
+    const bool inputsSpecified = !mInputNodes.empty();
+	const bool outputsSpecified = !mOutputNodes.empty();
 
     for(int i = 0; i < tensorflow_graph.node_size(); ++i) {
 		tensorflow::NodeDef node = tensorflow_graph.node(i);
-		if(mInputNodes.count(node.name()) > 0) {
-		}
-		if(node.op() == "Placeholder") {
+        auto shape = getShape(node);
+        // If node has not been specified by user, we need to add it
+        // and thus know its type (fast image or tensor)
+        // It is assumed to be an image if input shape has at least 4 dimensions
+        NodeType type = NodeType::TENSOR;
+        if(shape.getDimensions() >= 4) {
+            //reportInfo() << "Assuming node is an image" << reportEnd();
+            type = NodeType::IMAGE;
+        } else if(shape.getDimensions() > 0) {
+            //reportInfo() << "Assuming node is a tensor" << reportEnd();
+        } else {
+        }
+        if(node.op() == "Placeholder") {
+            if(shape.getDimensions() == 0)
+                continue;
 			if(node.name().find("keras_learning_phase") != std::string::npos) {
 				//mLearningPhaseTensors.insert(node.name());
 				mLearningPhaseTensors.push_back(node.name());
@@ -238,35 +249,34 @@ void TensorFlowEngine::load() {
 				// Get its shape
 				// Input nodes use the Op Placeholder
 				reportInfo() << "Found input node: " << i << " with name " << node.name() << reportEnd();
-				auto shape = getShape(node);
 				reportInfo() << "Node has shape " << shape.toString() << reportEnd();
 				if(mInputNodes.count(node.name()) == 0) {
 					reportInfo() << "Node was not specified by user" << reportEnd();
-					// If node has not been specified by user, we need to add it
-					// and thus know its type (fast image or tensor)
-					// It is assumed to be an image if input shape has at least 4 dimensions
-					NodeType type = NodeType::TENSOR;
-					if(shape.getDimensions() >= 4) {
-						reportInfo() << "Assuming node is an image" << reportEnd();
-						type = NodeType::IMAGE;
-					} else if(shape.getDimensions() > 0) {
-						reportInfo() << "Assuming node is a tensor" << reportEnd();
-					} else {
-						reportInfo() << "Node has dimension 0, skipping.." << reportEnd();
-						continue;
-					}
-                    if(nodesSpecified) {
+
+                    if(inputsSpecified) {
                         throw Exception("Encountered unknown node " + node.name());
                     }
 					addInputNode(inputCounter, node.name(), type, shape);
 					++inputCounter;
 				} else {
 				    // If shape that was given was empty, add the detected one here
-				    if(mInputNodes[node.name()].shape.getDimensions() == 0) {
+				    if(mInputNodes[node.name()].shape.empty())
 				        mInputNodes[node.name()].shape = shape;
-				    }
 				}
 			}
+        } else if(node.name().find("StatefulPartitionedCall") != std::string::npos) {
+		    if(outputsSpecified) {
+                reportInfo() << "Found output node " << node.name() << reportEnd();
+                if(mOutputNodes.count(node.name()) > 0) {
+		            reportInfo() << "Node was defined by user at id " << mOutputNodes[node.name()].portID  << reportEnd();
+		            if(mOutputNodes[node.name()].shape.empty())
+		                mOutputNodes[node.name()].shape = shape;
+		        }
+		    } else if(node.name() == "StatefulPartitionedCall") {
+                reportWarning() << "No output nodes specified by user, FAST is guessing it is the node with name " << node.name() << reportEnd();
+                addOutputNode(outputCounter, node.name(), type, shape);
+                ++outputCounter;
+		    }
 		}
 	}
 

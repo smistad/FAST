@@ -24,6 +24,7 @@ enum class ImageOrdering {
 };
 
 enum class NodeType {
+    UNSPECIFIED,
     IMAGE,
     TENSOR,
 };

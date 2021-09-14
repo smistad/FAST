@@ -75,6 +75,12 @@ NeuralNetwork::NeuralNetwork(std::string modelFilename, std::vector<NeuralNetwor
     } else {
         setInferenceEngine(inferenceEngine);
     }
+    auto format = getModelFormat(modelFilename);
+    if(!m_engine->isModelFormatSupported(format)) {
+        reportInfo() << "Model format " << getModelFormatName(format) << " was not supported by engine " << m_engine->getName() << ", auto selecting engine which supports this format..." << reportEnd();
+        m_engine = InferenceEngineManager::loadBestAvailableEngine(format);
+        reportInfo() << "Selected " << m_engine->getName() << " as the best engine for format " << getModelFormatName(format) << reportEnd();
+    }
     for(int i = 0; i < inputNodes.size(); ++i) {
         auto node = inputNodes[i];
         setInputNode(i, node.name, node.type, node.shape);
@@ -121,7 +127,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
     for(auto inputNode : m_engine->getInputNodes()) {
         auto shape = inputNode.second.shape;
         if(shape.getDimensions() == 0)
-            throw Exception("Unable to deduce input shape from network file. "
+            throw Exception("Unable to deduce input shape for input node " + inputNode.first + " from network file. "
                             "Either export the file with shape information or supply the input shape manually using setInputNode.");
 
         std::shared_ptr<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
@@ -536,12 +542,7 @@ void NeuralNetwork::setOutputNode(uint portID, std::string name, NodeType type, 
 void NeuralNetwork::load(std::string filename, std::vector<std::string> customPlugins) {
     if(!fileExists(filename))
         throw FileNotFoundException(filename);
-    auto format = getModelFormat(filename);
-    if(!m_engine->isModelFormatSupported(format)) {
-        reportInfo() << "Model format " << getModelFormatName(format) << " was not supported by engine " << m_engine->getName() << ", auto selecting engine which supports this format..." << reportEnd();
-        m_engine = InferenceEngineManager::loadBestAvailableEngine(format);
-        reportInfo() << "Selected " << m_engine->getName() << " as the best engine for format " << getModelFormatName(format) << reportEnd();
-    }
+
     if(!customPlugins.empty())
         m_engine->loadCustomPlugins(customPlugins);
     m_engine->setFilename(filename);

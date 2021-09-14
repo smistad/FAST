@@ -99,10 +99,13 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
     reportInfo() << "OpenVINO: Network loaded." << reportEnd();
 
     // --------------------------- Prepare input blobs -----------------------------------------------------
-    int counter = 0;
+    int inputCount = 0;
+    int outputCount = 0;
+    const bool inputsDefined = !mInputNodes.empty();
+    const bool outputsDefined = !mOutputNodes.empty();
     for(auto& input : network.getInputsInfo()) {
         auto input_info = input.second;
-        auto input_name = input.first;
+        auto name = input.first;
         input_info->setPrecision(Precision::FP32);
         // TODO shape is reverse direction here for some reason..
         TensorShape shape;
@@ -113,6 +116,7 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
         }
 
         const auto layout = input_info->getLayout();
+        NodeType type;
         if(layout == Layout::NCHW || layout == Layout::NCDHW || layout == Layout::NHWC || layout == Layout::NDHWC) {
             // TODO There is a bug in OpenVINO here: layout detection does not work properly for channel last/first
             /*
@@ -131,16 +135,26 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
                 reportInfo() << "Guessed image ordering to be channel first as shape was " << shape.toString()
                              << reportEnd();
             }
-            addInputNode(counter, input_name, NodeType::IMAGE, shape);
+            type = NodeType::IMAGE;
         } else {
-            addInputNode(counter, input_name, NodeType::TENSOR, shape);
+            type = NodeType::TENSOR;
         }
-        reportInfo() << "Found input node: " << input_name << " with shape " << shape.toString() << reportEnd();
-        counter++;
+        if(inputsDefined) {
+            if(mInputNodes.count(name) > 0) {
+                reportInfo() << "Node was defined by user at id " << mInputNodes[name].portID  << reportEnd();
+                if(mInputNodes[name].shape.empty())
+                    mInputNodes[name].shape = shape;
+            } else {
+                reportInfo() << "Ignored input node " << name << " because input nodes were specified, but not this one." << reportEnd();
+            }
+        } else {
+            addInputNode(inputCount, name, type, shape);
+            ++inputCount;
+        }
+        reportInfo() << "Found input node: " << name << " with shape " << shape.toString() << reportEnd();
     }
 
     // --------------------------- Prepare output blobs ----------------------------------------------------
-    counter = 0;
     for(auto& output : network.getOutputsInfo()) {
         auto info = output.second;
         auto name = output.first;
@@ -148,9 +162,21 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
         TensorShape shape;
         for(auto dim : info->getDims())
             shape.addDimension(dim);
-        addOutputNode(counter, name, NodeType::TENSOR, shape);
-        reportInfo() << "Found output node: " << name << " with shape " << shape.toString() << reportEnd();
-        counter++;
+        reportInfo() << "Found output node " << name << " with shape " << shape.toString() << reportEnd();
+        if(outputsDefined) {
+            if(mOutputNodes.count(name) > 0) {
+                reportInfo() << "Node was defined by user at id " << mOutputNodes[name].portID  << reportEnd();
+                if(mOutputNodes[name].shape.empty()) {
+                    reportInfo() << "Shape was empty, setting it to " << shape.toString() << reportEnd();
+                    mOutputNodes[name].shape = shape;
+                }
+            } else {
+                reportInfo() << "Ignored output node " << name << " because output nodes were specified, but not this one." << reportEnd();
+            }
+        } else {
+            addOutputNode(outputCount, name, NodeType::TENSOR, shape);
+            ++outputCount;
+        }
     }
     reportInfo() << "OpenVINO: Node setup complete." << reportEnd();
 

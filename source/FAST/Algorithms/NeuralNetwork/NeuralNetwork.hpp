@@ -80,7 +80,7 @@ class FAST_EXPORT Batch : public SimpleDataObject<InferenceDataList> {
 
 class FAST_EXPORT NeuralNetworkNode {
     public:
-        NeuralNetworkNode(std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape()) : name(name), type(type), shape(shape) {
+        NeuralNetworkNode(std::string name, NodeType type = NodeType::UNSPECIFIED, TensorShape shape = TensorShape()) : name(name), type(type), shape(shape) {
 
         }
         std::string name;
