@@ -24,5 +24,23 @@ DataBoundingBox SpatialDataObject::getTransformedBoundingBox() const {
     return getBoundingBox().getTransformedBoundingBox(T);
 }
 
+void SpatialDataObject::setTransform(Transform::pointer transform, bool disconnectParentSceneGraphNode) {
+    if(disconnectParentSceneGraphNode) {
+        auto newRootNode = SceneGraphNode::New();
+        auto node = SceneGraphNode::New();
+        node->setParent(newRootNode);
+        mSceneGraphNode = node;
+    }
+    getSceneGraphNode()->setTransform(transform);
+}
+
+Transform::pointer SpatialDataObject::getTransform(bool getFullTransform) {
+    if(getFullTransform) {
+        return SceneGraph::getTransformFromData(std::dynamic_pointer_cast<SpatialDataObject>(mPtr.lock()));
+    } else {
+        return getSceneGraphNode()->getTransform();
+    }
+}
+
 
 }

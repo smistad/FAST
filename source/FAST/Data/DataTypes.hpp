@@ -30,6 +30,7 @@ using Eigen::Vector4i;
 using Eigen::Vector3i;
 using Eigen::Vector2i;
 using Eigen::Affine3f;
+using Eigen::AngleAxisf;
 typedef Eigen::Matrix<uint, Eigen::Dynamic, 1> VectorXui;
 typedef Eigen::Matrix<uint, 4, 1> Vector4ui;
 typedef Eigen::Matrix<uint, 3, 1> Vector3ui;
