@@ -10,9 +10,11 @@ using namespace fast;
 
 int main(int argc, char**argv) {
     CommandLineParser parser("Clarius streaming example");
+    parser.addVariable("port", "5858", "Port to use for clarius connection");
+    parser.addVariable("ip", "192.168.1.1", "Address to use for clarius connection");
     parser.parse(argc, argv);
 
-    auto streamer = ClariusStreamer::create();
+    auto streamer = ClariusStreamer::create(parser.get("ip"), parser.get<int>("port"));
 
     auto renderer = ImageRenderer::create()
             ->connect(streamer);
