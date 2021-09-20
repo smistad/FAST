@@ -61,6 +61,13 @@
             return className::connect(0, inputDataObject);            \
         };\
 
+#define FAST_DATA_OBJECT(CLASS_NAME) \
+    FAST_OBJECT_V4(CLASS_NAME)  \
+    public: \
+        static std::shared_ptr<CLASS_NAME> fromDataObject(std::shared_ptr<DataObject> object) { \
+            return std::dynamic_pointer_cast<CLASS_NAME>(object);   \
+        }                            \
+
 #define FAST_CONNECT(CLASS_NAME, CONNECT_NAME, INPUT_PORT_ID) \
     std::shared_ptr<CLASS_NAME> connect##CONNECT_NAME(std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) { \
         return std::dynamic_pointer_cast<CLASS_NAME>(ProcessObject::connect(INPUT_PORT_ID, parentProcessObject, outputPortID));  \

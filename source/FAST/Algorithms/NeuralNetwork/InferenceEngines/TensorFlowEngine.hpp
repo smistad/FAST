@@ -56,7 +56,7 @@ class TensorFlowTensorWrapper;
  * This specialized Tensor Data class, allow us to store Tensorflow type tensors as FAST tensors.
  */
 class TensorFlowTensor : public Tensor {
-    FAST_OBJECT_V4(TensorFlowTensor)
+    FAST_DATA_OBJECT(Tensor)
     public:
         FAST_CONSTRUCTOR(TensorFlowTensor, TensorFlowTensorWrapper*, tensorflowTensor,);
         ~TensorFlowTensor();

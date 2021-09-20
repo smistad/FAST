@@ -14,6 +14,8 @@ import $module
 
 
 %module(moduleimport=MODULEIMPORT, directors=1) fast
+
+
 %{
 
 
@@ -24,6 +26,7 @@ import $module
 #include <FAST/Visualization/View.hpp>
 #include <FAST/Visualization/Renderer.hpp>
 #include <FAST/Data/DataTypes.hpp>
+#include <FAST/Data/SimpleDataObject.hpp>
 @PYFAST_HEADER_INCLUDES@
 
 using namespace fast;
@@ -144,6 +147,7 @@ public
 %shared_ptr(fast::DataObject)
 %shared_ptr(fast::Transform)
 %shared_ptr(fast::SpatialDataObject)
+%shared_ptr(fast::SimpleDataObject)
 %shared_ptr(fast::DataChannel)
 %shared_ptr(fast::ProcessObject)
 @PYFAST_SHARED_PTR_DEFS@
@@ -151,6 +155,20 @@ public
 // These must live here due to the shared_ptr
 %template(vectorrenderer) std::vector<std::shared_ptr<fast::Renderer>>;
 %template(vectorpo) std::vector<std::shared_ptr<fast::ProcessObject>>;
+
+// Since python is dynamically typed, lets convert DataObjects to the right type before returning
+%pythonappend fast::ProcessObject::runAndGetOutputData(uint) %{
+    className = val.getNameOfClass()
+    val = eval(className + '.fromDataObject')(val)
+%}
+%pythonappend fast::ProcessObject::getOutputData(uint) %{
+    className = val.getNameOfClass()
+    val = eval(className + '.fromDataObject')(val)
+%}
+%pythonappend fast::DataChannel::getNextFrame() %{
+    className = val.getNameOfClass()
+    val = eval(className + '.fromDataObject')(val)
+%}
 
 // Interface includes
 %include <FAST/Reporter.hpp>
@@ -180,27 +198,6 @@ public
 
 @PYFAST_INTERFACE_INCLUDES@
 
-%define ADD_TEMPLATE_METHODS(TYPE)
-%template(updateAndGetOutput ## TYPE) fast::ProcessObject::updateAndGetOutputData<fast::TYPE>;
-%template(runAndGetOutput ## TYPE) fast::ProcessObject::runAndGetOutputData<fast::TYPE>;
-%template(getNext ## TYPE) fast::DataChannel::getNextFrame<fast::TYPE>;
-%{
-std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::DataObject> dataObject) {
-    return std::dynamic_pointer_cast<fast::TYPE>(dataObject);
-}
-%}
-std::shared_ptr<fast::TYPE> convertDataObjectTo##TYPE(std::shared_ptr<fast::DataObject> dataObject);
-%enddef
-
-
-
-ADD_TEMPLATE_METHODS(Image)
-ADD_TEMPLATE_METHODS(ImagePyramid)
-ADD_TEMPLATE_METHODS(Tensor)
-ADD_TEMPLATE_METHODS(Mesh)
-ADD_TEMPLATE_METHODS(BoundingBox)
-ADD_TEMPLATE_METHODS(BoundingBoxSet)
-ADD_TEMPLATE_METHODS(Text)
 %template(getNextFrame) fast::DataChannel::getNextFrame<fast::DataObject>;
 
 // Extend image for numpy support

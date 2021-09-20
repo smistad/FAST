@@ -14,7 +14,7 @@ namespace fast {
  * @ingroup data
  */
 class FAST_EXPORT Text : public SpatialDataObject {
-	FAST_OBJECT_V4(Text)
+	FAST_DATA_OBJECT(Text)
 public:
     FAST_CONSTRUCTOR(Text,
                      std::string, text,,

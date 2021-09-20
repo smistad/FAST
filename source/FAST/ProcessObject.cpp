@@ -595,4 +595,10 @@ DataObject::pointer ProcessObject::getOutputData(uint portID) {
     return data;
 }
 
+std::shared_ptr<DataObject> ProcessObject::runAndGetOutputData(uint portID) {
+    auto port = getOutputPort(portID);
+    run();
+    return port->getNextFrame();
+}
+
 } // namespace fast

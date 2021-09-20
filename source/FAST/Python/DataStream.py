@@ -22,22 +22,6 @@ class DataStream:
         for port in self._ports:
             data = port.getNextFrame()
             if data.isLastFrame(): self.finished = True
-            if data.getNameOfClass() == 'Image':
-                data = convertDataObjectToImage(data)
-            elif data.getNameOfClass() == 'ImagePyramid':
-                data = convertDataObjectToImagePyramid(data)
-            elif data.getNameOfClass() == 'Tensor':
-                data = convertDataObjectToTensor(data)
-            elif data.getNameOfClass() == 'Mesh':
-                data = convertDataObjectToMesh(data)
-            elif data.getNameOfClass() == 'BoundingBox':
-                data = convertDataObjectToBoundingBox(data)
-            elif data.getNameOfClass() == 'BoundingBoxSet':
-                data = convertDataObjectToBoundingBoxSet(data)
-            elif data.getNameOfClass() == 'Segmentation':
-                data = convertDataObjectToSegmentation(data)
-            elif data.getNameOfClass() == 'Text':
-                data = convertDataObjectToText(data)
             result.append(data)
         if len(result) == 1:
             return result[0]

@@ -33,7 +33,7 @@ enum class ImageCompression {
  * @ingroup data wsi
  */
 class FAST_EXPORT ImagePyramid : public SpatialDataObject {
-    FAST_OBJECT_V4(ImagePyramid)
+    FAST_DATA_OBJECT(ImagePyramid)
     public:
         FAST_CONSTRUCTOR(ImagePyramid, int, width,, int, height,, int, channels,, int, patchWidth, = 256, int, patchHeight, = 256);
         FAST_CONSTRUCTOR(ImagePyramid, openslide_t*, fileHandle,, std::vector<ImagePyramidLevel>, levels,);

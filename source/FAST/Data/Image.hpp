@@ -39,7 +39,7 @@ unique_pixel_ptr allocatePixelArray(std::size_t size, DataType type);
  * @ingroup data
  */
 class FAST_EXPORT Image : public SpatialDataObject {
-    FAST_OBJECT_V4(Image)
+    FAST_DATA_OBJECT(Image)
     public:
         /**
          * @brief Create an image with same size and type as another image.

@@ -148,6 +148,7 @@ class FAST_EXPORT  ProcessObject : public Object {
 
         template <class DataType>
         std::shared_ptr<DataType> runAndGetOutputData(uint portID = 0);
+        std::shared_ptr<DataObject> runAndGetOutputData(uint portID = 0);
 
         //// NEW V4 PO SEMANTICS
         void run(int executeToken = -1);
@@ -302,12 +303,9 @@ std::shared_ptr<DataType> ProcessObject::updateAndGetOutputData(uint portID) {
     return runAndGetOutputData<DataType>();
 }
 
-
 template<class DataType>
 std::shared_ptr<DataType> ProcessObject::runAndGetOutputData(uint portID) {
-    auto port = getOutputPort(portID);
-    run();
-    return port->getNextFrame<DataType>();
+    return std::dynamic_pointer_cast<DataType>(runAndGetOutputData(portID));
 }
 
 

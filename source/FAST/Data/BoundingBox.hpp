@@ -14,7 +14,7 @@ namespace fast {
  * \ingroup data bounding-box
  */
 class FAST_EXPORT BoundingBox : public SpatialDataObject {
-    FAST_OBJECT_V4(BoundingBox)
+    FAST_DATA_OBJECT(BoundingBox)
     public:
         FAST_CONSTRUCTOR(BoundingBox,
                 Vector2f, position,,
@@ -59,7 +59,7 @@ class FAST_EXPORT BoundingBox : public SpatialDataObject {
  * \ingroup data bounding-box
  */
 class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
-    FAST_OBJECT_V4(BoundingBoxSet)
+    FAST_DATA_OBJECT(BoundingBoxSet)
     public:
         FAST_CONSTRUCTOR(BoundingBoxSet)
         int getNrOfLines();

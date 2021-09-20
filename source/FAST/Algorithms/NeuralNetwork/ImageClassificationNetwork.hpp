@@ -17,7 +17,7 @@ typedef std::map<std::string, float> classifications;
  * @ingroup neural-network
  */
 class FAST_EXPORT ImageClassification : public SimpleDataObject<classifications> {
-    FAST_OBJECT_V4(ImageClassification)
+    FAST_DATA_OBJECT(ImageClassification)
     public:
         static std::shared_ptr<ImageClassification> create(classifications data) {                                                         \
             std::shared_ptr<ImageClassification> ptr(new ImageClassification(std::move(data)));

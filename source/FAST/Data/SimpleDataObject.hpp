@@ -4,10 +4,10 @@
 
 namespace fast {
 
-// A macro for creating new simple data objects
+    // A macro for creating new simple data objects
 #define FAST_SIMPLE_DATA_OBJECT(NAME, DATA_TYPE)                                            \
 class FAST_EXPORT NAME : public SimpleDataObject<DATA_TYPE > {                                      \
-	FAST_OBJECT_V4(NAME)                                                                       \
+	FAST_DATA_OBJECT(NAME)                                                                       \
 public:                                                                                     \
     static std::shared_ptr<NAME> create(DATA_TYPE data) {                                                         \
         std::shared_ptr<NAME> ptr(new NAME(std::move(data)));   \
@@ -17,7 +17,6 @@ public:                                                                         
 protected:                                                                                  \
     NAME(DATA_TYPE data) : SimpleDataObject<DATA_TYPE>(data) {};                                                                                            \
 };                                                                                          \
-
 
 // A macro for creating new simple data objects with init
 #define FAST_SIMPLE_DATA_OBJECT2(NAME, DATA_TYPE, VAL)                                            \

@@ -19,7 +19,7 @@ class OpenCLBufferAccess;
  * @ingroup data neural-network
  */
 class FAST_EXPORT Tensor : public SpatialDataObject {
-    FAST_OBJECT_V4(Tensor)
+    FAST_DATA_OBJECT(Tensor)
     public:
 #ifndef SWIG
         /**

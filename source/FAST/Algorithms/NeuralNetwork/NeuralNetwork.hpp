@@ -57,7 +57,7 @@ class FAST_EXPORT InferenceDataList {
  * @ingroup neural-network
  */
 class FAST_EXPORT Sequence : public SimpleDataObject<InferenceDataList> {
-	FAST_OBJECT_V4(Sequence)
+	FAST_DATA_OBJECT(Sequence)
     public:
         FAST_CONSTRUCTOR(Sequence, std::vector<std::shared_ptr<Image>>, images,)
         FAST_CONSTRUCTOR(Sequence, std::vector<std::shared_ptr<Tensor>>, tensors,)
@@ -72,7 +72,7 @@ class FAST_EXPORT Sequence : public SimpleDataObject<InferenceDataList> {
  * @ingroup neural-network
  */
 class FAST_EXPORT Batch : public SimpleDataObject<InferenceDataList> {
-	FAST_OBJECT_V4(Batch)
+	FAST_DATA_OBJECT(Batch)
     public:
         FAST_CONSTRUCTOR(Batch, std::vector<std::shared_ptr<Image>>, images,)
         FAST_CONSTRUCTOR(Batch, std::vector<std::shared_ptr<Tensor>>, tensors,)

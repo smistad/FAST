@@ -9,32 +9,49 @@ class Image;
 /**
  * @brief Segment airways from CT using seeded region growing with explosion control
  *
+ * An example of this can be found in @ref airwaySegmentation.cpp
+ *
  * Inputs:
- * - 0: Image CT thorax 3D image
+ * - 0: Image - CT thorax 3D image
  *
  * Outputs:
- * - 0: Segmentation
+ * - 0: Image - Segmentation image
+ *
+ * @sa CenterlineExtraction
  */
 class FAST_EXPORT AirwaySegmentation : public ProcessObject {
 	FAST_PROCESS_OBJECT(AirwaySegmentation)
 	public:
-        FAST_CONSTRUCTOR(AirwaySegmentation, float, smoothing, = 0.5f, Vector3i, seed, = Vector3i(-1,-1,-1))
         /**
-         * Set seed point for region growing
+         * @brief Create AirwaySegmentation instance
+         *
+         * @param smoothing Standard deviation of Gaussian smoothing to apply before segmentation.
+         * A higher value can be used for low dose CT.
+         * @param seed Manually set seed point. If set to (-1,-1,-1), it will try to find seed point automatically.
+         * @return instance
+         */
+        FAST_CONSTRUCTOR(AirwaySegmentation,
+                         float, smoothing, = 0.5f,
+                         Vector3i, seed, = Vector3i(-1,-1,-1)
+        );
+        /**
+         * @brief Set manual seed point for region growing
          * @param x
          * @param y
          * @param z
          */
 	    void setSeedPoint(int x, int y, int z);
 	    /**
-	     * Set seed point for region growing
+	     * @brief Set manual seed point for region growing
 	     * @param seed
 	     */
 		void setSeedPoint(Vector3i seed);
 		/**
-		 * Set the sigma value of the gaussian smoothing performed before segmentation.
+		 * @brief Standard deviation of Gaussian smoothing for preprocessing
+		 *
+		 * Set the standard deviation value of the GaussianSmoothing performed before segmentation.
 		 * Default is 0.5. A higher value can be used for low dose CT.
-		 * @param sigma
+		 * @param sigma standard deviation
 		 */
 		void setSmoothing(float sigma);
 		void loadAttributes() override;

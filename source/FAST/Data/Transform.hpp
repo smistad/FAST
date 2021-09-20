@@ -12,7 +12,7 @@ namespace fast {
  * @ingroup data
  */
 class FAST_EXPORT Transform : public DataObject {
-    FAST_OBJECT_V4(Transform)
+    FAST_DATA_OBJECT(Transform)
     public:
 #ifndef SWIG
         FAST_CONSTRUCTOR(Transform, Affine3f, transform,);
