@@ -13,12 +13,20 @@ namespace fast {
 class FAST_EXPORT DualViewWindow : public Window {
     FAST_OBJECT_V4(DualViewWindow)
     public:
+        /**
+         * @brief Create instance
+         * @param bgcolor background color for both views
+         * @param width Width of window, if 0 width is set automatically
+         * @param height Height of window, if 0 height is set automatically
+         * @param verticalMode Whether to display the two views vertically or horizontally
+         * @return instance
+         */
         FAST_CONSTRUCTOR(DualViewWindow,
                          Color, bgcolor, = Color::White(),
                          int, width, = 0,
                          int, height, = 0,
                          bool, verticalMode, = false
-        )
+        );
         void addRendererToTopLeftView(Renderer::pointer renderer);
         void addRendererToBottomRightView(Renderer::pointer renderer);
         void addRendererToLeftView(Renderer::pointer renderer);

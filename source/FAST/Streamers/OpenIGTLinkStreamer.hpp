@@ -30,10 +30,16 @@ class IGTLSocketWrapper;
 class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
     FAST_PROCESS_OBJECT(OpenIGTLinkStreamer)
     public:
+        /**
+         * @brief Create instance
+         * @param ipAddress IP address of server to connect to. Default is localhost
+         * @param port Port of server to connect to. Default is 18944
+         * @return instance
+         */
         FAST_CONSTRUCTOR(OpenIGTLinkStreamer,
                          std::string, ipAddress, = "localhost",
                          int, port, = 18944
-        )
+        );
 		std::set<std::string> getImageStreamNames();
 		std::set<std::string> getTransformStreamNames();
 		std::vector<std::string> getActiveImageStreamNames();

@@ -9,8 +9,9 @@ class Image;
 /**
  * @brief Gradient vector flow using the multigrid method
  *
+ * This is only implemented for 3D.
  * Gradient vector flow is a spatial diffusion of vectors often used for segmentation.
- * This 2D/3D GPU implementation is described in the article "Multigrid gradient vector flow computation on the GPU"
+ * This 3D GPU implementation is described in the article "Multigrid gradient vector flow computation on the GPU"
  * by Smistad et. al 2014: https://www.eriksmistad.no/wp-content/uploads/multigrid_gradient_vector_flow_computation_on_the_gpu.pdf
  *
  * @ingroup segmentation
@@ -18,10 +19,18 @@ class Image;
 class FAST_EXPORT  MultigridGradientVectorFlow : public ProcessObject {
     FAST_PROCESS_OBJECT(MultigridGradientVectorFlow)
     public:
+        /**
+         * @brief Create instance
+         * @param mu
+         * @param iterations
+         * @param use16BitStorage
+         * @return instance
+         */
         FAST_CONSTRUCTOR(MultigridGradientVectorFlow,
                          float, mu, = 0.1f,
                          uint, iterations, = 10,
-                         bool, use16BitStorage, = true)
+                         bool, use16BitStorage, = true
+        );
         void setIterations(uint iterations);
         void setMuConstant(float mu);
         float getMuConstant() const;

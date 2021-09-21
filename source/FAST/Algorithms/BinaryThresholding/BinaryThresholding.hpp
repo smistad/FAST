@@ -20,6 +20,12 @@ namespace fast {
 class FAST_EXPORT BinaryThresholding : public ProcessObject {
     FAST_PROCESS_OBJECT(BinaryThresholding)
     public:
+        /**
+         * @brief Create instance
+         * @param lowerThreshold All pixels with an intensity above this threshold will be segmented
+         * @param upperThreshold All pixels with intensity below this threshold will be segmented
+         * @return instance
+         */
         FAST_CONSTRUCTOR(BinaryThresholding,
                          float, lowerThreshold,,
                          float, upperThreshold, = std::numeric_limits<float>::max()

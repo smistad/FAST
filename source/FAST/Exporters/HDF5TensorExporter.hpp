@@ -18,10 +18,16 @@ namespace fast {
 class FAST_EXPORT HDF5TensorExporter : public FileExporter {
 	FAST_PROCESS_OBJECT(HDF5TensorExporter)
 	public:
+        /**
+         * @brief Create instance
+         * @param filename Filename to open
+         * @param datasetName Dataset in HDF file to open. Default is "tensor"
+         * @return instance
+         */
         FAST_CONSTRUCTOR(HDF5TensorExporter,
                          std::string, filename,,
                          std::string, datasetName, = "tensor"
-        )
+        );
         void setDatasetName(std::string name);
 		void loadAttributes() override;
 	private:

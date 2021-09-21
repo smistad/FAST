@@ -14,7 +14,7 @@ namespace fast {
 class FAST_EXPORT CoherentPointDriftRigid: public CoherentPointDrift {
     FAST_PROCESS_OBJECT(CoherentPointDriftRigid);
     public:
-        FAST_CONSTRUCTOR(CoherentPointDriftRigid)
+        FAST_CONSTRUCTOR(CoherentPointDriftRigid);
         FAST_CONNECT(CoherentPointDriftRigid, Fixed, 0);
         FAST_CONNECT(CoherentPointDriftRigid, Moving, 1);
         void maximization(MatrixXf& fixedPoints, MatrixXf& movingPoints) override;

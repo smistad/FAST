@@ -10,11 +10,19 @@ namespace fast {
 class FAST_EXPORT  ImageResampler : public ProcessObject {
     FAST_PROCESS_OBJECT(ImageResampler)
 public:
+    /**
+     * @brief Create instance
+     * @param spacingX
+     * @param spacingY
+     * @param spacingZ
+     * @param useInterpolation
+     * @return instance
+     */
     FAST_CONSTRUCTOR(ImageResampler,
                      float, spacingX,,
                      float, spacingY,,
                      float, spacingZ, = -1.0f,
-                     bool, useInterpolation, = true)
+                     bool, useInterpolation, = true);
     void setOutputSpacing(float spacingX, float spacingY);
     void setOutputSpacing(float spacingX, float spacingY, float spacingZ);
     void setInterpolation(bool useInterpolation);

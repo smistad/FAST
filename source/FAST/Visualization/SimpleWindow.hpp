@@ -26,7 +26,7 @@ class FAST_EXPORT SimpleWindow : public Window {
                          bool, mode2D, = false,
                          Color, bgcolor, = Color::White(),
                          uint, width, = 0,
-                         uint, height, = 0)
+                         uint, height, = 0);
         void addRenderer(std::shared_ptr<Renderer> renderer);
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);

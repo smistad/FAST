@@ -18,11 +18,18 @@ class Image;
 class FAST_EXPORT EulerGradientVectorFlow : public ProcessObject {
     FAST_PROCESS_OBJECT(EulerGradientVectorFlow)
     public:
+        /**
+         * @brief Create instance
+         * @param mu
+         * @param iterations
+         * @param use16bitStorage
+         * @return
+         */
         FAST_CONSTRUCTOR(EulerGradientVectorFlow,
                          float, mu, = 0.05f,
                          uint, iterations, = 0,
-                         bool, use16bitStorage, = true);
-
+                         bool, use16bitStorage, = true
+        );
         void setIterations(uint iterations);
         void setMuConstant(float mu);
         float getMuConstant() const;

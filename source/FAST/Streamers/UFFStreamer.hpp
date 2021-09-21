@@ -22,13 +22,19 @@ class UFFData;
 */
 class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
     FAST_PROCESS_OBJECT(UFFStreamer)
-
     public:
+        /**
+         * @brief Create instance
+         * @param filename UFF file to stream from
+         * @param loop Whether to loop or not
+         * @param framerate Max framerate (FPS) to output frames
+         * @return instance
+         */
         FAST_CONSTRUCTOR(UFFStreamer,
              std::string, filename,,
              bool, loop, = false,
              uint, framerate, = 30
-        )
+        );
         void setFilename(std::string filename);
         void execute() override;
         int getNrOfFrames() override;

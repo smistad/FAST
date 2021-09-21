@@ -14,7 +14,7 @@ namespace fast {
 class FAST_EXPORT CoherentPointDriftAffine: public CoherentPointDrift {
     FAST_PROCESS_OBJECT(CoherentPointDriftAffine);
     public:
-        FAST_CONSTRUCTOR(CoherentPointDriftAffine)
+        FAST_CONSTRUCTOR(CoherentPointDriftAffine);
         FAST_CONNECT(CoherentPointDriftAffine, Fixed, 0);
         FAST_CONNECT(CoherentPointDriftAffine, Moving, 1);
         void initializeVarianceAndMore() override;

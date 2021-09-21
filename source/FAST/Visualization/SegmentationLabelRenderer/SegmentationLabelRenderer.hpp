@@ -7,6 +7,9 @@ namespace fast {
 
 class RegionList;
 class Image;
+/**
+ * @brief Map from label id to label name
+ */
 using LabelNames = std::map<uint, std::string>;
 
 /**
@@ -20,11 +23,18 @@ using LabelNames = std::map<uint, std::string>;
 class FAST_EXPORT SegmentationLabelRenderer : public LabelColorRenderer {
     FAST_PROCESS_OBJECT(SegmentationLabelRenderer)
     public:
+        /**
+         * @brief Create instnace
+         * @param labelNames Map from label id to label name
+         * @param labelColors Map from label id to color
+         * @param areaThreshold Any segmentation region smaller than this threshold does not get a label
+         * @return instance
+         */
         FAST_CONSTRUCTOR(SegmentationLabelRenderer,
                          LabelNames, labelNames, = LabelNames(),
                          LabelColors, labelColors, = LabelColors(),
                          float, areaThreshold, = 1.0f
-        )
+        );
         void setLabelNames(std::map<uint, std::string> labelNames);
         void setLabelName(uint label, std::string name);
         void setAreaThreshold(float threshold);

@@ -17,10 +17,17 @@ namespace fast {
 class FAST_EXPORT StreamToFileExporter : public ProcessObject {
     FAST_PROCESS_OBJECT(StreamToFileExporter)
     public:
+        /**
+         * @brief Create instance
+         * @param path Path to folder to store recordings/streams
+         * @param recordingFolderName Name of subfolder to store recordings/files in.
+         *      If not specified a folder with date and time will be used
+         * @return instance
+         */
         FAST_CONSTRUCTOR(StreamToFileExporter,
              std::string, path,,
              std::string, recordingFolderName, = ""
-        )
+        );
         void setPath(std::string path);
         void setRecordingFolderName(std::string folder);
         void setFrameFilename(std::string name);

@@ -21,10 +21,10 @@ class FAST_EXPORT  ImageFileImporter : public FileImporter {
     FAST_PROCESS_OBJECT(ImageFileImporter)
     public:
         /**
-         * Creates an instance of this process object
+         * @brief Create an instance
          *
          * @param filename Path to image file to load
-         * @return smart pointer to instance
+         * @return instance
          */
         FAST_CONSTRUCTOR(ImageFileImporter, std::string, filename,);
         void loadAttributes() override;

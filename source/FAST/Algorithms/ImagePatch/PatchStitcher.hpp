@@ -26,10 +26,10 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
     FAST_PROCESS_OBJECT(PatchStitcher)
     public:
         /**
-         * Creates an instance of PatchStitcher
-         * @return
+         * @brief Create instance
+         * @return instance
          */
-        FAST_CONSTRUCTOR(PatchStitcher)
+        FAST_CONSTRUCTOR(PatchStitcher);
     protected:
         void execute() override;
 

@@ -25,10 +25,16 @@ class MovieStreamerWorker;
 class FAST_EXPORT MovieStreamer : public Streamer {
     FAST_PROCESS_OBJECT(MovieStreamer)
     public:
+        /**
+         * @brief Create instance
+         * @param filename Movie file to stream from
+         * @param grayscale Whether to convert to grayscale or not
+         * @return instance
+         */
         FAST_CONSTRUCTOR(MovieStreamer,
                          std::string, filename,,
                          bool, grayscale, = true
-        )
+        );
         void setFilename(std::string filename);
         std::string getFilename() const;
         bool hasReachedEnd();

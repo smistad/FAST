@@ -8,20 +8,31 @@ namespace fast {
  * @brief Process object from cropping an image
  *
  * Uses Image::crop
- * @todo Python kwargs constructor
  */
 class FAST_EXPORT ImageCropper : public ProcessObject {
     FAST_PROCESS_OBJECT(ImageCropper)
     public:
 #ifndef SWIG
+        /**
+         * @brief Create instance
+         * @param size Cropping size
+         * @param offset Offset for cropping
+         * @return instance
+         */
         FAST_CONSTRUCTOR(ImageCropper,
                          VectorXi, size,,
                          VectorXi, offset, = Vector3i::Zero()
-        )
+        );
+        /**
+         * @brief Create instance
+         * @param cropBottom Percent of bottom to remove
+         * @param cropTop Percent of top to remove
+         * @return instance
+         */
         FAST_CONSTRUCTOR(ImageCropper,
                          float, cropBottom, = -1.0f,
                          float, cropTop, = -1.0f
-        )
+        );
 #endif
         void setOffset(VectorXi offset);
         void setSize(VectorXi size);

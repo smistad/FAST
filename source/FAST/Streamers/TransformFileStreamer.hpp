@@ -9,10 +9,16 @@ namespace fast {
 class FAST_EXPORT  TransformFileStreamer : public Streamer {
     FAST_PROCESS_OBJECT(TransformFileStreamer)
     public:
+        /**
+         * @brief Create instance
+         * @param filename File to stream from
+         * @param timestampFilename Timestamp file
+         * @return instance
+         */
         FAST_CONSTRUCTOR(TransformFileStreamer,
                          std::string, filename,,
                          std::string, timestampFilename,
-        )
+        );
         void setFilename(std::string str);
         void setTimestampFilename(std::string filepath);
         void enableLooping();

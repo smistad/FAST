@@ -24,7 +24,11 @@ class Image;
 class FAST_EXPORT CenterlineExtraction : public ProcessObject {
 	FAST_PROCESS_OBJECT(CenterlineExtraction)
     public:
-        FAST_CONSTRUCTOR(CenterlineExtraction)
+        /**
+         * @brief Create instance
+         * @return instance
+         */
+        FAST_CONSTRUCTOR(CenterlineExtraction);
     private:
 		void execute();
         std::shared_ptr<Image> calculateDistanceTransform(std::shared_ptr<Image> input);

@@ -14,11 +14,18 @@ namespace fast {
 class FAST_EXPORT  CardinalSplineModel : public ShapeModel {
 	FAST_OBJECT_V4(CardinalSplineModel)
 	public:
+        /**
+         * @brief Create instance
+         * @param controlPoints List of control points for the cardinal spline.
+         * @param globalProcessError
+         * @param localProcessError
+         * @return instance
+         */
         FAST_CONSTRUCTOR(CardinalSplineModel,
              std::vector<Vector2f>, controlPoints,,
              float, globalProcessError, = 0.000001f,
              float, localProcessError, = 0.0000001f
-        )
+        );
 		Shape::pointer getShape(VectorXf state);
 		MatrixXf getStateTransitionMatrix1();
 		MatrixXf getStateTransitionMatrix2();

@@ -28,13 +28,22 @@ enum class MatchingMetric {
 class FAST_EXPORT BlockMatching : public ProcessObject {
     FAST_PROCESS_OBJECT(BlockMatching)
     public:
+        /**
+         * @brief Create instance
+         * @param blockSize Must be odd.
+         * @param searchSize Must be odd.
+         * @param metric Similarity metric to use
+         * @param forwardBackwardTracking Do forward-backward tracking and take average of the two. Will be slover.
+         * @param timeLag How many frames to skip when comparing. Default is 1, comarping frame t vs frame t-1.
+         * @return instance
+         */
         FAST_CONSTRUCTOR(BlockMatching,
              int, blockSize, = 11,
              int, searchSize, = 11,
              MatchingMetric, metric, = MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES,
              bool, forwardBackwardTracking, = false,
              int, timeLag, = 1
-         )
+         );
 
         /**
          * Convert string of metric to type

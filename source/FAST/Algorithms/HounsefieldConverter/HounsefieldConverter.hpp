@@ -22,7 +22,7 @@ class Image;
 class FAST_EXPORT HounsefieldConverter : public ProcessObject {
     FAST_PROCESS_OBJECT(HounsefieldConverter)
     public:
-        FAST_CONSTRUCTOR(HounsefieldConverter)
+        FAST_CONSTRUCTOR(HounsefieldConverter);
     private:
         void execute();
         std::shared_ptr<Image> convertToHU(std::shared_ptr<Image> image);

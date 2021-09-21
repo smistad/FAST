@@ -21,7 +21,7 @@ namespace fast {
 class FAST_EXPORT AddTransformation : public ProcessObject {
     FAST_PROCESS_OBJECT(AddTransformation)
     public:
-        FAST_CONSTRUCTOR(AddTransformation)
+        FAST_CONSTRUCTOR(AddTransformation);
     private:
         void execute();
 

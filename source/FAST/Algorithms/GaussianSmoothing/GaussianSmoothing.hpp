@@ -20,10 +20,17 @@ namespace fast {
 class FAST_EXPORT GaussianSmoothing : public ProcessObject {
     FAST_PROCESS_OBJECT(GaussianSmoothing)
     public:
+        /**
+         * @brief Create instance
+         * @param stdDev Standard deviation of convolution kernel
+         * @param maskSize Size of convolution filter/mask. Must be odd.
+         *      If 0 filter size is determined automatically from standard deviation
+         * @return instance
+         */
         FAST_CONSTRUCTOR(GaussianSmoothing,
                          float, stdDev, = 0.5f,
                          uchar, maskSize, = 0
-        )
+        );
         void setMaskSize(unsigned char maskSize);
         void setStandardDeviation(float stdDev);
         void setOutputType(DataType type);

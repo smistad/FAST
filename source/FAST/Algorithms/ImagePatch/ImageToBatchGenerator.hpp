@@ -18,11 +18,11 @@ class FAST_EXPORT ImageToBatchGenerator : public Streamer {
     FAST_PROCESS_OBJECT(ImageToBatchGenerator)
     public:
         /**
-         * Creates an ImageToBatchGenerator instance
+         * @brief Create instance
          * @param maxBatchSize Maximum batch size
-         * @return
+         * @return instance
          */
-        FAST_CONSTRUCTOR(ImageToBatchGenerator, int, maxBatchSize,)
+        FAST_CONSTRUCTOR(ImageToBatchGenerator, int, maxBatchSize,);
         void setMaxBatchSize(int size);
         ~ImageToBatchGenerator() override;
     protected:

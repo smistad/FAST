@@ -15,10 +15,16 @@ namespace fast {
 class FAST_EXPORT HDF5TensorImporter : public FileImporter {
 	FAST_PROCESS_OBJECT(HDF5TensorImporter)
 	public:
+        /**
+         * @brief Create instance
+         * @param filename HDF5 file to read
+         * @param datasetName Name of dataset in HDF5 file to import
+         * @return instance
+         */
         FAST_CONSTRUCTOR(HDF5TensorImporter,
                          std::string, filename,,
                          std::string, datasetName, = "tensor"
-                         )
+        );
 		void setDatasetName(std::string datasetName);
 		void loadAttributes() override;
 	private:

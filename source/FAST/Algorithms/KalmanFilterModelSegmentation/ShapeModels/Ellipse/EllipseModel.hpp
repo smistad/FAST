@@ -14,11 +14,18 @@ namespace fast {
 class FAST_EXPORT EllipseModel : public ShapeModel {
 	FAST_OBJECT_V4(EllipseModel)
 	public:
+        /**
+         * @brief Create instance
+         * @param position center position of ellipse
+         * @param majorRadius major radius
+         * @param MinorRadius minor radius
+         * @return instance
+         */
         FAST_CONSTRUCTOR(EllipseModel,
                          Vector2f, position,,
                          float, majorRadius,,
                          float, MinorRadius,
-        )
+        );
 		Shape::pointer getShape(VectorXf state);
 		MatrixXf getStateTransitionMatrix1();
 		MatrixXf getStateTransitionMatrix2();

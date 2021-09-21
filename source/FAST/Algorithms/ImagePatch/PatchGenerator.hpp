@@ -24,14 +24,14 @@ class FAST_EXPORT PatchGenerator : public Streamer {
     FAST_PROCESS_OBJECT(PatchGenerator)
     public:
         /**
-         * Creates a PatchGenerator instance
+         * @brief Creates a PatchGenerator instance
          * @param width Width of patch (Note: patches can be smaller at boundaries)
          * @param height Height of patch (Note: patches can be smaller at boundaries)
          * @param depth Depth of patch (Note: patches can be smaller at boundaries)
          * @param level Which level of an ImagePyramid to generate patches from.
          * @param overlapPercent Amount of patch overlap in percent.
          * @param maskThreshold Threshold to accept a patch if the additional mask is provided.
-         * @return
+         * @return instance
          */
         FAST_CONSTRUCTOR(PatchGenerator,
                          int, width,,

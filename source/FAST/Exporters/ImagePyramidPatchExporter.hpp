@@ -20,11 +20,20 @@ class Image;
 class FAST_EXPORT ImagePyramidPatchExporter : public Exporter {
     FAST_PROCESS_OBJECT(ImagePyramidPatchExporter)
     public:
+        /**
+         * @brief Create instance
+         * @param path Path to a directory to export patches to
+         * @param level Image pyramid level to extract patches from
+         * @param width Width of patch
+         * @param height Height of patch
+         * @return instance
+         */
         FAST_CONSTRUCTOR(ImagePyramidPatchExporter,
                          std::string, path,,
                          uint, level, = 0,
                          uint, width, = 512,
-                         uint, height, = 512)
+                         uint, height, = 512
+         );
         /**
          * Path to the folder to put all tiles in. If folder does not exist, it will be created.
          * @param path

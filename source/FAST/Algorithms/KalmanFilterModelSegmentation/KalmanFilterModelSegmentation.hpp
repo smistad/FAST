@@ -28,12 +28,20 @@ class Mesh;
 class FAST_EXPORT KalmanFilterModelSegmentation : public ProcessObject {
 	FAST_PROCESS_OBJECT(KalmanFilterModelSegmentation)
 	public:
+        /**
+         * @brief Create instance
+         * @param shapeModel Shape model to use
+         * @param appearanceModel Apperrance model to use
+         * @param iterations Iterations per frame
+         * @param startIterations Iterations for first frame
+         * @return instance
+         */
         FAST_CONSTRUCTOR(KalmanFilterModelSegmentation,
                          ShapeModel::pointer, shapeModel,,
                          AppearanceModel::pointer, appearanceModel,,
                          int, iterations, = 5,
                          int, startIterations, = 20
-        )
+        );
 		void setShapeModel(ShapeModel::pointer shapeModel);
 		void setAppearanceModel(AppearanceModel::pointer appearanceModel);
 		void setIterations(int iterations);

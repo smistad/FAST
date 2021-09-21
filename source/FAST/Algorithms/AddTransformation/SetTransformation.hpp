@@ -20,7 +20,7 @@ namespace fast {
 class FAST_EXPORT  SetTransformation : public ProcessObject {
     FAST_PROCESS_OBJECT(SetTransformation)
     public:
-        FAST_CONSTRUCTOR(SetTransformation)
+        FAST_CONSTRUCTOR(SetTransformation);
     private:
         void execute();
 };

@@ -16,11 +16,18 @@ namespace fast {
 class FAST_EXPORT  VertexRenderer : public Renderer {
     FAST_PROCESS_OBJECT(VertexRenderer)
     public:
+        /**
+         * @brief Create instance
+         * @param size Vertex point size
+         * @param color
+         * @param drawOnTop
+         * @return instance
+         */
         FAST_CONSTRUCTOR(VertexRenderer,
                          float, size, = 10.0f,
                          Color, color, = Color::Green(),
                          bool, drawOnTop, = false
-        )
+        );
         uint addInputConnection(DataChannel::pointer port) override;
         uint addInputConnection(DataChannel::pointer port, Color color, float size);
         uint addInputData(DataObject::pointer data) override;

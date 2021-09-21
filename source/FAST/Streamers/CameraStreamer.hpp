@@ -26,7 +26,16 @@ class CameraWorker;
 class FAST_EXPORT CameraStreamer : public Streamer {
 	FAST_PROCESS_OBJECT(CameraStreamer)
 	public:
-        FAST_CONSTRUCTOR(CameraStreamer, bool, grayscale, = false, uchar, cameraIndex, = 0)
+        /**
+         * @brief Create instance
+         * @param grayscale Whether to convert to grayscale or not
+         * @param cameraIndex index of camera to use
+         * @return instance
+         */
+        FAST_CONSTRUCTOR(CameraStreamer,
+                         bool, grayscale, = false,
+                         uchar, cameraIndex, = 0
+        );
 		void setFinished(bool finished);
         void addNewImageFrame(const uchar* data, int width, int height);
 		bool getGrayscale() const;

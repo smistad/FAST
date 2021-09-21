@@ -10,7 +10,7 @@ namespace fast {
 class FAST_EXPORT  ImageInverter : public ProcessObject {
     FAST_PROCESS_OBJECT(ImageInverter)
     public:
-        FAST_CONSTRUCTOR(ImageInverter)
+        FAST_CONSTRUCTOR(ImageInverter);
     private:
         void execute();
 };

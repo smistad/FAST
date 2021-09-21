@@ -12,7 +12,7 @@ namespace fast {
 class FAST_EXPORT PipelineSynchronizer : public ProcessObject {
     FAST_PROCESS_OBJECT(PipelineSynchronizer)
     public:
-        FAST_CONSTRUCTOR(PipelineSynchronizer)
+        FAST_CONSTRUCTOR(PipelineSynchronizer);
         /**
          * Adds a new input connection
          * @param port

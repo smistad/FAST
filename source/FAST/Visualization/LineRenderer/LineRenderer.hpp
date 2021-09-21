@@ -14,10 +14,16 @@ namespace fast {
 class FAST_EXPORT  LineRenderer : public Renderer {
     FAST_PROCESS_OBJECT(LineRenderer)
     public:
+        /**
+         * @brief Create instance
+         * @param color Color of lines to draw
+         * @param drawOnTop Whether to draw on top of everything else or not. This disables the depth check in OpenGL
+         * @return instance
+         */
         FAST_CONSTRUCTOR(LineRenderer,
                          Color, color, = Color::Green(),
                          bool, drawOnTop, = false
-        )
+        );
         uint addInputConnection(DataChannel::pointer port) override;
         uint addInputConnection(DataChannel::pointer port, Color color, float width);
         void setDefaultColor(Color color);

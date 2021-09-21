@@ -10,13 +10,22 @@ namespace fast {
 class FAST_EXPORT  ImageResizer : public ProcessObject {
 	FAST_PROCESS_OBJECT(ImageResizer)
 	public:
+        /**
+         * @brief Create instnace
+         * @param width
+         * @param height
+         * @param depth
+         * @param useInterpolation Whether to use linear interpolation or not
+         * @param preserveAspectRatio
+         * @return instance
+         */
         FAST_CONSTRUCTOR(ImageResizer,
                          int, width,,
                          int, height,,
                          int, depth, = 0,
                          bool, useInterpolation, = true,
                          bool, preserveAspectRatio, = false
-        )
+        );
 
 		void setWidth(int width);
 		void setHeight(int height);
