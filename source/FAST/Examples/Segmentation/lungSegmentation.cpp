@@ -19,6 +19,8 @@ using namespace fast;
 int main(int argc, char** argv) {
     CommandLineParser parser("Lung segmentation", "Segments the lungs, airways and blood vessels");
     parser.addPositionVariable(1, "input-filename", Config::getTestDataPath() + "CT/CT-Thorax.mhd");
+    parser.addVariable("airway-seed", false, "Manual seed point coordinate for airway segmentation --airway-seed x,y,z");
+    parser.addVariable("lung-seed", false, "Manual seed point coordinate for lung segmentation --lung-seed x,y,z");
     parser.addVariable("output-path", false, "Save data to this path in mhd and vtk format");
     parser.addOption("blood-vessel-centerline", "Extract centerline from blood vessels");
     parser.parse(argc, argv);
@@ -27,7 +29,14 @@ int main(int argc, char** argv) {
     auto importer = ImageFileImporter::create(parser.get("input-filename"));
 
     // Perform lung segmentation (this will also extract the airways using AirwaySegmentation)
-    auto segmentation = LungSegmentation::create(Vector3i::Zero(), true)->connect(importer);
+    Vector3i airwaySeedPoint = Vector3i::Zero();
+    Vector3i lungSeedPoint = Vector3i::Zero();
+    if(parser.gotValue("airway-seed"))
+        airwaySeedPoint = parser.get<Vector3i>("airway-seed");
+    if(parser.gotValue("lung-seed"))
+        lungSeedPoint = parser.get<Vector3i>("lung-seed");
+    auto segmentation = LungSegmentation::create(airwaySeedPoint, lungSeedPoint, true)
+            ->connect(importer);
 
     auto centerline = CenterlineExtraction::create();
     if(parser.getOption("blood-vessel-centerline")) {

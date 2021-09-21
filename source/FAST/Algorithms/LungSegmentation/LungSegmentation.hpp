@@ -25,18 +25,21 @@ class FAST_EXPORT LungSegmentation : public ProcessObject {
 public:
     FAST_CONSTRUCTOR(LungSegmentation,
                      Vector3i, airwaySeedPoint, = Vector3i::Zero(),
+                     Vector3i, lungSeedPoint, = Vector3i::Zero(),
                      bool, extractBloodVessels, = false
     )
     void setAirwaySeedPoint(int x, int y, int z);
     void setAirwaySeedPoint(Vector3i seed);
+    void setLungSeedPoint(int x, int y, int z);
+    void setLungSeedPoint(Vector3i seed);
 private:
     void execute();
     std::shared_ptr<Image> convertToHU(std::shared_ptr<Image> image);
 
     Vector3i findSeedVoxel(std::shared_ptr<Image> input);
 
-    Vector3i mSeedPoint;
-    bool mUseManualSeedPoint = false;
+    Vector3i m_airwaySeedPoint = Vector3i::Zero();
+    Vector3i m_lungSeedPoint = Vector3i::Zero();
     bool m_extractBloodVessels;
 };
 

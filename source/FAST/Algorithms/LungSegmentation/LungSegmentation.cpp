@@ -13,7 +13,7 @@
 
 namespace fast {
 
-LungSegmentation::LungSegmentation(Vector3i seedPoint, bool extractBloodVessels) {
+LungSegmentation::LungSegmentation(Vector3i airwaySeedPoint, Vector3i lungSeedPoint, bool extractBloodVessels) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOutputPort<Image>(1);
@@ -21,9 +21,10 @@ LungSegmentation::LungSegmentation(Vector3i seedPoint, bool extractBloodVessels)
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LungSegmentation/LungSegmentation.cl");
 
-    if(seedPoint != Vector3i::Zero()) {
-        setAirwaySeedPoint(seedPoint);
-    }
+    if(airwaySeedPoint != Vector3i::Zero())
+        setAirwaySeedPoint(airwaySeedPoint);
+    if(lungSeedPoint != Vector3i::Zero())
+        setLungSeedPoint(lungSeedPoint);
     m_extractBloodVessels = extractBloodVessels;
 }
 
@@ -129,23 +130,26 @@ void LungSegmentation::execute() {
 
 
     // Find seed point inside lung
-    Vector3i seed = findSeedVoxel(input);
-    if(seed == Vector3i::Zero()) {
-        throw Exception("No valid seed point found in LungSegmentation");
+    if(m_lungSeedPoint == Vector3i::Zero()) {
+        Vector3i seed = findSeedVoxel(input);
+        if(seed == Vector3i::Zero()) {
+            throw Exception("No valid seed point found in LungSegmentation");
+        }
+        reportInfo() << "Lung seed point found at " << seed.transpose() << reportEnd();
+        m_lungSeedPoint = seed;
     }
-    reportInfo() << "Lung seed point found at " << seed.transpose() << reportEnd();
 
     // Grow the segmentation in 3D
-    SeededRegionGrowing::pointer segmentation = SeededRegionGrowing::New();
+    auto segmentation = SeededRegionGrowing::New();
     segmentation->setInputData(input);
-    segmentation->addSeedPoint(seed);
+    segmentation->addSeedPoint(m_lungSeedPoint);
     segmentation->setIntensityRange(-900, -500);
 
     // Next we want to get airways so we can remove those from the segmentation
     // Get airways
-    AirwaySegmentation::pointer airwaySegmentation = AirwaySegmentation::New();
-    if(mUseManualSeedPoint) {
-        airwaySegmentation->setSeedPoint(mSeedPoint);
+    auto airwaySegmentation = AirwaySegmentation::New();
+    if(m_airwaySeedPoint != Vector3i::Zero()) {
+        airwaySegmentation->setSeedPoint(m_airwaySeedPoint);
     }
     airwaySegmentation->setInputData(input);
     DataChannel::pointer airwaySegPort = airwaySegmentation->getOutputPort();
@@ -207,8 +211,17 @@ void LungSegmentation::setAirwaySeedPoint(int x, int y, int z) {
 }
 
 void LungSegmentation::setAirwaySeedPoint(Vector3i seed) {
-    mSeedPoint = seed;
-    mUseManualSeedPoint = true;
+    m_airwaySeedPoint = seed;
+    setModified(true);
+}
+
+void LungSegmentation::setLungSeedPoint(int x, int y, int z) {
+    setLungSeedPoint(Vector3i(x, y, z));
+}
+
+void LungSegmentation::setLungSeedPoint(Vector3i seed) {
+    m_lungSeedPoint = seed;
+    setModified(true);
 }
 
 }
