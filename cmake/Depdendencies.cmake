@@ -5,7 +5,7 @@
 if(WIN32)
     fast_download_dependency(opencl
             3.0.8
-            fbb84b29154fbf58833025188dea2c139caa2a5c136a5f48469839f43b9f6e05
+	    0b2d3098ed29fac09bbd7f831647e08e23324eaccbdb29c603617989e48c50b1
             OpenCL.lib
     )
 else()

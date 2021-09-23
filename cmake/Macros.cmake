@@ -182,7 +182,8 @@ macro(fast_download_dependency NAME VERSION SHA)
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/plugins ${FAST_EXTERNAL_INSTALL_DIR}/plugins COMMAND
-                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licenses
+		    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licenses | echo COMMAND
+		    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licenses ${FAST_EXTERNAL_INSTALL_DIR}/licenses | echo
         )
     else()
         ExternalProject_Add(${NAME}
@@ -196,7 +197,8 @@ macro(fast_download_dependency NAME VERSION SHA)
                 INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${FAST_EXTERNAL_INSTALL_DIR}/include COMMAND
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin ${FAST_EXTERNAL_INSTALL_DIR}/bin COMMAND
                     ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib ${FAST_EXTERNAL_INSTALL_DIR}/lib COMMAND
-                    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licenses
+		    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licenses | echo COMMAND
+		    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/licenses ${FAST_EXTERNAL_INSTALL_DIR}/licenses | echo
                 )
     endif()
     else(WIN32)

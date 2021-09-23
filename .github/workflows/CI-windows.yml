@@ -46,5 +46,5 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
       
-    - name: Test
-      run: ${{github.workspace}}/build/bin/testFAST [processobject]
+#   - name: Test
+#     run: ${{github.workspace}}/build/bin/testFAST [processobject]
