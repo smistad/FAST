@@ -42,7 +42,8 @@ jobs:
             -DFAST_MODULE_Dicom=ON \
             -DFAST_MODULE_WholeSlideImaging=ON \
             -DFAST_MODULE_OpenIGTLink=ON \
-            -DFAST_MODULE_Clarius=OFF \
+            -DFAST_MODULE_Clarius=ON \
+            -DFAST_MODULE_TensorFlow=ON \
             -DFAST_MODULE_HDF5=ON \
             -DFAST_MODULE_Plotting=ON \
             -DFAST_MODULE_RealSense=ON \
