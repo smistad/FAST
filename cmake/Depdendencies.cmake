@@ -2,11 +2,19 @@
 # and external (downloaded and built automatically)
 
 ## OpenCL
-find_package(OpenCL REQUIRED)
-list(APPEND FAST_SYSTEM_LIBRARIES ${OpenCL_LIBRARIES})
-#list(APPEND FAST_INCLUDE_DIRS "${OpenCL_INCLUDE_DIRS}")
-#message("-- OpenCL include dir: ${OpenCL_INCLUDE_DIRS}")
-message("-- OpenCL library: ${OpenCL_LIBRARIES}")
+if(WIN32)
+    fast_download_dependency(opencl
+            3.0.8
+            fbb84b29154fbf58833025188dea2c139caa2a5c136a5f48469839f43b9f6e05
+            OpenCL.lib
+    )
+else()
+    fast_download_dependency(opencl
+            3.0.8
+            7f8239cdd9a1fcd1b34c7cf63b7ca40866937ccc0386135bf79ae09b751c75d1
+            libOpenCL.so
+    )
+endif()
 
 ## OpenGL
 find_package(OpenGL REQUIRED)

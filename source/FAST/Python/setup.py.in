@@ -96,7 +96,7 @@ _fast = Extension('fast.bin._fast',
                     '@FAST_SOURCE_DIR@/source/',
                     '@NUMPY_INCLUDE_DIR@',
                 ],
-                library_dirs=['@FAST_BINARY_DIR@/lib/', os.path.dirname('@OpenCL_LIBRARIES@')],
+                library_dirs=['@FAST_BINARY_DIR@/lib/'],
                 sources=['fast/PyFASTPYTHON_wrap.cxx'],
                 libraries=[ # Libraries to link with
                     'FAST',

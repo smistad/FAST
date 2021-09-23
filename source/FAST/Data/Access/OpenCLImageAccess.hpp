@@ -1,7 +1,7 @@
 #ifndef OPENCLIMAGEACCESS_HPP_
 #define OPENCLIMAGEACCESS_HPP_
 
-#include "CL/OpenCL.hpp"
+#include "FAST/OpenCL.hpp"
 #include "Access.hpp"
 #include "FAST/Object.hpp"
 

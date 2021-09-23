@@ -2,7 +2,7 @@
 
 #include <string>
 #include <map>
-#include "CL/OpenCL.hpp"
+#include <FAST/OpenCL.hpp>
 #include "RuntimeMeasurement.hpp"
 #include <chrono>
 #include <memory>

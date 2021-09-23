@@ -1,7 +1,7 @@
 #ifndef OPENCLBUFFERACCESS_HPP_
 #define OPENCLBUFFERACCESS_HPP_
 
-#include "CL/OpenCL.hpp"
+#include "FAST/OpenCL.hpp"
 #include "FAST/Object.hpp"
 
 

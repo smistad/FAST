@@ -83,20 +83,11 @@ install(DIRECTORY ${FAST_SOURCE_DIR}
 	COMPONENT fast
 	FILES_MATCHING PATTERN "*.h"
 )
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/source/CL/
-	DESTINATION fast/include/CL/
-	COMPONENT fast
-	FILES_MATCHING PATTERN "*.h"
-)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/source/CL/
-	DESTINATION fast/include/CL/
-	COMPONENT fast
-	FILES_MATCHING PATTERN "*.hpp"
-)
 
 # External include files needed
 set(INCLUDE_FOLDERS
     eigen3
+	CL
     QtAccessibilitySupport
     QtConcurrent
     QtCore

@@ -214,7 +214,8 @@ macro(fast_download_dependency NAME VERSION SHA)
                 cp -r <SOURCE_DIR>/bin/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
                 cp -r <SOURCE_DIR>/lib/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
                 cp -r <SOURCE_DIR>/plugins/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
-                cp -r <SOURCE_DIR>/licences/ ${FAST_EXTERNAL_INSTALL_DIR}/
+                cp -r <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licenses | echo "" COMMAND
+                cp -r <SOURCE_DIR>/licenses ${FAST_EXTERNAL_INSTALL_DIR}/licenses | echo ""
                 )
             else()
                 ExternalProject_Add(${NAME}
@@ -228,7 +229,8 @@ macro(fast_download_dependency NAME VERSION SHA)
                     INSTALL_COMMAND cp -r <SOURCE_DIR>/include/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
                         cp -r <SOURCE_DIR>/bin/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
                         cp -r <SOURCE_DIR>/lib/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
-                        cp -r <SOURCE_DIR>/licences/ ${FAST_EXTERNAL_INSTALL_DIR}/
+                        cp -r <SOURCE_DIR>/licences ${FAST_EXTERNAL_INSTALL_DIR}/licenses | echo "" COMMAND
+                        cp -r <SOURCE_DIR>/licenses ${FAST_EXTERNAL_INSTALL_DIR}/licenses | echo ""
                 )
         endif()
     endif()

@@ -5,7 +5,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include "FAST/Exception.hpp"
-#include "CL/OpenCL.hpp"
+#include <FAST/OpenCL.hpp>
 #include "FAST/ExecutionDevice.hpp"
 #include <iostream>
 #include <Eigen/Dense>
