@@ -33,7 +33,7 @@ you downloaded earlier is located.
 To execute the ImageFileImporter, and thereby loading the image, you can do the following:
 
 ```py
-image = importer.runAndGetOutputImage()
+image = importer.runAndGetOutputData()
 print("An image was imported with size: ", image.getWidth(), image.getHeight())
 ```
 
@@ -178,7 +178,7 @@ import numpy as np
 
 # Import an image to FAST
 importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
-fast_image = importer.runAndGetOutputImage()
+fast_image = importer.runAndGetOutputData()
 
 # Convert the FAST image to a NumPy ndarray
 numpy_image = np.asarray(fast_image)
@@ -206,7 +206,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
-fast_image = importer.runAndGetOutputImage()
+fast_image = importer.runAndGetOutputData()
 numpy_image = np.asarray(fast_image)
 
 plt.imshow(numpy_image[..., 0], cmap='gray')
@@ -243,7 +243,7 @@ import numpy as np
 
 # Import image with FAST
 importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + "US/US-2D.jpg")
-fast_image = importer.runAndGetOutputImage()
+fast_image = importer.runAndGetOutputData()
 
 # Convert FAST image to a NumPy array/OpenCV image
 cv_image = np.asarray(fast_image)
