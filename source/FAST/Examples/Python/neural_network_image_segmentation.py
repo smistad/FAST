@@ -23,6 +23,11 @@ segmentationRenderer = fast.SegmentationRenderer.create(
     colors={1: fast.Color.Red(), 2: fast.Color.Blue()},
 ).connect(segmentationNetwork)
 
+labelRenderer = fast.SegmentationLabelRenderer.create(
+        labelNames={1: 'Artery', 2: 'Vein'},
+        labelColors={1: fast.Color.Red(), 2: fast.Color.Blue()},
+).connect(segmentationNetwork)
+
 window = fast.SimpleWindow2D.create(bgcolor=fast.Color.Black())\
-    .connect([imageRenderer, segmentationRenderer])\
+    .connect([imageRenderer, segmentationRenderer, labelRenderer])\
     .run()

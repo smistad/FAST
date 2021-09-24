@@ -9,7 +9,7 @@ importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + "/CT/CT
 
 extraction = fast.SurfaceExtraction.create(threshold=300).connect(importer)
 
-mesh = extraction.runAndGetOutputMesh()
+mesh = extraction.runAndGetOutputData()
 access = mesh.getMeshAccess(fast.ACCESS_READ)
 
 # Get size of mesh:
