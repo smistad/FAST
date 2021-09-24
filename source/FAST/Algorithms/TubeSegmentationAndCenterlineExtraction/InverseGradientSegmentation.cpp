@@ -19,6 +19,7 @@ InverseGradientSegmentation::InverseGradientSegmentation() {
     createInputPort<Image>(0);
     createInputPort<Image>(1);
     createOutputPort<Image>(0);
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/TubeSegmentationAndCenterlineExtraction/InverseGradientSegmentation.cl");
 }
 
 void InverseGradientSegmentation::execute() {
@@ -38,9 +39,7 @@ void InverseGradientSegmentation::execute() {
     OpenCLImageAccess::pointer segmentationOutputAccess = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
     cl::Image3D* volume = segmentationOutputAccess->get3DImage();
 
-    device->createProgramFromSourceWithName("inverseGradientSegmentation",
-            Config::getKernelSourcePath() + "Algorithms/TubeSegmentationAndCenterlineExtraction/InverseGradientSegmentation.cl");
-    cl::Program program(device->getProgram("inverseGradientSegmentation"));
+    cl::Program program = getOpenCLProgram(device);
 
 
     cl::Kernel initGrowKernel(program, "initGrowing");
@@ -166,7 +165,7 @@ void InverseGradientSegmentation::execute() {
 
     }
 
-    std::cout << "segmentation result grown in " << i << " iterations" << std::endl;
+    reportInfo() << "Segmentation result grown in " << i << " iterations" << reportEnd();
 
     cl::Kernel dilateKernel(program, "dilate");
     cl::Kernel erodeKernel(program, "erode");

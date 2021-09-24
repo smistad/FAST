@@ -668,7 +668,7 @@ void MultigridGradientVectorFlow::execute3DGVF(std::shared_ptr<Image> input,
                 cl::NullRange
         );
     }
-    std::cout << "sqrMag created" << std::endl;
+    reportInfo() << "sqrMag created" << reportEnd();
 
     cl::Kernel addKernel(mProgram, "addTwoImages");
     float spacing = inputSpacing.x();
@@ -722,7 +722,7 @@ void MultigridGradientVectorFlow::execute3DGVF(std::shared_ptr<Image> input,
         }
 
     }
-    std::cout << "fx finished" << std::endl;
+    reportInfo() << "fx finished" << reportEnd();
     spacing = inputSpacing.y();
 
     // create fy and ry
@@ -776,7 +776,7 @@ void MultigridGradientVectorFlow::execute3DGVF(std::shared_ptr<Image> input,
 
     }
 
-    std::cout << "fy finished" << std::endl;
+    reportInfo() << "fy finished" << reportEnd();
     spacing = inputSpacing.z();
 
     // create fz and rz
@@ -830,7 +830,7 @@ void MultigridGradientVectorFlow::execute3DGVF(std::shared_ptr<Image> input,
 
     }
 
-    std::cout << "fz finished" << std::endl;
+    reportInfo() << "fz finished" << reportEnd();
 
 
     cl::Kernel finalizeKernel(mProgram, "MGGVFFinish");
@@ -868,7 +868,7 @@ void MultigridGradientVectorFlow::execute3DGVF(std::shared_ptr<Image> input,
         );
 
     }
-    std::cout << "MG GVF finished" << std::endl;
+    reportInfo() << "MG GVF finished" << reportEnd();
 }
 
 } // end namespace fast

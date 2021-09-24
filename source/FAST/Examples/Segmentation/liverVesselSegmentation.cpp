@@ -6,18 +6,16 @@
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
+#include <FAST/Tools/CommandLineParser.cpp>
 
 using namespace fast;
 
 int main(int argc, char** argv) {
-    // NOTE: This code is atm made for signed 16 bit integer CT data
-    if(argc < 2) {
-        std::cout << "usage: " << argv[0] << " /path/to/CT_file" << std::endl;
-        return 0;
-    }
-    std::string filename = argv[1];
+    CommandLineParser parser("Liver vessel segmentation");
+    parser.addPositionVariable(1, "filename", true, "Path to CT file");
+    parser.parse(argc, argv);
 
-    auto importer = ImageFileImporter::create(filename);
+    auto importer = ImageFileImporter::create(parser.get("filename"));
 
     auto converter = HounsefieldConverter::create()->connect(importer);
 
@@ -38,10 +36,10 @@ int main(int argc, char** argv) {
     auto renderer = SliceRenderer::create(PLANE_Z)->connect(importer);
 
     auto lineRenderer = LineRenderer::create(Color::Blue(), true)
-            ->connect(tubeExtraction);
+        ->connect(tubeExtraction, 1);
 
     auto surfaceExtraction = SurfaceExtraction::create()
-            ->connect(tubeExtraction);
+        ->connect(tubeExtraction);
 
     auto triangleRenderer = TriangleRenderer::create()->connect(surfaceExtraction);
 
@@ -49,6 +47,6 @@ int main(int argc, char** argv) {
         renderer,
         triangleRenderer,
         lineRenderer
-    });
+	});
     window->run();
 }

@@ -1,5 +1,4 @@
-#ifndef EXECUTIONDEVICE_HPP_
-#define EXECUTIONDEVICE_HPP_
+#pragma once
 
 #include "FAST/Object.hpp"
 #include "RuntimeMeasurementManager.hpp"
@@ -55,7 +54,8 @@ enum OpenCLPlatformVendor {
     PLATFORM_VENDOR_AMD,
     PLATFORM_VENDOR_INTEL,
     PLATFORM_VENDOR_NVIDIA,
-    PLATFORM_VENDOR_UKNOWN
+    PLATFORM_VENDOR_POCL,
+    PLATFORM_VENDOR_UNKNOWN
 };
 
 enum DeviceVendor {
@@ -98,6 +98,7 @@ class FAST_EXPORT  OpenCLDevice : public ExecutionDevice {
         std::string getName() {
             return getDevice().getInfo<CL_DEVICE_NAME>();
         }
+        OpenCLPlatformVendor getPlatformVendor();
         bool isWritingTo3DTexturesSupported();
         RuntimeMeasurementsManager::pointer getRunTimeMeasurementManager();
         ~OpenCLDevice();
@@ -123,4 +124,3 @@ class FAST_EXPORT  OpenCLDevice : public ExecutionDevice {
 
 } // end namespace fast
 
-#endif /* EXECUTIONDEVICE_HPP_ */

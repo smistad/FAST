@@ -77,8 +77,38 @@ cl::Device OpenCLDevice::getDevice() {
     return OpenCLDevice::getDevice(0);
 }
 
+OpenCLPlatformVendor OpenCLDevice::getPlatformVendor() {
+    std::string platformVendor = getPlatform().getInfo<CL_PLATFORM_VENDOR>();
+    OpenCLPlatformVendor retval;
+    if (platformVendor.find("Advanced Micro Devices") != std::string::npos || platformVendor.find("AMD") != std::string::npos) {
+        retval = PLATFORM_VENDOR_AMD;
+    } else if (platformVendor.find("Apple") != std::string::npos) {
+        retval = PLATFORM_VENDOR_APPLE;
+    } else if (platformVendor.find("Intel") != std::string::npos) {
+        retval = PLATFORM_VENDOR_INTEL;
+    } else if (platformVendor.find("NVIDIA") != std::string::npos) {
+        retval = PLATFORM_VENDOR_NVIDIA;
+    } else if(platformVendor.find("Portable Computing Language") != std::string::npos) {
+        retval = PLATFORM_VENDOR_POCL;
+	} else {
+        retval = PLATFORM_VENDOR_UNKNOWN;
+	}
+    return retval;
+}
+
+
 bool OpenCLDevice::isWritingTo3DTexturesSupported() {
+#ifdef WIN32
+    if(getPlatformVendor() == PLATFORM_VENDOR_NVIDIA) {
+        // 3D image writes on windows for nvidia is buggy, disable it
+        //reportWarning() << "Disabling 3D image writes because unstable with latest nvidia drivers on windows" << reportEnd();
+        return false;
+    } else {
+		return OpenCLDevice::getDevice(0).getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
+    }
+#else
     return OpenCLDevice::getDevice(0).getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
+#endif
 }
 
 OpenCLDevice::~OpenCLDevice() {
