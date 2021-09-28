@@ -58,13 +58,19 @@ jobs:
     - name: Package
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
 
-    - name: Upload
+    - name: Upload Windows installer
       uses: actions/upload-artifact@v2
       with:
-        path: |
-            ${{github.workspace}}/build/fast_*.exe
-            ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        name: Window installer
+        path: ${{github.workspace}}/build/fast_*.exe
         if-no-files-found: error
 
+    - name: Upload Python wheel
+      uses: actions/upload-artifact@v2
+      with:
+        name: Python wheel
+        path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        if-no-files-found: error
+            
 #   - name: Test
 #     run: ${{github.workspace}}/build/bin/testFAST [processobject]

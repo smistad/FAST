@@ -62,12 +62,18 @@ jobs:
     - name: Package
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
 
-    - name: Upload
+    - name: Upload Debian package
       uses: actions/upload-artifact@v2
       with:
-        path: |
-            ${{github.workspace}}/build/fast_*.deb
-            ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        name: Debian package
+        path: ${{github.workspace}}/build/fast_*.deb
+        if-no-files-found: error
+
+    - name: Upload Python wheel
+      uses: actions/upload-artifact@v2
+      with:
+        name: Python wheel
+        path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
         if-no-files-found: error
       
 #    - name: Test
