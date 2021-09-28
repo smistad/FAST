@@ -4,7 +4,13 @@
 import fast
 import numpy as np
 
-fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT) # Show debug info
+# Check if OpenCV is available
+use_opencv = False
+try:
+    import cv2
+    use_opencv = True
+except ImportError:
+    pass
 
 
 """ Make a python process object which simply inverts image with numpy """
@@ -15,18 +21,19 @@ class Inverter(fast.PythonProcessObject):
         self.createOutputPort(0)
 
     def execute(self):
-        print('In execute...')
-
         # Get image and invert it with numpy
         image = self.getInputImage()
         np_image = np.asarray(image)
         np_image = 255 - np_image # invert
 
+        # If OpenCV is available, add some text using OpenCV
+        if use_opencv:
+            cv2.putText(np_image, 'OpenCV!', (40, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+
         # Create new fast image and add as output
         new_output_image = fast.Image.createFromArray(np_image)
         new_output_image.setSpacing(image.getSpacing())
         self.addOutputData(0, new_output_image)
-        print('Done in execute')
 
 
 # Set up pipeline as normal
