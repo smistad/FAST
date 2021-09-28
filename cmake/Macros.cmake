@@ -212,10 +212,10 @@ macro(fast_download_dependency NAME VERSION SHA)
                 CONFIGURE_COMMAND ""
                 BUILD_COMMAND ""
                 # On install: Copy contents of each subfolder to the build folder
-                INSTALL_COMMAND cp -r <SOURCE_DIR>/include/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
-                cp -r <SOURCE_DIR>/bin/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
-                cp -r <SOURCE_DIR>/lib/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
-                cp -r <SOURCE_DIR>/plugins/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
+                INSTALL_COMMAND cp -r <SOURCE_DIR>/include/. ${FAST_EXTERNAL_INSTALL_DIR}/include/ COMMAND
+                cp -r <SOURCE_DIR>/bin/. ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+                cp -r <SOURCE_DIR>/lib/. ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+                cp -r <SOURCE_DIR>/plugins/. ${FAST_EXTERNAL_INSTALL_DIR}/plugins/ COMMAND
                 cp -r <SOURCE_DIR>/licences/. ${FAST_EXTERNAL_INSTALL_DIR}/licenses/ | echo "" COMMAND
                 cp -r <SOURCE_DIR>/licenses/. ${FAST_EXTERNAL_INSTALL_DIR}/licenses/ | echo ""
                 )
@@ -228,9 +228,9 @@ macro(fast_download_dependency NAME VERSION SHA)
                     CONFIGURE_COMMAND ""
                     BUILD_COMMAND ""
                     # On install: Copy contents of each subfolder to the build folder
-                    INSTALL_COMMAND cp -r <SOURCE_DIR>/include/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
-                        cp -r <SOURCE_DIR>/bin/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
-                        cp -r <SOURCE_DIR>/lib/ ${FAST_EXTERNAL_INSTALL_DIR}/ COMMAND
+                    INSTALL_COMMAND cp -r <SOURCE_DIR>/include/. ${FAST_EXTERNAL_INSTALL_DIR}/include/ COMMAND
+                        cp -r <SOURCE_DIR>/bin/. ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+                        cp -r <SOURCE_DIR>/lib/. ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
                         cp -r <SOURCE_DIR>/licences/. ${FAST_EXTERNAL_INSTALL_DIR}/licenses/ | echo "" COMMAND
                         cp -r <SOURCE_DIR>/licenses/. ${FAST_EXTERNAL_INSTALL_DIR}/licenses/ | echo ""
                 )

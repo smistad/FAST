@@ -45,6 +45,8 @@ set(FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL "http://fast.eriksmistad.no/download/t
 set(FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW "https://github.com/smistad/FAST-dependencies/releases/download/v${VERSION_MAJOR}.0.0/")
 if(WIN32)
     set(FAST_DEPENDENCY_TOOLSET msvc142)
+elseif(APPLE)
+    set(FAST_DEPENDENCY_TOOLSET mac)
 else()
     set(FAST_DEPENDENCY_TOOLSET glibc2.27)
 endif()
@@ -111,6 +113,8 @@ if(FAST_BUILD_DOCS)
     include(cmake/Documentation.cmake)
 endif()
 
+include(cmake/OpenMP.cmake)
+
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
 get_directory_property(hasParent PARENT_DIRECTORY)
@@ -160,7 +164,6 @@ add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 include(GenerateExportHeader)
 generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
 
-include(cmake/OpenMP.cmake)
 
 ## Link everything
 message("-- FAST LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")

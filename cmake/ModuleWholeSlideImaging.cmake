@@ -1,6 +1,7 @@
 if(FAST_MODULE_WholeSlideImaging)
     message("-- Whole slide imaging module enabled")
     include(cmake/ExternalOpenSlide.cmake)
+    add_definitions(-DFAST_MODULE_WSI)
     if(WIN32)
         # Build TIFF
         include(cmake/ExternalTIFF.cmake)

@@ -6,8 +6,8 @@
 #endif
 
 #if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl_gl.h>
-
+#include <CL/cl_gl.h>
+#include <OpenGL/OpenGL.h>
 #else
 #if _WIN32
 #include <windows.h>
@@ -285,6 +285,8 @@ throw Exception("Not able to get sharegroup");
 
   num_devices = size / sizeof(cl_device_id);
 */
+
+    //clGetGLContextInfoAPPLE_fn func = (clGetGLContextInfoAPPLE_fn) clGetExtensionFunctionAddressForPlatform(platformId, "clGetGLContextInfoAPPLE");
     clGetGLContextInfoAPPLE(clContext, glContext, CL_CGL_DEVICE_FOR_CURRENT_VIRTUAL_SCREEN_APPLE, 32 * sizeof(cl_device_id), &cl_gl_device_ids, &returnSize);
 
     //reporter.report("There are " + number(returnSize / sizeof(cl_device_id)) + " devices that can be associated with the GL context", INFO);

@@ -6,7 +6,9 @@
 #include <QIcon>
 #include <QFontDatabase>
 #ifndef WIN32
+#ifndef __APPLE__
 #include <X11/Xlib.h>
+#endif
 #endif
 
 namespace fast {
@@ -116,7 +118,7 @@ void Window::initializeQtApp() {
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
-#ifdef WIN32
+#if defined(WIN32) || defined(__APPLE__) 
         QApplication* app = new FASTApplication(*argc,NULL);
 #else
         if(XOpenDisplay(nullptr) == nullptr) {

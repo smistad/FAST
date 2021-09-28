@@ -1,4 +1,6 @@
+#ifdef FAST_MODULE_WSI
 #include <FAST/Data/ImagePyramid.hpp>
+#endif
 #include "SegmentationRenderer.hpp"
 #include <QGLContext>
 #include <FAST/Visualization/View.hpp>
@@ -47,11 +49,15 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     if(mDataToRender.empty())
         return;
     createColorUniformBufferObject();
+#ifdef FAST_MODULE_WSI
     if(std::dynamic_pointer_cast<ImagePyramid>(mDataToRender.begin()->second)) {
         drawPyramid(perspectiveMatrix, viewingMatrix, zNear, zFar);
     } else {
         drawNormal(perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
     }
+#else
+    drawNormal(perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
+#endif
 }
 void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
@@ -109,6 +115,7 @@ void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewi
 
 
 void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar) {
+#ifdef FAST_MODULE_WSI
         GLuint filterMethod = mUseInterpolation ? GL_LINEAR : GL_NEAREST;
 
         // TODO move to func?
@@ -460,6 +467,7 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
         //}
         glDisable(GL_BLEND);
         deactivateShader();
+#endif
     }
 
 

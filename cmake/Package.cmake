@@ -47,6 +47,7 @@ if(WIN32 AND NOT UNIX)
         Delete \\\"$SMPROGRAMS\\\\FAST\\\\Data Folder.lnk\\\"
     ")
     include(CPack) # Must be before cpack_ macros
+elseif(APPLE)
 else()
     ## UNIX
 
