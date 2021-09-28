@@ -30,7 +30,7 @@ jobs:
         sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
         sudo apt install ocl-icd-opencl-dev # libOpenCL.so and headers
         sudo apt install libpocl2
-        sudo apt install python3 libpython3-dev python3-pip
+        sudo apt install python3 libpython3-dev python3-pip python3-setuptools
         pip3 install numpy==1.19.5 pylddwrap==1.2.0
 
 
