@@ -6,7 +6,7 @@
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include <FAST/Tools/CommandLineParser.cpp>
+#include <FAST/Tools/CommandLineParser.hpp>
 
 using namespace fast;
 
