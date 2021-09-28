@@ -30,6 +30,8 @@ jobs:
         sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
         sudo apt install ocl-icd-opencl-dev # libOpenCL.so and headers
         sudo apt install libpocl2
+        sudo apt install python3 libpython3-dev python3-pip
+        pip3 install numpy==1.19.5 pylddwrap==1.2.0
 
 
     - name: Configure CMake
@@ -46,6 +48,7 @@ jobs:
             -DFAST_MODULE_TensorFlow=ON \
             -DFAST_MODULE_HDF5=ON \
             -DFAST_MODULE_Plotting=ON \
+            -DFAST_MODULE_Python=ON \
             -DFAST_MODULE_RealSense=ON \
             -DFAST_BUILD_EXAMPLES=ON
 
@@ -53,13 +56,19 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
 
+    - name: Build Python wheel
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
+
     - name: Package
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
-        name: Debian package
-        path: ${{github.workspace}}/build/fast_*.deb
+        path: |
+            ${{github.workspace}}/build/fast_*.deb
+            ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        if-no-files-found: error
       
 #    - name: Test
 #      run: ${{github.workspace}}/build/bin/testFAST [processobject]

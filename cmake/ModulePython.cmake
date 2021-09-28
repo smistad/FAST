@@ -1,6 +1,12 @@
 # Build Python bindings (requires SWIG installed)
 
 if(FAST_MODULE_Python)
+    # Download and set up swig for building python bindings
+    # Do it at configure time:
+    include(cmake/FetchSwig.cmake)
+
+    set(SWIG_EXECUTABLE ${swig_SOURCE_DIR}/bin/swig)
+    set(SWIG_DIR ${swig_SOURCE_DIR}/swig-lib/)
     find_package(SWIG 4 REQUIRED)
     message("-- SWIG found, creating python bindings...")
     include(${SWIG_USE_FILE})
@@ -69,7 +75,7 @@ if(FAST_MODULE_Python)
         -D CMAKE_INSTALL_PREFIX:STRING=${PROJECT_BINARY_DIR}/python/
         -P ${PROJECT_BINARY_DIR}/cmake_install.cmake
     )
-    add_dependencies(install_to_wheel _fast)
+add_dependencies(install_to_wheel _fast)
 
     add_custom_target(python-wheel
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
