@@ -6,7 +6,7 @@ if(WIN32)
     FetchContent_Declare(
       swig
       URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
-      URL_HASH SHA256=a4eea185e04634c8d9cb2e5655bef6bf68a921a3790dae09f7f7289f5b916e1b
+      URL_HASH SHA256=56c1f0eae1e25643cc98b2489a22e78c2970a04007d02849eb355e865384ad18
     )
 else()
     FetchContent_Declare(
