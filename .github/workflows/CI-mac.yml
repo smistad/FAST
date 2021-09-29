@@ -18,7 +18,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        brew install openslide libomp libomp-dev
+        brew install openslide libomp
 
     - name: Configure CMake
       run: |
