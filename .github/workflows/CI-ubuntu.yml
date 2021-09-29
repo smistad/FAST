@@ -67,6 +67,13 @@ jobs:
         path: ${{github.workspace}}/build/fast_*.deb
         if-no-files-found: error
 
+    - name: Upload archive package
+      uses: actions/upload-artifact@v2
+      with:
+        name: Archive package (tar.xz)
+        path: ${{github.workspace}}/build/fast_*.tar.xz
+        if-no-files-found: error
+
     - name: Upload Python wheel
       uses: actions/upload-artifact@v2
       with:

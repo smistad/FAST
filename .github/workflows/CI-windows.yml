@@ -65,6 +65,13 @@ jobs:
         path: ${{github.workspace}}/build/fast_*.exe
         if-no-files-found: error
 
+    - name: Upload archive package
+      uses: actions/upload-artifact@v2
+      with:
+        name: Archive package (zip)
+        path: ${{github.workspace}}/build/fast_*.zip
+        if-no-files-found: error
+
     - name: Upload Python wheel
       uses: actions/upload-artifact@v2
       with:
