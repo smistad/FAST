@@ -120,6 +120,7 @@ if(WIN32)
     list(APPEND INCLUDE_FOLDERS
         ActiveQt
     )
+elseif(APPLE)
 else()
     list(APPEND INCLUDE_FOLDERS
         QtGlxSupport
