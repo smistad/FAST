@@ -176,7 +176,10 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
             device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
                 cl::NullRange,
-                cl::NDRange(patch->getWidth(), patch->getHeight()),
+                cl::NDRange(
+                        std::min(patch->getWidth(), m_outputImage->getWidth()-startX),
+                        std::min(patch->getHeight(), m_outputImage->getHeight()-startY)
+                    ),
                 cl::NullRange
             );
         } else {
