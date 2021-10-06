@@ -27,25 +27,25 @@ static bool isStreamer(ProcessObject* po) {
 void ProcessObject::update(int executeToken) {
     // Call update on all parents
     bool newInputData = false;
+    bool inputMarkedAsLastFrame = false;
     for(auto parent : mInputConnections) {
         auto port = parent.second;
         port->getProcessObject()->update(executeToken);
 
         if(mLastProcessed.count(parent.first) > 0) {
-            //std::cout << "" << getNameOfClass() << " has last processed data.. " << std::endl;
             // Compare the last processed data with the new data for this data port
             std::pair<DataObject::pointer, uint64_t> data = mLastProcessed[parent.first];
             if(port->hasCurrentData()) {
-                //std::cout << "" << getNameOfClass() << " has current data.. " << std::endl;
                 auto previousData = data.first;
                 auto previousTimestamp = data.second;
                 try {
                     auto currentData = port->getFrame();
+                    if(currentData->isLastFrame())
+                        inputMarkedAsLastFrame = true;
                     auto currentTimestamp = currentData->getTimestamp();
                     //std::cout << currentData << " " << previousData << " size: " << port->getSize() << std::endl;
                     if(currentData != previousData ||
                        previousTimestamp < currentTimestamp) { // There has arrived new data, or data has changed
-                        //std::cout << "" << getNameOfClass() << " data is new.. " << std::endl;
                         newInputData = true;
                     }
                 } catch(Exception &e) {
@@ -70,7 +70,11 @@ void ProcessObject::update(int executeToken) {
             }
         } else {
             //std::cout << "" << getNameOfClass() << " first time execute.. " << std::endl;
-            // First time executing, always execute in this case
+            // First time executing, always execute in this case, unless execute on last frame
+            if(port->hasCurrentData()) {
+                if(port->getFrame()->isLastFrame())
+                    inputMarkedAsLastFrame = true;
+            }
             newInputData = true;
         }
     }
@@ -93,6 +97,9 @@ void ProcessObject::update(int executeToken) {
 
     // If execute token is enabled (its positive), check if current token is equal to last; if so don't reexecute.
     if(executeToken >= 0 && m_lastExecuteToken == executeToken)
+        return;
+    // If execute on last frame only is ON, but no input data is marked as last frame, don't execute
+    if(m_executeOnLastFrameOnly && !inputMarkedAsLastFrame)
         return;
     // If this object is modified, or any parents has new data for this PO: Call execute
     if(mIsModified || newInputData) {
@@ -169,9 +176,11 @@ void ProcessObject::addOutputData(uint portID, DataObject::pointer data, bool pr
     validateOutputPortExists(portID);
 
     // Copy frame data from input data
-    if(propagateLastFrameData)
-        for(auto&& lastFrame : m_lastFrame)
+    if(propagateLastFrameData) {
+        for(auto&& lastFrame : m_lastFrame) {
             data->setLastFrame(lastFrame);
+        }
+    }
     if(propagateFrameData)
         for(auto&& frameData : m_frameData)
             data->setFrameData(frameData.first, frameData.second);
@@ -585,7 +594,15 @@ RuntimeMeasurementsManager::pointer ProcessObject::getRuntimeManager() {
     return getAllRuntimes();
 }
 
-DataObject::pointer ProcessObject::getOutputData(uint portID) {
+void ProcessObject::setExecuteOnLastFrameOnly(bool executeOnLastFrameOnly) {
+    m_executeOnLastFrameOnly = true;
+}
+
+bool ProcessObject::getExecuteOnLastFrameOnly() const {
+    return m_executeOnLastFrameOnly;
+}
+
+    DataObject::pointer ProcessObject::getOutputData(uint portID) {
     validateOutputPortExists(portID);
 
     auto data = mOutputPorts[portID].currentData;

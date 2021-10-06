@@ -69,7 +69,7 @@ cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_object
         channelOrder = CL_RGBA;
         break;
     default:
-        throw Exception("Number of channels has to be between 1 and 4");
+        throw Exception("Number of channels has to be between 1 and 4. Requested: " + std::to_string(channels));
         break;
     }
 
