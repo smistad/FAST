@@ -22,7 +22,7 @@ void TIFFImagePyramidImporter::execute() {
     }
 
     std::vector<ImagePyramidLevel> levelList;
-    uint channels;
+    uint16_t channels;
     for(int level = 0; level < TIFFNumberOfDirectories(tiff); ++level) {
         TIFFSetDirectory(tiff, level);
         uint width, height;
@@ -33,7 +33,7 @@ void TIFFImagePyramidImporter::execute() {
         TIFFGetField(tiff, TIFFTAG_TILELENGTH, &tileHeight);
         TIFFGetField(tiff, TIFFTAG_SAMPLESPERPIXEL, &channels);
         reportInfo() << "Level " << level <<  " has size " << width << " " << height <<
-             " and tile size: " << tileWidth << " " << tileHeight << reportEnd();
+             " and tile size: " << tileWidth << " " << tileHeight << " channels " << channels << reportEnd();
 
         ImagePyramidLevel levelData;
         levelData.width = width;
@@ -42,7 +42,7 @@ void TIFFImagePyramidImporter::execute() {
         levelData.tileHeight = tileHeight;
         levelList.push_back(levelData);
     }
-    auto image = ImagePyramid::create(tiff, levelList, channels);
+    auto image = ImagePyramid::create(tiff, levelList, (int)channels);
     addOutputData(0, image);
 }
 

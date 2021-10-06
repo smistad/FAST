@@ -65,7 +65,7 @@ void TIFFImagePyramidExporter::execute() {
         TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, photometric);
         TIFFSetField(tiff, TIFFTAG_BITSPERSAMPLE, bitsPerSample);
         TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
-        TIFFSetField(tiff, TIFFTAG_SAMPLESPERPIXEL, samplesPerPixel);
+        TIFFSetField(tiff, TIFFTAG_SAMPLESPERPIXEL, (uint16_t)samplesPerPixel);
         TIFFSetField(tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
         TIFFSetField(tiff, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 

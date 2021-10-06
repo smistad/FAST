@@ -318,6 +318,8 @@ Vector3f ImagePyramid::getSpacing() const {
 }
 
 ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> levels, int channels) {
+    if(channels <= 0 || channels > 4)
+        throw Exception("Nr of channels must be between 1 and 4 in ImagePyramid when importing from TIFF");
     m_tiffHandle = fileHandle;
     m_levels = levels;
     m_channels = channels;
