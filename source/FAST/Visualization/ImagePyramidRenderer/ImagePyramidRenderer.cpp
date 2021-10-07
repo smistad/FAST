@@ -8,6 +8,9 @@
 #include <FAST/Visualization/Window.hpp>
 #include <FAST/Visualization/View.hpp>
 #include <FAST/Algorithms/ImageSharpening/ImageSharpening.hpp>
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenGL/OpenGL.h>
+#endif
 
 namespace fast {
 
@@ -88,6 +91,24 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         
         m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle]() {
             wglMakeCurrent(dc, nativeContextHandle);
+#elif defined(__APPLE__)
+        // Create a GL context for the thread which is sharing with the context of the view
+        auto context = new QGLContext(View::getGLFormat(), m_view);
+        context->create(m_view->context());
+
+        if(!context->isValid())
+            throw Exception("The custom Qt GL context is invalid!");
+
+        if(!context->isSharing())
+            throw Exception("The custom Qt GL context is not sharing!");
+
+        context->makeCurrent();
+        auto nativeContextHandle = CGLGetCurrentContext();
+        context->doneCurrent();
+        m_view->context()->makeCurrent();
+
+        m_bufferThread = std::make_unique<std::thread>([this, nativeContextHandle]() {
+            CGLSetCurrentContext(nativeContextHandle);
 #else
         m_bufferThread = std::make_unique<std::thread>([this]() {
             // Create a GL context for the thread which is sharing with the context of the view
