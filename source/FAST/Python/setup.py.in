@@ -1,4 +1,6 @@
 # coding=utf-8
+import os
+os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.15'
 from setuptools import setup, Extension
 import os.path
 import sys
@@ -32,9 +34,57 @@ def get_all_linux_depedencies(path, libraries):
                 result.append(os.path.join(path[5:], dep.soname))
     return result
 
+def get_all_apple_depedencies(path, libraries):
+    """
+    Because setup can't handle symlinks, we need to handle shared object (.so)
+    dependencies; only include one to avoid duplicates.
+    """
+    import pathlib
+    import subprocess
+
+    def otool(s):
+        framework_path = ''
+        o = subprocess.Popen(['/usr/bin/otool', '-L', s], stdout=subprocess.PIPE)
+
+        for l in o.stdout:
+            l = l.decode()
+
+            if l[0] == '\t':
+                path = l.split(' ', 1)[0][1:]
+
+                if "@executable_path" in path:
+                    path = path.replace("@executable_path", "")
+                    # fudge here to strip /../ from the start of the path.
+                    path = os.path.join(content_folder, path[4:])
+
+                if "@loader_path" in path:
+                    path = path.replace("@loader_path", framework_path)
+
+                if "@rpath" in path:
+                    path = path.replace("@rpath/", framework_path)
+
+                dependency_dylib_name = os.path.split(path)[-1]
+
+                yield path
+
+    result = []
+    libraries_in_path = os.listdir(path)
+    for library in libraries:
+        if not os.path.exists(os.path.join(path, library)): continue
+        if not library.startswith('libFAST.dylib'):
+            result.append(os.path.join(path[5:], library))
+        deps = otool(os.path.join(path, library))
+        print(os.path.join(path, library))
+        for dep in deps:
+            if dep[0] == '/': continue
+            if dep in libraries_in_path or dep.startswith('libFAST.dylib'):
+                result.append(os.path.join(path[5:], dep))
+
+    return result
 
 
 is_windows = sys.platform.startswith('win')
+is_apple = sys.platform.startswith('darwin')
 if is_windows:
     compile_args = ['/bigobj', '/nologo', '/MD', '/EHsc', '-DNOMINMAX', '-DNOGDI']
     link_args = []
@@ -49,6 +99,28 @@ if is_windows:
             + get_all_filenames('fast/plugins/')
             + get_all_filenames('fast/doc/')
           }
+    additional_libraries = ['OpenCL', '@OPENGL_LIBRARIES@']
+elif is_apple:
+    compile_args = ['-Xclang', '-std=c++17', '-mmacosx-version-min=10.15']
+    link_args = ['-bundle', '-Wl,-rpath,@loader_path/../lib', '-framework', 'OpenCL', '-framework', 'OpenGL', '@PYTHON_LIBRARIES@']
+    package_data = {'': [
+            'lib/plugins.xml',
+            'bin/fast_configuration.txt',
+            'README.md',
+            'pipelines/**/*',
+            ] + get_all_filenames('fast/licenses/')
+            + get_all_filenames('fast/kernels/')
+            + get_all_filenames('fast/plugins/')
+            + get_all_filenames('fast/doc/')
+            + get_all_apple_depedencies('fast/lib/', [
+                'libFAST.dylib',
+                'libQt5DBus.5.dylib',
+            ])
+          }
+    additional_libraries = []
+    # Override platform tag
+    sys.argv.append('--plat-name')
+    sys.argv.append('macosx_10_15_x86_64')
 else:
     compile_args = ['-std=c++17']
     link_args = ['-Wl,-rpath=$ORIGIN/../lib']
@@ -77,6 +149,7 @@ else:
                 'libInferenceEngineTensorFlow.so',
             ])
           }
+    additional_libraries = ['OpenCL', '@OPENGL_LIBRARIES@']
     # Override platform tag
     sys.argv.append('--plat-name') 
     sys.argv.append('manylinux1_x86_64')
@@ -108,9 +181,7 @@ _fast = Extension('fast.bin._fast',
                 	'Qt5MultimediaWidgets',
                     'Qt5PrintSupport',
                     'Qt5Network',
-                	'OpenCL',
-                	'@OPENGL_LIBRARIES@',
-                ],
+                ] + additional_libraries,
                 extra_compile_args=compile_args,
                 extra_link_args=link_args,
                 py_limited_api=True
@@ -126,6 +197,24 @@ for v in sys.argv: # override version if present
         version = v[len('version='):]
         sys.argv.remove(v) # Remove or setup will be cranky
         break
+
+if is_apple:
+    # Force use of c++ compiler on apple
+    from setuptools.command.build_ext import build_ext
+    class custom_build_ext(build_ext):
+        def build_extensions(self):
+            # Override the compiler executables. Importantly, this
+            # removes the "default" compiler flags that would
+            # otherwise get passed on to to the compiler, i.e.,
+            # distutils.sysconfig.get_var("CFLAGS").
+            self.compiler.set_executable("compiler_so", "c++")
+            self.compiler.set_executable("compiler_cxx", "c++")
+            self.compiler.set_executable("linker_so", "c++")
+            build_ext.build_extensions(self)
+
+    cmdclass = {"build_ext": custom_build_ext}
+else:
+    cmdclass = {}
 
 setup(name='pyFAST',    # Distribution name
       version=version,
@@ -153,5 +242,6 @@ setup(name='pyFAST',    # Distribution name
         'Topic :: Scientific/Engineering :: Visualization',
       ],
       install_requires=['numpy'],
-      python_requires='>=3'
+      python_requires='>=3',
+      cmdclass=cmdclass,
 )

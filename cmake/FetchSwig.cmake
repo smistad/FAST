@@ -8,6 +8,12 @@ if(WIN32)
       URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
       URL_HASH SHA256=56c1f0eae1e25643cc98b2489a22e78c2970a04007d02849eb355e865384ad18
     )
+elseif(APPLE)
+    FetchContent_Declare(
+      swig
+      URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
+      URL_HASH SHA256=105be24d7967ef68e3a9763b2012f401bdc3dc009ccd06e1a9fd16edeca940d7
+    )
 else()
     FetchContent_Declare(
       swig

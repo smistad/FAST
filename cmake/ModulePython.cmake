@@ -75,7 +75,8 @@ if(FAST_MODULE_Python)
         -D CMAKE_INSTALL_PREFIX:STRING=${PROJECT_BINARY_DIR}/python/
         -P ${PROJECT_BINARY_DIR}/cmake_install.cmake
     )
-add_dependencies(install_to_wheel _fast)
+    add_dependencies(install_to_wheel _fast)
+    message("PYTHON LIBRARIES: ${PYTHON_LIBRARIES}")
 
     add_custom_target(python-wheel
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
@@ -87,9 +88,11 @@ add_dependencies(install_to_wheel _fast)
         -D FAST_BINARY_DIR:STRING=${PROJECT_BINARY_DIR}
         -D PYTHON_VERSION:STRING=${PYTHONLIBS_VERSION_STRING}
         -D PYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
+        -D PYTHON_LIBRARIES:STRING=${PYTHON_LIBRARIES}
         -D NUMPY_INCLUDE_DIR:STRING=${PYTHON_NUMPY_INCLUDE_DIR}
         -D OpenCL_LIBRARIES:STRING=${OpenCL_LIBRARIES}
         -D OPENGL_LIBRARIES:STRING=${OPENGL_LIBRARIES}
+        -D OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
         -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
     add_dependencies(python-wheel install_to_wheel)
 else()

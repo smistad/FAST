@@ -7,9 +7,9 @@ cmake_minimum_required(VERSION 2.6)
 
 if(NOT PYTHON_EXECUTABLE)
   if(NumPy_FIND_QUIETLY)
-    find_package(PythonInterp QUIET)
+    find_package(PythonInterp 3 QUIET)
   else()
-    find_package(PythonInterp)
+    find_package(PythonInterp 3)
     set(__numpy_out 1)
   endif()
 endif()
@@ -17,14 +17,13 @@ endif()
 if (PYTHON_EXECUTABLE)
   # Find out the include path
   execute_process(
-    COMMAND "${PYTHON_EXECUTABLE}" -c
-            "from __future__ import print_function\ntry: import numpy; print(numpy.get_include(), end='')\nexcept:pass\n"
-            OUTPUT_VARIABLE __numpy_path)
+    COMMAND "${PYTHON_EXECUTABLE}" "-c" "import numpy; print(numpy.get_include())"
+            OUTPUT_VARIABLE __numpy_path OUTPUT_STRIP_TRAILING_WHITESPACE)
   # And the version
   execute_process(
     COMMAND "${PYTHON_EXECUTABLE}" -c
-            "from __future__ import print_function\ntry: import numpy; print(numpy.__version__, end='')\nexcept:pass\n"
-    OUTPUT_VARIABLE __numpy_version)
+            "import numpy; print(numpy.__version__)"
+    OUTPUT_VARIABLE __numpy_version OUTPUT_STRIP_TRAILING_WHITESPACE)
 elseif(__numpy_out)
   message(STATUS "Python executable not found.")
 endif(PYTHON_EXECUTABLE)

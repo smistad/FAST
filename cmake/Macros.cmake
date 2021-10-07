@@ -202,8 +202,7 @@ macro(fast_download_dependency NAME VERSION SHA)
                 )
     endif()
     else(WIN32)
-        # copy_directory doesn't support symlinks, use cp on linux:
-        if(${NAME} STREQUAL qt5)
+        # copy_directory doesn't support symlinks, use cp on linux/apple:
         ExternalProject_Add(${NAME}
                 PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
                 URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
@@ -214,27 +213,11 @@ macro(fast_download_dependency NAME VERSION SHA)
                 # On install: Copy contents of each subfolder to the build folder
                 INSTALL_COMMAND cp -r <SOURCE_DIR>/include/. ${FAST_EXTERNAL_INSTALL_DIR}/include/ COMMAND
                 cp -r <SOURCE_DIR>/bin/. ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
-                cp -r <SOURCE_DIR>/lib/. ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
-                cp -r <SOURCE_DIR>/plugins/. ${FAST_EXTERNAL_INSTALL_DIR}/plugins/ COMMAND
+                cp -a <SOURCE_DIR>/lib/. ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+                cp -a <SOURCE_DIR>/plugins/. ${FAST_EXTERNAL_INSTALL_DIR}/plugins/ | echo "" COMMAND
                 cp -r <SOURCE_DIR>/licences/. ${FAST_EXTERNAL_INSTALL_DIR}/licenses/ | echo "" COMMAND
                 cp -r <SOURCE_DIR>/licenses/. ${FAST_EXTERNAL_INSTALL_DIR}/licenses/ | echo ""
                 )
-            else()
-                ExternalProject_Add(${NAME}
-                    PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
-                    URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
-                    URL_HASH SHA256=${SHA}
-                    UPDATE_COMMAND ""
-                    CONFIGURE_COMMAND ""
-                    BUILD_COMMAND ""
-                    # On install: Copy contents of each subfolder to the build folder
-                    INSTALL_COMMAND cp -r <SOURCE_DIR>/include/. ${FAST_EXTERNAL_INSTALL_DIR}/include/ COMMAND
-                        cp -r <SOURCE_DIR>/bin/. ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
-                        cp -r <SOURCE_DIR>/lib/. ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
-                        cp -r <SOURCE_DIR>/licences/. ${FAST_EXTERNAL_INSTALL_DIR}/licenses/ | echo "" COMMAND
-                        cp -r <SOURCE_DIR>/licenses/. ${FAST_EXTERNAL_INSTALL_DIR}/licenses/ | echo ""
-                )
-        endif()
     endif()
     foreach(LIB ${ARGN})
         list(APPEND LIBRARIES ${ARGN})

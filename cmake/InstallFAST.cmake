@@ -43,6 +43,7 @@ elseif(APPLE)
 			DESTINATION fast/lib/
 			COMPONENT fast
 			FILES_MATCHING PATTERN "*.dylib*")
+	install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
 else()
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/

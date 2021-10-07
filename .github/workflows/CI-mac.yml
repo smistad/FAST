@@ -19,6 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install openslide libomp
+        pip3 install numpy==1.19.5
 
     - name: Configure CMake
       run: |
@@ -39,6 +40,9 @@ jobs:
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
 
+    - name: Build Python wheel
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
+
     - name: Package
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
 
@@ -48,3 +52,11 @@ jobs:
         name: Archive package (tar.xz)
         path: ${{github.workspace}}/build/fast_*.tar.xz
         if-no-files-found: error
+
+    - name: Upload Python wheel
+      uses: actions/upload-artifact@v2
+      with:
+        name: Python wheel
+        path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        if-no-files-found: error
+
