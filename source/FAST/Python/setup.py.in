@@ -1,6 +1,6 @@
 # coding=utf-8
 import os
-os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.15'
+os.environ['MACOSX_DEPLOYMENT_TARGET'] = '@OSX_DEPLOYMENT_TARGET@'
 from setuptools import setup, Extension
 import os.path
 import sys
@@ -101,7 +101,7 @@ if is_windows:
           }
     additional_libraries = ['OpenCL', '@OPENGL_LIBRARIES@']
 elif is_apple:
-    compile_args = ['-Xclang', '-std=c++17', '-mmacosx-version-min=10.15']
+    compile_args = ['-Xclang', '-std=c++17', '-mmacosx-version-min=@OSX_DEPLOYMENT_TARGET@']
     link_args = ['-bundle', '-Wl,-rpath,@loader_path/../lib', '-framework', 'OpenCL', '-framework', 'OpenGL', '@PYTHON_LIBRARIES@']
     package_data = {'': [
             'lib/plugins.xml',
@@ -120,7 +120,7 @@ elif is_apple:
     additional_libraries = []
     # Override platform tag
     sys.argv.append('--plat-name')
-    sys.argv.append('macosx_10_15_x86_64')
+    sys.argv.append('macosx_' + '@OSX_DEPLOYMENT_TARGET@'.replace('.', '_') + '_x86_64')
 else:
     compile_args = ['-std=c++17']
     link_args = ['-Wl,-rpath=$ORIGIN/../lib']

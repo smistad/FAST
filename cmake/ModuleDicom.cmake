@@ -11,7 +11,7 @@ if(FAST_MODULE_Dicom)
     elseif(APPLE)
         fast_download_dependency(dcmtk
                 3.6.3
-                5a064c7e630aa168fb8e6db1b15883922d1f9d128d285dd3f646737c900cde4e
+                b6994b69cb160f51183c3f86a0670bbfddacb79c6e44f4d66491466cbd6d1936
                 libdcmdata.dylib libdcmimgle.dylib libofstd.dylib liboflog.dylib
                 )
     else()

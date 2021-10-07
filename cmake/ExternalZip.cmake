@@ -9,7 +9,7 @@ if(WIN32)
 elseif(APPLE)
     fast_download_dependency(zip
             0.2.0
-            6374f577629b5f1c5a2b87c241b1080eb060935573aab9342a814d1caf507fe2
+            6a1ed7b737265a50459b418bd5ee6f90463a2edeea73e8378519347ba333ab11
             libzip.a
     )
 else()

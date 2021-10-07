@@ -14,7 +14,7 @@ elseif(APPLE)
 	list(APPEND FAST_INCLUDE_DIRS ${OpenCL_INCLUDE_DIRS})
         fast_download_dependency(opencl
             3.0.8
-            c5ef087702f7f7a1aad9823f47bc5dd2651be46d82cf3a90e39cd38b3ee9ab8b
+            63d72f3af7a3362e48ea45b55c772f2717de55a27de5aaf38e55e0364a4ee45b
         )
 else()
     fast_download_dependency(opencl

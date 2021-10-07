@@ -10,7 +10,7 @@ if(FAST_MODULE_OpenIGTLink)
     elseif(APPLE)
         fast_download_dependency(OpenIGTLink
                 2.1
-                9dbe0a096b6b036a34491f1401ad9d7e6c9e218ecd8af7a7cc558690f97c84ce
+                48f0eb32d45153a3bbb7d6529c4f64a41a618d7df3c6903f82c22b3788324020
                 libOpenIGTLink.dylib
         )
     else()

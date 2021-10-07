@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required(VERSION 3.11)
-
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
 project(FAST)
 
 set(VERSION_MAJOR 4)
@@ -46,7 +46,7 @@ set(FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW "https://github.com/smistad/FAST-d
 if(WIN32)
     set(FAST_DEPENDENCY_TOOLSET msvc142)
 elseif(APPLE)
-    set(FAST_DEPENDENCY_TOOLSET mac)
+    set(FAST_DEPENDENCY_TOOLSET mac${CMAKE_OSX_DEPLOYMENT_TARGET})
 else()
     set(FAST_DEPENDENCY_TOOLSET glibc2.27)
 endif()
