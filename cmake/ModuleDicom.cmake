@@ -8,6 +8,12 @@ if(FAST_MODULE_Dicom)
                 fbb84b29154fbf58833025188dea2c139caa2a5c136a5f48469839f43b9f6e05
                 dcmdata.lib dcmimgle.lib ofstd.lib oflog.lib
         )
+    elseif(APPLE)
+        fast_download_dependency(dcmtk
+                3.6.3
+                5a064c7e630aa168fb8e6db1b15883922d1f9d128d285dd3f646737c900cde4e
+                libdcmdata.dylib libdcmimgle.dylib libofstd.dylib liboflog.dylib
+                )
     else()
         fast_download_dependency(dcmtk
                 3.6.3
