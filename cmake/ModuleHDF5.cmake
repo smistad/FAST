@@ -9,9 +9,9 @@ if(FAST_MODULE_HDF5)
     elseif(APPLE)
         fast_download_dependency(hdf5
                 1.10.6
-                3582967e130f218861f896675dfe4ddc5807caf203237b99d597af9bf3e8e387 # TODO update
-                libhdf5_cpp.dylib
-                )
+                3dfeab5a3143c6f3452629936935810297eba010f706d047ce4da837193ccd2b
+                libhdf5.dylib libhdf5_cpp.dylib
+        )
     else()
         fast_download_dependency(hdf5
                 1.10.6
