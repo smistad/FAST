@@ -305,9 +305,10 @@ void ImagePyramid::setSpacing(Vector3f spacing) {
                 float scaleX = (float)getFullWidth() / getLevelWidth(level);
                 float scaleY = (float)getFullHeight() / getLevelHeight(level);
                 TIFFSetField(m_tiffHandle, TIFFTAG_XRESOLUTION,
-                    1.0f / (spacing.x() / 10) * scaleX); // Convert to cm, and adjust for level
+                    1.0f / (spacing.x() / 10.0f) * scaleX); // Convert to cm, and adjust for level
                 TIFFSetField(m_tiffHandle, TIFFTAG_YRESOLUTION,
-                    1.0f / (spacing.y() / 10) * scaleY); // Convert to cm, and adjust for level
+                    1.0f / (spacing.y() / 10.0f) * scaleY); // Convert to cm, and adjust for level
+                TIFFRewriteDirectory(m_tiffHandle); // Write changes
             }
         }
     }
@@ -318,12 +319,27 @@ Vector3f ImagePyramid::getSpacing() const {
 }
 
 ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> levels, int channels) {
+    if(channels <= 0 || channels > 4)
+        throw Exception("Nr of channels must be between 1 and 4 in ImagePyramid when importing from TIFF");
     m_tiffHandle = fileHandle;
     m_levels = levels;
     m_channels = channels;
     for(int i = 0; i < m_levels.size(); ++i) {
         m_levels[i].tilesX = std::ceil((float)m_levels[i].width / m_levels[i].tileWidth);
         m_levels[i].tilesY = std::ceil((float)m_levels[i].height / m_levels[i].tileHeight);
+    }
+    // Get spacing from TIFF
+    float spacingX;
+    float spacingY;
+    TIFFSetDirectory(fileHandle, 0);
+    int resX = TIFFGetField(fileHandle, TIFFTAG_XRESOLUTION, &spacingX);
+    int resY = TIFFGetField(fileHandle, TIFFTAG_YRESOLUTION, &spacingY);
+    if(resX == 1 && resY == 1) {
+        // Convert from cm
+        spacingX = 1.0f/(spacingX/10.0f);
+        spacingY = 1.0f/(spacingY/10.0f);
+        reportInfo() << "Spacing from TIFF was" << spacingX << " " << spacingY << reportEnd();
+        m_spacing = Vector3f(spacingX, spacingY, 1.0f);
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;

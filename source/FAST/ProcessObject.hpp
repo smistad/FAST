@@ -157,6 +157,14 @@ class FAST_EXPORT  ProcessObject : public Object {
         std::shared_ptr<ProcessObject> connect(std::shared_ptr<DataObject> inputDataObject);
         std::shared_ptr<ProcessObject> connect(uint inputPortID, std::shared_ptr<DataObject> inputDataObject);
         int getLastExecuteToken() const;
+        /**
+         * If set to true, this will only trigger this PO to execute if one of its inputs is marked as being "last frame".
+         * This is useful if one want to export the results of a PatchStitcher, but only when it is complete.
+         *
+         * @param executeOnLastFrameOnly
+         */
+        void setExecuteOnLastFrameOnly(bool executeOnLastFrameOnly);
+        bool getExecuteOnLastFrameOnly() const;
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
@@ -251,6 +259,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         std::unordered_set<std::string> m_lastFrame;
 
         int m_maximumNrOfFrames = -1;
+        bool m_executeOnLastFrameOnly = false;
 
 };
 

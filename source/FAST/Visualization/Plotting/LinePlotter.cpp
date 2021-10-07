@@ -101,17 +101,26 @@ void LinePlotter::processQueue() {
 			} else {
 			    // Shift all values 1 index to the left
 			    // TODO this is inefficient if we have multiple values to add
-				for(int i = 0; i < m_bufferSize - 1; ++i) {
-					for(auto&& data : newDataList) {
-						m_buffer[data.first][i] = m_buffer[data.first][i + 1];
-					}
-					m_xAxis[i] = m_xAxis[i + 1];
-				}
-				// Add new values to the end of buffer
-				for(auto&& data : newDataList) {
-					m_buffer[data.first][m_bufferSize - 1] = data.second.y();
-                    m_xAxis[m_bufferSize - 1] = data.second.x();
-				}
+			    if(m_circularMode) {
+			        // Replace at current location
+                    for(auto&& data : newDataList) {
+                        m_buffer[data.first][m_currentIndex % m_bufferSize] = data.second.y();
+                    }
+                    // TODO how to update x?
+                    //m_xAxis[m_currentIndex % m_bufferSize] = m_currentIndex;
+                } else {
+			        for(int i = 0; i < m_bufferSize - 1; ++i) {
+			            for(auto&& data : newDataList) {
+			                m_buffer[data.first][i] = m_buffer[data.first][i + 1];
+			            }
+			            m_xAxis[i] = m_xAxis[i + 1];
+			        }
+			        // Add new values to the end of buffer
+			        for(auto&& data : newDataList) {
+			            m_buffer[data.first][m_bufferSize - 1] = data.second.y();
+			            m_xAxis[m_bufferSize - 1] = data.second.x();
+			        }
+			    }
 			}
 			++m_currentIndex;
 		}
@@ -130,6 +139,8 @@ void LinePlotter::processQueue() {
 		m_plotterWidget->setX(m_xAxis[0], m_xAxis[m_xAxis.size() - 1]);
 	}
 
+    removeUnusedHorizontalLines();
+
 	// Redraw graph (could also be timer based..)
 	m_plotterWidget->redrawPlot();
 }
@@ -139,11 +150,47 @@ void LinePlotter::setBufferSize(int size) {
 }
 
 void LinePlotter::addHorizontalLine(float x, Color color) {
+    float originalX = x;
+    if(m_circularMode)
+        x = (int)x % m_bufferSize;
     auto infLine = new JKQTPGeoInfiniteLine(m_plotterWidget, x,  0, 0, std::numeric_limits<float>::max());
     infLine->setStyle(QColor(color.getRedValue()*255, color.getGreenValue()*255, color.getBlueValue()*255), 1.5, Qt::PenStyle::DashLine);
     infLine->setTwoSided(true);
+    {
+        std::lock_guard<std::mutex> lock(m_horizontalLinesMutex);
+        m_horizontalLines.push_back(std::make_pair(originalX, infLine));
+    }
     //infLine->setAlpha(0.5);
     m_plotterWidget->addGraph(infLine);
+}
+
+void LinePlotter::removeUnusedHorizontalLines() {
+    std::lock_guard<std::mutex> lock(m_horizontalLinesMutex);
+    std::vector<std::pair<float, JKQTPGeoInfiniteLine*>> keep;
+    for(auto [x, line] : m_horizontalLines) {
+        if(m_circularMode) {
+            if(
+                (int)x % m_bufferSize < m_currentIndex % m_bufferSize &&
+                x < m_currentIndex - (m_currentIndex % m_bufferSize)        // Is line before current x=0 point
+                ) {
+                m_plotterWidget->deleteGraph(line);
+            } else {
+                keep.push_back({x, line});
+            }
+        } else {
+            if(x < m_currentIndex-m_bufferSize) {
+                m_plotterWidget->deleteGraph(line);
+            } else {
+                keep.push_back({x, line});
+            }
+        }
+    }
+    m_horizontalLines = std::move(keep);
+}
+
+void LinePlotter::setCircularMode(bool circular) {
+    m_circularMode = circular;
+    setModified(true);
 }
 
 

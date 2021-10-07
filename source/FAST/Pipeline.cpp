@@ -142,11 +142,16 @@ void Pipeline::parseProcessObject(
 
         std::string name = tokens[1];
 
-        std::shared_ptr<Attribute> attribute = object->getAttribute(name);
-        std::string attributeValues = line.substr(line.find(name) + name.size());
-        trim(attributeValues);
-        attribute->parseInput(attributeValues);
-        reportInfo() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << reportEnd();
+        if(name == "execute-on-last-frame-only") {
+            object->setExecuteOnLastFrameOnly(true);
+            reportInfo() << "Set attribute " << name << " to true for object " << objectID << reportEnd();
+        } else {
+            std::shared_ptr<Attribute> attribute = object->getAttribute(name);
+            std::string attributeValues = line.substr(line.find(name) + name.size());
+            trim(attributeValues);
+            attribute->parseInput(attributeValues);
+            reportInfo() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << reportEnd();
+        }
         ++lineNr;
     }
     --lineNr;
