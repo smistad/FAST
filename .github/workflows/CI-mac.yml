@@ -15,10 +15,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: goanpeca/setup-miniconda@v1
       with:
-        python-version: 3.7
-    
+          architecture: x64
+          python-version: '3.8'
+          # must be explicitly specified if architecture is not x64:
+          miniconda-version: latest
+    - run: |
+          conda create -qyf py36 python=3.6 wheel -c anaconda
+          conda activate py36
+          python setup.py sdist bdist_wheel
+      shell: bash -l {0}
+        
     - name: Install dependencies
       run: |
         brew install openslide libomp
