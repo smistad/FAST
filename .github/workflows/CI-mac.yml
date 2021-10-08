@@ -8,6 +8,7 @@ on:
 
 env:
   BUILD_TYPE: Release
+  MACOSX_DEPLOYMENT_TARGET: 10.13
 
 jobs:
   build:
@@ -15,17 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: actions/setup-python@v2
       with:
-          architecture: x64
-          python-version: '3.8'
-          # must be explicitly specified if architecture is not x64:
-          miniconda-version: latest
-    - run: |
-          conda create -qyf py36 python=3.6 wheel -c anaconda
-          conda activate py36
-          python setup.py sdist bdist_wheel
-      shell: bash -l {0}
+          python-version: 3.6
         
     - name: Install dependencies
       run: |
@@ -52,6 +45,8 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
 
     - name: Build Python wheel
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 10.13
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
 
     - name: Package
