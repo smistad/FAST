@@ -15,6 +15,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
     
     - name: Install dependencies
       run: |
@@ -35,7 +38,6 @@ jobs:
             -DFAST_MODULE_Plotting=OFF \
             -DFAST_MODULE_Python=ON \
             -DFAST_MODULE_RealSense=OFF \
-            -DFAST_Python_Version=3.6 \
             -DFAST_BUILD_EXAMPLES=ON
 
     - name: Build
