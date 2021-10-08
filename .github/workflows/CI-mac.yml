@@ -35,6 +35,7 @@ jobs:
             -DFAST_MODULE_Plotting=OFF \
             -DFAST_MODULE_Python=ON \
             -DFAST_MODULE_RealSense=OFF \
+            -DFAST_Python_Version=3.6 \
             -DFAST_BUILD_EXAMPLES=ON
 
     - name: Build
@@ -59,4 +60,7 @@ jobs:
         name: Python wheel
         path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
         if-no-files-found: error
+
+    - name: System Check
+      run: ${{github.workspace}}/build/systemCheck
 
