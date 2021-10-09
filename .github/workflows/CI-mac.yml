@@ -16,9 +16,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - name: setup pyenv
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 10.13
+      uses: "gabrielfalcao/pyenv-action@v5"
       with:
-          python-version: 3.6
+          default: 3.6.15
         
     - name: Install dependencies
       run: |
