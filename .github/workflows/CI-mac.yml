@@ -22,7 +22,7 @@ jobs:
         MACOSX_DEPLOYMENT_TARGET: 10.13
       uses: "gabrielfalcao/pyenv-action@v5"
       with:
-          default: 3.6.15
+          default: 3.6.9
         
     - name: Install dependencies
       run: |
