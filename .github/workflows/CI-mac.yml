@@ -71,5 +71,5 @@ jobs:
         if-no-files-found: error
 
     - name: System Check
-      run: ${{github.workspace}}/build/systemCheck
+      run: ${{github.workspace}}/build/bin/systemCheck
 
