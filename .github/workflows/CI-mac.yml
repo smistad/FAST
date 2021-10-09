@@ -16,8 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: setup pyenv
+    - name: Setup pyenv
       env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         MACOSX_DEPLOYMENT_TARGET: 10.13
       uses: "gabrielfalcao/pyenv-action@v5"
       with:
