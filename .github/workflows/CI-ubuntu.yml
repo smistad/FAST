@@ -80,6 +80,9 @@ jobs:
         name: Python wheel
         path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
         if-no-files-found: error
-      
+
+#    - name: System Check
+#      run: ${{github.workspace}}/build/systemCheck
+
 #    - name: Test
 #      run: ${{github.workspace}}/build/bin/testFAST [processobject]
