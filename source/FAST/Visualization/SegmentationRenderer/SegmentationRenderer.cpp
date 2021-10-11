@@ -231,7 +231,7 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                     GLint compressedImageSize = 0;
                     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
                     glBindTexture(GL_TEXTURE_2D, 0);
-                    glFinish();
+                    glFinish(); // Make sure texture is done before adding it
 
                     if(mPyramidTexturesToRender.count(tileID) > 0) {
                         // Delete old texture
@@ -483,7 +483,6 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glBindVertexArray(0);
-                glFinish();
             }
         }
         //}

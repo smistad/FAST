@@ -194,7 +194,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 GLint compressedImageSize = 0;
                 glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
                 glBindTexture(GL_TEXTURE_2D, 0);
-                glFinish();
+                glFinish(); // Make sure texture is done before adding it
 
                 {
                     std::lock_guard<std::mutex> lock(m_tileQueueMutex);
@@ -395,7 +395,6 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glBindVertexArray(0);
-                glFinish();
             }
         }
     }
