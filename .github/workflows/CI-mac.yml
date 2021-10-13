@@ -34,7 +34,7 @@ jobs:
       run: |
         cmake -B ${{github.workspace}}/build \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
-            -DFAST_MODULE_OpenVINO=OFF \
+            -DFAST_MODULE_OpenVINO=ON \
             -DFAST_MODULE_Dicom=ON \
             -DFAST_MODULE_WholeSlideImaging=ON \
             -DFAST_MODULE_OpenIGTLink=ON \
