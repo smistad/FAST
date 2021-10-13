@@ -12,6 +12,8 @@ ExternalProject_Add(clarius_headers
 
 if(WIN32)
     set(URL "https://github.com/clariusdev/cast/releases/download/8.0.1/clarius-cast-v801-windows.zip")
+elseif(APPLE)
+    set(URL "https://github.com/clariusdev/cast/releases/download/8.0.1/clarius-cast-v801-macos.zip")
 else()
     set(URL "https://github.com/clariusdev/cast/releases/download/8.0.1/clarius-cast-v801-linux.zip")
 endif()
@@ -35,7 +37,7 @@ ExternalProject_Add(clarius
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/libcast.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/
         DEPENDS clarius_headers
 )
 endif()

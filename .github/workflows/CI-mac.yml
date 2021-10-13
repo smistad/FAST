@@ -38,10 +38,10 @@ jobs:
             -DFAST_MODULE_Dicom=ON \
             -DFAST_MODULE_WholeSlideImaging=ON \
             -DFAST_MODULE_OpenIGTLink=ON \
-            -DFAST_MODULE_Clarius=OFF \
+            -DFAST_MODULE_Clarius=ON \
             -DFAST_MODULE_TensorFlow=OFF \
             -DFAST_MODULE_HDF5=ON \
-            -DFAST_MODULE_Plotting=OFF \
+            -DFAST_MODULE_Plotting=ON \
             -DFAST_MODULE_Python=ON \
             -DFAST_Python_Version="3.6" \
             -DFAST_Python_Include="$(dirname $(pyenv which python))/../include/python3.6m/" \
