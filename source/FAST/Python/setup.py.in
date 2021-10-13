@@ -115,6 +115,8 @@ elif is_apple:
             + get_all_apple_depedencies('fast/lib/', [
                 'libFAST.dylib',
                 'libQt5DBus.5.dylib',
+                'libQt5Xml.5.dylib', # Needed for jkqtplotter
+                'libQt5Svg.5.dylib', # Needed for jkqtplotter
                 # OpenVINO
                 'libInferenceEngineOpenVINO.dylib',
                 'libinference_engine_ir_reader.dylib',
