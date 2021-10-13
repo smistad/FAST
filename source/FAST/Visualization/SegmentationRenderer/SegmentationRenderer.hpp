@@ -28,12 +28,10 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColo
                          LabelColors, colors, = LabelColors(),
                          float, opacity, = 0.5f,
                          float, borderOpacity, = -1.0f,
-                         int, borderRadius, = 2,
-                         bool, interpolation, = true
+                         int, borderRadius, = 2
         )
         void setBorderRadius(int radius);
         void setOpacity(float opacity, float borderOpacity = -1);
-        void setInterpolation(bool useInterpolation);
         void loadAttributes() override;
         virtual ~SegmentationRenderer();
     protected:
@@ -42,7 +40,6 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColo
         void drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) ;
         virtual void deleteAllTextures() override;
 
-        bool mUseInterpolation = true;
         int mBorderRadius = 2;
         float mOpacity = 0.5;
         float mBorderOpacity = 0.5;

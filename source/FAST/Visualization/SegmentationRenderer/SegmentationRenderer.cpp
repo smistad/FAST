@@ -25,12 +25,11 @@ void SegmentationRenderer::loadAttributes() {
     }
 }
 
-SegmentationRenderer::SegmentationRenderer(std::map<uint, Color> labelColors, float opacity, float borderOpacity, int borderRadius, bool interpolation) {
+SegmentationRenderer::SegmentationRenderer(std::map<uint, Color> labelColors, float opacity, float borderOpacity, int borderRadius) {
     createInputPort<Image>(0, false);
     setColors(labelColors);
     setOpacity(opacity, borderOpacity);
     setBorderRadius(borderRadius);
-    setInterpolation(interpolation);
 
     createFloatAttribute("opacity", "Segmentation Opacity", "", mOpacity);
     createFloatAttribute("border-opacity", "Segmentation border opacity", "", -1);
@@ -112,14 +111,14 @@ void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewi
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawTextures(perspectiveMatrix, viewingMatrix, mode2D, mUseInterpolation);
+    drawTextures(perspectiveMatrix, viewingMatrix, mode2D, false);
     glDisable(GL_BLEND);
 }
 
 
 void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar) {
 #ifdef FAST_MODULE_WSI
-        GLuint filterMethod = mUseInterpolation ? GL_LINEAR : GL_NEAREST;
+        GLuint filterMethod = GL_NEAREST;
 
         // TODO move to func?
         auto colorsIndex = glGetUniformBlockIndex(getShaderProgram(), "Colors");
@@ -509,10 +508,6 @@ void SegmentationRenderer::setOpacity(float opacity, float borderOpacity) {
     } else {
         mBorderOpacity = opacity;
     }
-}
-
-void SegmentationRenderer::setInterpolation(bool useInterpolation) {
-    mUseInterpolation = useInterpolation;
 }
 
 void SegmentationRenderer::deleteAllTextures() {
