@@ -115,9 +115,19 @@ elif is_apple:
             + get_all_apple_depedencies('fast/lib/', [
                 'libFAST.dylib',
                 'libQt5DBus.5.dylib',
+                # OpenVINO
+                'libInferenceEngineOpenVINO.dylib',
+                'libinference_engine_ir_reader.dylib',
+                'libinference_engine_ir__v7_reader.dylib',
+                'libinference_engine_onnx_reader.dylib',
+                'libMKLDNNPlugin.dylib',
+                'libmyriadPlugin.dylib',
             ])
           }
     additional_libraries = []
+    # Override platform tag, or it gets tag 10_15 for some reason
+    sys.argv.append('--plat-name')
+    sys.argv.append('macosx_10_13_x86_64')
 else:
     compile_args = ['-std=c++17']
     link_args = ['-Wl,-rpath=$ORIGIN/../lib']
