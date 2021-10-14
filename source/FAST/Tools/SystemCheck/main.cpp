@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QTextEdit>
+#include <FASTVersion.hpp>
 
 using namespace fast;
 
@@ -15,7 +16,7 @@ std::string doCheck() {
     auto deviceManager = DeviceManager::getInstance();
     auto platforms = deviceManager->getPlatforms(DEVICE_PLATFORM_ANY);
     std::stringstream message;
-    message << "FAST SYSTEM CHECK\n\n";
+    message << "FAST v" << getVersion() << " SYSTEM CHECK\n\n";
 
     bool canVisualize = Config::getVisualization();
 
@@ -108,7 +109,7 @@ class SystemCheckWindow : public Window {
     FAST_OBJECT(SystemCheckWindow)
 public:
     SystemCheckWindow() {
-        setTitle("FAST System Check");
+        setTitle("FAST " + getVersion() + " System Check");
         auto message = doCheck();
 
         auto importer = ImageImporter::New();

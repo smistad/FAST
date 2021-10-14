@@ -4,6 +4,7 @@
 #define _USE_MATH_DEFINES
 #include "FAST/Exception.hpp"
 #include "FAST/Reporter.hpp"
+#include "FASTVersion.hpp"
 #include <memory>
 
 

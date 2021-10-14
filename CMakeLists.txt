@@ -157,7 +157,11 @@ if(FAST_BUILD_EXAMPLES)
     endif()
 endif()
 
-
+configure_file(
+    ${PROJECT_SOURCE_DIR}/source/FASTVersion.hpp.in
+    ${PROJECT_BINARY_DIR}/include/FASTVersion.hpp
+    @ONLY
+)
 
 #### Create FAST library and executables
 add_library(FAST SHARED ${FAST_SOURCE_FILES})

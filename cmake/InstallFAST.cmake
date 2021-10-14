@@ -29,6 +29,10 @@ install(FILES ${PROJECT_BINARY_DIR}/FASTExport.hpp
     DESTINATION fast/include
 	COMPONENT fast
 )
+install(FILES ${PROJECT_BINARY_DIR}/FASTVersion.hpp
+	DESTINATION fast/include
+	COMPONENT fast
+)
 if(WIN32)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
 			DESTINATION fast/bin/

@@ -1,0 +1,12 @@
+#pragma once
+
+#define FAST_VERSION_MAJOR @VERSION_MAJOR@
+#define FAST_VERSION_MINOR @VERSION_MINOR@
+#define FAST_VERSION_PATCH @VERSION_PATCH@
+
+namespace fast {
+    static std::string getVersion() {
+        std::string version = "v" + std::to_string(FAST_VERSION_MAJOR) + "."  + std::to_string(FAST_VERSION_MINOR) + "." + std::to_string(FAST_VERSION_PATCH);
+        return version;
+    }
+}

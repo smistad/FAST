@@ -83,8 +83,8 @@ Object::Object() {
 #endif
         std::cout << "\n     - Powered by -     \n"
             "   _______   __________   \n"
-            "  / __/ _ | / __/_  __/   \n"
-            " / _// __ |_\\ \\  / /    https://fast.eriksmistad.no\n"
+            "  / __/ _ | / __/_  __/   https://fast.eriksmistad.no\n"
+            " / _// __ |_\\ \\  / /               v" + getVersion() + "\n"
             "/_/ /_/ |_/___/ /_/       \n\n";
 #if WIN32
         SetConsoleTextAttribute(hStdout, defaultAttributes);
