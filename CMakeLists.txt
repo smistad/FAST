@@ -159,7 +159,7 @@ endif()
 
 configure_file(
     ${PROJECT_SOURCE_DIR}/source/FASTVersion.hpp.in
-    ${PROJECT_BINARY_DIR}/include/FASTVersion.hpp
+    ${PROJECT_BINARY_DIR}/FASTVersion.hpp
     @ONLY
 )
 
