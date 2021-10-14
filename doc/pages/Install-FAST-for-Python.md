@@ -51,6 +51,7 @@ and the [Python examples page](@ref python-examples).
 Troubleshoot
 -------------------
 
+### NumPy Errors
 If you get an error saying something like "ModuleNotFoundError: No module named 'numpy.core._multiarray_umath'" or "ImportError: numpy.core.multiarray failed to import". Try to completely remove numpy and reinstall:  
 Run the following command **multiple times**, until it says "Cannot uninstall numpy..":
 
@@ -62,6 +63,21 @@ Then reinstall numpy:
 
 ```bash
 pip install numpy
+```
+
+### Security warning on Mac OS X
+When you try to run FAST, Mac will give you a security warning because FAST is not code signed (Apple charges money for this..).
+Apple insists on giving you this warning for every binary in the release, you can add an exception for each of them
+**or** you can disable the gatekeeper completely by opening your terminal and writing:
+
+```bash
+sudo spctl --master-disable
+```
+
+You can re-enable the gatekeeper later if you wish:
+
+```bash
+sudo spctl --master-enable
 ```
 
 Uninstall

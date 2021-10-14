@@ -12,7 +12,7 @@
 FAST is an open-source cross-platform framework with the main goal of making it easier to do high-performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
 
 @section get-started Get started
-See installation instructions for [Windows](@ref install-windows), [Ubuntu Linux](@ref install-ubuntu-linux) and [Python](@ref install-python).
+See installation instructions for [Windows](@ref install-windows), [Ubuntu Linux](@ref install-ubuntu-linux), [Mac OS X](@ref install-mac) and [Python](@ref install-python).
 
 To start using the framework, check out the [C++ Intro Tutorial](@ref cpp-tutorial-intro) or the [Python Intro Tutorial](@ref python-tutorial-intro).
 
@@ -26,7 +26,7 @@ Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.
 - **Wide data format support** - FAST supports several data formats (DICOM, metaimage (MHD), regular jpg/png/bmp images, videos, HDF5, VTK polydata, whole slide images, ultrasound file format) and data types (images 2D and 3D, grayscale and color, image pyramids, surface mesh, vertices, lines, text ++).
 - **High performance algorithms** – FAST has several high performance parallel OpenCL implementations of common algorithms, such as marching cubes surface extraction, Gaussian smoothing, non-local means, block matching tracking and seeded region growing.
 - **Fast concurrent visualization** – Rendering and computation are done in separate threads to ensure smooth responsive visualizations. Several types of visualizations are supported both 3D (mesh, point, line, image slice and volume rendering) and 2D (2D image, image slice and segmentation/label rendering, whole slide image (WSI) pyramids).
-- **Interoperability** – FAST can be used with Python and can also be easily integrated into existing Qt applications.
+- **Interoperability** – FAST can be used with python and can also be easily integrated into existing Qt applications.
 
 @section research Research
 
@@ -45,7 +45,7 @@ IEEE Access 2019_
 To setup and build the framework, see the instructions for your operating system:
 - [Linux (Ubuntu)](@ref building-on-linux)
 - [Windows](@ref building-on-windows)
-- [Mac OS X](@ref building-on-mac) Note: Mac OS X version is unstable and not actively maintained anymore due to Apple's decision to stop supporting OpenCL and OpenGL.
+- [Mac OS X](@ref building-on-mac)
 
 @section license License
 

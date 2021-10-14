@@ -5,11 +5,6 @@ Build FAST on Ubuntu Linux {#building-on-linux}
 These instructions are for building FAST on Ubuntu 18.04 or newer (previous versions, such as 16.04, are no longer supported).
 If you only want to test and use FAST, please [download a release](@ref install) instead.
 
-@m_class{m-block m-warning}
-
-@par GCC versions
-    For Ubuntu 20.04, please use GCC 8, and not GCC 9 which will cause OpenVINO build failure.  
-
 Install requirements
 -------------------------
 
