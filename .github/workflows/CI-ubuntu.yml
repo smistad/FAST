@@ -30,7 +30,15 @@ jobs:
         sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
         sudo apt install python3 libpython3-dev python3-pip python3-setuptools
         pip3 install numpy==1.19.5 pylddwrap==1.2.0
-
+        
+    - name: Install CUDA and TensorRT
+      run: |
+        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+        sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+        sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
+        sudo apt-get update
+        sudo apt-get install -y cuda-libraries-dev-11-0 libcudnn8 libnvinfer-dev
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -44,6 +52,7 @@ jobs:
             -DFAST_MODULE_OpenIGTLink=ON \
             -DFAST_MODULE_Clarius=ON \
             -DFAST_MODULE_TensorFlow=ON \
+            -DFAST_MODULE_TensorRT=ON \
             -DFAST_MODULE_HDF5=ON \
             -DFAST_MODULE_Plotting=ON \
             -DFAST_MODULE_Python=ON \
