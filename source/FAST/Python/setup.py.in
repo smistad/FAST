@@ -118,6 +118,7 @@ elif is_apple:
                 'libQt5Xml.5.dylib', # Needed for jkqtplotter
                 'libQt5Svg.5.dylib', # Needed for jkqtplotter
                 # OpenVINO
+                'libInferenceEngineTensorFlow.dylib',
                 'libInferenceEngineOpenVINO.dylib',
                 'libinference_engine_ir_reader.dylib',
                 'libinference_engine_ir__v7_reader.dylib',
