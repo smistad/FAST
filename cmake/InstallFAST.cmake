@@ -170,12 +170,15 @@ install(DIRECTORY ${FAST_SOURCE_DIR}
 	COMPONENT fast
 	FILES_MATCHING PATTERN "*.vert"
 )
-
-# Install GL shaders
 install(DIRECTORY ${FAST_SOURCE_DIR}
 	DESTINATION fast/kernels/
 	COMPONENT fast
 	FILES_MATCHING PATTERN "*.frag"
+)
+install(DIRECTORY ${FAST_SOURCE_DIR}
+	DESTINATION fast/kernels/
+	COMPONENT fast
+	FILES_MATCHING PATTERN "*.geom"
 )
 
 # Install CMake files
