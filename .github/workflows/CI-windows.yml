@@ -122,7 +122,7 @@ jobs:
             -DFAST_MODULE_Clarius=ON `
             -DFAST_MODULE_TensorFlow=ON `
             -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/" `
-            -DTensorRT_ROOT=${{github.workspace}}/trt/ `
+            -DTensorRT_ROOT="${{github.workspace}}/trt/TensorRT-8.0.3.4/" `
             -DFAST_MODULE_TensorRT=ON `
             -DFAST_MODULE_HDF5=ON `
             -DFAST_MODULE_Plotting=ON `
