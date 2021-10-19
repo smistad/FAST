@@ -16,6 +16,8 @@ See installation instructions for [Windows](@ref install-windows), [Ubuntu Linux
 
 To start using the framework, check out the [C++ Intro Tutorial](@ref cpp-tutorial-intro) or the [Python Intro Tutorial](@ref python-tutorial-intro).
 
+Learn best by example? Check out all the examples for [C++](@ref cpp-examples) and [Python](@ref python-examples).
+
 Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
 
 @section features Main features

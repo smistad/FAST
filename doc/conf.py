@@ -14,7 +14,7 @@ LINKS_NAVBAR1 = [
     ])
 ]
 LINKS_NAVBAR2 = [
-    ('<a href="namespacefast.html">API Reference</a>', [
+    ('<a href="modules.html">API Reference</a>', [
         ('<a href="namespacefast.html">API Index</a>',),
         ("API Modules", 'modules'),
         #('<a href="#search">API Search</a>',),

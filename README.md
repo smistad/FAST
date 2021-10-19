@@ -11,6 +11,8 @@ See installation instructions for [Windows](https://fast.eriksmistad.no/install-
 
 To start using the framework, check out the [C++ Intro Tutorial](https://fast.eriksmistad.no/cpp-tutorial-intro.html) or the [Python Intro Tutorial](https://fast.eriksmistad.no/python-tutorial-intro.html).
 
+Learn best by example? Check out all the examples for [C++](https://fast.eriksmistad.no/cpp-examples.html) and [Python](https://fast.eriksmistad.no/python-examples.html).
+
 For more examples and documentation, go to [fast.eriksmistad.no](https://fast.eriksmistad.no).
 
 Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
