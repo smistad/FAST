@@ -100,7 +100,7 @@ jobs:
         repository: "smistad/FAST-secret-dependencies"
         latest: true
         fileName: "*"
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.DOWNLOAD_SECRET_DEPENDENCIES }}
     - name: Install cuDNN and TensorRT
       shell: powershell
       run: |
