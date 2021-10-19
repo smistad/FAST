@@ -30,6 +30,85 @@ jobs:
     - name: Install dependencies
       run: |
           pip3 install numpy==1.19.5
+    - name: Install CUDA
+      shell: powershell
+      run: |
+        $CUDA_KNOWN_URLS = @{
+            "11.0.1" = "http://developer.download.nvidia.com/compute/cuda/11.0.1/network_installers/cuda_11.0.1_win10_network.exe";
+            "11.0.2" = "http://developer.download.nvidia.com/compute/cuda/11.0.2/network_installers/cuda_11.0.2_win10_network.exe";
+            "11.0.3" = "http://developer.download.nvidia.com/compute/cuda/11.0.3/network_installers/cuda_11.0.3_win10_network.exe";
+            "11.1.0" = "https://developer.download.nvidia.com/compute/cuda/11.1.0/network_installers/cuda_11.1.0_win10_network.exe";
+            "11.1.1" = "https://developer.download.nvidia.com/compute/cuda/11.1.1/network_installers/cuda_11.1.1_win10_network.exe";
+            "11.2.0" = "https://developer.download.nvidia.com/compute/cuda/11.2.0/network_installers/cuda_11.2.0_win10_network.exe";
+            "11.2.1" = "https://developer.download.nvidia.com/compute/cuda/11.2.1/network_installers/cuda_11.2.1_win10_network.exe";
+            "11.2.2" = "https://developer.download.nvidia.com/compute/cuda/11.2.2/network_installers/cuda_11.2.2_win10_network.exe";
+            "11.3.0" = "https://developer.download.nvidia.com/compute/cuda/11.3.0/network_installers/cuda_11.3.0_win10_network.exe"
+        }
+
+        $CUDA_PACKAGES_IN = @(
+            "nvcc";
+            "cudart";
+        )
+        $CUDA_VERSION_FULL = "11.0.3"
+        $CUDA_MAJOR=11
+        $CUDA_MINOR=0
+        $CUDA_PATCH=3
+        $CUDA_PACKAGES = ""
+        Foreach ($package in $CUDA_PACKAGES_IN) {
+            # Make sure the correct package name is used for nvcc.
+            if($package -eq "nvcc" -and [version]$CUDA_VERSION_FULL -lt [version]"9.1"){
+                $package="compiler"
+            } elseif($package -eq "compiler" -and [version]$CUDA_VERSION_FULL -ge [version]"9.1") {
+                $package="nvcc"
+            }
+            $CUDA_PACKAGES += " $($package)_$($CUDA_MAJOR).$($CUDA_MINOR)"
+        }
+        echo "$($CUDA_PACKAGES)"
+        $CUDA_REPO_PKG_REMOTE=$CUDA_KNOWN_URLS[$CUDA_VERSION_FULL]
+        $CUDA_REPO_PKG_LOCAL="cuda_$($CUDA_VERSION_FULL)_win10_network.exe"
+
+        Write-Output "Downloading CUDA Network Installer for $($CUDA_VERSION_FULL) from: $($CUDA_REPO_PKG_REMOTE)"
+        Invoke-WebRequest $CUDA_REPO_PKG_REMOTE -OutFile $CUDA_REPO_PKG_LOCAL | Out-Null
+        if(Test-Path -Path $CUDA_REPO_PKG_LOCAL){
+            Write-Output "Downloading Complete"
+        } else {
+            Write-Output "Error: Failed to download $($CUDA_REPO_PKG_LOCAL) from $($CUDA_REPO_PKG_REMOTE)"
+            exit 1
+        }
+
+        # Invoke silent install of CUDA (via network installer)
+        Write-Output "Installing CUDA $($CUDA_VERSION_FULL). Subpackages $($CUDA_PACKAGES)"
+        Start-Process -Wait -FilePath .\"$($CUDA_REPO_PKG_LOCAL)" -ArgumentList "-s $($CUDA_PACKAGES)"
+
+        # Check the return status of the CUDA installer.
+        if (!$?) {
+            Write-Output "Error: CUDA installer reported error. $($LASTEXITCODE)"
+            exit 1 
+        }
+
+        # Store the CUDA_PATH in the environment for the current session, to be forwarded in the action.
+        $CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v$($CUDA_MAJOR).$($CUDA_MINOR)"
+        $CUDA_PATH_VX_Y = "CUDA_PATH_V$($CUDA_MAJOR)_$($CUDA_MINOR)" 
+        # Set environmental variables in this session
+        $env:CUDA_PATH = "$($CUDA_PATH)"
+        $env:CUDA_PATH_VX_Y = "$($CUDA_PATH_VX_Y)"
+        Write-Output "CUDA_PATH $($CUDA_PATH)"
+        Write-Output "CUDA_PATH_VX_Y $($CUDA_PATH_VX_Y)"
+    - name: Download cuDNN and TensorRT
+      uses: robinraju/release-downloader@v1.2
+      with:
+        repository: "smistad/FAST-secret-dependencies"
+        latest: true
+        fileName: "*"
+        token: ${{ secrets.DOWNLOAD_SECRET_DEPENDENCIES }}
+    - name: Install cuDNN and TensorRT
+      shell: powershell
+      run: |
+        Expand-Archive -Path ${{github.workspace}}/cudnn-11.0-windows-x64-v8.0.5.39.zip -DestinationPath ${{github.workspace}}/cudnn/
+        cp ${{github.workspace}}/cudnn/cuda/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
+        cp ${{github.workspace}}/cudnn/cuda/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
+        cp ${{github.workspace}}/cudnn/cuda/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
+        Expand-Archive -Path ${{github.workspace}}/TensorRT-8.0.3.4.Windows10.x86_64.cuda-11.3.cudnn8.2.zip -DestinationPath ${{github.workspace}}/trt/
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -42,6 +121,11 @@ jobs:
             -DFAST_MODULE_OpenIGTLink=ON `
             -DFAST_MODULE_Clarius=ON `
             -DFAST_MODULE_TensorFlow=ON `
+            -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/" `
+            -DTensorRT_ROOT="${{github.workspace}}/trt/TensorRT-8.0.3.4/" `
+            -DTensorRT_parsers_LIBRARY="${{github.workspace}}/trt/TensorRT-8.0.3.4/lib/nvparsers.lib" `
+            -DTensorRT_onnx_parser_LIBRARY="${{github.workspace}}/trt/TensorRT-8.0.3.4/lib/nvonnxparser.lib" `
+            -DFAST_MODULE_TensorRT=ON `
             -DFAST_MODULE_HDF5=ON `
             -DFAST_MODULE_Plotting=ON `
             -DFAST_MODULE_Python=ON `
