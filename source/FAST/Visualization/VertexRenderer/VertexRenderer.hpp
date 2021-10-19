@@ -25,7 +25,7 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
          */
         FAST_CONSTRUCTOR(VertexRenderer,
                          float, size, = 10.0f,
-                         Color, color, = Color::Green(),
+                         Color, color, = Color::Null(),
                          bool, drawOnTop, = false
         );
         uint addInputConnection(DataChannel::pointer port) override;
@@ -51,7 +51,6 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
         float mDefaultPointSize;
         Color mDefaultColor;
         bool mDefaultDrawOnTop;
-        bool mDefaultColorSet;
         std::unordered_map<uint, float> mInputSizes;
         std::unordered_map<uint, Color> mInputColors;
         std::unordered_map<uint, bool> mInputDrawOnTop;

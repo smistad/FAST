@@ -9,14 +9,12 @@ namespace fast {
 
 TEST_CASE("VertexRenderer on LV surface model", "[fast][VertexRenderer][visual]") {
     CHECK_NOTHROW(
-            VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
-            importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
-            VertexRenderer::pointer renderer = VertexRenderer::New();
-            renderer->addInputConnection(importer->getOutputPort());
-            SimpleWindow::pointer window = SimpleWindow::New();
-            window->addRenderer(renderer);
+            auto importer = VTKMeshFileImporter::create(Config::getTestDataPath() + "Surface_LV.vtk");
+            auto renderer = VertexRenderer::create(10.0f);
+            renderer->connect(importer);
+            auto window = SimpleWindow::create()->connect(renderer);
             window->setTimeout(1000);
-            window->start();
+            window->run();
     );
 }
 

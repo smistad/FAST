@@ -28,13 +28,17 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
         if(mInputSizes.count(it.first) > 0) {
             pointSize = mInputSizes[it.first];
         }
+        auto access = points->getVertexBufferObjectAccess(ACCESS_READ);
         bool useGlobalColor = false;
         Color color = Color::Green();
         if(mInputColors.count(it.first) > 0) {
             color = mInputColors[it.first];
             useGlobalColor = true;
-        } else if(mDefaultColorSet) {
+        } else if(!mDefaultColor.isNull()) {
             color = mDefaultColor;
+            useGlobalColor = true;
+        } else if(!access->hasColorVBO()) {
+            color = Color::Green();
             useGlobalColor = true;
         }
         bool drawOnTop;
@@ -50,7 +54,6 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
         setShaderUniform("transform", transform);
         setShaderUniform("pointSize", pointSize);
 
-        auto access = points->getVertexBufferObjectAccess(ACCESS_READ);
         GLuint* coordinateVBO = access->getCoordinateVBO();
 
         // Coordinates buffer
@@ -184,7 +187,6 @@ uint VertexRenderer::addInputData(Mesh::pointer data, Color color, float size) {
 
 void VertexRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
-    mDefaultColorSet = true;
 }
 
 void VertexRenderer::setDefaultSize(float size) {

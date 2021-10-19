@@ -8,10 +8,19 @@ namespace fast {
 class FAST_EXPORT  Color {
     private:
         Vector3f mColorVector;
+        bool m_null = false;
     public:
-        Color() : mColorVector(Vector3f(0, 0, 0)) {};
+        Color() : mColorVector(Vector3f(0, 0, 0)), m_null(true) {};
 
-        Color(float red, float green, float blue) : mColorVector(Vector3f(red, green, blue)) {};
+        Color(float red, float green, float blue) : mColorVector(Vector3f(red, green, blue)), m_null(false) {};
+
+        /**
+         * Whether the color is set or not
+         * @return
+         */
+        bool isNull() const {
+            return m_null;
+        }
 
         static Color fromString(std::string str) {
             std::transform(str.begin(), str.end(), str.begin(),
@@ -46,6 +55,13 @@ class FAST_EXPORT  Color {
         float getBlueValue() const {
             return mColorVector.z();
         }
+        /**
+         * The color Null means NO COLOR, or not set, resulting in isNull() returning true
+         * @return
+         */
+        static Color Null() {
+            return Color();
+        }
         static Color Red() {
             return Color(1,0,0);
         }
@@ -75,7 +91,6 @@ class FAST_EXPORT  Color {
         }
 
 };
-
 
 using LabelColors = std::map<uint, Color>;
 
