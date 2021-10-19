@@ -29,11 +29,13 @@ class FAST_EXPORT ImageFileStreamer : public FileStreamer {
          * @param filenameFormat String of path and format of images. E.g. /path/to/files/frame_#.mhd. The hash sign #
          * will be replaced by an index
          * @param loop Whether to loop the recording or not
+         * @param useTimestamps Whether to use timestamps in image files (if available) when streaming, or just stream as fast as possible
          * @return instance
          */
         FAST_CONSTRUCTOR(ImageFileStreamer,
                          std::string, filenameFormat,,
-                         bool, loop, = false
+                         bool, loop, = false,
+                         bool, useTimestamps, = true
         );
     protected:
         DataObject::pointer getDataFrame(std::string filename) override;

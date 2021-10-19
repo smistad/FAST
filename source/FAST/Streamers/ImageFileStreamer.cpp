@@ -8,11 +8,12 @@ ImageFileStreamer::ImageFileStreamer() {
     createOutputPort(0, "Image");
 }
 
-ImageFileStreamer::ImageFileStreamer(std::string filename, bool loop) {
+ImageFileStreamer::ImageFileStreamer(std::string filename, bool loop, bool useTimestamps) {
     createOutputPort(0, "Image");
     setFilenameFormat(filename);
     if(loop)
         enableLooping();
+    setUseTimestamp(useTimestamps);
 }
 
 DataObject::pointer ImageFileStreamer::getDataFrame(std::string filename) {
