@@ -1,9 +1,9 @@
-Install FAST on Mac OS X {#install-mac}
+Install FAST on Mac OS {#install-mac}
 ======================
 
 Requirements
 -----------------
-To install FAST on Mac OS X, first make sure you have all the necessary requirements:
+To install FAST on Mac OS, first make sure you have all the necessary requirements:
 - Mac OS X 10.13 or newer. Only intel (x86_64) architecture is supported atm.
 - Install [homebrew](https://brew.sh/) if you don't already have it. Install the following packages using homebrew:  
 ```bash

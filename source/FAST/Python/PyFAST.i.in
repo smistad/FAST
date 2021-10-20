@@ -155,6 +155,8 @@ public
 // These must live here due to the shared_ptr
 %template(vectorrenderer) std::vector<std::shared_ptr<fast::Renderer>>;
 %template(vectorpo) std::vector<std::shared_ptr<fast::ProcessObject>>;
+%template(vectorimage) std::vector<std::shared_ptr<fast::Image>>;
+%template(vectortensor) std::vector<std::shared_ptr<fast::Tensor>>;
 
 // Since python is dynamically typed, lets convert DataObjects to the right type before returning
 %pythonappend fast::ProcessObject::runAndGetOutputData(uint) %{

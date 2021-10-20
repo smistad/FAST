@@ -1,4 +1,4 @@
-Build FAST on Mac OS X {#building-on-mac}
+Build FAST on Mac OS {#building-on-mac}
 ==========================
 @tableofcontents
 
