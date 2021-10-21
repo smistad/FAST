@@ -21,9 +21,9 @@ public:
 protected:
     JKQTPlotter* m_plotterWidget;
     QTimer* m_timer;
-public slots:
+public Q_SLOTS:
     virtual void processQueue() = 0;
-signals:
+Q_SIGNALS:
     void newData();
 };
 }

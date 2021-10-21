@@ -20,7 +20,7 @@ public:
     void setBufferSize(int size);
     void addHorizontalLine(float x, Color color = Color::Green());
     void setCircularMode(bool circular);
-public slots:
+public Q_SLOTS:
     void processQueue();
 protected:
     void removeUnusedHorizontalLines();

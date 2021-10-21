@@ -5,4 +5,7 @@ if(FAST_MODULE_Plotting)
         LinePlotter.cpp
         LinePlotter.hpp
     )
+    fast_add_python_interfaces(Plotter.hpp)
+    fast_add_python_shared_pointers(Plotter)
+    fast_add_process_object(LinePlotter LinePlotter.hpp)
 endif()
