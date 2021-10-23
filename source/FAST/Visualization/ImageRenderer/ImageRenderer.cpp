@@ -7,10 +7,8 @@
 
 namespace fast {
 
-ImageRenderer::ImageRenderer(float window, float level) : Renderer() {
+ImageRenderer::ImageRenderer(float level, float window) : Renderer() {
     createInputPort<Image>(0, false);
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.cl", "3D");
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer2D.cl", "2D");
     mIsModified = true;
     mWindow = window;
     mLevel = level;
@@ -95,21 +93,8 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
 
         // If it has not been created, create the texture
 
-        // Determine level and window
-        float window = mWindow;
-        float level = mLevel;
-        // If mWindow/mLevel is equal to -1 use default level/window values
-        if (window == -1) {
-            window = getDefaultIntensityWindow(input->getDataType());
-        }
-        if (level == -1) {
-            level = getDefaultIntensityLevel(input->getDataType());
-        }
 
         OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-
-        // Run kernel to fill the texture
-        cl::CommandQueue queue = device->getCommandQueue();
 
         if(mTexturesToRender.count(inputNr) > 0) {
             // If texture has correct size, we don't need to make a new one
@@ -137,7 +122,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
 
 }
 
-void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation) {
+void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation, bool useWindowLevel) {
     GLuint filterMethod = useInterpolation ? GL_LINEAR : GL_NEAREST;
     for(auto it : mDataToRender) {
         auto input = std::static_pointer_cast<Image>(it.second);
@@ -213,6 +198,21 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
         transformLoc = glGetUniformLocation(getShaderProgram(shaderName), "viewTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
+
+        if(useWindowLevel) {
+            // Determine level and window
+            float window = mWindow;
+            float level = mLevel;
+            // If mWindow/mLevel is equal to -1 use default level/window values
+            if (window == -1) {
+                window = getDefaultIntensityWindow(type);
+            }
+            if (level == -1) {
+                level = getDefaultIntensityLevel(type);
+            }
+            setShaderUniform("window", window, shaderName);
+            setShaderUniform("level", level, shaderName);
+        }
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it.first]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMethod);

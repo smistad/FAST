@@ -111,7 +111,7 @@ void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewi
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawTextures(perspectiveMatrix, viewingMatrix, mode2D, false);
+    drawTextures(perspectiveMatrix, viewingMatrix, mode2D, false, false);
     glDisable(GL_BLEND);
 }
 

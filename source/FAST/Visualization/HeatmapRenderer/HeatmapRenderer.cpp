@@ -233,7 +233,6 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
 }
 
 void HeatmapRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
-
     for(auto it : mDataToRender) {
         auto input = std::static_pointer_cast<Tensor>(it.second);
         uint inputNr = it.first;
@@ -288,6 +287,9 @@ void HeatmapRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewin
     }
 
     activateShader();
+
+    setShaderUniform("window", 1.0f);
+    setShaderUniform("level", 0.5f);
 
     // This is the actual rendering
     for(auto& it : mTensorUsed) {
