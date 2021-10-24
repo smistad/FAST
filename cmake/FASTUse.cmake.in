@@ -39,7 +39,8 @@ if(WIN32)
         )
     endif()
 
-    # Create fast config file
+    # Create fast config file, windows needs this because the DLLs are copied,
+    # so we can't get base path from the DLL path
     set(FILE_CONTENT "
     KernelSourcePath = ${FAST_BINARY_DIR}../kernels/
     DocumentationPath = ${FAST_BINARY_DIR}../doc/
