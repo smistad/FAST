@@ -3,20 +3,24 @@
 
 namespace fast {
 
-IntensityNormalization::IntensityNormalization(float valueLow, float valueHigh) {
+IntensityNormalization::IntensityNormalization(float valueLow, float valueHigh, float minIntensity, float maxIntensity) {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/IntensityNormalization/IntensityNormalization.cl");
     mLow = valueLow;
     mHigh = valueHigh;
+    m_minIntensity = minIntensity;
+    m_maxIntensity = maxIntensity;
 }
 
 void IntensityNormalization::setLowestValue(float value) {
     mLow = value;
+    setModified(true);
 }
 
 void IntensityNormalization::setHighestValue(float value) {
     mHigh = value;
+    setModified(true);
 }
 
 void IntensityNormalization::execute() {
@@ -30,9 +34,14 @@ void IntensityNormalization::execute() {
     const uint depth = input->getDepth();
     cl::NDRange globalSize;
 
-    float minimum = input->calculateMinimumIntensity();
-    float maximum = input->calculateMaximumIntensity();
-
+    float minimum = m_minIntensity;
+    if(std::isnan(minimum)) {
+        minimum = input->calculateMinimumIntensity();
+    }
+    float maximum = m_maxIntensity;
+    if(std::isnan(maximum)) {
+        maximum = input->calculateMaximumIntensity();
+    }
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);
     cl::Kernel kernel;
@@ -78,6 +87,16 @@ void IntensityNormalization::execute() {
     );
 
     addOutputData(0, output);
+}
+
+void IntensityNormalization::setMinimumIntensity(float intensity) {
+    m_minIntensity = intensity;
+    setModified(true);
+}
+
+void IntensityNormalization::setMaximumIntensity(float intensity) {
+    m_maxIntensity = intensity;
+    setModified(true);
 }
 
 } // end namespace fast
