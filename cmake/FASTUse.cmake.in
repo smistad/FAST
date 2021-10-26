@@ -39,12 +39,11 @@ if(WIN32)
         )
     endif()
 
-    # Create fast config file
-    set(FILE_CONTENT "TestDataPath = ${FAST_BINARY_DIR}/data/
+    # Create fast config file, windows needs this because the DLLs are copied,
+    # so we can't get base path from the DLL path
+    set(FILE_CONTENT "
     KernelSourcePath = ${FAST_BINARY_DIR}../kernels/
-    KernelBinaryPath = ${FAST_BINARY_DIR}../kernel_binaries/
     DocumentationPath = ${FAST_BINARY_DIR}../doc/
-    PipelinePath = ${FAST_BINARY_DIR}../pipelines/
     LibraryPath = ${FAST_BINARY_DIR}../bin/
     QtPluginsPath = ${FAST_BINARY_DIR}../plugins/")
     file(WRITE ${PROJECT_BINARY_DIR}/Release/fast_configuration.txt ${FILE_CONTENT})
