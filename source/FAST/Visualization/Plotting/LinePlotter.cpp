@@ -5,7 +5,7 @@
 
 namespace fast {
 
-LinePlotter::LinePlotter(int bufferSize) {
+LinePlotter::LinePlotter(int bufferSize, int updateFrequency, bool circularMode) {
 	createInputPort<FloatScalar>(0);
 
 	//QSettings plotSettings(":/JKQTPlotter/styles/dark.ini", QSettings::IniFormat);;
@@ -16,8 +16,11 @@ LinePlotter::LinePlotter(int bufferSize) {
 
 	QObject::connect(this, &LinePlotter::newData, this, &LinePlotter::processQueue); // Define signal here so that it will happen in the main thread
 	setBufferSize(bufferSize);
+    setCircularMode(circularMode);
+    setUpdateFrequency(updateFrequency);
 }
 
+/*
 uint LinePlotter::addInputConnection(DataChannel::pointer port, std::string name) {
 	uint nr = getNrOfInputConnections();
 	if(nr > 0)
@@ -25,7 +28,7 @@ uint LinePlotter::addInputConnection(DataChannel::pointer port, std::string name
 	setInputConnection(nr, port);
 	m_names[nr] = name;
 	return nr;
-}
+}*/
 
 void LinePlotter::execute() {
 	// Remember: This does not occur in main thread.
@@ -135,7 +138,8 @@ void LinePlotter::processQueue() {
 				globalMax = *max;
 			}
 		}
-		m_plotterWidget->setY(globalMin, globalMax);
+		if(globalMin != std::numeric_limits<double>::max() && globalMax != std::numeric_limits<double>::min())
+            m_plotterWidget->setY(globalMin, globalMax);
 		m_plotterWidget->setX(m_xAxis[0], m_xAxis[m_xAxis.size() - 1]);
 	}
 
@@ -193,5 +197,8 @@ void LinePlotter::setCircularMode(bool circular) {
     setModified(true);
 }
 
+void LinePlotter::setNames(std::map<uint, std::string> names) {
+    m_names = names;
+}
 
 }

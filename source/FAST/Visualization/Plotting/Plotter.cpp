@@ -5,7 +5,9 @@
 namespace fast {
 
 void Plotter::setUpdateFrequency(float frequency) {
-	if(frequency > 0) {
+    if(m_timer != nullptr)
+        delete m_timer;
+    if(frequency > 0) {
 		m_timer = new QTimer(m_plotterWidget);
 		QObject::connect(m_timer, &QTimer::timeout, this, &Plotter::processQueue);
 		m_timer->setSingleShot(false);

@@ -10,12 +10,48 @@ FAST_SIMPLE_DATA_OBJECT(FloatPoint, Vector2f);
 
 // Input data objects: simple data object: float.., create one line per input connection
 // Redraw whenever new data arrives
+/**
+ * @brief Plot lines to a graph Qt widget in real-time
+ *
+ * Inputs:
+ * - *: FloatScalar
+ *
+ * Outputs:
+ * None
+ *
+ * @ingroup plotting
+ */
 class FAST_EXPORT LinePlotter : public Plotter {
-    FAST_PROCESS_OBJECT(LinePlotter);
+    FAST_OBJECT(LinePlotter);
     Q_OBJECT
 public:
-    FAST_CONSTRUCTOR(LinePlotter, int, bufferSize, = 64)
-    uint addInputConnection(DataChannel::pointer channel, std::string name = "");
+    FAST_CONSTRUCTOR(LinePlotter,
+                     int, bufferSize, = 64,
+                     int, updateFrequency, = 15,
+                     bool, circularMode, = true
+    )
+    std::shared_ptr<LinePlotter> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) {
+        if(mInputPorts.count(inputPortID) == 0)
+            createInputPort(inputPortID);
+        return std::dynamic_pointer_cast<LinePlotter>(ProcessObject::connect(inputPortID, parentProcessObject, outputPortID));
+    };
+    std::shared_ptr<LinePlotter> connect(std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) {
+        return LinePlotter::connect(0, parentProcessObject, outputPortID);
+    };
+    std::shared_ptr<LinePlotter> connect(uint inputPortID, std::shared_ptr<DataObject> inputDataObject) {
+        if(mInputPorts.count(inputPortID) == 0)
+            createInputPort(inputPortID);
+        return std::dynamic_pointer_cast<LinePlotter>(ProcessObject::connect(inputPortID, inputDataObject));
+    };
+    std::shared_ptr<LinePlotter> connect(std::shared_ptr<DataObject> inputDataObject) {
+        return LinePlotter::connect(0, inputDataObject);
+    };
+    /**
+     * Set names for each line
+     * @param names
+     */
+    void setNames(std::map<uint, std::string> names);
+    //uint addInputConnection(DataChannel::pointer channel, std::string name = "");
     //uint addInputConnection(DataChannel::pointer channel, std::string name, Color color);
     void setBufferSize(int size);
     void addHorizontalLine(float x, Color color = Color::Green());
