@@ -4,15 +4,13 @@
 import fast
 import matplotlib.pyplot as plt
 
-#fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT) # Uncomment to show debug info
-
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
 importer = fast.WholeSlideImageImporter.create(fast.Config.getTestDataPath() + 'WSI/A05.svs')
 
 tissueSegmentation = fast.TissueSegmentation.create().connect(importer)
 
-patchGenerator = fast.PatchGenerator.create(512, 512)\
+patchGenerator = fast.PatchGenerator.create(512, 512, level=0)\
     .connect(0, importer)\
     .connect(1, tissueSegmentation)
 

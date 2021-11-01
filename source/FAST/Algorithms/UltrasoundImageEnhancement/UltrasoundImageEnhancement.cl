@@ -11,9 +11,10 @@ __kernel void enhance(
     if(intensity < reject)
         intensity = 0.0f;
     // Apply a nonlinear S-curve
-    float k = -0.4;
+    float k = -0.2;
     intensity = (intensity/255.0f)*2.0f-1.0f;
     uchar value  = (uchar)round(255*(((intensity - k*intensity)/(k - 2*k*fabs(intensity)+1))+1.0f)/2.0f);
+    //uchar value = intensity;
     uint4 color = {value, value, value, 255};
     // Apply a hint of blue
     if(value > 0) {

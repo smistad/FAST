@@ -40,9 +40,11 @@ which supports that format. Currently the following formats are supported:
 - OpenVINO Intermediate Representation (IR) -> OpenVINO
 
 You can also manually specify which inference engine you want to use:
-@code{.py}
-network->setInferenceEngine("OpenVINO");
-network->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx");
+@code{.cpp}
+network->load(
+    Config::getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx",
+    {}, {}, "OpenVINO"
+);
 @endcode
 
 Image segmentation
@@ -208,7 +210,7 @@ ImagesToSequence process object as shown in the optical flow example above.
 
 Custom operators and plugins
 -----------------------------
-If your model needs a custom operator, layer or plugin, you can specify these in the NeuralNetwork::load function
+If your model needs a custom operator, layer or plugin, you can specify these in the NeuralNetwork::create function
 when you load your model. Specify the full path to your plugin/operator files (.so/.dll/.xml files), like so:
 
 @code{.cpp}

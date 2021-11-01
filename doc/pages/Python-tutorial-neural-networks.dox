@@ -1,0 +1,254 @@
+namespace fast {
+/** @page python-tutorial-neural-networks Python Neural Networks Tutorial
+@tableofcontents
+
+This is a tutorial for neural network processing in FAST with Python.
+Make sure you already have looked at the [introduction tutorial](@ref python-tutorial-intro).
+
+Load and run a neural network
+-----------------------------
+
+The input and output data of neural networks are called tensors, which are essentially N-dimensional arrays.
+FAST will automatically convert input Image objects to Tensor data objects and feed that
+to the neural network.
+
+@code{.py}
+import fast
+
+# Set up image importer to load an ultrasound image
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + '/US/JugularVein/US-2D_100.mhd')
+
+# Load neural network from a file and connect it to the importer
+network = fast.NeuralNetwork\
+    .create(fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_segmentation.onnx')
+    .connect(importer)
+
+# Run the pipeline and get the resulting tensor
+tensor = network.runAndGetOutputData()
+print('Shape of output tensor is ', tensor.getShape().toString())
+
+@endcode
+
+Create, read and modify FAST tensors using numpy
+-----------------------------
+A FAST tensor can easily be converted to and from numpy's ndarrays:
+
+@code{.py}
+import numpy as np
+
+# Create a FAST Tensor from a numpy ndarray
+tensor = np.random.rand(7, 7) # Random tensor with shape 7,7
+fast_tensor = fast.Tensor.createFromArray(tensor)
+
+# Create a numpy ndarray from a FAST Tensor
+np_tensor = np.asarray(fast_tensor)
+print(np_tensor.shape, np_tensor.dtype)
+@endcode
+
+Inference engines
+-----------------------------
+
+FAST includes three different inference engines, Google's TensorFlow, Intel's OpenVINO and
+NVIDIA's TensorRT. GPU processing with TensorFlow and TensorRT [requires CUDA and cuDNN](@ref requirements).
+
+Depending on the file format of the neural network you load, FAST will select the "best" inference engine
+which supports that format. Currently the following formats are supported:
+- ONNX -> OpenVINO, TensorRT
+- Protobuf (.pb) -> TensorFlow
+- SavedModel -> TensorFlow
+- OpenVINO Intermediate Representation (IR) -> OpenVINO
+
+You can also manually specify which inference engine you want to use:
+@code{.py}
+network = fast.NeuralNetwork.create(
+    fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_segmentation.onnx',
+    inferenceEngine='OpenVINO'
+)
+@endcode
+
+Image segmentation
+-----------------------------
+The output data of the NeuralNetwork process object is tensors. In the case of image segmentation, the shape
+of the output tensor is often H x W x C, where H and W are the height and width of the output segmentation, and
+C is the number of segmentation classes.
+It is possible to visualize this raw segmentation tensor directly as a heatmap using the HeatmapRenderer, but usually you
+want to convert this tensor to a Segmentation image.
+When converting a segmentation tensor to a segmentation image, it is common
+to select the class with maximum confidence with or without a threshold.
+In FAST you can convert from a segmentation tensor to a Segmentation image data object, by using the TensorToSegmentation
+process object, then you can visualize the Segmentation using the SegmentationRenderer, here is a complete example of this:
+
+@code{.py}
+# Set up image importer to load an ultrasound image
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/US/JugularVein/US-2D_100.mhd")
+
+# Load neural network from a file
+network = fast.NeuralNetwork\
+    .create(fast.Config.getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx")\
+    .connect(importer)
+# Add a preprocessing step: multiply each pixel with 1/255, thus normalizing the intensity
+network.setScaleFactor(1.0/255.0)
+
+# Convert tensor to segmentation
+tensor2seg = fast.TensorToSegmentation.create()\
+    .connect(network)
+
+# Setup visualization
+renderer = fast.ImageRenderer.create()\
+    .connect(importer)
+
+# Set colors for each class
+segRenderer = fast.SegmentationRenderer.create(colors={1: fast.Color.Red(), 2: fast.Color.Blue()})\
+    .connect(tensor2seg)
+
+fast.SimpleWindow2D.create()\
+    .connect([renderer, segRenderer])\
+    .run()
+@endcode
+
+For convenience you can also use the SegmentationNetwork process object, which extends NeuralNetwork by applying TensorToSegmentation
+on the output as shown here:
+
+@code{.py}
+# Set up image importer to load an ultrasound image
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + "/US/JugularVein/US-2D_100.mhd")
+
+# Use SegmentationNetwork instead of NeuralNetwork which applies TensorToSegmentation
+network = fast.SegmentationNetwork.create(fast.Config.getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx")\
+    .connect(importer)
+# Add a preprocessing step: multiply each pixel with 1/255, thus normalizing the intensity
+network.setScaleFactor(1.0/255.0)
+
+# Setup visualization
+renderer = fast.ImageRenderer.create().connect(importer)
+
+segRenderer = fast.SegmentationRenderer.create(colors={1: fast.Color.Red(), 2: fast.Color.Blue()})\
+    .connect(network)
+
+fast.SimpleWindow2D.create()\
+    .connect([renderer, segRenderer])\
+    .run()
+@endcode
+
+
+Image classification
+-----------------------------
+
+For image classification you may use the ImageClassificationNetwork convenience class which converts the output tensor to
+a list of class names and confidence values.
+
+Optical flow
+-----------------------------
+
+For optical flow motion estimation you may use the FlowNetwork convenience class which will convert the output tensor to
+a 2 channel Image object. Optical flow networks typically needs 2 consecutive image frames as input, this can be achieved
+using the ImagesToSequence process object.
+You can then visualize the flow image using the VectorFieldRenderer or the VectorFieldColorRenderer.
+Here is an example showing how a streaming pipeline with an optical flow network can look:
+
+@code{.py}
+# Setup image stream
+streamer = fast.ImageFileStreamer.create("path/to/image/sequence/frame_#.mhd")
+
+# Convert image stream to a stream of sequences with length 2
+sequence = fast.ImagesToSequence.create(2)\
+    .connect(streamer)
+
+# Setup neural network
+flowNetwork = fast.FlowNetwork.create("some-flow-network.onnx")\
+    .connect(sequence)
+
+# Setup visualization
+imageRenderer = fast.ImageRenderer.create().connect(streamer)
+
+flowRenderer = fast.VectorFieldColorRenderer.create().connect(flowNetwork)
+
+fast.SimpleWindow2D.create()\
+    .connect([imageRenderer, flowRenderer])\
+    .run()
+@endcode
+
+Bounding box detection
+-----------------------------
+
+For bounding box detection you may use the BoundingBoxNetwork convenience class which converts the output tensor
+to a BoundingBoxSet data object.
+The BoundingBoxSet can be visualized using the BoundingBoxRenderer.
+
+Multi-input and multi-output networks
+-----------------------------
+
+When you load a neural network from file in FAST, it will create an input port and output port for every input and output node in the neural network.
+This enables you to create complex processing pipelines with multi-input and multi-output neural networks.
+
+For example, if you have a NeuralNetwork which takes an image and a tensor as inputs, and provides two output tensors, it may look something like this:
+@code{.py}
+importer = fast.ImageFileImporter.create("someimage.jpg")
+
+tensor = fast.Tensor.createFromArray(np.array([1.0, 0.0, 3.0]).reshape((1,3))
+
+network = fast.NeuralNetwork.create("some-multi-input-output-network.onnx")\
+    .connect(0, importer)\
+    .connect(1, tensor)
+
+network.run() # Run neural network
+
+# Get output data
+tensor1 = network.getOutputData(0)
+tensor2 = network.getOutputData(1)
+@endcode
+
+Batch processing
+-----------------------------
+
+With batch processing of neural networks, you can process several samples at a time.
+This may give a speedup with a GPU, as the samples may processed in parallel and thus utilize the processor more
+efficiently.
+To do batch neural network processing in FAST use the Batch data object, and add your Image or Tensor data objects to it.
+Then give this Batch data object to the NeuralNetwork instead.
+
+@code{.py}
+# Assuming we have 3 image data objects stored in variables image1, image2, image3:
+# Create batch data object, and add the 3 images
+batch = fast.Batch.create([image1, image2, image3])
+
+# Give the batch to your neural network
+neuralNetwork = fast.NeuralNetwork.create("some-neural-network.onnx")\
+    .connect(batch)
+
+# The output will be a Batch object as well, consisting of one output tensor for each input sample
+outputBatch = neuralNetwork.runAndGetOutputData()
+@endcode
+
+Sequence processing
+-----------------------------
+If you have a neural network which process a sequence of images or tensors, you may, in similar way as with batch
+processing, add your Image or Tensor data objects to a Sequence data object.
+
+To create a pipeline which converts an image stream to a stream of sequences with a specific length you can use the
+ImagesToSequence process object as shown in the optical flow example above.
+
+Custom operators and plugins
+-----------------------------
+If your model needs a custom operator, layer or plugin, you can specify these in the NeuralNetwork.create function
+when you load your model. Specify the full path to your plugin/operator files (.so/.dll/.xml files), like so:
+
+@code{.py}
+network = fast.NeuralNetwork.create(
+    "some-network-model.pb",
+    customPlugins=["path/to/plugin1.so", "path/to/plugin2.so"]
+)
+@endcode
+
+
+Next steps
+---------------------
+
+- See more [Python Tutorials](@ref python-tutorials).
+- Check out some [Python Examples](@ref python-examples).
+- Review [Concepts & Glossary](@ref concepts) used in FAST.
+
+*/
+}

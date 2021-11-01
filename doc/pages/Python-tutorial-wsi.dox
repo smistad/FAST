@@ -2,7 +2,7 @@ namespace fast {
 /** @page python-tutorial-wsi Python Whole Slide Image (WSI) Processing Tutorial
 @tableofcontents
 
-This is a tutorial for whole slide image (WSI) processing in FAST with Python.
+This is a tutorial for processing whole slide images (WSI) and other giga-resolution images in FAST with Python.
 
 Whole-slide images (WSI)
 ---------------------
@@ -16,7 +16,7 @@ In FAST, such an image is represented by the ImagePyramid data object.
 Level 0 in the pyramid is the full resolution image W x H, while the next level 1 is
 the same image but with a reduced size, typically half the width and height of the previous
 level (W/2 x H/2). A large image can have many of these levels.
-In addition, every level image is divided into patches, or tiles, where each patch
+In addition, every level image is divided into patches, also called tiles, where each patch
 has a typical size around 256 x 256 pixels.
 When rendering, the appropriate level is used for the current zoom, and only patches
 which are visible in the viewport are loaded into memory.
@@ -29,16 +29,101 @@ Displaying a WSI is done with the ImagePyramidRenderer. The example below shows 
 in the test dataset.
 
 @code{.py}
-importer = fast.WholeSlideImageImporter.create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+importer = fast.WholeSlideImageImporter\
+    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
 
-renderer = fast.ImagePyramidRenderer.create().connect(importer)
+renderer = fast.ImagePyramidRenderer.create()\
+    .connect(importer)
 
-window = fast.SimpleWindow2D.create().connect(renderer)
-window.run()
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+Tissue segmentation
+---------------------
+
+Since large parts of a WSI is typically just glass, we often want to segment
+the actual tissue, to avoid processing the glass parts of the image. FAST provides
+a TissueSegmentation algorithm for this purpose:
+
+@code{.py}
+importer = fast.WholeSlideImageImporter\
+    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+
+tissueSegmentation = fast.TissueSegmentation.create()\
+    .connect(importer)
+
+renderer = fast.ImagePyramidRenderer.create()\
+    .connect(importer)
+
+segmentationRenderer = fast.SegmentationRenderer.create()\
+    .connect(tissueSegmentation)
+
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .connect(segmentationRenderer)\
+    .run()
 @endcode
 
 Patch-wise processing
 ---------------------
+
+Since we can't fit the entire image into memory, processing of these images are
+usually done in patch-wise. To perform patch-wise processing in FAST one can
+use the PatchGenerator which tiles the image using a specified patch size and image pyramid level.
+The PatchGenerator creates a stream Image data objects, here is an example:
+
+@include Python/generate_tissue_patches_from_wsi.py
+
+When performing segmentation and object detection in a patch-wise way, one often get
+bad results at the borders of the patches. This can be dealt with using a certain amount
+of **patch overlap** in the PatchGenerator.
+For example, here 10% overlap is applied on all sides of the patch:
+@code{.py}
+fast.PatchGenerator.create(512, 512, level=0, overlap=0.1)
+@endcode
+This means that 512*10% ~= 51 pixels on all sides of this patch are pixels from the neighbor patches.
+Overlap results in more patches, and thus slower processing of the entire image.
+
+Stitching patches
+---------------------
+
+When performing patch-wise segmentation or classification of large images, we often
+want to stitch the results back together to form a new image pyramid which we can overlay
+on the original WSI. This can be done using the PatchStitcher as shown in this example using
+an image segmentation neural network:
+
+@code{.py}
+importer = fast.WholeSlideImageImporter\
+    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+
+tissueSegmentation = fast.TissueSegmentation.create()\
+    .connect(importer)
+
+generator = fast.PatchGenerator(256, 256, level=0, overlap=0.1)\
+    .connect(importer)\
+    .connect(1, tissueSegmentation)
+
+segmentation = fast.SegmentationNetwork('path/to/segmentation/network.onnx')\
+    .connect(generator)
+
+stitcher = fast.PatchStitcher()\
+    .connect(segmentation)
+
+# Display the stitched segmentation results on top of the WSI
+renderer = fast.ImagePyramidRenderer.create()\
+    .connect(importer)
+
+segmentationRenderer = fast.SegmentationRenderer.create()\
+    .connect(stitcher)
+
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .connect(segmentationRenderer)\
+    .run()
+@endcode
+
 
 Export high-resolution segmentations
 ------------------------------------

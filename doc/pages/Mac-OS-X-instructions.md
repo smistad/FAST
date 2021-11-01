@@ -1,4 +1,4 @@
-Build FAST on Mac OS {#building-on-mac}
+Build FAST on macOS {#building-on-mac}
 ==========================
 @tableofcontents
 
@@ -86,7 +86,7 @@ make -j8 install
 
 Build package
 ----------------------
-To build an archive for Mac OS X package run:
+To build an archive package for macOS run:
 
 ```bash
 make -j8 package
