@@ -20,16 +20,28 @@ namespace fast {
 class FAST_EXPORT ImageFileExporter : public FileExporter {
     FAST_PROCESS_OBJECT(ImageFileExporter)
     public:
+        /**
+         * Create instance
+         *
+         * @param filename Filename to export image to
+         * @param compress Use lossless compression if possible (.mhd/.zraw)
+         * @param resampleIfNeeded If image is not isotropic and target format is standard image (jpg,gif,bmp etc),
+         *      image will be resampled first to be isotropic.
+         * @return instance
+         */
         FAST_CONSTRUCTOR(ImageFileExporter,
                          std::string, filename,,
-                         bool,compress,= false
+                         bool, compress, = false,
+                         bool, resampleIfNeeded, = true
         )
         void setCompression(bool compress);
+        void setResampleIfNeeded(bool resample);
     private:
         ImageFileExporter();
         void execute() override;
 
         bool mCompress = false;
+        bool m_resample = true;
 };
 
 }

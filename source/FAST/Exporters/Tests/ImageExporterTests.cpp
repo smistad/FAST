@@ -29,7 +29,6 @@ TEST_CASE("If 3D image is given as input to ImageExporter it throws exception", 
 }
 
 TEST_CASE("Write 2D image with the ImageExporter", "[fast][ImageExporter]") {
-
     unsigned int width = 32;
     unsigned int height = 46;
     unsigned int channels = 2;
@@ -51,6 +50,27 @@ TEST_CASE("Write 2D image with the ImageExporter", "[fast][ImageExporter]") {
 
     CHECK(width == image2->getWidth());
     CHECK(height == image2->getHeight());
-
 }
 
+
+TEST_CASE("Write anisotropic 2D image with the ImageExporter", "[fast][ImageExporter]") {
+    unsigned int width = 32;
+    unsigned int height = 46;
+    unsigned int channels = 3;
+    DataType type = TYPE_UINT8;
+
+    auto image = Image::create(width,height,type,channels);
+    image->fill(0);
+    image->setSpacing(Vector3f(1.0f, 2.0f, 0.0f));
+
+    auto exporter = ImageExporter::create("ImageExporterTest.jpg");
+    exporter->setInputData(image);
+    exporter->update();
+
+    auto importer = ImageImporter::create("ImageExporterTest.jpg", false);
+    auto image2 = importer->runAndGetOutputData<Image>();
+
+    CHECK(channels == image2->getNrOfChannels());
+    CHECK(width == image2->getWidth());
+    CHECK(height*2 == image2->getHeight());
+}

@@ -10,9 +10,10 @@ namespace fast {
 ImageFileExporter::ImageFileExporter() : ImageFileExporter("") {
 }
 
-ImageFileExporter::ImageFileExporter(std::string filename, bool compress) : FileExporter(filename) {
+ImageFileExporter::ImageFileExporter(std::string filename, bool compress, bool resample) : FileExporter(filename) {
     createInputPort<Image>(0);
     setCompression(compress);
+    setResampleIfNeeded(resample);
 }
 
 inline bool matchExtension(std::string extension, std::string extension2) {
@@ -37,23 +38,18 @@ void ImageFileExporter::execute() {
     } else {
         std::string ext = m_filename.substr(pos + 1);
         if(matchExtension(ext, "mhd")) {
-            MetaImageExporter::pointer exporter = MetaImageExporter::New();
-            exporter->setInputData(input);
-            exporter->setFilename(m_filename);
-            exporter->setCompression(mCompress);
-            exporter->update();
+            auto exporter = MetaImageExporter::create(m_filename, mCompress)
+                    ->connect(input);
+            exporter->run();
         } else if(matchExtension(ext, "jpg") ||
                   matchExtension(ext, "jpeg") ||
                   matchExtension(ext, "png") ||
                   matchExtension(ext, "bmp")) {
-#ifdef FAST_MODULE_VISUALIZATION
-            ImageExporter::pointer exporter = ImageExporter::New();
+            auto exporter = ImageExporter::create(m_filename, m_resample)
+                    ->connect(input);
             exporter->setFilename(m_filename);
             exporter->setInputData(input);
             exporter->update();
-#else
-            throw Exception("The ImageFileExporter needs the visualization module (Qt) to be enabled in order to write image files.");
-#endif
         } else {
             throw Exception("The ImageFileExporter does not recognize the file extension " + ext);
         }
@@ -63,6 +59,10 @@ void ImageFileExporter::execute() {
 
 void ImageFileExporter::setCompression(bool compress) {
     mCompress = compress;
+}
+
+void ImageFileExporter::setResampleIfNeeded(bool resample) {
+    m_resample = resample;
 }
 
 }

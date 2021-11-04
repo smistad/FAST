@@ -6,6 +6,8 @@
 #include "FAST/Data/Image.hpp"
 #ifdef FAST_MODULE_VISUALIZATION
 #include <QImage>
+#include <FAST/Algorithms/ImageResampler/ImageResampler.hpp>
+
 #endif
 
 namespace fast {
@@ -18,13 +20,13 @@ void ImageExporter::loadAttributes() {
 ImageExporter::ImageExporter() : ImageExporter("") {
 }
 
-ImageExporter::ImageExporter(std::string filename) : FileExporter(filename) {
+ImageExporter::ImageExporter(std::string filename, bool resample) : FileExporter(filename) {
     createInputPort<Image>(0);
     createStringAttribute("filename", "Filename", "Path to file to load", filename);
+    m_resample = resample;
 }
 
 void ImageExporter::execute() {
-#ifdef FAST_MODULE_VISUALIZATION
     if(m_filename.empty())
         throw Exception("No filename given to ImageExporter");
 
@@ -32,6 +34,15 @@ void ImageExporter::execute() {
 
     if(input->getDimensions() != 2)
         throw Exception("Input image to ImageExporter must be 2D.");
+
+    Vector3f spacing = input->getSpacing();
+    if(m_resample && spacing.x() != spacing.y()) {
+        // Resample image so that it is isotropic
+        float targetSpacing = std::min(spacing.x(), spacing.y());
+        input = ImageResampler::create(targetSpacing, targetSpacing)
+                ->connect(input)
+                ->runAndGetOutputData<Image>();
+    }
 
     auto format = QImage::Format_RGBA8888;
     int Qchannels = 4;
@@ -99,10 +110,10 @@ void ImageExporter::execute() {
     }
 
     image.save(QString(m_filename.c_str()));
+}
 
-#else
-    throw Exception("The ImageExporter need Qt to work, but the visualization module is disabled");
-#endif
+void ImageExporter::setResampleIfNeeded(bool resample) {
+    m_resample = resample;
 }
 
 }; // end namespace fast

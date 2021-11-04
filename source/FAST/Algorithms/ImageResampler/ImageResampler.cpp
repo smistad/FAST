@@ -62,11 +62,11 @@ void ImageResampler::execute() {
 
     Image::pointer output;
     if(input->getDimensions() == 2) {
-        reportInfo() << "New size for volume in image resampler: " << width << " " << height << reportEnd();
-        output = Image::create(width, height, input->getDataType(), 1);
+        reportInfo() << "New size for image in image resampler: " << width << " " << height << reportEnd();
+        output = Image::create(width, height, input->getDataType(), input->getNrOfChannels());
     } else {
         reportInfo() << "New size for volume in image resampler: " << width << " " << height << " " << depth << reportEnd();
-        output = Image::create(width, height, depth, input->getDataType(), 1);
+        output = Image::create(width, height, depth, input->getDataType(), input->getNrOfChannels());
     }
     output->setSpacing(mSpacing);
 

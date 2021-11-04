@@ -20,11 +20,22 @@ namespace fast {
 class FAST_EXPORT ImageExporter : public FileExporter {
     FAST_PROCESS_OBJECT(ImageExporter)
     public:
-        FAST_CONSTRUCTOR(ImageExporter, std::string, filename,)
+        /**
+         * Create instance
+         * @param filename
+         * @param resampleIfNeeded
+         * @return
+         */
+        FAST_CONSTRUCTOR(ImageExporter,
+                         std::string, filename,,
+                         bool, resampleIfNeeded, = true)
+        void setResampleIfNeeded(bool resample);
         void loadAttributes() override;
     private:
         ImageExporter();
         void execute() override;
+
+        bool m_resample;
 };
 
 
