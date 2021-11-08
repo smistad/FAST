@@ -1,4 +1,4 @@
-## @example pyfast_and_pyside2_with_custom_window.py
+## @example pyfast_and_pyside2_custom_window.py
 # This example demonstrates how to use FAST together with Qt Python GUI with PySide2
 # when a custom QWidget window is used instead of a FAST window
 #
@@ -8,6 +8,7 @@
 #     Do this with: <b>pip install pyside2==5.14.0</b>
 # @endparblock
 #
+# @image html images/examples/python/pyfast_and_pyside_custom_window.jpg width=350px;
 
 from PySide2.QtWidgets import *
 from PySide2.QtOpenGL import QGLWidget

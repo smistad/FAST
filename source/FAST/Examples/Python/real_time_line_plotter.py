@@ -2,6 +2,14 @@
 # This example performs image segmentaton on a stream of ultrasound images with a neural network,
 # calculates the area of the segmentation regions and then plots the area curves over time using the
 # LinePlotter.
+#
+# @m_class{m-block m-warning} @par PySide2 Qt Version
+# @parblock
+#     For this example you <b>must</b> use the same Qt version of PySide2 as used in FAST (5.14.0)
+#     Do this with: <b>pip install pyside2==5.14.0</b>
+# @endparblock
+#
+# @image html images/examples/python/real_time_line_plotter.jpg width=350px;
 
 from PySide2.QtWidgets import *
 import PySide2.QtSvg # Must import this before fast due to conflicting symbols
