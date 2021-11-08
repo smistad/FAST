@@ -198,10 +198,15 @@ public
 %include <FAST/Data/Access/OpenGLTextureAccess.hpp>
 %include <FAST/Visualization/Plane.hpp>
 
+%shared_ptr(fast::SimpleDataObject<fast::InferenceDataList>)
 %shared_ptr(fast::SimpleDataObject<float>)
 %shared_ptr(fast::SimpleDataObject<Vector2f>)
+%shared_ptr(fast::Batch)
+%shared_ptr(fast::Sequence)
 %shared_ptr(fast::FloatScalar)
 %shared_ptr(fast::FloatPoint)
+%template(BatchT) fast::SimpleDataObject<fast::InferenceDataList>;
+%template(SequenceT) fast::SimpleDataObject<fast::InferenceDataList>;
 %template(FloatScalarT) fast::SimpleDataObject<float>;
 %template(FloatPointT) fast::SimpleDataObject<Vector2f>;
 
