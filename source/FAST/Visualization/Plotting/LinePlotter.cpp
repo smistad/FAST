@@ -5,16 +5,36 @@
 
 namespace fast {
 
-LinePlotter::LinePlotter(int bufferSize, int updateFrequency, bool circularMode) {
+LinePlotter::LinePlotter(int bufferSize, int updateFrequency, bool circularMode, PlottingStyle style, std::string styleFilename, bool disableMousePosition) {
 	createInputPort<FloatScalar>(0);
 
 	//QSettings plotSettings(":/JKQTPlotter/styles/dark.ini", QSettings::IniFormat);;
     //JKQTPGetSystemDefaultStyle().loadSettings(plotSettings);
     //JKQTPGetSystemDefaultBaseStyle().loadSettings(plotSettings);
 
-	m_plotterWidget = new JKQTPlotter();
+    if(!styleFilename.empty()) {
+        QSettings plotSettings(styleFilename.c_str(), QSettings::IniFormat);;
+        JKQTPGetSystemDefaultStyle().loadSettings(plotSettings);
+        JKQTPGetSystemDefaultBaseStyle().loadSettings(plotSettings);
+    } else {
+        if(style == PlottingStyle::BRIGHT) {
+            QSettings plotSettings((Config::getDocumentationPath() + "/bright-plotting-style.ini").c_str(), QSettings::IniFormat);;
+            JKQTPGetSystemDefaultStyle().loadSettings(plotSettings);
+            JKQTPGetSystemDefaultBaseStyle().loadSettings(plotSettings);
+        } else {
+            QSettings plotSettings((Config::getDocumentationPath() + "/dark-plotting-style.ini").c_str(), QSettings::IniFormat);;
+            JKQTPGetSystemDefaultStyle().loadSettings(plotSettings);
+            JKQTPGetSystemDefaultBaseStyle().loadSettings(plotSettings);
+        }
+    }
 
-	QObject::connect(this, &LinePlotter::newData, this, &LinePlotter::processQueue); // Define signal here so that it will happen in the main thread
+	m_plotterWidget = new JKQTPlotter();
+    if(style == PlottingStyle::DARK)
+        getPlotterWidget()->getPlotter()->setBackgroundColor("black");
+    if(disableMousePosition)
+        getPlotterWidget()->setMousePositionShown(false);
+
+    QObject::connect(this, &LinePlotter::newData, this, &LinePlotter::processQueue); // Define signal here so that it will happen in the main thread
 	setBufferSize(bufferSize);
     setCircularMode(circularMode);
     setUpdateFrequency(updateFrequency);

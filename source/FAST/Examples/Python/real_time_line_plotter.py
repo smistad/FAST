@@ -9,7 +9,7 @@
 #     Do this with: <b>pip install pyside2==5.14.0</b>
 # @endparblock
 #
-# @image html images/examples/python/real_time_line_plotter.jpg width=350px;
+# @image html images/examples/python/real_time_line_plotter.jpg width=400px;
 
 from PySide2.QtWidgets import *
 import PySide2.QtSvg # Must import this before fast due to conflicting symbols
@@ -56,7 +56,7 @@ segmentationNetwork = fast.SegmentationNetwork.create(
 calculateArea = CalculateArea.create() \
     .connect(segmentationNetwork)
 
-linePlotter = fast.LinePlotter.create(bufferSize=200) \
+linePlotter = fast.LinePlotter.create(bufferSize=200,style=fast.PlottingStyle_DARK) \
     .connect(calculateArea) \
     .connect(1, calculateArea, 1)
 linePlotter.setNames({0: 'Artery area', 1: 'Vein area'})

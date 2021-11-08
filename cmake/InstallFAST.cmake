@@ -203,6 +203,11 @@ install(FILES
 		DESTINATION fast/doc/images/
 		COMPONENT fast
 )
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/doc/
+		DESTINATION fast/doc/
+		COMPONENT fast
+		FILES_MATCHING PATTERN "*.ini"
+)
 
 # Install pipelines
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/pipelines/

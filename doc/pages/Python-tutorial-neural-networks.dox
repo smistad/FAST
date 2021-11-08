@@ -220,6 +220,9 @@ neuralNetwork = fast.NeuralNetwork.create("some-neural-network.onnx")\
 
 # The output will be a Batch object as well, consisting of one output tensor for each input sample
 outputBatch = neuralNetwork.runAndGetOutputData()
+
+# Get tensor list:
+tensors = outputBatch.get().getTensors()
 @endcode
 
 Sequence processing

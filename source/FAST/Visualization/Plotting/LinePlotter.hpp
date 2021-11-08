@@ -8,9 +8,11 @@ namespace fast {
 FAST_SIMPLE_DATA_OBJECT(FloatScalar, float);
 FAST_SIMPLE_DATA_OBJECT(FloatPoint, Vector2f);
 
+enum class PlottingStyle {
+    BRIGHT,
+    DARK
+};
 
-// Input data objects: simple data object: float.., create one line per input connection
-// Redraw whenever new data arrives
 /**
  * @brief Plot lines to a graph Qt widget in real-time
  *
@@ -29,7 +31,10 @@ public:
     FAST_CONSTRUCTOR(LinePlotter,
                      int, bufferSize, = 64,
                      int, updateFrequency, = 15,
-                     bool, circularMode, = true
+                     bool, circularMode, = true,
+                     PlottingStyle, style, = PlottingStyle::BRIGHT,
+                     std::string, styleFilename, = "",
+                     bool, disableShowMousePosition, = true
     )
     std::shared_ptr<LinePlotter> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) {
         if(mInputPorts.count(inputPortID) == 0)
