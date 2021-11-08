@@ -847,4 +847,27 @@ void View::setZoom(float zoom) {
     }
 }
 
+bool View::eventFilter(QObject *object, QEvent *event) {
+    if(event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        keyPressEvent(keyEvent);
+    } else if(event->type() == QEvent::WindowStateChange) {
+        changeEvent(event);
+    }
+    return false;
+}
+
+void View::changeEvent(QEvent *event) {
+    if(event->type() == QEvent::WindowStateChange) {
+        if(isMinimized()) {
+            Reporter::info() << "Window minimized; turning OFF synchronized rendering" << Reporter::end();
+            setSynchronizedRendering(false);
+        } else {
+            Reporter::info() << "Window not minimized; turning ON synchronized rendering" << Reporter::end();
+            setSynchronizedRendering(true);
+        }
+    }
+}
+
+
 } // end namespace fast

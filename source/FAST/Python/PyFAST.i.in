@@ -14,6 +14,7 @@ import $module
 
 
 %module(moduleimport=MODULEIMPORT, directors=1) fast
+#pragma SWIG nowarn=511
 
 
 %{
@@ -147,7 +148,6 @@ public
 %shared_ptr(fast::DataObject)
 %shared_ptr(fast::Transform)
 %shared_ptr(fast::SpatialDataObject)
-%shared_ptr(fast::SimpleDataObject)
 %shared_ptr(fast::DataChannel)
 %shared_ptr(fast::ProcessObject)
 @PYFAST_SHARED_PTR_DEFS@
@@ -198,9 +198,17 @@ public
 %include <FAST/Data/Access/OpenGLTextureAccess.hpp>
 %include <FAST/Visualization/Plane.hpp>
 
+%shared_ptr(fast::SimpleDataObject<float>)
+%shared_ptr(fast::SimpleDataObject<Vector2f>)
+%shared_ptr(fast::FloatScalar)
+%shared_ptr(fast::FloatPoint)
+%template(FloatScalarT) fast::SimpleDataObject<float>;
+%template(FloatPointT) fast::SimpleDataObject<Vector2f>;
+
 @PYFAST_INTERFACE_INCLUDES@
 
 %template(getNextFrame) fast::DataChannel::getNextFrame<fast::DataObject>;
+
 
 // Extend image for numpy support
 %extend fast::Image {
@@ -322,11 +330,6 @@ static float* _intToFloatPointer(std::size_t intPointer) {
 
 %inline %{
 
-#define ADD_GET_INPUT_DATA_METHOD(TYPE)                     \
-    std::shared_ptr<TYPE> getInput ## TYPE (int port = 0) {  \
-        return ProcessObject::getInputData<TYPE>(port);   \
-    };                                                      \
-
 namespace fast {
     class PythonProcessObject : public ProcessObject {
     public:
@@ -355,16 +358,13 @@ namespace fast {
             return ProcessObject::getOutputPort(portID);
         }
 
-        ADD_GET_INPUT_DATA_METHOD(Image)
-        ADD_GET_INPUT_DATA_METHOD(ImagePyramid)
-        ADD_GET_INPUT_DATA_METHOD(Tensor)
-        ADD_GET_INPUT_DATA_METHOD(Mesh)
-        ADD_GET_INPUT_DATA_METHOD(BoundingBox)
-        ADD_GET_INPUT_DATA_METHOD(BoundingBoxSet)
-        ADD_GET_INPUT_DATA_METHOD(Text)
-
         void addOutputData(int port, std::shared_ptr<DataObject> image) {
             ProcessObject::addOutputData(port, image);
+        }
+
+        DataObject::pointer _getInputData(int port = 0) {
+            auto data = ProcessObject::getInputData<DataObject>(port);
+            return data;
         }
 
         void createInputPort(int port) {
@@ -378,14 +378,19 @@ namespace fast {
 } // end namespace
 %}
 
-// Convienience method for PythonProcessObject. Static method New makes it similar to other POs
+// Extend PythonProcessObject with some Python code
 %extend fast::PythonProcessObject {
-
 %pythoncode %{
 @classmethod
 def create(cls, *args, **kwargs):
     instance = cls(*args, **kwargs)
     return instance
+
+def getInputData(self, portID:int=0):
+    val = self._getInputData(portID)
+    className = val.getNameOfClass()
+    val = eval(className + '.fromDataObject')(val)
+    return val
 
 def connect(self, *args):
     inputPortID = 0
@@ -408,7 +413,6 @@ def connect(self, *args):
 
     super().connect(inputPortID, parentProcessObject, outputPortID)
     return self
-
 %}
 }
 

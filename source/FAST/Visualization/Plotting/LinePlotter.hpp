@@ -8,6 +8,7 @@ namespace fast {
 FAST_SIMPLE_DATA_OBJECT(FloatScalar, float);
 FAST_SIMPLE_DATA_OBJECT(FloatPoint, Vector2f);
 
+
 // Input data objects: simple data object: float.., create one line per input connection
 // Redraw whenever new data arrives
 /**

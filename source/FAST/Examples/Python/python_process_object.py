@@ -22,7 +22,7 @@ class Inverter(fast.PythonProcessObject):
 
     def execute(self):
         # Get image and invert it with numpy
-        image = self.getInputImage()
+        image = self.getInputData()
         np_image = np.asarray(image)
         np_image = 255 - np_image # invert
 

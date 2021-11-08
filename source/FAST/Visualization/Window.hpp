@@ -43,6 +43,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
         void enableFullscreen();
         void disableFullscreen();
         void setTitle(std::string);
+        void clearViews();
         std::vector<View*> getViews();
         View* getView(uint i);
         static void cleanup();
@@ -61,8 +62,6 @@ class FAST_EXPORT  Window : public QObject, public Object {
          * @return
          */
         float getScalingFactor() const;
-        void saveScreenshotOnClose(std::string filename);
-        void saveScreenshotOfViewsOnClose(std::string filename);
         QWidget* getWidget();
         /**
          * Add a process object to be updated by the computation thread.
@@ -97,8 +96,7 @@ protected:
         unsigned int mTimeout;
         float mGUIScalingFactor = 1.0f;
         QEventLoop* mEventLoop;
-        ComputationThread* mThread;
-        std::vector<std::shared_ptr<ProcessObject>> m_processObjects;
+        std::shared_ptr<ComputationThread> mThread;
         std::mutex m_mutex;
     private:
         static QGLContext* mMainGLContext;

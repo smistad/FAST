@@ -35,7 +35,7 @@ fast_add_test_sources(
     Tests/ImageTests.cpp
 )
 fast_add_process_object(BoundingBoxSetAccumulator BoundingBox.hpp)
-fast_add_python_interfaces(Image.hpp Mesh.hpp TensorShape.hpp Tensor.hpp Text.hpp MeshVertex.hpp Transform.hpp)
+fast_add_python_interfaces(Image.hpp Mesh.hpp TensorShape.hpp Tensor.hpp Text.hpp MeshVertex.hpp Transform.hpp SimpleDataObject.hpp)
 fast_add_python_shared_pointers(Image BoundingBox BoundingBoxSet Mesh Tensor Segmentation Text)
 
 if(FAST_MODULE_WholeSlideImaging)

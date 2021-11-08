@@ -10,19 +10,29 @@
 
 namespace fast {
 
-class Window;
+class ProcessObject;
+class View;
 
 class FAST_EXPORT  ComputationThread : public QObject, public Object {
     Q_OBJECT
+    FAST_OBJECT_V4(ComputationThread)
     public:
-        ComputationThread(QThread* mainThread);
+        FAST_CONSTRUCTOR(ComputationThread)
         ~ComputationThread();
         bool isRunning();
         void stop();
-        void setWindow(std::weak_ptr<Window> window);
-    public slots:
+        void addView(View* view);
+        void clearViews();
+        View* getView(int index) const;
+        std::vector<View*> getViews() const;
+        void addProcessObject(std::shared_ptr<ProcessObject> po);
+        void clearProcessObjects();
+        std::vector<std::shared_ptr<ProcessObject>> getProcessObjects() const;
+        std::shared_ptr<ProcessObject> getProcessObjects(int index) const;
+        void start();
+    public Q_SLOTS:
         void run();
-    signals:
+    Q_SIGNALS:
         void finished();
     private:
 
@@ -30,9 +40,8 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
         std::condition_variable mUpdateThreadConditionVariable;
         std::mutex mUpdateThreadMutex;
 
-        QThread* mMainThread;
-
-        std::weak_ptr<Window> m_window;
+        std::vector<View*> m_views;
+        std::vector<std::shared_ptr<ProcessObject>> m_processObjects;
 
         bool mStop = false;
 };

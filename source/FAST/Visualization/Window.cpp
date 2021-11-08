@@ -43,7 +43,7 @@ public:
 };
 
 Window::Window() {
-    mThread = NULL;
+    mThread = ComputationThread::create();
     mTimeout = 0;
     initializeQtApp();
 
@@ -198,7 +198,9 @@ void Window::stop() {
 
 View* Window::createView() {
     std::lock_guard<std::mutex> lock(m_mutex);
-    View* view = mWidget->createView();
+    View *view = new View();
+    mWidget->installEventFilter(view); // Forward key presses and changeEvents
+    mThread->addView(view);
 
     return view;
 }
@@ -243,18 +245,13 @@ Window::~Window() {
     //reportInfo() << "Deleting event loop" << Reporter::end();
     //if(mEventLoop != NULL)
     //    delete mEventLoop;
+    mThread->stop();
     reportInfo() << "Deleting widget" << Reporter::end();
     if(mWidget != NULL) {
         delete mWidget;
         mWidget = NULL;
     }
     reportInfo() << "Finished deleting window widget" << Reporter::end();
-    if(mThread != NULL) {
-        mThread->stop();
-        delete mThread;
-        mThread = NULL;
-    }
-
     reportInfo() << "Window destroyed" << Reporter::end();
 }
 
@@ -277,51 +274,23 @@ void Window::setMainGLContext(QGLContext* context) {
 }
 
 void Window::startComputationThread() {
-    if(mThread == NULL) {
-        // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
-        reportInfo() << "Trying to start computation thread" << Reporter::end();
-        mThread = new ComputationThread(QThread::currentThread());
-        QThread* thread = new QThread();
-        mThread->moveToThread(thread);
-        connect(thread, SIGNAL(started()), mThread, SLOT(run()));
-        connect(mThread, SIGNAL(finished()), thread, SLOT(quit()));
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-
-        std::weak_ptr<Window> ptr = std::static_pointer_cast<Window>(mPtr.lock());
-        mThread->setWindow(ptr);
-        QGLContext* mainGLContext = Window::getMainGLContext();
-        if(!mainGLContext->isValid()) {
-            throw Exception("QGL context is invalid!");
-        }
-
-        mainGLContext->doneCurrent();
-        mainGLContext->moveToThread(thread);
-        thread->start();
-        reportInfo() << "Computation thread started" << Reporter::end();
-    }
+    mThread->start();
 }
 
 void Window::stopComputationThread() {
-    if(mThread != NULL) {
+    if(mThread != nullptr) {
         mThread->stop();
-        QGLContext* mainGLContext = Window::getMainGLContext();
-        if(!mainGLContext->isValid()) {
-            throw Exception("QGL context is invalid!");
-        }
-        mainGLContext->moveToThread(QApplication::instance()->thread());
-        delete mThread;
-        mThread = NULL;
     }
 }
 
 std::vector<View*> Window::getViews() {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return mWidget->getViews();
+    return mThread->getViews();
 }
 
 View* Window::getView(uint i) {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return mWidget->getViews().at(i);
+    return mThread->getView(i);
 }
 
 void Window::setWidth(uint width) {
@@ -349,31 +318,23 @@ int Window::getScreenHeight() const {
 	return QGuiApplication::primaryScreen()->geometry().height();
 }
 
-void Window::saveScreenshotOnClose(std::string filename) {
-    mWidget->saveScreenshotOnClose(filename);
-}
-
-void Window::saveScreenshotOfViewsOnClose(std::string filename) {
-    mWidget->saveScreenshotOfViewsOnClose(filename);
-}
-
 QWidget* Window::getWidget() {
     return mWidget;
 }
 
 void Window::addProcessObject(std::shared_ptr<ProcessObject> po) {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_processObjects.push_back(po);
+    mThread->addProcessObject(po);
 }
 
 std::vector<std::shared_ptr<ProcessObject>> Window::getProcessObjects() {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return m_processObjects;
+    return mThread->getProcessObjects();
 }
 
 void Window::clearProcessObjects() {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_processObjects.clear();
+    mThread->clearProcessObjects();
 }
 
 void Window::set2DMode() {
@@ -390,6 +351,10 @@ void Window::set3DMode() {
 
 void Window::run() {
     start();
+}
+
+void Window::clearViews() {
+    mThread->clearViews();
 }
 
 } // end namespace fast

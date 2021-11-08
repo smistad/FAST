@@ -19,7 +19,7 @@ void MultiViewWindow::removeAllRenderers() {
     }
 }
 MultiViewWindow::MultiViewWindow(int viewCount, Color bgcolor, int width, int height, bool verticalMode) {
-    mWidget->clearViews();
+    clearViews();
     for(int i = 0; i < viewCount; i++) {
         auto view = createView();
     }
@@ -70,7 +70,7 @@ void MultiViewWindow::createLayout() {
 }
 
 void MultiViewWindow::addView(View* view) {
-    mWidget->addView(view);
+    mThread->addView(view);
 }
 
 void MultiViewWindow::start() {
