@@ -1,6 +1,5 @@
 ## @example pyfast_and_pyside2_custom_window.py
-# This example demonstrates how to use FAST together with Qt Python GUI with PySide2
-# when a custom QWidget window is used instead of a FAST window
+# This example demonstrates how to use FAST in an existing PySide2 application.
 #
 # @m_class{m-block m-warning} @par PySide2 Qt Version
 # @parblock

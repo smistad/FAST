@@ -205,6 +205,12 @@ View* Window::createView() {
     return view;
 }
 
+void Window::addView(View* view) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    mWidget->installEventFilter(view); // Forward key presses and changeEvents
+    mThread->addView(view);
+}
+
 void Window::start() {
 
 	int screenHeight = getScreenHeight();

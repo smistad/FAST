@@ -46,6 +46,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
         void clearViews();
         std::vector<View*> getViews();
         View* getView(uint i);
+        void addView(View* view);
         static void cleanup();
         /**
          * Get screen width in pixels

@@ -75,6 +75,9 @@ void ComputationThread::run() {
     mainGLContext->doneCurrent();
     mainGLContext->moveToThread(QApplication::instance()->thread());
 
+    // Move this object back to main thread
+    moveToThread(QApplication::instance()->thread());
+
     emit finished();
     reportInfo() << "Computation thread has finished in run()" << Reporter::end();
     {
@@ -112,13 +115,6 @@ void ComputationThread::stop() {
 
     for(auto po : m_processObjects)
         po->stopPipeline();
-
-    // TODO why is this needed? Should already have been done..
-    QGLContext* mainGLContext = Window::getMainGLContext();
-    if(!mainGLContext->isValid()) {
-        throw Exception("QGL context is invalid!");
-    }
-    mainGLContext->moveToThread(QApplication::instance()->thread());
 }
 
 void ComputationThread::start() {

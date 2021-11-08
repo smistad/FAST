@@ -18,6 +18,6 @@ All the Python examples can be found in the [repository](https://github.com/smis
 |[Extract surface mesh from CT volume and render using GPU-based Marching Cubes algorithm](@ref extract_surface_mesh.py)| @image html images/examples/python/extract_surface_and_render.jpg width=350px; |
 |[Inject Python code into a FAST pipeline by creating a custom Python process object](@ref python_process_object.py)| @image html images/examples/python/python_process_object.jpg width=350px; |
 |[Creating a Qt GUI with PySide2 along FAST](@ref pyfast_and_pyside2.py)| @image html images/examples/python/pyfast_and_pyside.jpg width=350px; |
-|[Creating a Qt GUI with PySide2 along FAST using a custom Qt window](@ref pyfast_and_pyside2_custom_window.py)| @image html images/examples/python/pyfast_and_pyside_custom_window.jpg width=350px; |
+|[Using FAST in an existing PySide2 application](@ref pyfast_and_pyside2_custom_window.py)| @image html images/examples/python/pyfast_and_pyside_custom_window.jpg width=350px; |
 |[Real-time line plotting](@ref real_time_line_plotter.py)|  @image html images/examples/python/real_time_line_plotter.jpg width=350px; |
 |[Controlling a FAST surface extraction pipeline with a Qt GUI using PySide2](@ref surface_extraction_gui_with_pyside2.py)|@image html images/examples/python/pyside_surface_extraction.jpg width=350px;|

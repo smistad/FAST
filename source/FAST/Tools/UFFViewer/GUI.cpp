@@ -195,8 +195,8 @@ void UFFViewerWindow::loadView() {
 	stopComputationThread();
 
 	// Remove and delete old views
-	auto views = mWidget->getViews();
-	mWidget->clearViews();
+	auto views = getViews();
+	clearViews();
 	for(auto& view : views) {
 		delete view;
 	}
@@ -215,7 +215,7 @@ void UFFViewerWindow::loadView() {
     // Add all pipeline views to the window:
     for(auto view : pipeline.getViews()) {
         view->setAutoUpdateCamera(true);
-        mWidget->addView(view);
+        addView(view);
     }
 
 	// Recreate the view layout
