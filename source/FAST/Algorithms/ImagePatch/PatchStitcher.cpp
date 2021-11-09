@@ -170,8 +170,6 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
 			auto patchAccess = patch->getOpenCLImageAccess(ACCESS_READ, device);
             auto outputAccess = m_outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
-            std::cout << startX << " " << startY << " " << patchOverlapX << " " << patchOverlapY << std::endl;
-
             cl::Kernel kernel(program, "applyPatch2D");
             kernel.setArg(0, *patchAccess->get2DImage());
             kernel.setArg(1, *outputAccess->get2DImage());
