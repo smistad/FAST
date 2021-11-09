@@ -53,10 +53,13 @@ PatchGenerator::~PatchGenerator() {
 void PatchGenerator::generateStream() {
     Image::pointer previousPatch;
 
+    // TODO implement support for different overlap in different dimensions
     int overlapInPixelsX = (int) std::round(m_overlapPercent * (float) m_width);
     int overlapInPixelsY = (int) std::round(m_overlapPercent * (float) m_height);
+    int overlapInPixelsZ = (int) std::round(m_overlapPercent * (float) m_depth);
     int patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
     int patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
+    int patchDepthWithoutOverlap = m_depth - overlapInPixelsZ * 2;
 
     if(m_inputImagePyramid) {
         if(m_width % 2 != 0 || m_height % 2 != 0)
@@ -162,11 +165,33 @@ void PatchGenerator::generateStream() {
         for(int i = 0; i < 16; ++i)
             transformString += std::to_string(transformData[i]) + " ";
 
-        for(int z = 0; z < depth; z += m_depth) {
-        for(int y = 0; y < height; y += m_height) {
-        for(int x = 0; x < width; x += m_width) {
+        const int patchesX = std::ceil((float) width / (float) patchWidthWithoutOverlap);
+        const int patchesY = std::ceil((float) height / (float) patchHeightWithoutOverlap);
+        const int patchesZ = std::ceil((float) depth / (float) patchDepthWithoutOverlap);
+
+        for(int patchZ = 0; patchZ < patchesZ; ++patchZ) {
+        for(int patchY = 0; patchY < patchesY; ++patchY) {
+        for(int patchX = 0; patchX < patchesX; ++patchX) {
             mRuntimeManager->startRegularTimer("create patch");
-            auto patch = m_inputVolume->crop(Vector3i(x, y, z), Vector3i(m_width, m_height, m_depth), true);
+
+            int patchWidth = m_width;
+            if(patchX*patchWidthWithoutOverlap + patchWidth - overlapInPixelsX >= width) {
+                patchWidth = width - patchX * patchWidthWithoutOverlap + overlapInPixelsX - 1;
+            }
+            int patchHeight = m_height;
+            if(patchY*patchHeightWithoutOverlap + patchHeight - overlapInPixelsY >= height) {
+                patchHeight = height - patchY * patchHeightWithoutOverlap + overlapInPixelsY - 1;
+            }
+            int patchDepth = m_depth;
+            if(patchZ*patchDepthWithoutOverlap + patchDepth - overlapInPixelsZ >= depth) {
+                patchDepth = depth - patchZ * patchDepthWithoutOverlap + overlapInPixelsZ - 1;
+            }
+
+            int x = patchX * patchWidthWithoutOverlap - overlapInPixelsX;
+            int y = patchY * patchHeightWithoutOverlap - overlapInPixelsY;
+            int z = patchZ * patchDepthWithoutOverlap - overlapInPixelsZ;
+
+            auto patch = m_inputVolume->crop(Vector3i(x, y, z), Vector3i(patchWidth, patchHeight, patchDepth), true);
             patch->setFrameData("original-width", std::to_string(width));
             patch->setFrameData("original-height", std::to_string(height));
             patch->setFrameData("original-depth", std::to_string(depth));
@@ -177,12 +202,12 @@ void PatchGenerator::generateStream() {
             patch->setFrameData("patch-width", std::to_string(m_width));
             patch->setFrameData("patch-height", std::to_string(m_height));
             patch->setFrameData("patch-depth", std::to_string(m_depth));
-            patch->setFrameData("patchid-x", std::to_string(x/m_width));
-            patch->setFrameData("patchid-y", std::to_string(y/m_height));
-            patch->setFrameData("patchid-z", std::to_string(z/m_depth));
-            patch->setFrameData("patch-overlap-x", std::to_string(0));
-            patch->setFrameData("patch-overlap-y", std::to_string(0));
-            patch->setFrameData("patch-overlap-z", std::to_string(0));
+            patch->setFrameData("patchid-x", std::to_string(patchX));
+            patch->setFrameData("patchid-y", std::to_string(patchY));
+            patch->setFrameData("patchid-z", std::to_string(patchZ));
+            patch->setFrameData("patch-overlap-x", std::to_string(overlapInPixelsX));
+            patch->setFrameData("patch-overlap-y", std::to_string(overlapInPixelsY));
+            patch->setFrameData("patch-overlap-z", std::to_string(overlapInPixelsZ));
             Vector3f spacing = m_inputVolume->getSpacing();
             patch->setFrameData("patch-spacing-x", std::to_string(spacing.x()));
             patch->setFrameData("patch-spacing-y", std::to_string(spacing.y()));
