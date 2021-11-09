@@ -103,6 +103,8 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
     try {
         fullDepth = std::stoi(patch->getFrameData("original-depth"));
         patchSpacingZ = std::stof(patch->getFrameData("patch-spacing-z"));
+        if(fullDepth == 1)
+            is3D = false;
     } catch(Exception &e) {
         // If exception: is a 2D image
         is3D = false;
@@ -152,6 +154,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     if(fullDepth == 1) {
+        // 2D
 		reportInfo() << "Stitching 2D data " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y")
 			<< reportEnd();
 
@@ -161,6 +164,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         const int startX = std::stoi(patch->getFrameData("patchid-x")) * (std::stoi(patch->getFrameData("patch-width")) - patchOverlapX*2); // TODO + overlap to compensate for start offset
         const int startY = std::stoi(patch->getFrameData("patchid-y")) * (std::stoi(patch->getFrameData("patch-height")) - patchOverlapY*2);
         if(m_outputImage) {
+            // 2D image
             cl::Program program = getOpenCLProgram(device, "2D");
 
 			auto patchAccess = patch->getOpenCLImageAccess(ACCESS_READ, device);
@@ -183,6 +187,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 cl::NullRange
             );
         } else {
+            // 2D image pyramid
             if(patch->getWidth() <= patchOverlapX*2 || patch->getHeight() <= patchOverlapY*2) // Image to small..
                 return;
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);

@@ -53,15 +53,16 @@ PatchGenerator::~PatchGenerator() {
 void PatchGenerator::generateStream() {
     Image::pointer previousPatch;
 
+    int overlapInPixelsX = (int) std::round(m_overlapPercent * (float) m_width);
+    int overlapInPixelsY = (int) std::round(m_overlapPercent * (float) m_height);
+    int patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
+    int patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
+
     if(m_inputImagePyramid) {
         if(m_width % 2 != 0 || m_height % 2 != 0)
             throw Exception("Patch size must be dividable by 2");
         const int levelWidth = m_inputImagePyramid->getLevelWidth(m_level);
         const int levelHeight = m_inputImagePyramid->getLevelHeight(m_level);
-        int overlapInPixelsX = (int) std::round(m_overlapPercent * (float) m_width);
-        int overlapInPixelsY = (int) std::round(m_overlapPercent * (float) m_height);
-        int patchWidthWithoutOverlap = m_width - overlapInPixelsX * 2;
-        int patchHeightWithoutOverlap = m_height - overlapInPixelsY * 2;
         const int TIFFmultiplumCriteria = 16;
         if(patchWidthWithoutOverlap % TIFFmultiplumCriteria > 0 || patchHeightWithoutOverlap % TIFFmultiplumCriteria > 0) {
             // Resulting patch size must be a multiple of 16
@@ -153,7 +154,6 @@ void PatchGenerator::generateStream() {
             }
         }
     } else if(m_inputVolume) {
-        // TODO Support patching in x and y direction as well for volumes. For now, only depth
         const int width = m_inputVolume->getWidth();
         const int height = m_inputVolume->getHeight();
         const int depth = m_inputVolume->getDepth();
@@ -163,15 +163,26 @@ void PatchGenerator::generateStream() {
             transformString += std::to_string(transformData[i]) + " ";
 
         for(int z = 0; z < depth; z += m_depth) {
+        for(int y = 0; y < height; y += m_height) {
+        for(int x = 0; x < width; x += m_width) {
             mRuntimeManager->startRegularTimer("create patch");
-            auto patch = m_inputVolume->crop(Vector3i(0, 0, z), Vector3i(width, height, m_depth), true);
+            auto patch = m_inputVolume->crop(Vector3i(x, y, z), Vector3i(m_width, m_height, m_depth), true);
             patch->setFrameData("original-width", std::to_string(width));
             patch->setFrameData("original-height", std::to_string(height));
             patch->setFrameData("original-depth", std::to_string(depth));
             patch->setFrameData("original-transform", transformString);
-            patch->setFrameData("patch-offset-x", std::to_string(0));
-            patch->setFrameData("patch-offset-y", std::to_string(0));
+            patch->setFrameData("patch-offset-x", std::to_string(x));
+            patch->setFrameData("patch-offset-y", std::to_string(y));
             patch->setFrameData("patch-offset-z", std::to_string(z));
+            patch->setFrameData("patch-width", std::to_string(m_width));
+            patch->setFrameData("patch-height", std::to_string(m_height));
+            patch->setFrameData("patch-depth", std::to_string(m_depth));
+            patch->setFrameData("patchid-x", std::to_string(x/m_width));
+            patch->setFrameData("patchid-y", std::to_string(y/m_height));
+            patch->setFrameData("patchid-z", std::to_string(z/m_depth));
+            patch->setFrameData("patch-overlap-x", std::to_string(0));
+            patch->setFrameData("patch-overlap-y", std::to_string(0));
+            patch->setFrameData("patch-overlap-z", std::to_string(0));
             Vector3f spacing = m_inputVolume->getSpacing();
             patch->setFrameData("patch-spacing-x", std::to_string(spacing.x()));
             patch->setFrameData("patch-spacing-y", std::to_string(spacing.y()));
@@ -192,7 +203,7 @@ void PatchGenerator::generateStream() {
             std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop)
                 break;
-        }
+        }}}
     } else {
         throw Exception("Unsupported data object given to PatchGenerator");
     }
