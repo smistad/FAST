@@ -77,8 +77,10 @@ void ImageFileImporter::execute() {
         } else if(matchExtension(ext, "jpg") ||
                   matchExtension(ext, "jpeg") ||
                   matchExtension(ext, "png") ||
-                  matchExtension(ext, "bmp")) {
-#ifdef FAST_MODULE_VISUALIZATION
+                  matchExtension(ext, "bmp") ||
+                  matchExtension(ext, "tif") ||
+                  matchExtension(ext, "tiff")
+                ) {
             auto importer = ImageImporter::New();
             importer->setFilename(m_filename);
             importer->setMainDevice(getMainDevice());
@@ -86,9 +88,6 @@ void ImageFileImporter::execute() {
             importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
-#else
-            throw Exception("The ImageFileImporter needs the visualization module (Qt) to be enabled in order to read image files.");
-#endif
         } else {
             throw Exception("The ImageFileImporter does not recognize the file extension " + ext);
         }
