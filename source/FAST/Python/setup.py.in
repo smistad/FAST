@@ -33,7 +33,7 @@ def get_all_linux_depedencies(path, libraries):
                 if dep.soname is None: continue
                 if dep.soname in libraries_in_path or dep.soname.startswith('libFAST.so'):
                     result.append(os.path.join(path[5:], dep.soname))
-        except RuntimError:
+        except RuntimeError:
             pass
     return result
 
