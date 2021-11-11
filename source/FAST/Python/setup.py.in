@@ -117,6 +117,7 @@ elif is_apple:
                 'libQt5DBus.5.dylib',
                 'libQt5Xml.5.dylib', # Needed for jkqtplotter
                 'libQt5Svg.5.dylib', # Needed for jkqtplotter
+                'libcast.dylib',
                 # OpenVINO
                 'libInferenceEngineTensorFlow.dylib',
                 'libInferenceEngineOpenVINO.dylib',
@@ -146,7 +147,8 @@ else:
             + get_all_linux_depedencies('fast/lib/', [
                 'libFAST.so', 
                 'libQt5XcbQpa.so.5', 
-                'libQt5MultimediaGstTools.so.5', 
+                'libQt5MultimediaGstTools.so.5',
+                'libcast.so',
                 # OpenVINO
                 'libInferenceEngineOpenVINO.so',
                 'libinference_engine_ir_reader.so',
