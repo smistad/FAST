@@ -166,6 +166,8 @@ ImagePyramid::ImagePyramid() {
 ImagePyramidLevel ImagePyramid::getLevelInfo(int level) {
     /*if(!m_initialized)
         throw Exception("ImagePyramid has not been initialized.");*/ // TODO why does this fail?
+    if(level < 0) // Negative level means last level (lowest resolution)
+        level = getNrOfLevels()-1;
     if(level < 0 || level > m_levels.size()-1)
         throw Exception("Level " + std::to_string(level) + " doesn't exist in ImagePyramid. Pyramid has " + std::to_string(m_levels.size()) + " levels");
     return m_levels[level];
