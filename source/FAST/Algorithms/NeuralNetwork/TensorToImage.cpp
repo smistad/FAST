@@ -39,18 +39,18 @@ void TensorToImage::execute() {
         if(outputDepth == 1) {
             auto tensorData = access->getData<3>();
             for(int channel : m_channels) {
-                Eigen::array<long, 3> offsets = {0, 0, channel};
-                Eigen::array<long, 3> extents = {outputHeight, outputWidth, 1};
-                Eigen::Tensor<float, 3, Eigen::RowMajor, long> res = tensorData.slice(offsets, extents);
+                Eigen::array<int, 3> offsets = {0, 0, channel};
+                Eigen::array<int, 3> extents = {outputHeight, outputWidth, 1};
+                Eigen::Tensor<float, 3, Eigen::RowMajor, int> res = tensorData.slice(offsets, extents);
                 std::memcpy(&newTensorData[outputWidth*outputHeight*channel], res.data(), sizeof(float)*outputWidth*outputHeight);
             }
             image = Image::create(outputWidth, outputHeight, TYPE_FLOAT, m_channels.size(), std::move(newTensorData));
         } else {
             auto tensorData = access->getData<4>();
             for(int channel : m_channels) {
-                Eigen::array<long, 4> offsets = {0, 0, 0, channel};
-                Eigen::array<long, 4> extents = {outputDepth, outputHeight, outputWidth, 1};
-                Eigen::Tensor<float, 4, Eigen::RowMajor, long> res = tensorData.slice(offsets, extents);
+                Eigen::array<int, 4> offsets = {0, 0, 0, channel};
+                Eigen::array<int, 4> extents = {outputDepth, outputHeight, outputWidth, 1};
+                Eigen::Tensor<float, 4, Eigen::RowMajor, int> res = tensorData.slice(offsets, extents);
                 std::memcpy(&newTensorData[outputWidth*outputHeight*outputDepth*channel], res.data(), sizeof(float)*outputWidth*outputHeight*outputDepth);
             }
             image = Image::create(outputWidth, outputHeight, outputDepth, TYPE_FLOAT, m_channels.size(), std::move(newTensorData));

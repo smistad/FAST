@@ -8,7 +8,7 @@ namespace fast {
 
 // Rename the Eigen float tensor for simplicity
 template<int NumDimensions>
-using TensorData = Eigen::TensorMap<Eigen::Tensor<float, NumDimensions, Eigen::RowMajor>>;
+using TensorData = Eigen::TensorMap<Eigen::Tensor<float, NumDimensions, Eigen::RowMajor, int>>;
 
 class Tensor;
 
@@ -35,7 +35,7 @@ TensorData<NumDimensions> TensorAccess::getData() const {
         throw Exception("Dimension mismatch for Eigen tensor in TensorAccess::getData<#Dimension>().");
 
     // Construct eigen shape
-    Eigen::array<int64_t, NumDimensions> sizes;
+    Eigen::array<int, NumDimensions> sizes;
     for(int i = 0; i < m_shape.getDimensions(); ++i)
         sizes[i] = m_shape[i];
 
