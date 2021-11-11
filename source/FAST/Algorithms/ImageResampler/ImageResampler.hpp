@@ -12,10 +12,10 @@ class FAST_EXPORT  ImageResampler : public ProcessObject {
 public:
     /**
      * @brief Create instance
-     * @param spacingX
-     * @param spacingY
-     * @param spacingZ
-     * @param useInterpolation
+     * @param spacingX Pixel spacing in x direction
+     * @param spacingY Pixel spacing in y direction
+     * @param spacingZ Pixel spacing in z direction
+     * @param useInterpolation Whether to use linear interpolation, or just nearest neighbor.
      * @return instance
      */
     FAST_CONSTRUCTOR(ImageResampler,

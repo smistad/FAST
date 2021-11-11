@@ -22,6 +22,10 @@ class Image;
 class FAST_EXPORT HounsefieldConverter : public ProcessObject {
     FAST_PROCESS_OBJECT(HounsefieldConverter)
     public:
+        /**
+         * @brief Create instance
+         * @return instance
+         */
         FAST_CONSTRUCTOR(HounsefieldConverter);
     private:
         void execute();

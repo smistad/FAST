@@ -20,6 +20,10 @@ namespace fast {
 class FAST_EXPORT  SetTransformation : public ProcessObject {
     FAST_PROCESS_OBJECT(SetTransformation)
     public:
+        /**
+         * @brief Create instance
+         * @return instance
+         */
         FAST_CONSTRUCTOR(SetTransformation);
     private:
         void execute();

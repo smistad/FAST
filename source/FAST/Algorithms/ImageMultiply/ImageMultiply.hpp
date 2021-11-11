@@ -10,6 +10,10 @@ namespace fast {
 class FAST_EXPORT  ImageMultiply : public ProcessObject {
     FAST_PROCESS_OBJECT(ImageMultiply)
     public:
+        /**
+         * @brief Create instance
+         * @return instance
+         */
         FAST_CONSTRUCTOR(ImageMultiply);
     private:
         void execute();

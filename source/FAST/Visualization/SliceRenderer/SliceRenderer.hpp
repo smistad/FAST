@@ -20,10 +20,28 @@ class ImageSlicer;
 class FAST_EXPORT  SliceRenderer : public ImageRenderer {
     FAST_PROCESS_OBJECT(SliceRenderer)
     public:
+        /**
+         * @brief Create instance
+         *
+         * Slice a 3D image with an orthogonal slice plane. Default slice nr is the center slice.
+         *
+         * @param orthogonalSlicePlane Which orthogonal slice plane to use X/Y/Z
+         * @param sliceNr Which slice nr to extract, must be smaller than size of the slicing dimension.
+         *      If negative center slice will be used
+         * @return instance
+         */
         FAST_CONSTRUCTOR(SliceRenderer,
                          PlaneType, orthogonalSlicePlane,,
                          int, sliceNr, = -1
         )
+        /**
+         * @brief Create instance
+         *
+         * Slice a volume with an arbitrary slice plane defined by Plane.
+         *
+         * @param arbitrarySlicePlane
+         * @return instance
+         */
         FAST_CONSTRUCTOR(SliceRenderer,
                          Plane, arbitrarySlicePlane,)
         uint addInputConnection(DataChannel::pointer port) override;

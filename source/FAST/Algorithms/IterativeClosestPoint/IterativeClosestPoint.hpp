@@ -14,6 +14,16 @@ class FAST_EXPORT  IterativeClosestPoint : public ProcessObject {
     FAST_PROCESS_OBJECT(IterativeClosestPoint)
     public:
         typedef enum { RIGID, TRANSLATION } TransformationType;
+        /**
+         * @brief Create instance
+         *
+         * @param type The type of transformation
+         * @param maxIterations Maximum nr of iterations to run
+         * @param minErrorChange Stopping criterion. If change in error is less than this number for an iteration, ICP will stop.
+         * @param distanceThreshold If specified, do not accept points that are further away than this threshold.
+         * @param randomSamplingPoints If specified, ICP will sample this many points at random to match instead of all points.
+         * @return instance
+         */
         FAST_CONSTRUCTOR(IterativeClosestPoint,
                          TransformationType, type, = RIGID,
                          int, maxIterations, = 100,

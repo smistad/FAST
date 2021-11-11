@@ -12,6 +12,12 @@ namespace fast {
 class FAST_EXPORT ImagePyramidLevelExtractor : public ProcessObject {
     FAST_PROCESS_OBJECT(ImagePyramidLevelExtractor)
     public:
+        /**
+         * @brief Create instance
+         * @param level Specify which level to extract from image pyramid. Negative level means last level,
+         *      e.g. lowest resolution(default).
+         * @return instance
+         */
         FAST_CONSTRUCTOR(ImagePyramidLevelExtractor, int, level, = -1);
         void setLevel(int level);
         void loadAttributes();
