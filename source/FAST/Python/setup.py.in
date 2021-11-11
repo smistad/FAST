@@ -27,11 +27,14 @@ def get_all_linux_depedencies(path, libraries):
         if not os.path.exists(os.path.join(path, library)): continue
         if not library.startswith('libFAST.so'):
             result.append(os.path.join(path[5:], library))
-        deps = lddwrap.list_dependencies(path=pathlib.Path(os.path.join(path, library)))
-        for dep in deps:
-            if dep.soname is None: continue
-            if dep.soname in libraries_in_path or dep.soname.startswith('libFAST.so'):
-                result.append(os.path.join(path[5:], dep.soname))
+        try:
+            deps = lddwrap.list_dependencies(path=pathlib.Path(os.path.join(path, library)))
+            for dep in deps:
+                if dep.soname is None: continue
+                if dep.soname in libraries_in_path or dep.soname.startswith('libFAST.so'):
+                    result.append(os.path.join(path[5:], dep.soname))
+        except RuntimError:
+            pass
     return result
 
 def get_all_apple_depedencies(path, libraries):
