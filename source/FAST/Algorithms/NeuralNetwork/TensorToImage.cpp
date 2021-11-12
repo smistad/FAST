@@ -38,11 +38,13 @@ void TensorToImage::execute() {
         auto newTensorData = make_uninitialized_unique<float[]>(outputWidth*outputHeight*outputDepth*m_channels.size());
         if(outputDepth == 1) {
             auto tensorData = access->getData<3>();
+            int counter = 0;
             for(int channel : m_channels) {
                 Eigen::array<int, 3> offsets = {0, 0, channel};
                 Eigen::array<int, 3> extents = {outputHeight, outputWidth, 1};
                 Eigen::Tensor<float, 3, Eigen::RowMajor, int> res = tensorData.slice(offsets, extents);
-                std::memcpy(&newTensorData[outputWidth*outputHeight*channel], res.data(), sizeof(float)*outputWidth*outputHeight);
+                std::memcpy(&newTensorData[outputWidth*outputHeight*counter], res.data(), sizeof(float)*outputWidth*outputHeight);
+                ++counter;
             }
             image = Image::create(outputWidth, outputHeight, TYPE_FLOAT, m_channels.size(), std::move(newTensorData));
         } else {
