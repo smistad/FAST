@@ -16,7 +16,23 @@ void TIFFImagePyramidExporter::execute() {
     if(m_filename.empty())
         throw Exception("Must set filename in TIFFImagePyramidExporter");
 
-    auto imagePyramid = getInputData<ImagePyramid>();
+    auto input = getInputData<DataObject>();
+    auto imagePyramid = std::dynamic_pointer_cast<ImagePyramid>(input);
+    if(imagePyramid == nullptr) {
+        reportInfo() << "Data given to TIFFImagePyramidExporter was an Image, not an ImagePyramid, converting ..." << reportEnd();
+        auto image = std::dynamic_pointer_cast<Image>(input);
+        imagePyramid = ImagePyramid::create(image->getWidth(), image->getHeight(), image->getNrOfChannels(), 256, 256);
+        imagePyramid->setSpacing(image->getSpacing());
+        SceneGraph::setParentNode(imagePyramid, image);
+        auto access = imagePyramid->getAccess(ACCESS_READ_WRITE);
+        for(int y = 0; y < image->getHeight(); y += 256) {
+            for(int x = 0; x < image->getWidth(); x += 256) {
+                auto width = std::min(image->getWidth() - x - 1, 256);
+                auto height = std::min(image->getHeight() - y - 1, 256);
+                access->setPatch(0, x, y, image->crop(Vector2i(x, y), Vector2i(width, height)));
+            }
+        }
+    }
 
     if(imagePyramid->usesTIFF()) {
         // If image pyramid is using TIFF backend. It is already stored on disk, we just need to copy it..
