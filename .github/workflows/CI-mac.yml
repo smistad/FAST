@@ -74,3 +74,23 @@ jobs:
         path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
         if-no-files-found: error
 
+    - name: Upload archive package to release
+      if: ${{ github.event_name == 'release' }}
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/build/fast_*.tar.xz
+        file_glob: true
+        tag: ${{ github.ref }}
+        overwrite: true
+
+    - name: Upload Python wheel to release
+      if: ${{ github.event_name == 'release' }}
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        file_glob: true
+        tag: ${{ github.ref }}
+        overwrite: true
+
