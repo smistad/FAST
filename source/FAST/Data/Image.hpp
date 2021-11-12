@@ -290,6 +290,12 @@ class FAST_EXPORT Image : public SpatialDataObject {
         void freeAll() override;
     protected:
         Image();
+        template <class T>
+        Image(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr);
+        template <class T>
+        Image(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr);
+        template <class T>
+        Image(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr);
 
         /**
          * Give data to appropriate device
@@ -368,44 +374,64 @@ class FAST_EXPORT Image : public SpatialDataObject {
 
 template <class T>
 Image::pointer Image::create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) {
-    auto resPtr = std::shared_ptr<Image>(new Image(width, height, type, nrOfChannels, device, ptr.release()));
+    auto resPtr = std::shared_ptr<Image>(new Image(width, height, type, nrOfChannels, device, ptr));
     resPtr->setPtr(resPtr);
     return resPtr;
 }
 
 template <class T>
 Image::pointer Image::create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) {
-    auto resPtr = std::shared_ptr<Image>(new Image(width, height, depth, type, nrOfChannels, device, ptr.release()));
+    auto resPtr = std::shared_ptr<Image>(new Image(width, height, depth, type, nrOfChannels, device, std::move(ptr)));
     resPtr->setPtr(resPtr);
     return resPtr;
 }
 
 template <class T>
 Image::pointer Image::create(uint width, uint height, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
-    auto resPtr = std::shared_ptr<Image>(new Image(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), ptr.release()));
+    auto resPtr = std::shared_ptr<Image>(new Image(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), std::move(ptr)));
     resPtr->setPtr(resPtr);
     return resPtr;
 }
 
 template <class T>
 Image::pointer Image::create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
-    auto resPtr = std::shared_ptr<Image>(new Image(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), ptr.release()));
+    auto resPtr = std::shared_ptr<Image>(new Image(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), std::move(ptr)));
     resPtr->setPtr(resPtr);
     return resPtr;
 }
 
 template <class T>
 Image::pointer Image::create(VectorXui size, DataType type, uint nrOfChannels, std::unique_ptr<T> ptr) {
-    auto resPtr = std::shared_ptr<Image>(new Image(size, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), ptr.release()));
+    auto resPtr = std::shared_ptr<Image>(new Image(size, type, nrOfChannels, DeviceManager::getInstance()->getDefaultDevice(), std::move(ptr)));
     resPtr->setPtr(resPtr);
     return resPtr;
 }
 
 template <class T>
 Image::pointer Image::create(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) {
-    auto resPtr = std::shared_ptr<Image>(new Image(size, type, nrOfChannels, device, ptr.release()));
+    auto resPtr = std::shared_ptr<Image>(new Image(size, type, nrOfChannels, device, std::move(ptr)));
     resPtr->setPtr(resPtr);
     return resPtr;
+}
+
+template <class T>
+Image::Image(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) : Image() {
+    init(width, height, type, nrOfChannels);
+    setData(device, ptr.release()); 
+}
+template <class T>
+Image::Image(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) : Image() {
+    init(width, height, depth, type, nrOfChannels);
+    setData(device, ptr.release()); 
+}
+template <class T>
+Image::Image(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, std::unique_ptr<T> ptr) : Image() {
+    if(size.size() == 2) {
+        init(size.x(), size.y(), type, nrOfChannels);
+    } else {
+        init(size.x(), size.y(), size.z(), type, nrOfChannels);
+    }
+    setData(device, ptr.release()); 
 }
 
 } // end namespace fast
