@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ master ]
   release:
-    types: [ created, published, unpublished ]
+    types: [ published ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
