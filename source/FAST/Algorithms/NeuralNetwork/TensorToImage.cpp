@@ -36,9 +36,9 @@ void TensorToImage::execute() {
     } else {
         // Select specific channels from tensor data
         auto newTensorData = make_uninitialized_unique<float[]>(outputWidth*outputHeight*outputDepth*m_channels.size());
+        int counter = 0;
         if(outputDepth == 1) {
             auto tensorData = access->getData<3>();
-            int counter = 0;
             for(int channel : m_channels) {
                 Eigen::array<int, 3> offsets = {0, 0, channel};
                 Eigen::array<int, 3> extents = {outputHeight, outputWidth, 1};
@@ -53,7 +53,8 @@ void TensorToImage::execute() {
                 Eigen::array<int, 4> offsets = {0, 0, 0, channel};
                 Eigen::array<int, 4> extents = {outputDepth, outputHeight, outputWidth, 1};
                 Eigen::Tensor<float, 4, Eigen::RowMajor, int> res = tensorData.slice(offsets, extents);
-                std::memcpy(&newTensorData[outputWidth*outputHeight*outputDepth*channel], res.data(), sizeof(float)*outputWidth*outputHeight*outputDepth);
+                std::memcpy(&newTensorData[outputWidth*outputHeight*outputDepth*counter], res.data(), sizeof(float)*outputWidth*outputHeight*outputDepth);
+                ++counter;
             }
             image = Image::create(outputWidth, outputHeight, outputDepth, TYPE_FLOAT, m_channels.size(), std::move(newTensorData));
         }
