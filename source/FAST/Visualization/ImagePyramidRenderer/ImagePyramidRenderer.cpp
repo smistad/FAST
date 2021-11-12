@@ -358,14 +358,14 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                     float vertices[] = {
                             // vertex: x, y, z; tex coordinates: x, y
                             tile_offset_x * mCurrentTileScale, (tile_offset_y + tile_height) * mCurrentTileScale,
-                            -(float)level,
+                            -(float)level-1,
                             0.0f, 1.0f,
                             (tile_offset_x + tile_width) * mCurrentTileScale,
-                            (tile_offset_y + tile_height) * mCurrentTileScale, -(float)level, 1.0f, 1.0f,
-                            (tile_offset_x + tile_width) * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -(float)level,
+                            (tile_offset_y + tile_height) * mCurrentTileScale, -(float)level-1, 1.0f, 1.0f,
+                            (tile_offset_x + tile_width) * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -(float)level-1,
                             1.0f,
                             0.0f,
-                            tile_offset_x * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -(float)level, 0.0f, 0.0f,
+                            tile_offset_x * mCurrentTileScale, tile_offset_y * mCurrentTileScale, -(float)level-1, 0.0f, 0.0f,
                     };
                     uint VBO;
                     glGenBuffers(1, &VBO);
