@@ -31,7 +31,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-          pip3 install numpy==1.19.5
+          pip3 install numpy==1.19.5 twine
     - name: Install CUDA
       shell: powershell
       run: |
@@ -194,6 +194,18 @@ jobs:
         file_glob: true
         tag: ${{ github.ref }}
         overwrite: true
+
+
+    - name: Upload Python wheel to PyPi
+      if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
+      run: |
+        twine upload --username smistad --password ${{ secrets.PYPI_PASSWORD }} ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+
+    - name: Test PyPi upload
+      if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
+      run: |
+        sleep 30
+        pip install pyfast==${GITHUB_REF}
 
 #   - name: Test
 #     run: ${{github.workspace}}/build/bin/testFAST [processobject]

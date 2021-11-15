@@ -30,7 +30,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install openslide libomp
-        pip3 install numpy==1.19.5
+        pip3 install numpy==1.19.5 twine
 
     - name: Configure CMake
       run: |
@@ -96,3 +96,13 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
 
+    - name: Upload Python wheel to PyPi
+      if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
+      run: |
+        twine upload --username smistad --password ${{ secrets.PYPI_PASSWORD }} ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+
+    - name: Test PyPi upload
+      if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
+      run: |
+        sleep 30
+        pip install pyfast==${GITHUB_REF}
