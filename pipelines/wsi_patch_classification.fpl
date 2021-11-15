@@ -16,7 +16,6 @@ Input 0 importer 0
 Input 1 tissueSeg 0
 
 ProcessObject network NeuralNetwork
-Attribute inference-engine TensorRT
 Attribute model $TEST_DATA_PATH$/NeuralNetworkModels/wsi_classification.onnx
 Attribute scale-factor 0.003921568627451
 Input 0 patch 0

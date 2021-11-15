@@ -57,6 +57,12 @@ void NeuralNetwork::loadAttributes() {
     setPreserveAspectRatio(getBooleanAttribute("preserve-aspect"));
 
     // Load network here so that input and output nodes are readily defined after loadAttributes()
+    auto format = getModelFormat(getStringAttribute("model"));
+    if(!getInferenceEngine()->isModelFormatSupported(format)) {
+        reportInfo() << "Model format " << getModelFormatName(format) << " was not supported by engine " << getInferenceEngine()->getName() << ", auto selecting engine which supports this format..." << reportEnd();
+        setInferenceEngine(InferenceEngineManager::loadBestAvailableEngine(format));
+        reportInfo() << "Selected " << getInferenceEngine()->getName() << " as the best engine for format " << getModelFormatName(format) << reportEnd();
+    }
 	load(getStringAttribute("model"));
 }
 
