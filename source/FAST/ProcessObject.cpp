@@ -564,7 +564,7 @@ int ProcessObject::getNrOfInputPorts() const {
     return mInputPorts.size();
 }
 
-void ProcessObject::run(int executeToken) {
+void ProcessObject::run(int64_t executeToken) {
     update(executeToken);
 }
 
@@ -612,9 +612,9 @@ bool ProcessObject::getExecuteOnLastFrameOnly() const {
     return data;
 }
 
-std::shared_ptr<DataObject> ProcessObject::runAndGetOutputData(uint portID) {
+std::shared_ptr<DataObject> ProcessObject::runAndGetOutputData(uint portID, int64_t executeToken) {
     auto port = getOutputPort(portID);
-    run();
+    run(executeToken);
     return port->getNextFrame();
 }
 

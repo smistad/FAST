@@ -1,0 +1,39 @@
+PipelineName "Neural network WSI patch classification"
+PipelineDescription "asd"
+PipelineOutputData heatmap stitcher 0
+
+### Processing chain
+
+ProcessObject importer WholeSlideImageImporter
+Attribute filename $TEST_DATA_PATH$/WSI/A05.svs
+
+ProcessObject tissueSeg TissueSegmentation
+Input 0 importer 0
+
+ProcessObject patch PatchGenerator
+Attribute patch-size 256 256
+Input 0 importer 0
+Input 1 tissueSeg 0
+
+ProcessObject network NeuralNetwork
+Attribute inference-engine TensorRT
+Attribute model $TEST_DATA_PATH$/NeuralNetworkModels/wsi_classification.onnx
+Attribute scale-factor 0.003921568627451
+Input 0 patch 0
+
+ProcessObject stitcher PatchStitcher
+Input 0 network 0
+
+### Renderers
+
+Renderer imgRenderer ImageRenderer
+Input 0 patch 0
+
+Renderer heatmapRenderer HeatmapRenderer
+Input 0 network 0
+
+### Views
+
+View view1 imgRenderer heatmapRenderer
+Attribute 2Dmode true
+Attribute background-color white

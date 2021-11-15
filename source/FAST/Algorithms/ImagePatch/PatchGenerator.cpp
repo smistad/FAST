@@ -132,6 +132,7 @@ void PatchGenerator::generateStream() {
                 patch->setFrameData("patch-spacing-x", std::to_string(patch->getSpacing().x()));
                 patch->setFrameData("patch-spacing-y", std::to_string(patch->getSpacing().y()));
                 patch->setFrameData("patch-level", std::to_string(m_level));
+                patch->setFrameData("progress", std::to_string((float)(patchX+patchY*patchesX)/(patchesX*patchesY)));
 
                 mRuntimeManager->stopRegularTimer("create patch");
                 try {
@@ -212,6 +213,7 @@ void PatchGenerator::generateStream() {
             patch->setFrameData("patch-spacing-x", std::to_string(spacing.x()));
             patch->setFrameData("patch-spacing-y", std::to_string(spacing.y()));
             patch->setFrameData("patch-spacing-z", std::to_string(spacing.z()));
+            patch->setFrameData("progress", std::to_string((float)(patchX+patchY*patchesX+patchZ*patchesX*patchesY)/(patchesX*patchesY*patchesZ)));
             try {
                 if(previousPatch) {
                     addOutputData(0, previousPatch, false);

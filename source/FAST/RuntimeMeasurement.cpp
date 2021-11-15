@@ -37,6 +37,7 @@ void RuntimeMeasurement::addSample(double runtime) {
     if(mSamples > 1) {
 
 		if(m_maximumSamples > 0) {
+		    // TODO should probably mutex protect all of this
             m_queueRuntime.push_back(runtime);
             mSum = std::accumulate(m_queueRuntime.begin(), m_queueRuntime.end(), 0.0);
             mRunningMean = mSum / m_queueRuntime.size();

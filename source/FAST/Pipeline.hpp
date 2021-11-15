@@ -18,6 +18,7 @@ class FAST_EXPORT  Pipeline : public Object {
         std::vector<View*> getViews();
         std::vector<std::shared_ptr<Renderer>> getRenderers();
         std::unordered_map<std::string, std::shared_ptr<ProcessObject>> getProcessObjects();
+        std::shared_ptr<ProcessObject> getProcessObject(std::string name);
         std::string getName() const;
         std::string getDescription() const;
         std::string getFilename() const;
@@ -30,8 +31,10 @@ class FAST_EXPORT  Pipeline : public Object {
         /**
          * @brief Parse the pipeline file
          */
-        void parse(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects = {});
+        void parse(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects = {}, bool visualization = true);
 
+        std::map<std::string, DataObject::pointer> getAllPipelineOutputData(std::function<void(float)> progressFunction = nullptr);
+        DataObject::pointer getPipelineOutputData(std::string name, std::function<void(float)> progressFunction = nullptr);
     private:
         std::string mName;
         std::string mDescription;
@@ -41,6 +44,7 @@ class FAST_EXPORT  Pipeline : public Object {
         std::vector<std::string> mRenderers;
         std::vector<std::string> m_lines;
         std::unordered_map<std::string, std::string> m_attributes;
+        std::map<std::string, std::pair<std::string, uint>> m_pipelineOutputData;
 
         void parseProcessObject(
             std::string objectName,

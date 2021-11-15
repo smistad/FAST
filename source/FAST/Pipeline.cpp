@@ -40,9 +40,17 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
         } else if(key == "PipelineDescription") {
             value = replace(value, "\"", "");
             mDescription = value;
+        } else if(key == "PipelineOutputData") {
+            auto parts = split(value, " ");
+            if(parts.size() != 3)
+                throw Exception("PipelineOutputData must have 3 values");
+            trim(parts[0]);
+            trim(parts[1]);
+            trim(parts[2]);
+            m_pipelineOutputData[parts[0]] = std::make_pair(parts[1], std::stoi(parts[2]));
         }
 
-        // TODO check for @@ variables
+        // Check for variables @@
         std::size_t foundStart = line.find("@@");
         while(foundStart != std::string::npos) {
             auto foundEnd = line.find("@@", foundStart + 2);
@@ -73,7 +81,7 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
     } while (!file.eof());
 }
 
-inline std::shared_ptr<ProcessObject> getProcessObject(std::string name) {
+inline std::shared_ptr<ProcessObject> getProcessObjectFromRegistry(std::string name) {
     return ProcessObjectRegistry::create(name);
 }
 
@@ -121,7 +129,7 @@ void Pipeline::parseProcessObject(
     ) {
 
     // Create object
-    std::shared_ptr<ProcessObject> object = getProcessObject(objectName);
+    std::shared_ptr<ProcessObject> object = getProcessObjectFromRegistry(objectName);
 
     std::string line = "";
 
@@ -201,7 +209,7 @@ void Pipeline::parseProcessObject(
     }
 }
 
-void Pipeline::parse(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects) {
+void Pipeline::parse(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects, bool visualization) {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
 
     mProcessObjects = processObjects;
@@ -229,7 +237,7 @@ void Pipeline::parse(std::unordered_map<std::string, std::shared_ptr<ProcessObje
             std::string object = tokens[2];
             parseProcessObject(object, id, lineNr);
             lineNr--;
-        } else if(key == "Renderer") {
+        } else if(key == "Renderer" && visualization) {
             if(tokens.size() != 3) {
                 throw Exception("Unable to parse pipeline file " + mFilename + ", expected 3 tokens but got line " + line);
             }
@@ -238,7 +246,7 @@ void Pipeline::parse(std::unordered_map<std::string, std::shared_ptr<ProcessObje
             parseProcessObject(object, id, lineNr, true);
             lineNr--;
             reportInfo() << "Added renderer " << object  << " with id " << id << reportEnd();
-        } else if(key == "View") {
+        } else if(key == "View" && visualization) {
             // Create a view
             View *view = new View();
             std::string id = tokens[1];
@@ -334,6 +342,66 @@ std::string Pipeline::getPipelineAttribute(std::string key) const {
     if(m_attributes.count(key) == 0)
         throw Exception("Attribute " + key + " was not found in the pipeline text file");
     return m_attributes.at(key);
+}
+
+DataObject::pointer Pipeline::getPipelineOutputData(std::string name, std::function<void(float)> progressFunction) {
+    if(mProcessObjects.empty())
+        throw Exception("You have to parse the pipeline before getting output data");
+    if(m_pipelineOutputData.count(name) == 0)
+        throw Exception("Pipeline output data " + name + " not found.");
+
+    auto [POname, port] = m_pipelineOutputData[name];
+    auto PO = getProcessObject(POname);
+    auto data = PO->runAndGetOutputData(port);
+
+    // Check if data is "in progress"
+    if(data->hasFrameData("progress")) {
+        do {
+            // If so, we update until it is marked as finished
+            data = PO->runAndGetOutputData(port);
+            if(progressFunction != nullptr) {
+                // Report progress
+                progressFunction(std::stof(data->getFrameData("progress")));
+            }
+        } while(!data->isLastFrame());
+    }
+
+    return data;
+}
+
+std::map<std::string, DataObject::pointer> Pipeline::getAllPipelineOutputData(std::function<void(float)> progressFunction) {
+    if(mProcessObjects.empty())
+        throw Exception("You have to parse the pipeline before getting output data");
+    if(m_pipelineOutputData.empty())
+        return {};
+
+    std::map<std::string, DataObject::pointer> result;
+    int64_t executeToken = 0;
+    for(auto [name, output] : m_pipelineOutputData) {
+        auto PO = getProcessObject(output.first);
+        result[name] = PO->runAndGetOutputData(output.second, executeToken);
+        // Check if data is marked as "in progress"
+        if(result[name]->hasFrameData("progress")) {
+            do {
+                // If so, we update until it is marked as finished
+                executeToken++;
+                result[name] = PO->runAndGetOutputData(output.second, executeToken);
+                if(progressFunction != nullptr) {
+                    // Report progress
+                    progressFunction(std::stof(result[name]->getFrameData("progress")));
+                }
+            } while(!result[name]->isLastFrame());
+        }
+    }
+
+    return result;
+}
+
+std::shared_ptr<ProcessObject> Pipeline::getProcessObject(std::string name) {
+    if(mProcessObjects.count(name) == 0)
+        throw Exception("Process object " + name + "not found in pipeline");
+    auto PO = mProcessObjects[name];
+    return PO;
 }
 
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {

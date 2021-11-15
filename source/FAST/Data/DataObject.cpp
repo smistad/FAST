@@ -116,4 +116,8 @@ void DataObject::clearLastFrame() {
     m_lastFrame.clear();
 }
 
+bool DataObject::hasFrameData(std::string name) const {
+    return m_frameData.count(name) > 0;
+}
+
 } // end namespace fast

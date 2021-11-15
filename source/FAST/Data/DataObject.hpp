@@ -47,6 +47,7 @@ class FAST_EXPORT  DataObject : public Object {
         std::unordered_set<std::string> getLastFrame();
         void setFrameData(std::string name, std::string value);
         std::string getFrameData(std::string name);
+        bool hasFrameData(std::string name) const;
         std::unordered_map<std::string, std::string> getFrameData();
         void accessFinished();
     protected:
