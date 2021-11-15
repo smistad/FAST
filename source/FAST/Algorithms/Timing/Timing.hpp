@@ -8,11 +8,11 @@ class FAST_EXPORT StartTimer : public ProcessObject {
     FAST_PROCESS_OBJECT(StartTimer)
     public:
         FAST_CONSTRUCTOR(StartTimer)
-        std::chrono::high_resolution_clock::time_point getStartTime() const;
+        std::chrono::system_clock::time_point getStartTime() const;
     private:
         void execute() override;
 
-        std::chrono::high_resolution_clock::time_point m_startTime;
+        std::chrono::system_clock::time_point m_startTime;
 };
 
 class FAST_EXPORT StopTimer : public ProcessObject {

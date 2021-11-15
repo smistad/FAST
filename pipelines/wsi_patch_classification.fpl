@@ -12,6 +12,7 @@ Input 0 importer 0
 
 ProcessObject patch PatchGenerator
 Attribute patch-size 256 256
+Attribute patch-level 2
 Input 0 importer 0
 Input 1 tissueSeg 0
 

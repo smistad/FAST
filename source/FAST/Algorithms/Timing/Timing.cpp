@@ -9,11 +9,11 @@ StartTimer::StartTimer() {
 
 void StartTimer::execute() {
     auto input = getInputData<DataObject>();
-    m_startTime = std::chrono::high_resolution_clock::now();
+    m_startTime = std::chrono::system_clock::now();
     addOutputData(input);
 }
 
-std::chrono::high_resolution_clock::time_point StartTimer::getStartTime() const {
+std::chrono::system_clock::time_point StartTimer::getStartTime() const {
     return m_startTime;
 }
 
