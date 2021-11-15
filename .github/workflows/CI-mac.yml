@@ -30,6 +30,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install openslide libomp
+        pip3 install --upgrade pip
         pip3 install numpy==1.19.5 twine
 
     - name: Configure CMake
