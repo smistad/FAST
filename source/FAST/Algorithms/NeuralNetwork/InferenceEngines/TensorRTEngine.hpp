@@ -30,7 +30,7 @@ class INFERENCEENGINETENSORRT_EXPORT TensorRTEngine : public InferenceEngine {
     private:
         nvinfer1::ICudaEngine* m_engine = nullptr;
         nvinfer1::IExecutionContext* m_context = nullptr;
-        std::size_t m_maxWorkspaceSize = 512*1024*1024; // in bytes
+        std::size_t m_maxWorkspaceSize = 1024*1024*1024; // in bytes
         ImageOrdering m_dimensionOrdering;
 };
 

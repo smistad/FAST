@@ -24,14 +24,14 @@ class Logger : public nvinfer1::ILogger {
     void log(Severity severity, const char* msg) noexcept override {
         switch(severity) {
             case Severity::kINFO:
-                Reporter::info() << msg << Reporter::end();
+                Reporter::info() << "[TensorRT] " << msg << Reporter::end();
                 break;
             case Severity::kERROR:
             case Severity::kINTERNAL_ERROR:
-                Reporter::error() << msg << Reporter::end();
+                Reporter::error() << "[TensorRT] " << msg << Reporter::end();
                 break;
             case Severity::kWARNING:
-                Reporter::warning() << msg << Reporter::end();
+                Reporter::warning() << "[TensorRT] " << msg << Reporter::end();
                 break;
         }
     }
@@ -217,6 +217,9 @@ void TensorRTEngine::load() {
 
         std::unique_ptr<nvinfer1::IBuilderConfig, decltype(Destroy())> config(builder->createBuilderConfig(), Destroy());
         config->setMaxWorkspaceSize(m_maxWorkspaceSize);
+        // Enable FP16 and INT8 with FP32 fallback:
+        config->setFlag(nvinfer1::BuilderFlag::kFP16);
+        //config->setFlag(nvinfer1::BuilderFlag::kINT8);
 
         if(filename.substr(filename.size()-4) == ".uff") {
             // Check that input and output nodes are set
