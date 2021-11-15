@@ -3,6 +3,8 @@
 #include <sstream>
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <numeric>
+#include <algorithm>
 
 namespace fast {
 
@@ -13,7 +15,7 @@ RuntimeMeasurement::RuntimeMeasurement(){
     mRunningVariance = 0.0;
 }
 
-RuntimeMeasurement::RuntimeMeasurement(std::string name, int warmupRounds) {
+RuntimeMeasurement::RuntimeMeasurement(std::string name, int warmupRounds, int maximumSamples) {
 	mSum = 0.0;
 	mSamples = 0;
 	mRunningMean = 0.0;
@@ -22,6 +24,7 @@ RuntimeMeasurement::RuntimeMeasurement(std::string name, int warmupRounds) {
 	if(warmupRounds < 0)
 		throw Exception("Warmup rounds must be > 0");
 	m_warmupRounds = warmupRounds;
+	m_maximumSamples = maximumSamples;
 }
 
 void RuntimeMeasurement::addSample(double runtime) {
@@ -32,14 +35,30 @@ void RuntimeMeasurement::addSample(double runtime) {
 	mSamples++;
 	mSum += runtime;
     if(mSamples > 1) {
-		const double delta = runtime - mRunningMean;
-		mRunningMean += delta / mSamples;
-		const double delta2 = runtime - mRunningMean;
-		mRunningVariance += delta * delta2;
-        if(runtime < mMin)
-			mMin = runtime;
-		if(runtime > mMax)
-			mMax = runtime;
+
+		if(m_maximumSamples > 0) {
+            m_queueRuntime.push_back(runtime);
+            mSum = std::accumulate(m_queueRuntime.begin(), m_queueRuntime.end(), 0.0);
+            mRunningMean = mSum / m_queueRuntime.size();
+            mRunningVariance = 0.0; // TODO
+            const auto [min, max] = std::minmax_element(m_queueRuntime.begin(), m_queueRuntime.end());
+            mMin = *min;
+            mMax = *max;
+		} else {
+            const double delta = runtime - mRunningMean;
+            mRunningMean += delta / mSamples;
+            const double delta2 = runtime - mRunningMean;
+            mRunningVariance += delta * delta2;
+            if(runtime < mMin)
+                mMin = runtime;
+            if(runtime > mMax)
+                mMax = runtime;
+		}
+        if(m_maximumSamples == mSamples) {
+            m_queueRuntime.pop_front();
+            mSamples--;
+        }
+
 	} else {
 		mRunningMean = runtime;
         mMin = runtime;

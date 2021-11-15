@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <deque>
 #include "FAST/Object.hpp"
 
 namespace fast {
@@ -17,7 +18,7 @@ namespace fast {
 class FAST_EXPORT  RuntimeMeasurement : public Object {
 public:
 	typedef std::shared_ptr<RuntimeMeasurement> pointer;
-	RuntimeMeasurement(std::string name, int warmupRounds = 0);
+	RuntimeMeasurement(std::string name, int warmupRounds = 0, int maximumSamples = -1);
 	void addSample(double runtime);
 	double getSum() const;
 	double getAverage() const;
@@ -40,6 +41,10 @@ private:
 	double mFirstSample;
 	std::string mName;
 	int m_warmupRounds;
+	int m_maximumSamples;
+    std::deque<double> m_queueRuntime;
+	std::deque<double> m_queueAvg;
+    std::deque<double> m_queueStd;
 };
 
 }; // end namespace
