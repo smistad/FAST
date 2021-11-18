@@ -164,7 +164,6 @@ void RegionProperties::execute() {
             }
         }
 
-        // TODO Create mesh
         region.contour = Mesh::create(vertices);
         region.perimiterLength = perimiter;
         region.averageRadius = avgRadius / vertices.size();
