@@ -10,14 +10,14 @@ namespace fast {
 class FAST_EXPORT BoundingBoxRenderer : public LabelColorRenderer {
     FAST_PROCESS_OBJECT(BoundingBoxRenderer)
 	public:
+        FAST_CONSTRUCTOR(BoundingBoxRenderer,
+             float, borderSize, = 1.0f,
+             LabelColors, labelColors, = LabelColors()
+        )
         void setBorderSize(float size);
         float getBorderSize() const;
         virtual ~BoundingBoxRenderer();
     protected:
-        FAST_CONSTRUCTOR(BoundingBoxRenderer,
-                         float, borderSize, = 1.0f,
-                         LabelColors, labelColors, = LabelColors()
-        )
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
 
         std::unordered_map<uint, float> mInputWidths;
