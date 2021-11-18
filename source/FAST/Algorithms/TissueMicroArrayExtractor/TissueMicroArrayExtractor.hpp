@@ -25,7 +25,18 @@ class RegionList;
 class FAST_EXPORT TissueMicroArrayExtractor : public Streamer {
     FAST_PROCESS_OBJECT(TissueMicroArrayExtractor)
     public:
-        FAST_CONSTRUCTOR(TissueMicroArrayExtractor)
+        /**
+         * @brief Create instance
+         * @param level Which image pyramid level to extract TMAs from. Default is 0 which is highest resolution level.
+         *      Negative level means the last level (lowest resolution).
+         * @return instance
+         */
+        FAST_CONSTRUCTOR(TissueMicroArrayExtractor,
+                         int, level, = 0
+        )
+        void setLevel(int level);
+        int getLevel() const;
+        ~TissueMicroArrayExtractor() { stop(); };
     private:
         void generateStream();
         void execute() override;
@@ -33,6 +44,7 @@ class FAST_EXPORT TissueMicroArrayExtractor : public Streamer {
         std::shared_ptr<ImagePyramid> m_input;
         std::shared_ptr<Image> m_tissue;
         std::shared_ptr<RegionList> m_regions;
+        int m_level;
 };
 
 }

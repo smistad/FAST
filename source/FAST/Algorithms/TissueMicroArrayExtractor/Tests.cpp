@@ -24,13 +24,15 @@ TEST_CASE("Tissue micro array extractor", "[fast][wsi][tma][TissueMicroArrayExtr
     SimpleWindow2D::create()->connect({imageRenderer, segRenderer, bbRenderer})->run();
 }*/
 
+/*
 TEST_CASE("Tissue micro array extractor", "[fast][wsi][tma][TissueMicroArrayExtractor]") {
     auto importer = WholeSlideImageImporter::create("/home/smistad/data/TMA/H2 TP02 HE helsnittscan_plane_0_cm_lzw_jpeg_Q_85.tif");
     //auto importer = WholeSlideImageImporter::create("/home/smistad/data/TMA/TP02  pan CK AE1-AE3_01_plane_0_cm_lzw_jpeg_Q_85.tif");
 
-    auto extractor = TissueMicroArrayExtractor::create()->connect(importer);
+    auto extractor = TissueMicroArrayExtractor::create(2)->connect(importer);
 
     auto renderer = ImageRenderer::create()->connect(extractor);
 
     SimpleWindow2D::create()->connect(renderer)->run();
 }
+*/

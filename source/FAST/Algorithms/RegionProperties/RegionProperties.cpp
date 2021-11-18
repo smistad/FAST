@@ -168,7 +168,6 @@ void RegionProperties::execute() {
         region.contour = Mesh::create(vertices);
         region.perimiterLength = perimiter;
         region.averageRadius = avgRadius / vertices.size();
-        std::cout << "Perimeter: " << perimiter << std::endl;
     }
 
     auto regionList = RegionList::create(regions);

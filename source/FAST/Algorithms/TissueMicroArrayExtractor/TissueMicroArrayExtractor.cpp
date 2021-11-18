@@ -8,11 +8,12 @@
 
 namespace fast {
 
-TissueMicroArrayExtractor::TissueMicroArrayExtractor() {
+TissueMicroArrayExtractor::TissueMicroArrayExtractor(int level) {
     createInputPort(0, "WSI");
     createOutputPort(0, "TMA");
     //createOutputPort(1, "Mesh");
     //createOutputPort(2, "BB");
+    setLevel(level);
 }
 
 void TissueMicroArrayExtractor::execute() {
@@ -27,7 +28,15 @@ void TissueMicroArrayExtractor::execute() {
 }
 
 void TissueMicroArrayExtractor::generateStream() {
+    int level = m_level;
+    if(m_level < 0)
+        level = m_input->getNrOfLevels()-1;
     auto pyramidAccess = m_input->getAccess(ACCESS_READ);
+    const int width = m_input->getLevelWidth(level);
+    const int height = m_input->getLevelHeight(level);
+    const int fullWidth = m_input->getFullWidth();
+    const int fullHeight = m_input->getFullHeight();
+    const float scale = (float)width/fullWidth;
     const Vector3f pyramidSpacing = m_input->getSpacing();
     //std::vector<MeshVertex> vertices;
     //auto bbSet = BoundingBoxSet::create();
@@ -52,7 +61,7 @@ void TissueMicroArrayExtractor::generateStream() {
             Vector2f padding = size*paddingPercentage;
             // Out of bounds check
             Vector2f offset(std::min(padding.x(), position.x()), std::min(padding.y(), position.y()));
-            Vector2f extra = padding; // TODO fix
+            Vector2f extra = padding;
             position -= offset;
             size += offset;
             if(position.x()+size.x()+extra.x() >= m_tissue->getWidth()*spacing.x())
@@ -62,7 +71,7 @@ void TissueMicroArrayExtractor::generateStream() {
             size += extra;
             //auto bb = BoundingBox::create(position, size);
             //bbSetAccess->addBoundingBox(bb);
-            auto patch = pyramidAccess->getPatchAsImage(0, round(position.x()), round(position.y()), round(size.x()), round(size.y()));
+            auto patch = pyramidAccess->getPatchAsImage(level, round(position.x()*scale), round(position.y()*scale), round(size.x()*scale), round(size.y()*scale));
             //auto patch = pyramidAccess->getPatchAsImage(m_input->getNrOfLevels()-1, round(position.x()/spacing.x()), round(position.y()/spacing.y()), round(size.x()/spacing.x()), round(size.y()/spacing.y()));
             //std::cout << "Patch size: " << patch->getWidth() << " " << patch->getHeight() << std::endl;
             try {
@@ -88,6 +97,15 @@ void TissueMicroArrayExtractor::generateStream() {
     //addOutputData(0, m_tissue);
     //addOutputData(1, Mesh::create(vertices));
     //addOutputData(2, bbSet);
+}
+
+void TissueMicroArrayExtractor::setLevel(int level) {
+    m_level = level;
+    setModified(true);
+}
+
+int TissueMicroArrayExtractor::getLevel() const {
+    return m_level;
 }
 
 }

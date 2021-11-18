@@ -38,7 +38,7 @@ void Streamer::stop() {
     }
     if(m_thread) {
         m_thread->join();
-        m_thread = NULL;
+        m_thread = nullptr;
         reportInfo() << "Streamer thread for " << getNameOfClass() << " returned" << reportEnd();
     }
 }
