@@ -199,7 +199,9 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
             scale,
             1.0f
     ));
-    // TODO Set transformation
+    // Set transformation
+    auto T = Transform::create(Vector3f(scale*offsetX, scale*offsetY, 0.0f));
+    image->setTransform(T);
     SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
 
     if(m_fileHandle != nullptr && convertToRGB) {

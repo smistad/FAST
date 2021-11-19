@@ -118,7 +118,7 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
         float pixelArea = spacing.x()*spacing.y();
         for(auto& region : m_regions[inputNr]->get()) {
 
-            if(region.area*pixelArea < m_areaThreshold) // If object to small.. (area in mm^2)
+            if(region.pixelCount * pixelArea < m_areaThreshold) // If object to small.. (area in mm^2)
                 continue;
 
             // If no label name has been set. Skip it
@@ -127,7 +127,7 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
 
             float size = 1.0f;
             if(m_dynamicSize) {
-                size = 1.0f + 0.01f*(region.area*(spacing.x()*spacing.x()) - 1.0f);
+                size = 1.0f + 0.01f*(region.pixelCount * (spacing.x() * spacing.x()) - 1.0f);
             } else {
                 size = m_textHeightInMM;
             }

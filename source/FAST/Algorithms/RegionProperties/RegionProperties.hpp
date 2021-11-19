@@ -7,9 +7,14 @@ namespace fast {
 class Mesh;
 
 struct FAST_EXPORT Region {
-    int area;
+    int pixelCount;
+    float area;
     uchar label;
     Vector2f centroid;
+    float perimiterLength;
+    float averageRadius;
+    Vector2i maxPixelPosition;
+    Vector2i minPixelPosition;
     std::shared_ptr<Mesh> contour;
     std::vector<Vector2i> pixels;
 };
