@@ -8,7 +8,7 @@ void LabelColorRenderer::createColorUniformBufferObject() {
         glDeleteBuffers(1, &m_colorsUBO);
         glGenBuffers(1, &m_colorsUBO);
         int maxLabel = 0;
-        for (auto &&labelColor : m_labelColors) {
+        for (auto&& labelColor : m_labelColors) {
             if (labelColor.first > maxLabel)
                 maxLabel = labelColor.first;
         }
@@ -17,12 +17,13 @@ void LabelColorRenderer::createColorUniformBufferObject() {
         colorData[1] = 0.0f;
         colorData[2] = 0.0f;
         colorData[3] = 1.0f;
-        for(int i = 1; i <= maxLabel; ++i) {
+        for (int i = 1; i <= maxLabel; ++i) {
             if (m_labelColors.count(i) > 0) {
                 colorData[i * 4 + 0] = m_labelColors[i].getRedValue();
                 colorData[i * 4 + 1] = m_labelColors[i].getGreenValue();
                 colorData[i * 4 + 2] = m_labelColors[i].getBlueValue();
-            } else {
+            }
+            else {
                 colorData[i * 4 + 0] = m_defaultColor.getRedValue();
                 colorData[i * 4 + 1] = m_defaultColor.getGreenValue();
                 colorData[i * 4 + 2] = m_defaultColor.getBlueValue();
@@ -38,6 +39,8 @@ void LabelColorRenderer::createColorUniformBufferObject() {
 
 void LabelColorRenderer::setColor(int label, Color color) {
     m_labelColors[label] = color;
+    m_colorsModified = true;
+    setModified(true);
 }
 
 LabelColorRenderer::~LabelColorRenderer() noexcept {
@@ -48,6 +51,8 @@ void LabelColorRenderer::setColors(std::map<uint, Color> colors) {
     m_labelColors = std::move(colors);
     if(m_labelColors.count(255) == 0)
         m_labelColors[255] = Color::Cyan();
+    m_colorsModified = true;
+    setModified(true);
 }
 
 }
