@@ -22,6 +22,7 @@ class FAST_EXPORT LabelColorRenderer : public virtual Renderer {
                 {7, Color::Brown()},
                 {255, Color::Cyan()},
         };
+        bool m_colorsModified = true;
         uint m_colorsUBO;
         Color m_defaultColor = Color::Green();
     private:
