@@ -95,26 +95,26 @@ void TensorRTEngine::run() {
         reportWarning() << "Batch is larger than the max batch size given to TensorRT" << reportEnd();
     }
 
-    std::vector<void*> buffers(nbBindings);
-
-    std::map<std::string, int> inputIndexes;
-    std::map<std::string, int> outputIndexes;
-    for(int i = 0; i < nbBindings; ++i) {
-        auto name = m_engine->getBindingName(i);
-        TensorShape shape;
-        if(m_engine->bindingIsInput(i) && mInputNodes.count(name) > 0) {
-            inputIndexes[name] = i;
-            shape = mInputNodes[name].shape;
-        } else if(!m_engine->bindingIsInput(i) && mOutputNodes.count(name) > 0) {
-            outputIndexes[name] = i;
-            shape = mOutputNodes[name].shape;
-        } else {
-            shape = getTensorShape(m_engine->getBindingDimensions(i));
+    if(m_cudaBuffers.empty() || m_currentBatchSize != batchSize) {
+        m_currentBatchSize = batchSize;
+        // Initialize cuda buffers. WARNING: This assumes that shapes (except batch size) do not change during execution
+        for(int i = 0; i < nbBindings; ++i) {
+            auto name = m_engine->getBindingName(i);
+            TensorShape shape;
+            if(m_engine->bindingIsInput(i) && mInputNodes.count(name) > 0) {
+                m_inputIndexes[name] = i;
+                shape = mInputNodes[name].shape;
+            } else if(!m_engine->bindingIsInput(i) && mOutputNodes.count(name) > 0) {
+                m_outputIndexes[name] = i;
+                shape = mOutputNodes[name].shape;
+            } else {
+                shape = getTensorShape(m_engine->getBindingDimensions(i));
+            }
+            shape[0] = batchSize;
+            // Allocate data
+            nvinfer1::DataType dtype = m_engine->getBindingDataType(i);
+            m_cudaBuffers.push_back(safeCudaMalloc(shape.getTotalSize() * elementSize(dtype)));
         }
-        shape[0] = batchSize;
-        // Allocate data
-        nvinfer1::DataType dtype = m_engine->getBindingDataType(i);
-        buffers[i] = safeCudaMalloc(shape.getTotalSize() * elementSize(dtype));
     }
 
     // Allocate data for each input and copy data to it
@@ -122,12 +122,12 @@ void TensorRTEngine::run() {
         auto tensor = inputNode.second.data;
         auto access = tensor->getAccess(ACCESS_READ);
         float* tensorData = access->getRawData();
-        const int index = inputIndexes.at(inputNode.first);
+        const int index = m_inputIndexes.at(inputNode.first);
         auto dtype = m_engine->getBindingDataType(index);
         auto shape = inputNode.second.shape;
         shape[0] = batchSize;
         m_context->setBindingDimensions(index, shapeToDims(shape));
-        CUDA_CHECK(cudaMemcpy(buffers[index], tensorData,
+        CUDA_CHECK(cudaMemcpy(m_cudaBuffers[index], tensorData,
                               shape.getTotalSize() * elementSize(dtype),
                               cudaMemcpyHostToDevice));
         reportInfo() << "Finished copying input data to TensorRT" << reportEnd();
@@ -135,26 +135,21 @@ void TensorRTEngine::run() {
 
     // Execute network
     //bool success = m_context->executeV2(buffers.data()); // IMPORTANT: Does not work with uff parser atm
-    bool success = m_context->execute(batchSize, &buffers[0]);
+    bool success = m_context->execute(batchSize, &m_cudaBuffers[0]);
     if(!success)
         throw Exception("TensorRT execute inference failed!");
     reportInfo() << "Finished execute TensorRT" << reportEnd();
-
-    // Free input memory buffers
-    for(const auto& input : inputIndexes)
-        CUDA_CHECK(cudaFree(buffers[input.second]));
-    reportInfo() << "Finished freeing input data TensorRT" << reportEnd();
 
     // Transfer output data back
     for(auto& outputNode : mOutputNodes) {
         const auto name = outputNode.first;
         auto shape = outputNode.second.shape;
         shape[0] = batchSize;
-        const int index = outputIndexes[name];
+        const int index = m_outputIndexes[name];
         auto dtype = m_engine->getBindingDataType(index);
         reportInfo() << "Processing output node " << name << reportEnd();
         auto outputData = make_uninitialized_unique<float[]>(shape.getTotalSize()); // TODO possible type mismatch issue here..
-        CUDA_CHECK(cudaMemcpy(outputData.get(), buffers[index],
+        CUDA_CHECK(cudaMemcpy(outputData.get(), m_cudaBuffers[index],
                               shape.getTotalSize() * elementSize(dtype),
                               cudaMemcpyDeviceToHost));
 
@@ -168,8 +163,6 @@ void TensorRTEngine::run() {
         outputNode.second.data = outputTensor;
         reportInfo() << "Finished moving data to FAST tensor, TensorRT" << reportEnd();
         reportInfo() << "Finished transfer of output data TensorRT" << reportEnd();
-        CUDA_CHECK(cudaFree(buffers[index]));
-        reportInfo() << "Finished freeing output data TensorRT" << reportEnd();
     }
 }
 
@@ -372,6 +365,10 @@ ImageOrdering TensorRTEngine::getPreferredImageOrdering() const {
 }
 
 TensorRTEngine::~TensorRTEngine() {
+    for(auto buffer : m_cudaBuffers) {
+        CUDA_CHECK(cudaFree(buffer));
+    }
+    reportInfo() << "Finished freeing TensorRT buffer data" << reportEnd();
     if(m_context != nullptr)
         m_context->destroy();
     if(m_engine != nullptr)
