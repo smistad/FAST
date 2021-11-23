@@ -53,7 +53,7 @@ void TensorToSegmentation::execute() {
         bool found = false;
         for(uchar j = firstClass; j < nrOfClasses; j++) {
             if(tensorData[getPosition(x, nrOfClasses, j, size, ordering)] > m_threshold &&
-               tensorData[getPosition(x, nrOfClasses, j, size, ordering)] > tensorData[getPosition(x, nrOfClasses, maxClass, size, ordering)]) {
+                tensorData[getPosition(x, nrOfClasses, j, size, ordering)] >= tensorData[getPosition(x, nrOfClasses, maxClass, size, ordering)]) {
                 maxClass = j;
                 found = true;
             }
