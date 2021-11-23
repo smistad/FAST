@@ -18,6 +18,27 @@ class TensorToSegmentation;
 class FAST_EXPORT SegmentationNetwork : public NeuralNetwork {
     FAST_PROCESS_OBJECT(SegmentationNetwork)
     public:
+        /**
+         * @brief Create instance
+         *
+         * @param modelFilename path to model to load
+         * @param scaleFactor A value which is multiplied with each pixel of input image before it is sent to the neural
+         *      network. Use this to scale your pixels values. Default: 1.0
+         * @param heatmapOutput If set to true, the output of this object will be a Tensor instead of a segmentation Image. Default: false
+         * @param threshold The minimum value of the class confidence value to be accepted. Default: 0.5
+         * @param hasBackgroundClass Whether the neural network has a channel 0 which represents the "background".
+         * @param meanIntensity Mean intensity to subtract from each pixel of the input image
+         * @param standardDeviationIntensity Standard deviation to divide each pixel of the input image by
+         * @param inputNodes Specify names, and potentially shapes, of input nodes.
+         *      Not necessary unless you only want to use certain inputs or specify the input shape manually.
+         * @param outputNodes Specify names, and potentially shapes, of output nodes to use.
+         *      Not necessary unless you only want to use certain outputs or specify the output shape manually.
+         * @param inferenceEngine Specify which inference engine to use (TensorFlow, TensorRT, OpenVINO).
+         *      By default, FAST will select the best inference engine available on your system.
+         * @param customPlugins Specify path to any custom plugins/operators to load
+         *
+         * @return instance
+         */
         FAST_CONSTRUCTOR(SegmentationNetwork,
                          std::string, modelFilename,,
                          float, scaleFactor, = 1.0f,
@@ -25,7 +46,7 @@ class FAST_EXPORT SegmentationNetwork : public NeuralNetwork {
                          float, threshold, = 0.5f,
                          bool, hasBackgroundClass, = true,
                          float, meanIntensity, = 0.0f,
-                         float, stanardDeviationIntensity, = 1.0f,
+                         float, standardDeviationIntensity, = 1.0f,
                          std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
                          std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
                          std::string, inferenceEngine, = "",

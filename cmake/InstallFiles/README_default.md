@@ -32,6 +32,7 @@ This FAST release is bundled with the following third-party software:
 * [TensorFlow (Apache 2.0)](http://tensorflow.org)
 * [Clarius Ultrasound Listener API (BSD 3-clause)](https://github.com/clariusdev/listener)
 * [OpenSlide](https://openslide.org)
+* [TIFF](http://www.libtiff.org/)
 * [RealSense](https://github.com/IntelRealSense/librealsense)
 * [OpenVINO (Apache 2.0)](http://github.com/opencv/dldt) which uses [TBB (Apache 2.0)](https://github.com/intel/tbb), [clDNN (Apache 2.0)](https://github.com/intel/cldnn), [MKL-DNN (Apache 2.0)](https://github.com/intel/mkl-dnn), [ADE (Apache 2.0)](https://github.com/opencv/ade), [pugixml (MIT)](https://pugixml.org/) and the [G-API (fluid) code from OpenCV (BSD 3-clause)](https://github.com/opencv/opencv/wiki/Graph-API)
 * [hdf5](https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse)

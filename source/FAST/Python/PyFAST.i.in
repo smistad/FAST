@@ -50,6 +50,7 @@ using namespace fast;
 %include <std_shared_ptr.i>
 %include <std_vector.i>
 %include <std_map.i>
+%include <stdint.i>
 %include <FAST/Python/std_unique_ptr.i>
 
 // Enable eigen <-> numpy data conversion
@@ -159,7 +160,7 @@ public
 %template(vectortensor) std::vector<std::shared_ptr<fast::Tensor>>;
 
 // Since python is dynamically typed, lets convert DataObjects to the right type before returning
-%pythonappend fast::ProcessObject::runAndGetOutputData(uint) %{
+%pythonappend fast::ProcessObject::runAndGetOutputData(uint, int64_t) %{
     className = val.getNameOfClass()
     val = eval(className + '.fromDataObject')(val)
 %}
