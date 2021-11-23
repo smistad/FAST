@@ -275,18 +275,16 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 		COMPONENT fast
 )
 # Install licenses
-if(EXISTS ${PROJECT_BINARY_DIR}/licenses)
 install(DIRECTORY ${PROJECT_BINARY_DIR}/licenses/
+	OPTIONAL
 	DESTINATION fast/licenses
-        COMPONENT fast
+	COMPONENT fast
 )
-endif()
-if(EXISTS ${PROJECT_BINARY_DIR}/licences)
 install(DIRECTORY ${PROJECT_BINARY_DIR}/licences/
+	OPTIONAL
 	DESTINATION fast/licenses
-        COMPONENT fast
+	COMPONENT fast
 )
-endif()
 if(FAST_MODULE_OpenVINO)
 	if(WIN32)
 		install(FILES ${PROJECT_BINARY_DIR}/bin/plugins.xml
