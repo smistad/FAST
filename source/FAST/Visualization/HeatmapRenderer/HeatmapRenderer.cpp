@@ -308,6 +308,7 @@ void HeatmapRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewin
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
         transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
+        setShaderUniform("opacity", m_opacity);
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it.first]);
         glBindVertexArray(mVAO[it.first]);

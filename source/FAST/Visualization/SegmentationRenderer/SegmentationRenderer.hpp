@@ -41,7 +41,6 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColo
         virtual void deleteAllTextures() override;
 
         int mBorderRadius = 2;
-        float mOpacity = 0.5;
         float mBorderOpacity = 0.5;
 
         // Queue of tiles to be loaded

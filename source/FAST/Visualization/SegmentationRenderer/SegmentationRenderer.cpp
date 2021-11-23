@@ -31,7 +31,7 @@ SegmentationRenderer::SegmentationRenderer(std::map<uint, Color> labelColors, fl
     setOpacity(opacity, borderOpacity);
     setBorderRadius(borderRadius);
 
-    createFloatAttribute("opacity", "Segmentation Opacity", "", mOpacity);
+    createFloatAttribute("opacity", "Segmentation Opacity", "", m_opacity);
     createFloatAttribute("border-opacity", "Segmentation border opacity", "", -1);
     createStringAttribute("label-colors", "Label color", "Label color set as <label1> <color1> <label2> <color2>", "");
 
@@ -105,7 +105,7 @@ void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewi
     }
 
     activateShader("unsigned-integer");
-    setShaderUniform("opacity", mOpacity, "unsigned-integer");
+    setShaderUniform("opacity", m_opacity, "unsigned-integer");
     setShaderUniform("borderOpacity", mBorderOpacity, "unsigned-integer");
     setShaderUniform("borderRadius", mBorderRadius, "unsigned-integer");
 
@@ -326,7 +326,7 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
 
         Vector3f spacing = m_input->getSpacing();
         activateShader();
-        setShaderUniform("opacity", mOpacity);
+        setShaderUniform("opacity", m_opacity);
         setShaderUniform("borderOpacity", mBorderOpacity);
         setShaderUniform("borderRadius", mBorderRadius);
 
@@ -502,7 +502,7 @@ void SegmentationRenderer::setBorderRadius(int radius) {
 void SegmentationRenderer::setOpacity(float opacity, float borderOpacity) {
     if(opacity < 0 || opacity > 1)
         throw Exception("SegmentationRenderer opacity has to be >= 0 and <= 1");
-    mOpacity = opacity;
+    m_opacity = opacity;
     if(borderOpacity >= 0.0) {
         mBorderOpacity = borderOpacity;
     } else {

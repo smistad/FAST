@@ -7,11 +7,13 @@
 
 namespace fast {
 
-ImageRenderer::ImageRenderer(float level, float window) : Renderer() {
+ImageRenderer::ImageRenderer(float level, float window, float opacity, bool applyTransformationsIn2D) : Renderer() {
     createInputPort<Image>(0, false);
     mIsModified = true;
     mWindow = window;
     mLevel = level;
+    m_opacity = opacity;
+    m_applyTransformationsIn2D = applyTransformationsIn2D;
     createFloatAttribute("window", "Intensity window", "Intensity window", -1);
     createFloatAttribute("level", "Intensity level", "Intensity level", -1);
     createShaderProgram({
@@ -118,8 +120,14 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         mDataTimestamp[inputNr] = input->getTimestamp();
     }
 
+    if(m_opacity >= 0.0f) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
     drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
-
+    if(m_opacity >= 0.0f) {
+        glDisable(GL_BLEND);
+    }
 }
 
 void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation, bool useWindowLevel) {
@@ -185,7 +193,7 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         activateShader(shaderName);
         Affine3f transform = Affine3f::Identity();
         // If rendering is in 2D mode we skip any transformations
-        if(!mode2D) {
+        if(!mode2D || m_applyTransformationsIn2D) {
             transform = SceneGraph::getEigenTransformFromData(it.second);
         }
 
@@ -198,6 +206,7 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
         transformLoc = glGetUniformLocation(getShaderProgram(shaderName), "viewTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
+        setShaderUniform("opacity", m_opacity, shaderName);
 
         if(useWindowLevel) {
             // Determine level and window

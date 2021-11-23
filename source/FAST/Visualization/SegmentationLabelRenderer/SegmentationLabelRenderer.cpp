@@ -154,11 +154,11 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
             // Determine position
             Vector2f position;
             if(m_centerPosition) {
-                position.x() = region.centroid.x()*scale - textWidth * 0.5f;
-                position.y() = region.centroid.y()*scale*spacingScale + textHeight * 0.5f;
+                position.x() = region.centroid.x()/spacing.x()*scale - textWidth * 0.5f;
+                position.y() = region.centroid.y()/spacing.y()*scale*spacingScale + textHeight * 0.5f;
             } else {
-                position.x() = region.centroid.x()*scale;
-                position.y() = region.centroid.y()*scale*spacingScale + textHeight;
+                position.x() = region.centroid.x()/spacing.x()*scale;
+                position.y() = region.centroid.y()/spacing.y()*scale*spacingScale + textHeight;
             }
 
             // Draw it

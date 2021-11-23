@@ -13,7 +13,22 @@ namespace fast {
 class FAST_EXPORT  ImageRenderer : public virtual Renderer {
     FAST_PROCESS_OBJECT(ImageRenderer)
     public:
-        FAST_CONSTRUCTOR(ImageRenderer, float, level,= -1, float, window, = -1)
+        /**
+         * @brief Create instance
+         *
+         * @param level
+         * @param window
+         * @param opacity Draw image with an opacity. Useful if you want to draw an image on top of another
+         * @param applyTransformationsIn2D In 2D transformations (rotation/translation) are typically not applied.
+         *      by setting this to true they will be applied.
+         * @return instance
+         */
+        FAST_CONSTRUCTOR(ImageRenderer,
+                         float, level,= -1,
+                         float, window, = -1,
+                         float, opacity, = -1,
+                         bool, applyTransformationsIn2D, = false
+        )
         void loadAttributes() override;
         void setIntensityLevel(float level);
         float getIntensityLevel();
@@ -38,8 +53,10 @@ class FAST_EXPORT  ImageRenderer : public virtual Renderer {
         cl::Kernel mKernel;
 
         // Level and window intensities
-        float mWindow;
-        float mLevel;
+        float mWindow = -1;
+        float mLevel = -1;
+        float m_opacity = -1;
+        bool m_applyTransformationsIn2D = false;
 
         void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation = false, bool useWindowLevel = true);
 };
