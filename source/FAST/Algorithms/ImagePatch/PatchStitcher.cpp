@@ -215,8 +215,17 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         if(device->isWritingTo3DTexturesSupported()) {
             auto outputAccess = m_outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
             cl::Program program = getOpenCLProgram(device, "3D");
-            cl::Kernel kernel(program, "applyPatch3D");
-            kernel.setArg(0, *patchAccess->get3DImage());
+            cl::Kernel kernel;
+            cl::NDRange size;
+            if(patch->getDimensions() == 2) {
+                kernel = cl::Kernel(program, "applyPatch2Dto3D");
+                size = cl::NDRange(patch->getWidth(), patch->getHeight());
+                kernel.setArg(0, *patchAccess->get3DImage());
+            } else {
+                kernel = cl::Kernel(program, "applyPatch3D");
+                size =
+                kernel.setArg(0, *patchAccess->get2DImage());
+            }
             kernel.setArg(2, startX);
             kernel.setArg(3, startY);
             kernel.setArg(4, startZ);
@@ -225,14 +234,23 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
             device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
                 cl::NullRange,
-                cl::NDRange(patch->getWidth(), patch->getHeight(), patch->getDepth()),
+                size,
                 cl::NullRange
             );
         } else {
             auto outputAccess = m_outputImage->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
             cl::Program program = getOpenCLProgram(device, "3D", "-DTYPE=" + getCTypeAsString(m_outputImage->getDataType()));
-            cl::Kernel kernel(program, "applyPatch3D");
-            kernel.setArg(0, *patchAccess->get3DImage());
+            cl::Kernel kernel;
+            cl::NDRange size;
+            if(patch->getDimensions() == 2) {
+                kernel = cl::Kernel(program, "applyPatch2Dto3D");
+                size = cl::NDRange(patch->getWidth(), patch->getHeight());
+                kernel.setArg(0, *patchAccess->get3DImage());
+            } else {
+                kernel = cl::Kernel(program, "applyPatch3D");
+                size = cl::NDRange(patch->getWidth(), patch->getHeight(), patch->getDepth());
+                kernel.setArg(0, *patchAccess->get2DImage());
+            }
             kernel.setArg(1, *outputAccess->get());
             kernel.setArg(2, startX);
             kernel.setArg(3, startY);
@@ -244,7 +262,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
             device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
                 cl::NullRange,
-                cl::NDRange(patch->getWidth(), patch->getHeight(), patch->getDepth()),
+                size,
                 cl::NullRange
             );
         }
