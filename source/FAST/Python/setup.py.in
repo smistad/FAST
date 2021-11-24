@@ -93,6 +93,9 @@ if is_windows:
     link_args = []
     package_data = {'': [
             'bin/*.dll',
+            'bin/UFFviewer.exe',
+            'bin/runPipeline.exe',
+            'bin/systemCheck.exe',
             'bin/plugins.xml',
             'bin/fast_configuration.txt',
             'README.md',
@@ -108,6 +111,9 @@ elif is_apple:
     link_args = ['-bundle', '-Wl,-rpath,@loader_path/../lib', '-framework', 'OpenCL', '-framework', 'OpenGL']
     package_data = {'': [
             'lib/plugins.xml',
+            'bin/UFFviewer',
+            'bin/runPipeline',
+            'bin/systemCheck',
             'bin/fast_configuration.txt',
             'README.md',
             'pipelines/**/*',
@@ -140,6 +146,9 @@ else:
     link_args = ['-Wl,-rpath=$ORIGIN/../lib']
     package_data = {'': [
             'lib/plugins.xml',
+            'bin/UFFviewer',
+            'bin/runPipeline',
+            'bin/systemCheck',
             'bin/fast_configuration.txt',
             'README.md',
             'pipelines/**/*',
@@ -226,6 +235,11 @@ setup(name='pyFAST',    # Distribution name
       setup_requires=['wheel'],
       ext_modules=[_fast],
       package_data=package_data,
+      entry_points={'gui_scripts': [
+          'UFFviewer=fast.entry_points:runUFFviewer',
+          'systemCheck=fast.entry_points:runSystemCheck',
+          'runPipeline=fast.entry_points:runRunPipeline',
+      ]},
       classifiers=[
         'Development Status :: 4 - Beta',
         'Operating System :: Microsoft :: Windows',

@@ -13,4 +13,5 @@ os.environ['PATH'] = path + os.pathsep + os.environ['PATH'] # This is needed in 
 from .fast import *
 fast.Config.setBasePath(bin_path)
 fast.Config.setTerminateHandlerDisabled(True)
-fast.Object() # Trigger splash
+if True not in [x in sys.argv[0] for x in ['UFFviewer', 'runPipeline', 'systemCheck']]:
+    fast.Object() # Trigger splash

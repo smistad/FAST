@@ -452,7 +452,7 @@ def connect(self, *args):
     }
 }
 
-// DataStream iterable
+// Include some python code
 %pythoncode "@PROJECT_SOURCE_DIR@/source/FAST/Python/DataStream.py"
 
 %extend fast::ProcessObject {
