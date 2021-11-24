@@ -1239,8 +1239,12 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
         OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
         OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
         cl::Image3D* input = readAccess->get3DImage();
-        cl::Image3D* output = writeAccess->get3DImage();
-
+        cl::Image* output;
+        if(newImage->getDimensions() == 2) {
+            output = writeAccess->get2DImage();
+        } else {
+            output = writeAccess->get3DImage();
+        }
         clDevice->getCommandQueue().enqueueCopyImage(
                 *input,
                 *output,
