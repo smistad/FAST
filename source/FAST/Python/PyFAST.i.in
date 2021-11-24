@@ -260,7 +260,7 @@ static void* _intToVoidPointer(std::size_t intPointer) {
     shape = array_interface['shape']
     is_2d = True
     has_channels = False
-    if len(shape) > 2 and shape[-1] <= 4:
+    if len(shape) == 3 and shape[-1] <= 4:
         has_channels = True
     elif len(shape) == 3 and shape[-1] > 4:
         is_2d = False
