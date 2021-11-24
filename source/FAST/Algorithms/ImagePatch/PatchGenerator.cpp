@@ -176,15 +176,15 @@ void PatchGenerator::generateStream() {
             mRuntimeManager->startRegularTimer("create patch");
 
             int patchWidth = m_width;
-            if(patchX*patchWidthWithoutOverlap + patchWidth - overlapInPixelsX >= width) {
+            if(patchX*patchWidthWithoutOverlap + patchWidth - overlapInPixelsX > width) {
                 patchWidth = width - patchX * patchWidthWithoutOverlap + overlapInPixelsX - 1;
             }
             int patchHeight = m_height;
-            if(patchY*patchHeightWithoutOverlap + patchHeight - overlapInPixelsY >= height) {
+            if(patchY*patchHeightWithoutOverlap + patchHeight - overlapInPixelsY > height) {
                 patchHeight = height - patchY * patchHeightWithoutOverlap + overlapInPixelsY - 1;
             }
             int patchDepth = m_depth;
-            if(patchZ*patchDepthWithoutOverlap + patchDepth - overlapInPixelsZ >= depth) {
+            if(patchZ*patchDepthWithoutOverlap + patchDepth - overlapInPixelsZ > depth) {
                 patchDepth = depth - patchZ * patchDepthWithoutOverlap + overlapInPixelsZ - 1;
             }
 
@@ -192,6 +192,7 @@ void PatchGenerator::generateStream() {
             int y = patchY * patchHeightWithoutOverlap - overlapInPixelsY;
             int z = patchZ * patchDepthWithoutOverlap - overlapInPixelsZ;
 
+            reportInfo() << "Creating 2D image patch at offset " << x << " " << y << " " << z << " with size " << patchWidth << " " << patchHeight << " " << patchDepth << reportEnd();
             auto patch = m_inputVolume->crop(Vector3i(x, y, z), Vector3i(patchWidth, patchHeight, patchDepth), true);
             patch->setFrameData("original-width", std::to_string(width));
             patch->setFrameData("original-height", std::to_string(height));
