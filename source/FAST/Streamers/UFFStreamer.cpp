@@ -471,10 +471,21 @@ void UFFStreamer::generateStream() {
             int frameNr = getCurrentFrameIndexAndUpdate();
 
             auto image = Image::create(m_uffData->width, m_uffData->height, DataType::TYPE_UINT8, 1,
-                          m_uffData->dataScanconverted[frameNr].data());
+                                       m_uffData->dataScanconverted[frameNr].data());
             image->setSpacing(m_uffData->spacing.x(), m_uffData->spacing.y(), m_uffData->spacing.z());
-            addOutputData(0, image);
-            frameAdded();
+            if(!pause) {
+                std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
+                std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
+                if(sleepFor.count() > 0)
+                    std::this_thread::sleep_for(sleepFor);
+                previousTime = std::chrono::high_resolution_clock::now();
+            }
+            try {
+                addOutputData(0, image);
+                frameAdded();
+            } catch(ThreadStopped & e) {
+                break;
+            }
         }
     }
 }
