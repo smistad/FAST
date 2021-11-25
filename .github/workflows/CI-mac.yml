@@ -106,4 +106,5 @@ jobs:
       if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
       run: |
         sleep 30
-        pip install pyfast==${GITHUB_REF}
+        pip3 install pyfast==${GITHUB_REF#refs/tags/v}
+      shell: bash
