@@ -359,17 +359,22 @@ void UFFReader::readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFDa
     }//for
 }
 
+void UFFStreamer::load() {
+    if(m_uffData)
+        return;
+    if(m_filename.empty())
+        throw Exception("You must set filename in UFFImageImporter with setFilename()");
+    if(!fileExists(m_filename))
+        throw FileNotFoundException(m_filename);
+
+    auto uffReader = UFFReader();
+    uffReader.open(m_filename);
+    m_uffData = uffReader.getUFFData();
+}
+
 void UFFStreamer::execute() {
     if(!m_streamIsStarted) {
-        if (m_filename.empty())
-            throw Exception("You must set filename in UFFImageImporter with setFilename()");
-        if (!fileExists(m_filename))
-            throw FileNotFoundException(m_filename);
-
-        auto uffReader = UFFReader();
-        uffReader.open(m_filename);
-        m_uffData = uffReader.getUFFData();
-
+        load();
         m_streamIsStarted = true;
         m_thread = std::make_unique<std::thread>(std::bind(&UFFStreamer::generateStream, this));
     }
@@ -495,6 +500,7 @@ UFFStreamer::~UFFStreamer() {
 }
 
 int UFFStreamer::getNrOfFrames() {
+    load();
 	return m_uffData->numFrames;
 }
 
