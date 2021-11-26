@@ -203,6 +203,8 @@ void Pipeline::parseProcessObject(
         if(tokens.size() == 3) {
             // Check if it is registered as pipeline input data
             if(m_pipelineInputData.count(inputID) > 0) {
+                if(!m_pipelineInputData[inputID].second)
+                    throw Exception("This pipeline requires input data named " + inputID + ", but no such data was given to Pipeline::parse()");
                 if(isRenderer) {
                     reportInfo() << "Connected data object " << inputID << " to renderer " << objectID << reportEnd();
                     std::shared_ptr<Renderer> renderer = std::static_pointer_cast<Renderer>(object);
