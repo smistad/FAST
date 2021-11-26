@@ -21,3 +21,5 @@ All the Python examples can be found in the [repository](https://github.com/smis
 |[Using FAST in an existing PySide2 application](@ref pyfast_and_pyside2_custom_window.py)| @image html images/examples/python/pyfast_and_pyside_custom_window.jpg width=350px; |
 |[Real-time line plotting](@ref real_time_line_plotter.py)|  @image html images/examples/python/real_time_line_plotter.jpg width=350px; |
 |[Controlling a FAST surface extraction pipeline with a Qt GUI using PySide2](@ref surface_extraction_gui_with_pyside2.py)|@image html images/examples/python/pyside_surface_extraction.jpg width=350px;|
+|[Stream ultrasound file format (UFF) data, apply non-local means and display](@ref stream_uff_ultrasound_file_format_data.py)| |
+|[Stream ultrasound file format (UFF) data and display with matplotlib](@ref display_ultrasound_file_format_data_with_matplotlib.py)| |
