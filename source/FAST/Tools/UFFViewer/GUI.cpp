@@ -203,7 +203,7 @@ void UFFViewerWindow::loadView() {
 
 	// Load pipeline
 	Pipeline pipeline(Config::getPipelinePath() + "/uff_viewer/" + m_pipelineFile);
-	pipeline.parse({{"UFFstream", m_streamer}});
+	pipeline.parse({}, {{"UFFstream", m_streamer}});
 
 	// Setup renderers and views
     auto renderers = pipeline.getRenderers();

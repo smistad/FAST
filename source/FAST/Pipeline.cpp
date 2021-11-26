@@ -15,7 +15,7 @@ namespace fast {
 Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> arguments) {
     mFilename = filename;
 
-    // TODO Read entire contents of file, replace arguments or throw error if not supplied
+    // Read entire contents of file, replace arguments or throw error if not supplied
     // Store contents in buffer
     std::ifstream file(mFilename);
     if(!file.is_open())
@@ -44,14 +44,28 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
             auto parts = split(value, " ");
             if(parts.size() != 3)
                 throw Exception("PipelineOutputData must have 3 values");
-            trim(parts[0]);
-            trim(parts[1]);
-            trim(parts[2]);
+            trim(parts[0]); // Unique name
+            trim(parts[1]); // process object producing this output
+            trim(parts[2]); // Port
             m_pipelineOutputData[parts[0]] = std::make_pair(parts[1], std::stoi(parts[2]));
+        } else if(key == "PipelineInputData") {
+            auto parts = split(value, " ");
+            if(parts.empty())
+                throw Exception("PipelineInputData must ate least 1 value");
+            std::string name = parts[0];
+            trim(name); // Unique name
+            std::string description = "";
+            try {
+                value.substr(parts[0].size()+1);
+                description = replace(description, "\"", "");
+            } catch(...) {
+
+            }
+            m_pipelineInputData[name] = std::make_pair(description, nullptr);
         }
 
-        // Check for variables @@
-        std::size_t foundStart = line.find("@@");
+    // Check for variables @@
+    std::size_t foundStart = line.find("@@");
         while(foundStart != std::string::npos) {
             auto foundEnd = line.find("@@", foundStart + 2);
             if (foundEnd == std::string::npos)
@@ -186,6 +200,21 @@ void Pipeline::parseProcessObject(
 
         int inputPortID = std::stoi(tokens[1]);
         std::string inputID = tokens[2];
+        if(tokens.size() == 3) {
+            // Check if it is registered as pipeline input data
+            if(m_pipelineInputData.count(inputID) > 0) {
+                if(isRenderer) {
+                    reportInfo() << "Connected data object " << inputID << " to renderer " << objectID << reportEnd();
+                    std::shared_ptr<Renderer> renderer = std::static_pointer_cast<Renderer>(object);
+                    renderer->addInputData(m_pipelineInputData[inputID].second);
+                } else {
+                    reportInfo() << "Connected data object " << inputID << " to " << objectID << reportEnd();
+                    object->connect(inputPortID, m_pipelineInputData[inputID].second);
+                }
+                ++lineNr;
+                continue;
+            }
+        }
         int outputPortID = 0;
         if(tokens.size() == 4)
             outputPortID = std::stoi(tokens[3]);
@@ -209,9 +238,17 @@ void Pipeline::parseProcessObject(
     }
 }
 
-void Pipeline::parse(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects, bool visualization) {
+void Pipeline::parse(std::map<std::string, std::shared_ptr<DataObject>> inputData, std::map<std::string, std::shared_ptr<ProcessObject>> processObjects, bool visualization) {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
 
+    for(auto item : inputData) {
+        if(m_pipelineInputData.count(item.first) == 0) {
+            reportWarning() << "Pipeline did not declaring needing any input data named " << item.first << ". Should be declared using PipelineInputData <name> <description>" << reportEnd();
+            m_pipelineInputData[item.first] = std::make_pair("", item.second);
+        } else {
+            m_pipelineInputData[item.first].second = item.second;
+        }
+    }
     mProcessObjects = processObjects;
     mRenderers.clear();
     m_views.clear();
@@ -331,7 +368,7 @@ std::vector<Pipeline> getAvailablePipelines(std::string path) {
     return pipelines;
 }
 
-std::unordered_map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() {
+std::map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() {
     if(mProcessObjects.size() == 0)
         parse();
 
@@ -402,6 +439,13 @@ std::shared_ptr<ProcessObject> Pipeline::getProcessObject(std::string name) {
         throw Exception("Process object " + name + "not found in pipeline");
     auto PO = mProcessObjects[name];
     return PO;
+}
+
+std::map<std::string, std::string> Pipeline::getRequiredPipelineInputData() const {
+    std::map<std::string, std::string> inputs;
+    for(auto item : m_pipelineInputData)
+        inputs[item.first] = item.second.first;
+    return inputs;
 }
 
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {

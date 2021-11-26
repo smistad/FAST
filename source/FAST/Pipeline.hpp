@@ -17,7 +17,7 @@ class FAST_EXPORT  Pipeline : public Object {
         Pipeline(std::string filename, std::map<std::string, std::string> variables = {{}});
         std::vector<View*> getViews();
         std::vector<std::shared_ptr<Renderer>> getRenderers();
-        std::unordered_map<std::string, std::shared_ptr<ProcessObject>> getProcessObjects();
+        std::map<std::string, std::shared_ptr<ProcessObject>> getProcessObjects();
         std::shared_ptr<ProcessObject> getProcessObject(std::string name);
         std::string getName() const;
         std::string getDescription() const;
@@ -30,21 +30,31 @@ class FAST_EXPORT  Pipeline : public Object {
         std::string getPipelineAttribute(std::string name) const;
         /**
          * @brief Parse the pipeline file
+         *
+         * @param inputData Input data objects
+         * @param processObjects Process objects to connect to this pipeline
+         * @param visualization If false parse will ignore any renderers and views
          */
-        void parse(std::unordered_map<std::string, std::shared_ptr<ProcessObject>> processObjects = {}, bool visualization = true);
+        void parse(
+                std::map<std::string, std::shared_ptr<DataObject>> inputData = {},
+                std::map<std::string, std::shared_ptr<ProcessObject>> processObjects = {},
+                bool visualization = true
+        );
 
+        std::map<std::string, std::string> getRequiredPipelineInputData() const;
         std::map<std::string, DataObject::pointer> getAllPipelineOutputData(std::function<void(float)> progressFunction = nullptr);
         DataObject::pointer getPipelineOutputData(std::string name, std::function<void(float)> progressFunction = nullptr);
     private:
         std::string mName;
         std::string mDescription;
         std::string mFilename;
-        std::unordered_map<std::string, std::shared_ptr<ProcessObject>> mProcessObjects;
+        std::map<std::string, std::shared_ptr<ProcessObject>> mProcessObjects;
         std::unordered_map<std::string, View*> m_views;
         std::vector<std::string> mRenderers;
         std::vector<std::string> m_lines;
         std::unordered_map<std::string, std::string> m_attributes;
         std::map<std::string, std::pair<std::string, uint>> m_pipelineOutputData;
+        std::map<std::string, std::pair<std::string, std::shared_ptr<DataObject>>> m_pipelineInputData;
 
         void parseProcessObject(
             std::string objectName,
