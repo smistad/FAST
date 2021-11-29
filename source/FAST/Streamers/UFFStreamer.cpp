@@ -8,10 +8,10 @@
 namespace fast {
 
 
-double linearInterpolate(double a, double b, double t);
-void cart2pol(double x, double y, double &r, double &th);
-void pol2cart(double r, double th, double &x, double &y);
-unsigned int normalizeToGrayScale(double dBPixel, int dynamic_range = 60, int gain = 10);
+inline float linearInterpolate(float a, float b, float t);
+inline void cart2pol(float x, float y, float &r, float &th);
+inline void pol2cart(float r, float th, float &x, float &y);
+inline uchar normalizeToGrayScale(float dBPixel, int dynamic_range = 60, int gain = 10);
 
 
 /**
@@ -29,11 +29,11 @@ public:
     std::string dataGroupName;
     int numFrames;
     bool polarCoordinates;
-    std::vector<std::vector<unsigned char> > dataScanconverted;
-    std::vector<std::vector<std::complex<double> > > iqData;
+    std::vector<std::unique_ptr<uchar[]>> dataScanconverted;
+    std::vector<std::vector<std::complex<float> > > iqData;
 
-    std::vector<double> azimuth_axis;
-    std::vector<double> depth_axis;
+    std::vector<float> azimuth_axis;
+    std::vector<float> depth_axis;
 };
 
 class UFFReader {
@@ -69,15 +69,15 @@ class UFFScanConvert {
 
     protected:
         std::shared_ptr<UFFData> m_uffData;
-        std::vector<std::vector<double> > mBeamData;
+        std::vector<std::unique_ptr<float[]>> mBeamData;
 
         bool scanConvertCartesianCoordinates(int newWidth = 512, int newHeight = 512, bool linearInterpolation = true);
         bool scanConvertPolarCoordinates(int newWidth = 512, int newHeight = 512, bool linearInterpolation = true);
         void normalizeEnvelopeAndLogCompress();
-        std::complex<double> findMax();
-        double getCartesianPixelValue(double xIq, double yIq, int frameNr, bool linear);
-        double getPixelValue(double radius, double theta, int frameNr, bool linear = true);
-        void getIteratorToElementAfterValue(double value, std::vector<double> &vector, std::vector<double>::iterator &iter);
+        std::complex<float> findMax();
+        float getCartesianPixelValue(float xIq, float yIq, int frameNr, bool linear);
+        float getPixelValue(float radius, float theta, int frameNr, bool linear = true);
+        void getIteratorToElementAfterValue(float value, std::vector<float> &vector, std::vector<float>::iterator &iter);
     };
 
 //Operator function to be used with H5Literate
@@ -295,7 +295,7 @@ void UFFReader::readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UF
         int dataSize = dataStruct->width * dataStruct->height;
         //std::vector<float> image_data;
         //image_data.resize(dataSize);
-        std::vector<std::complex<double> > complex_image;
+        std::vector<std::complex<float> > complex_image;
         complex_image.resize(dataSize);
 
         for (int y = 0; y < dataStruct->height; ++y) {
@@ -303,7 +303,7 @@ void UFFReader::readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UF
                 //TODO: Should axes be swapped?
                 int pos = y + x * dataStruct->height;
                 //image_data[x + y * dataStruct.width] = std::sqrt(imaginary[pos] * imaginary[pos] + real[pos] * real[pos]);
-                complex_image[x + y * dataStruct->width] = std::complex<double>(real[pos],imaginary[pos]);
+                complex_image[x + y * dataStruct->width] = std::complex<float>(real[pos],imaginary[pos]);
             }
         }
         // TODO end env
@@ -346,8 +346,7 @@ void UFFReader::readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFDa
         dataset.read(data.get(), H5::PredType::NATIVE_UCHAR, memspace, dataspace);
 
         int dataSize = dataStruct->width * dataStruct->height;
-        std::vector<unsigned char> image_data;
-        image_data.resize(dataSize);
+        auto image_data = make_uninitialized_unique<uchar[]>(dataSize);
         for (int y = 0; y < dataStruct->height; ++y) {
             for (int x = 0; x < dataStruct->width; ++x) {
                 //TODO: Should axes be swapped?
@@ -355,7 +354,7 @@ void UFFReader::readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFDa
                 image_data[x + y * dataStruct->width] = data[pos];
             }
         }
-        dataStruct->dataScanconverted[frameNr] = image_data;
+        dataStruct->dataScanconverted[frameNr] = std::move(image_data);
     }//for
 }
 
@@ -438,7 +437,7 @@ void UFFStreamer::generateStream() {
             int frameNr = getCurrentFrameIndexAndUpdate();
 
             auto image = Image::create(m_uffData->width, m_uffData->height, DataType::TYPE_UINT8, 1,
-                          m_uffData->dataScanconverted[frameNr].data());
+                          m_uffData->dataScanconverted[frameNr].get());
             image->setSpacing(m_uffData->spacing.x(), m_uffData->spacing.y(), m_uffData->spacing.z());
 
             if(!pause) {
@@ -459,8 +458,12 @@ void UFFStreamer::generateStream() {
         UFFScanConvert scanconverter;
         scanconverter.loadData(m_uffData);
 
+        mRuntimeManager->enable();
+        mRuntimeManager->startRegularTimer("scan-convert");
         scanconverter.scanConvert(512, 512, true);
         m_uffData = scanconverter.getUffData();
+        mRuntimeManager->stopRegularTimer("scan-convert");
+        mRuntimeManager->print("scan-convert");
 
         while (true){
             bool pause = getPause();
@@ -476,7 +479,7 @@ void UFFStreamer::generateStream() {
             int frameNr = getCurrentFrameIndexAndUpdate();
 
             auto image = Image::create(m_uffData->width, m_uffData->height, DataType::TYPE_UINT8, 1,
-                                       m_uffData->dataScanconverted[frameNr].data());
+                                       m_uffData->dataScanconverted[frameNr].get());
             image->setSpacing(m_uffData->spacing.x(), m_uffData->spacing.y(), m_uffData->spacing.z());
             if(!pause) {
                 std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
@@ -504,26 +507,26 @@ int UFFStreamer::getNrOfFrames() {
 	return m_uffData->numFrames;
 }
 
-double linearInterpolate(double a, double b, double t) {
+float linearInterpolate(float a, float b, float t) {
     return a + t * (b -a );
 }
 
-void cart2pol(double x, double y, double &r, double &th) {
-    r = sqrt(x*x + y*y);
-    th = atan2(y,x);//Use atan2(), as atan(0/0) don't work
+void cart2pol(float x, float y, float &r, float &th) {
+    r = std::sqrt(x*x + y*y);
+    th = std::atan2(y,x);//Use atan2(), as atan(0/0) don't work
 }
 
-void pol2cart(double r, double th, double &x, double &y) {
-    x = r * cos(th);
-    y = r * sin(th);
+void pol2cart(float r, float th, float &x, float &y) {
+    x = r * std::cos(th);
+    y = r * std::sin(th);
 }
 
 // Normalize from dB image to 0 - 255 image and apply gain and dynamic range
-unsigned int normalizeToGrayScale(double dBPixel, int dynamic_range, int gain) {
-    double img_sc_reject = dBPixel + gain;
+uchar normalizeToGrayScale(float dBPixel, int dynamic_range, int gain) {
+    float img_sc_reject = dBPixel + gain;
     img_sc_reject = (img_sc_reject < -dynamic_range) ? -dynamic_range : img_sc_reject; //Reject everything below dynamic range
     img_sc_reject = (img_sc_reject > 0) ? 0 : img_sc_reject; //Everything above 0 dB should be saturated
-    unsigned int img_gray_scale = round(255*(img_sc_reject+dynamic_range)/dynamic_range);
+    uchar img_gray_scale = round(255*(img_sc_reject+dynamic_range)/dynamic_range);
     return img_gray_scale;
 }
 
@@ -535,17 +538,17 @@ void UFFScanConvert::loadData(std::shared_ptr<UFFData> uffData) {
     m_uffData = uffData;
 }
 
-std::complex<double> UFFScanConvert::findMax() {
+std::complex<float> UFFScanConvert::findMax() {
     //TODO: Should the abs of the complex numbers be used for the comparison?
 
     //std::max_element needs a lambda function for the comparison
-    auto absLess = [](const std::complex<double> &a,
-                      const std::complex<double> &b) { return abs(a) < abs(b); };
+    auto absLess = [](const std::complex<float> &a,
+                      const std::complex<float> &b) { return abs(a) < abs(b); };
 
-    std::complex<double> max(0,0);
+    std::complex<float> max(0,0);
 
     for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
-        std::vector<std::complex<double> >::iterator maxIter;
+        std::vector<std::complex<float> >::iterator maxIter;
         maxIter = std::max_element(m_uffData->iqData[frame].begin(), m_uffData->iqData[frame].end(), absLess);
         //std::cout << "maxIter: " << *maxIter << std::endl;
         if(absLess(max, *maxIter))
@@ -557,20 +560,19 @@ std::complex<double> UFFScanConvert::findMax() {
 
 void UFFScanConvert::normalizeEnvelopeAndLogCompress() {
     mBeamData.resize(m_uffData->numFrames);//Store beam data in data structure as well?
-    std::complex<double> max = findMax();
+    std::complex<float> max = findMax();
 
     for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
         int numPixels = m_uffData->height * m_uffData->width;
-        std::vector<double> beamImage;
-        beamImage.resize(numPixels);
+        auto beamImage = make_uninitialized_unique<float[]>(numPixels);
 
         for(int pixel = 0; pixel < numPixels; ++pixel) {
             //img_dB = 20*log10(abs(img./max(img(:)))); %Log compress, and normalize on max for all images
 
-            std::complex<double> iq = m_uffData->iqData[frame][pixel];
-            beamImage[pixel] = 20 * log10(abs(iq/max));
+            std::complex<float> iq = m_uffData->iqData[frame][pixel];
+            beamImage[pixel] = 20.0f * std::log10(std::abs(iq/max));
         }//for
-        mBeamData[frame] = beamImage;
+        mBeamData[frame] = std::move(beamImage);
     }//for
 }
 
@@ -592,30 +594,29 @@ bool UFFScanConvert::scanConvertCartesianCoordinates(int newWidth, int newHeight
 
     //X and Y values are stored in azimuth_axis and depth_axis for now
     //UFFData.x_axis_name and UFFData.y_axis_name should hold axis names
-    double startY = m_uffData->depth_axis.front();
-    double stopY = m_uffData->depth_axis.back();
-    double startX = m_uffData->azimuth_axis.front();
-    double stopX = m_uffData->azimuth_axis.back();
+    float startY = m_uffData->depth_axis.front();
+    float stopY = m_uffData->depth_axis.back();
+    float startX = m_uffData->azimuth_axis.front();
+    float stopX = m_uffData->azimuth_axis.back();
 
-    double newXSpacing = (stopX - startX) / (newWidth - 1); //Subtract 1 because num spaces is 1 less than num elements
-    double newYSpacing = (stopY - startY) / (newHeight - 1);
+    float newXSpacing = (stopX - startX) / (newWidth - 1); //Subtract 1 because num spaces is 1 less than num elements
+    float newYSpacing = (stopY - startY) / (newHeight - 1);
 
     m_uffData->dataScanconverted.resize(m_uffData->numFrames);//Make room for frames
     for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
 
-        std::vector<unsigned char> image_data;
-        image_data.resize(frameSize);//Make room for frame
+        auto image_data = make_uninitialized_unique<uchar[]>(frameSize);
 
         for(int x = 0; x < newWidth; ++x) {
             for(int y = 0; y < newHeight; ++y) {
-                double beamDataX = x * newXSpacing;
-                double beamDataY = y * newYSpacing;
-                double pixelValue_dB = getCartesianPixelValue(beamDataY, beamDataX, frame, linearInterpolation);
-                unsigned int pixelValue = normalizeToGrayScale(pixelValue_dB);
+                float beamDataX = x * newXSpacing;
+                float beamDataY = y * newYSpacing;
+                float pixelValue_dB = getCartesianPixelValue(beamDataY, beamDataX, frame, linearInterpolation);
+                uchar pixelValue = normalizeToGrayScale(pixelValue_dB);
                 image_data[x + (y*newWidth)] = pixelValue;
             }
         }
-        m_uffData->dataScanconverted[frame] = image_data;
+        m_uffData->dataScanconverted[frame] = std::move(image_data);
     }
 
     m_uffData->isScanConverted = true;
@@ -627,9 +628,9 @@ bool UFFScanConvert::scanConvertCartesianCoordinates(int newWidth, int newHeight
     return true;
 }
 
-double UFFScanConvert::getCartesianPixelValue(double xIq, double yIq, int frameNr, bool linear) {
-    std::vector<double>::iterator yIter;
-    std::vector<double>::iterator xIter;
+float UFFScanConvert::getCartesianPixelValue(float xIq, float yIq, int frameNr, bool linear) {
+    std::vector<float>::iterator yIter;
+    std::vector<float>::iterator xIter;
     getIteratorToElementAfterValue(yIq, m_uffData->depth_axis, yIter);
     getIteratorToElementAfterValue(xIq, m_uffData->azimuth_axis, xIter);
 
@@ -637,11 +638,11 @@ double UFFScanConvert::getCartesianPixelValue(double xIq, double yIq, int frameN
     int xNum = xIter - m_uffData->azimuth_axis.begin();
     int pixelNum = yNum + (xNum * m_uffData->height);
 
-    double pixelValue_dB = 0;
+    float pixelValue_dB = 0;
     if(linear) {
-        double y = yIq;
-        double x = xIq;
-        double y1, y2, x1, x2;
+        float y = yIq;
+        float x = xIq;
+        float y1, y2, x1, x2;
         y2 = *yIter;
         if(yIter != m_uffData->depth_axis.begin())
             y1 = *(yIter - 1);
@@ -659,15 +660,15 @@ double UFFScanConvert::getCartesianPixelValue(double xIq, double yIq, int frameN
         }
 
         //Find values of all 4 neighbours
-        double row1Val1 = mBeamData[frameNr][pixelNum - 1];
-        double row1Val2 = mBeamData[frameNr][pixelNum];
-        double row2Val1 = mBeamData[frameNr][pixelNum - (int)m_uffData->width - 1];
-        double row2Val2 = mBeamData[frameNr][pixelNum - (int)m_uffData->width];
+        float row1Val1 = mBeamData[frameNr][pixelNum - 1];
+        float row1Val2 = mBeamData[frameNr][pixelNum];
+        float row2Val1 = mBeamData[frameNr][pixelNum - (int)m_uffData->width - 1];
+        float row2Val2 = mBeamData[frameNr][pixelNum - (int)m_uffData->width];
 
-        double tY = (y - y1) / (y2 - y1);
-        double tX = (x - x1) / (x2 - x1);
-        double row1 = linearInterpolate(row1Val1, row1Val2, tX);
-        double row2 = linearInterpolate(row2Val1, row2Val2, tX);
+        float tY = (y - y1) / (y2 - y1);
+        float tX = (x - x1) / (x2 - x1);
+        float row1 = linearInterpolate(row1Val1, row1Val2, tX);
+        float row2 = linearInterpolate(row2Val1, row2Val2, tX);
         pixelValue_dB = linearInterpolate(row1, row2, tY);
     } else {
         pixelValue_dB = mBeamData[frameNr][pixelNum]; //Nearest Neighbour (actually largest neighbour)
@@ -689,48 +690,39 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
 
     //Use std::max_element/std::min_element instead of first/last?
     //Seems like it's not necessary
-    double startRadius = m_uffData->depth_axis.front();
-    double stopRadius = m_uffData->depth_axis.back();
-    double startTheta = m_uffData->azimuth_axis.front();
-    double stopTheta = m_uffData->azimuth_axis.back();
+    float startRadius = m_uffData->depth_axis.front();
+    float stopRadius = m_uffData->depth_axis.back();
+    float startTheta = m_uffData->azimuth_axis.front();
+    float stopTheta = m_uffData->azimuth_axis.back();
 
     // x and Y is swapped?
-    double startX, startY, stopX, stopY, notUsed;
+    float startX, startY, stopX, stopY, notUsed;
     pol2cart(startRadius, startTheta, startY, notUsed);
     pol2cart(stopRadius, startTheta, notUsed, startX);
     pol2cart(stopRadius, 0, stopY, notUsed);
     pol2cart(stopRadius, stopTheta, notUsed, stopX);
 
-    double newXSpacing = (stopX - startX) / (newWidth - 1); //Subtract 1 because num spaces is 1 less than num elements
-    double newYSpacing = (stopY - startY) / (newHeight - 1);
+    float newXSpacing = (stopX - startX) / (newWidth - 1); //Subtract 1 because num spaces is 1 less than num elements
+    float newYSpacing = (stopY - startY) / (newHeight - 1);
 
     int frameSize = newWidth * newHeight;
 
     m_uffData->dataScanconverted.resize(m_uffData->numFrames);//Make room for frames
     for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
 
-        std::vector<unsigned char> image_data;
-        image_data.resize(frameSize);//Make room for frame
+        auto image_data = make_uninitialized_unique<uchar[]>(frameSize);
+        std::vector<float>::iterator rIter;
+        std::vector<float>::iterator thIter;
 
         if(m_uffData->polarCoordinates) {
             for(int x = 0; x < newWidth; ++x) {
                 for(int y = 0; y < newHeight; ++y) {
 
                     //Swap x and y? Not here maybe later?
-                    double xPos = x*newXSpacing + startX;
-                    double yPos = y*newYSpacing + startY;
+                    float xPos = x*newXSpacing + startX;
+                    float yPos = y*newYSpacing + startY;
 
-                    //Simple range check. Should not really fail
-                    if((yPos < startY) || (yPos > stopY)) {
-                        std::cout << "y range failed: " << yPos << std::endl;
-                        continue;
-                    }
-                    if((xPos < startX) || (xPos > stopX)) {
-                        std::cout << "x range failed: " << xPos << std::endl;
-                        continue;
-                    }
-
-                    double r, th;
+                    float r, th;
                     cart2pol(yPos, xPos, r, th);//Swap x and y
 
                     //Simple range check. May fail
@@ -742,14 +734,14 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
                         continue;
                     }
 
-                    double pixelValue_dB = getPixelValue(r, th, frame, linearInterpolation);
-                    unsigned int pixelValue = normalizeToGrayScale(pixelValue_dB);
+                    float pixelValue_dB = getPixelValue(r, th, frame, linearInterpolation); // This func eats a lot of runtime
+                    uchar pixelValue = normalizeToGrayScale(pixelValue_dB);
                     image_data[x + (y*newWidth)] = pixelValue;
                 }
             }
         }
 
-        m_uffData->dataScanconverted[frame] = image_data;
+        m_uffData->dataScanconverted[frame] = std::move(image_data);
     }
 
     //Remove input (not scanconverted data)?
@@ -767,9 +759,10 @@ std::shared_ptr<UFFData> UFFScanConvert::getUffData()
     return m_uffData;
 }
 
-double UFFScanConvert::getPixelValue(double radius, double theta, int frameNr, bool linear) {
-    std::vector<double>::iterator rIter;
-    std::vector<double>::iterator thIter;
+float UFFScanConvert::getPixelValue(float radius, float theta, int frameNr, bool linear) {
+    std::vector<float>::iterator rIter;
+    std::vector<float>::iterator thIter;
+    // TODO: These are very slow, why are they needed?:
     getIteratorToElementAfterValue(radius, m_uffData->depth_axis, rIter);
     getIteratorToElementAfterValue(theta, m_uffData->azimuth_axis, thIter);
 
@@ -777,11 +770,11 @@ double UFFScanConvert::getPixelValue(double radius, double theta, int frameNr, b
     int thNum = thIter - m_uffData->azimuth_axis.begin();
     int pixelNum = thNum + (rNum * m_uffData->width);
 
-    double pixelValue_dB = 0;
+    float pixelValue_dB = 0;
     if(linear) {
-        double r = radius;
-        double th = theta;
-        double r1, r2, th1, th2;
+        float r = radius;
+        float th = theta;
+        float r1, r2, th1, th2;
         r2 = *rIter;
         if(rIter != m_uffData->depth_axis.begin())
             r1 = *(rIter - 1);
@@ -799,16 +792,16 @@ double UFFScanConvert::getPixelValue(double radius, double theta, int frameNr, b
         }
 
         //Find values of all 4 neighbours
-        double row1Val1 = mBeamData[frameNr][pixelNum - 1];
-        double row1Val2 = mBeamData[frameNr][pixelNum];
-        double row2Val1 = mBeamData[frameNr][pixelNum - (int)m_uffData->width - 1];
-        double row2Val2 = mBeamData[frameNr][pixelNum - (int)m_uffData->width];
+        float row1Val1 = mBeamData[frameNr][pixelNum - 1];
+        float row1Val2 = mBeamData[frameNr][pixelNum];
+        float row2Val1 = mBeamData[frameNr][pixelNum - (int)m_uffData->width - 1];
+        float row2Val2 = mBeamData[frameNr][pixelNum - (int)m_uffData->width];
 
         //Interpolation weight between r values and th values (bi-linear interpolation)
-        double tR = 1.0 - (r - r1) / (r2 - r1);
-        double tTh = (th - th1) / (th2 - th1);
-        double row1 = linearInterpolate(row1Val1, row1Val2, tTh);
-        double row2 = linearInterpolate(row2Val1, row2Val2, tTh);
+        float tR = 1.0f - (r - r1) / (r2 - r1);
+        float tTh = (th - th1) / (th2 - th1);
+        float row1 = linearInterpolate(row1Val1, row1Val2, tTh);
+        float row2 = linearInterpolate(row2Val1, row2Val2, tTh);
         pixelValue_dB = linearInterpolate(row1, row2, tR);
     } else {
         pixelValue_dB = mBeamData[frameNr][pixelNum]; //Nearest Neighbour (actually largest neighbour)
@@ -816,9 +809,9 @@ double UFFScanConvert::getPixelValue(double radius, double theta, int frameNr, b
     return pixelValue_dB;
 }
 
-void UFFScanConvert::getIteratorToElementAfterValue(double value, std::vector<double> &vector, std::vector<double>::iterator &iter) {
+void UFFScanConvert::getIteratorToElementAfterValue(float value, std::vector<float> &vector, std::vector<float>::iterator &iter) {
     iter = std::find_if(vector.begin(), vector.end(),
-                        [value] (double element) {return (value < element);});
+                        [value] (float element) {return (value < element);});
     if(iter == vector.end())
         iter += -1;
 }
