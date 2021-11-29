@@ -602,6 +602,41 @@ void NeuralNetwork::setMinAndMaxIntensity(float min, float max) {
     mIsModified = true;
 }
 
+std::map<std::string, NeuralNetworkNode> NeuralNetwork::getInputNodes() {
+    auto nodes = m_engine->getInputNodes();
+    // TODO Use same node data type as InferenceEngine?
+    std::map<std::string, NeuralNetworkNode> result;
+    for(auto& node : nodes) {
+        result.insert(std::make_pair(node.first, NeuralNetworkNode(node.first, node.second.type, node.second.shape, node.second.portID)));
+    }
+    return result;
+}
+
+std::map<std::string, NeuralNetworkNode> NeuralNetwork::getOutputNodes() {
+    auto nodes = m_engine->getOutputNodes();
+    // TODO Use same node data type as InferenceEngine?
+    std::map<std::string, NeuralNetworkNode> result;
+    for(auto& node : nodes) {
+        result.insert(std::make_pair(node.first, NeuralNetworkNode(node.first, node.second.type, node.second.shape, node.second.portID)));
+    }
+    return result;
+}
+
+NeuralNetworkNode NeuralNetwork::getNode(std::string name) {
+    {
+        auto nodes = m_engine->getInputNodes();
+        if(nodes.count(name) > 0) {
+            return NeuralNetworkNode(name, nodes[name].type, nodes[name].shape, nodes[name].portID);
+        }
+    }
+    {
+        auto nodes = m_engine->getOutputNodes();
+        if(nodes.count(name) > 0) {
+            return NeuralNetworkNode(name, nodes[name].type, nodes[name].shape, nodes[name].portID);
+        }
+    }
+    throw Exception("Node with name " + name + " not found in neural network");
+}
 
 Sequence::Sequence(std::vector<std::shared_ptr<Image>> images) {
     m_data = InferenceDataList(std::move(images));

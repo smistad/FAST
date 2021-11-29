@@ -14,6 +14,7 @@ namespace fast {
  */
 class FAST_EXPORT TensorShape {
     public:
+#ifndef SWIG
         /**
          * Construct tensor shape
          * @param dimensions
@@ -25,10 +26,10 @@ class FAST_EXPORT TensorShape {
          */
         TensorShape(VectorXi dimensions);
         /**
-         * Construct tensor shape
-         * @param dimensions
+         * Construct empty (invalid) tensor shape
          */
-        explicit TensorShape(std::vector<int> dimensions);
+        TensorShape();
+
         /**
          * Copy constructor
          * @param other
@@ -40,10 +41,12 @@ class FAST_EXPORT TensorShape {
          * @return
          */
         TensorShape& operator=(const TensorShape& other);
+#endif
         /**
-         * Construct empty (invalid) tensor shape
-         */
-        TensorShape();
+        * Construct tensor shape
+        * @param dimensions
+        */
+        explicit TensorShape(std::vector<int> dimensions);
         /**
          * If shape is empty or not
          */

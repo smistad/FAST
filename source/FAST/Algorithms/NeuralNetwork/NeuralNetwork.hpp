@@ -78,14 +78,20 @@ class FAST_EXPORT Batch : public SimpleDataObject<InferenceDataList> {
         FAST_CONSTRUCTOR(Batch, std::vector<std::shared_ptr<Tensor>>, tensors,)
 };
 
+/**
+ * @brief A struct representing a neural network input/output node
+ * @ingroup neural-network
+ */
 class FAST_EXPORT NeuralNetworkNode {
     public:
-        NeuralNetworkNode(std::string name, NodeType type = NodeType::UNSPECIFIED, TensorShape shape = TensorShape()) : name(name), type(type), shape(shape) {
+        NeuralNetworkNode(std::string name, NodeType type = NodeType::UNSPECIFIED, TensorShape shape = TensorShape(), uint id = 0) : name(name), type(type), shape(shape), id(id) {
 
         }
+        NeuralNetworkNode() {name = "uninitialized";};
+        uint id;
         std::string name;
         NodeType type;
-        TensorShape shape;
+        fast::TensorShape shape; // namespace is needed here for swig/pyfast to work for some reason
 };
 
 /**
@@ -183,6 +189,10 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          * @param flip
          */
         void setHorizontalFlipping(bool flip);
+
+        std::map<std::string, NeuralNetworkNode> getInputNodes();
+        std::map<std::string, NeuralNetworkNode> getOutputNodes();
+        NeuralNetworkNode getNode(std::string name);
 
         /**
          * Set the temporal window for dynamic mode.
