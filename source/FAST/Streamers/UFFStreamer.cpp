@@ -459,7 +459,7 @@ void UFFStreamer::generateStream() {
         UFFScanConvert scanconverter;
         scanconverter.loadData(m_uffData);
 
-        scanconverter.scanConvert(512, 512, false);
+        scanconverter.scanConvert(512, 512, true);
         m_uffData = scanconverter.getUffData();
 
         while (true){
@@ -661,8 +661,8 @@ double UFFScanConvert::getCartesianPixelValue(double xIq, double yIq, int frameN
         //Find values of all 4 neighbours
         double row1Val1 = mBeamData[frameNr][pixelNum - 1];
         double row1Val2 = mBeamData[frameNr][pixelNum];
-        double row2Val1 = mBeamData[frameNr][pixelNum - m_uffData->height - 1];
-        double row2Val2 = mBeamData[frameNr][pixelNum - m_uffData->height];
+        double row2Val1 = mBeamData[frameNr][pixelNum - (int)m_uffData->width - 1];
+        double row2Val2 = mBeamData[frameNr][pixelNum - (int)m_uffData->width];
 
         double tY = (y - y1) / (y2 - y1);
         double tX = (x - x1) / (x2 - x1);
@@ -801,11 +801,11 @@ double UFFScanConvert::getPixelValue(double radius, double theta, int frameNr, b
         //Find values of all 4 neighbours
         double row1Val1 = mBeamData[frameNr][pixelNum - 1];
         double row1Val2 = mBeamData[frameNr][pixelNum];
-        double row2Val1 = mBeamData[frameNr][pixelNum - m_uffData->height - 1];
-        double row2Val2 = mBeamData[frameNr][pixelNum - m_uffData->height];
+        double row2Val1 = mBeamData[frameNr][pixelNum - (int)m_uffData->width - 1];
+        double row2Val2 = mBeamData[frameNr][pixelNum - (int)m_uffData->width];
 
         //Interpolation weight between r values and th values (bi-linear interpolation)
-        double tR = (r - r1) / (r2 - r1);
+        double tR = 1.0 - (r - r1) / (r2 - r1);
         double tTh = (th - th1) / (th2 - th1);
         double row1 = linearInterpolate(row1Val1, row1Val2, tTh);
         double row2 = linearInterpolate(row2Val1, row2Val2, tTh);
