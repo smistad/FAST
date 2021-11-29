@@ -42,9 +42,13 @@ class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
         FAST_CONSTRUCTOR(UFFStreamer,
              std::string, filename,,
              bool, loop, = false,
-             uint, framerate, = 30
+             uint, framerate, = 30,
+             float, gain, = 10,
+             float, dynamicRange, = 60
         );
         void setFilename(std::string filename);
+        void setGain(float gain);
+        void setDynamicRange(float dynamicRange);
         void execute() override;
         /**
          * @brief Nr of frames in UFF file
@@ -65,6 +69,8 @@ class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
         std::string m_filename;
         std::string m_name;
         std::shared_ptr<UFFData> m_uffData;
+        float m_dynamicRange = 60;
+        float m_gain = 10;
 };
 
 

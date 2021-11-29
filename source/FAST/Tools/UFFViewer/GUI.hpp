@@ -29,6 +29,8 @@ class UFFViewerWindow : public Window {
 		QHBoxLayout* m_viewLayout;
 		QVBoxLayout* m_rightSideLayout;
 		QComboBox* m_framerateInput;
+        QComboBox* m_gainInput;
+        QComboBox* m_dynamicRangeInput;
 		QSlider* m_slider;
 		QPushButton* m_playButton;
 		std::shared_ptr<UFFStreamer> m_streamer;

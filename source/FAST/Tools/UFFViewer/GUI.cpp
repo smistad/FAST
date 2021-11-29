@@ -126,6 +126,33 @@ UFFViewerWindow::UFFViewerWindow() {
 			m_streamer->setFramerate(m_framerate);
 	});
 
+    auto gainLabel = new QLabel;
+    gainLabel->setText("Gain:");
+    menuLayout->addWidget(gainLabel);
+
+    m_gainInput = new QComboBox;
+    for(int i = 1; i < 100; ++i)
+        m_gainInput->addItem(QString(std::to_string(i).c_str()));
+    m_gainInput->setCurrentIndex(9);
+    menuLayout->addWidget(m_gainInput);
+    QObject::connect(m_gainInput, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
+        loadView();
+	});
+
+
+    auto dynamicRangeLabel = new QLabel;
+    dynamicRangeLabel->setText("Dynamic range:");
+    menuLayout->addWidget(dynamicRangeLabel);
+
+    m_dynamicRangeInput = new QComboBox;
+    for(int i = 1; i < 100; ++i)
+        m_dynamicRangeInput->addItem(QString(std::to_string(i).c_str()));
+    m_dynamicRangeInput->setCurrentIndex(59);
+    menuLayout->addWidget(m_dynamicRangeInput);
+    QObject::connect(m_dynamicRangeInput, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
+        loadView();
+    });
+
 	// Playback controls
 	auto playbackLayout = new QHBoxLayout;
 	m_rightSideLayout->addLayout(playbackLayout);
@@ -178,10 +205,13 @@ void UFFViewerWindow::setFilename(std::string filename) {
 void UFFViewerWindow::loadView() {
 	// Set up pipeline and view
 	try {
-		m_streamer = UFFStreamer::New();
-		m_streamer->setFilename(m_filename);
-		m_streamer->setLooping(true);
-		m_streamer->setFramerate(m_framerate);
+		m_streamer = UFFStreamer::create(
+		        m_filename,
+		        true,
+		        m_framerate,
+		        m_gainInput->currentIndex()+1,
+		        m_dynamicRangeInput->currentIndex()+1
+        );
 		m_streamer->setMaximumNrOfFrames(1); // To avoid glitches in playback we set the queue size to 1
 	} catch(Exception &e) {
 		std::string errorMessage = e.what();
