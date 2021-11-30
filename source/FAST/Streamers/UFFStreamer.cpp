@@ -77,8 +77,7 @@ class UFFScanConvert {
         void normalizeEnvelopeAndLogCompress();
         std::complex<float> findMax();
         float getCartesianPixelValue(float xIq, float yIq, int frameNr, bool linear);
-        float getPixelValue(float radius, float theta, int rNum, int thNum, int frameNr, bool linear = true);
-        void getIteratorToElementAfterValue(float value, std::vector<float> &vector, std::vector<float>::iterator &iter);
+        float getPixelValue(float radius, float theta, int frameNr, bool linear = true);
     };
 
 //Operator function to be used with H5Literate
@@ -485,7 +484,7 @@ void UFFStreamer::generateStream() {
 
         mRuntimeManager->enable();
         mRuntimeManager->startRegularTimer("scan-convert");
-        scanconverter.scanConvert(512, 512, true);
+        scanconverter.scanConvert(1024, 1024, true);
         m_uffData = scanconverter.getUffData();
         mRuntimeManager->stopRegularTimer("scan-convert");
         mRuntimeManager->print("scan-convert");
@@ -648,8 +647,12 @@ bool UFFScanConvert::scanConvertCartesianCoordinates(int newWidth, int newHeight
                 float beamDataX = x * newXSpacing + startX;
                 float beamDataY = y * newYSpacing + startY;
                 float pixelValue_dB = getCartesianPixelValue(beamDataX, beamDataY, frame, linearInterpolation); // TODO FIX NOT WORKING with linear interpolation
-                uchar pixelValue = normalizeToGrayScale(pixelValue_dB, m_dynamicRange, m_gain);
-                image_data[x + (y*newWidth)] = pixelValue;
+                if(std::isnan(pixelValue_dB)) {
+                    image_data[x + (y*newWidth)] = 0;
+                } else {
+                    uchar pixelValue = normalizeToGrayScale(pixelValue_dB, m_dynamicRange, m_gain);
+                    image_data[x + (y*newWidth)] = pixelValue;
+                }
             }
         }
         m_uffData->dataScanconverted[frame] = std::move(image_data);
@@ -665,34 +668,35 @@ bool UFFScanConvert::scanConvertCartesianCoordinates(int newWidth, int newHeight
 }
 
 float UFFScanConvert::getCartesianPixelValue(float xIq, float yIq, int frameNr, bool linear) {
-    std::vector<float>::iterator yIter;
-    std::vector<float>::iterator xIter;
-    getIteratorToElementAfterValue(yIq, m_uffData->depth_axis, yIter);
-    getIteratorToElementAfterValue(xIq, m_uffData->azimuth_axis, xIter);
-
-    int yNum = yIter - m_uffData->depth_axis.begin();
-    int xNum = xIter - m_uffData->azimuth_axis.begin();
+    float depth_spacing = m_uffData->depth_axis[1] - m_uffData->depth_axis[0];
+    float azimuth_spacing = m_uffData->azimuth_axis[1] - m_uffData->azimuth_axis[0];
+    int yNum = std::ceil((yIq - m_uffData->depth_axis[0])/depth_spacing);
+    int xNum = std::ceil((xIq - m_uffData->azimuth_axis[0])/azimuth_spacing);
     int pixelNum = xNum + (yNum * m_uffData->width);
+
+    if(yNum < 0 || yNum >= m_uffData->height || xNum < 0 || xNum >= m_uffData->width)
+        return std::nanf("");
 
     float pixelValue_dB = 0;
     if(linear) {
         float y = yIq;
         float x = xIq;
         float y1, y2, x1, x2;
-        y2 = *yIter;
-        if(yIter != m_uffData->depth_axis.begin())
-            y1 = *(yIter - 1);
+
+        y2 = m_uffData->depth_axis[yNum];
+        if(yNum > 0)
+            y1 = m_uffData->depth_axis[yNum-1];
         else {
-            std::cout << "Y iterator out of bounds" << std::endl;
-            y1 = *(yIter + 1);
+            //std::cout << "Radius iterator out of bounds" << std::endl;
+            y1 = m_uffData->depth_axis[0];
         }
 
-        x2 = *xIter;
-        if(xIter != m_uffData->azimuth_axis.begin())
-            x1 = *(xIter - 1);
+        x2 = m_uffData->azimuth_axis[xNum];
+        if(xNum > 0)
+            x1 = m_uffData->azimuth_axis[xNum-1];
         else {
-            std::cout << "X iterator out of bounds" << std::endl;
-            x1 = *(xIter + 1);
+            //std::cout << "Theta iterator out of bounds" << std::endl;
+            x1 = m_uffData->azimuth_axis[0];
         }
 
         //Find values of all 4 neighbours
@@ -739,48 +743,6 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
     float newXSpacing = (stopX - startX) / (newWidth - 1); //Subtract 1 because num spaces is 1 less than num elements
     float newYSpacing = (stopY - startY) / (newHeight - 1);
 
-    // Create lookuptable
-    auto lookupTableRadius = make_uninitialized_unique<int[]>(newWidth*newHeight);
-    auto lookupTableTheta = make_uninitialized_unique<int[]>(newWidth*newHeight);
-    for(int y = 0; y < newHeight; ++y) {
-        for(int x = 0; x < newWidth; ++x) {
-
-            //Swap x and y? Not here maybe later?
-            float xPos = x*newXSpacing + startX;
-            float yPos = y*newYSpacing + startY;
-
-            float r, th;
-            cart2pol(yPos, xPos, r, th);//Swap x and y
-
-            //Simple range check. May fail
-            if((r < startRadius) || (r > stopRadius)) {
-                lookupTableRadius[x + y*newWidth] = -1;
-                lookupTableTheta[x + y*newWidth] = -1;
-            } else if((th < startTheta) || (th > stopTheta)) {
-                lookupTableRadius[x + y*newWidth] = -1;
-                lookupTableTheta[x + y*newWidth] = -1;
-            } else {
-                // TODO: These are very slow, why are they needed?:
-                int rNum = -1;
-                int thNum = -1;
-                for(int i = 0; i < m_uffData->depth_axis.size(); ++i) {
-                    if(r < m_uffData->depth_axis[i]) {
-                        rNum = i;
-                        break;
-                    }
-                }
-                for(int i = 0; i < m_uffData->azimuth_axis.size(); ++i) {
-                    if(th < m_uffData->azimuth_axis[i]) {
-                        thNum = i;
-                        break;
-                    }
-                }
-                lookupTableRadius[x + y*newWidth] = rNum;
-                lookupTableTheta[x + y*newWidth] = thNum;
-            }
-        }
-    }
-
     int frameSize = newWidth * newHeight;
 
     m_uffData->dataScanconverted.resize(m_uffData->numFrames);//Make room for frames
@@ -791,17 +753,17 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
         if(m_uffData->polarCoordinates) {
             for(int y = 0; y < newHeight; ++y) {
                 for(int x = 0; x < newWidth; ++x) {
-                    if(lookupTableRadius[x + y*newWidth] >= 0) {
-                        //Swap x and y? Not here maybe later?
-                        float xPos = x*newXSpacing + startX;
-                        float yPos = y*newYSpacing + startY;
-                        float r, th;
-                        cart2pol(yPos, xPos, r, th);//Swap x and y
-                        float pixelValue_dB = getPixelValue(r, th, lookupTableRadius[x + y*newWidth], lookupTableTheta[x + y*newWidth], frame, linearInterpolation); // This func eats a lot of runtime
+                    //Swap x and y? Not here maybe later?
+                    float xPos = x*newXSpacing + startX;
+                    float yPos = y*newYSpacing + startY;
+                    float r, th;
+                    cart2pol(yPos, xPos, r, th);//Swap x and y
+                    float pixelValue_dB = getPixelValue(r, th, frame, linearInterpolation); // This func eats a lot of runtime
+                    if(std::isnan(pixelValue_dB)) {
+                        image_data[x + (y*newWidth)] = 0;
+                    } else {
                         uchar pixelValue = normalizeToGrayScale(pixelValue_dB, m_dynamicRange, m_gain);
                         image_data[x + (y*newWidth)] = pixelValue;
-                    } else {
-                        image_data[x + (y*newWidth)] = 0;
                     }
                 }
             }
@@ -825,12 +787,16 @@ std::shared_ptr<UFFData> UFFScanConvert::getUffData()
     return m_uffData;
 }
 
-float UFFScanConvert::getPixelValue(float radius, float theta, int rNum, int thNum, int frameNr, bool linear) {
+float UFFScanConvert::getPixelValue(float radius, float theta, int frameNr, bool linear) {
+    float depth_spacing = m_uffData->depth_axis[1] - m_uffData->depth_axis[0];
+    float azimuth_spacing = m_uffData->azimuth_axis[1] - m_uffData->azimuth_axis[0];
+    int rNum = std::ceil((radius - m_uffData->depth_axis[0])/depth_spacing);
+    int thNum = std::ceil((theta - m_uffData->azimuth_axis[0])/azimuth_spacing);
     int pixelNum = thNum + (rNum * m_uffData->width);
 
     float pixelValue_dB = 0;
-    if(rNum < 0 || thNum < 0)
-        return pixelValue_dB;
+    if(rNum < 0 || rNum >= m_uffData->height || thNum < 0 || thNum >= m_uffData->width)
+        return std::nanf("");
 
     if(linear) {
         float r = radius;
@@ -840,16 +806,14 @@ float UFFScanConvert::getPixelValue(float radius, float theta, int rNum, int thN
         if(rNum > 0)
             r1 = m_uffData->depth_axis[rNum-1];
         else {
-            std::cout << "Radius iterator out of bounds" << std::endl;
-            r1 = m_uffData->depth_axis[rNum+1];
+            r1 = m_uffData->depth_axis[0];
         }
 
         th2 = m_uffData->azimuth_axis[thNum];
         if(thNum > 0)
             th1 = m_uffData->azimuth_axis[thNum-1];
         else {
-            std::cout << "Theta iterator out of bounds" << std::endl;
-            th1 = m_uffData->azimuth_axis[thNum+1];
+            th1 = m_uffData->azimuth_axis[0];
         }
 
         //Find values of all 4 neighbours
@@ -868,13 +832,6 @@ float UFFScanConvert::getPixelValue(float radius, float theta, int rNum, int thN
         pixelValue_dB = mBeamData[frameNr][pixelNum]; //Nearest Neighbour (actually largest neighbour)
     }
     return pixelValue_dB;
-}
-
-void UFFScanConvert::getIteratorToElementAfterValue(float value, std::vector<float> &vector, std::vector<float>::iterator &iter) {
-    iter = std::find_if(vector.begin(), vector.end(),
-                        [value] (float element) {return (value < element);});
-    if(iter == vector.end())
-        iter += -1;
 }
 
 }
