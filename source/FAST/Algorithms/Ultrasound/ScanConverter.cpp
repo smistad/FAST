@@ -13,12 +13,6 @@ ScanConverter::ScanConverter(int width, int height, float gain, float dynamicRan
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Ultrasound/ScanConverter.cl");
 }
 
-
-void cart2pol(float x, float y, float &r, float &th) {
-    r = std::sqrt(x*x + y*y);
-    th = std::atan2(y,x);//Use atan2(), as atan(0/0) don't work
-}
-
 void pol2cart(float r, float th, float &x, float &y) {
     x = r * std::cos(th);
     y = r * std::sin(th);
@@ -80,6 +74,34 @@ void ScanConverter::execute() {
 
     addOutputData(0, output);
 
+}
+
+void ScanConverter::setGain(float gain) {
+    m_gain = gain;
+    setModified(true);
+}
+
+void ScanConverter::setDynamicRange(float dynamicRange) {
+    m_dynamicRange = dynamicRange;
+    setModified(true);
+}
+
+void ScanConverter::setWidth(int width) {
+    m_width = width;
+    setModified(true);
+}
+
+void ScanConverter::setHeight(int height) {
+    m_height = height;
+    setModified(true);
+}
+
+int ScanConverter::getWidth() const {
+    return m_width;
+}
+
+int ScanConverter::getHeight() const {
+    return m_height;
 }
 
 }

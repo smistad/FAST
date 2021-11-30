@@ -6,7 +6,8 @@
 namespace fast {
 
 
-
+class ScanConverter;
+class EnvelopeAndLogCompressor;
 class UFFData;
 
 /**
@@ -37,6 +38,11 @@ class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
          * @param filename UFF file to stream from
          * @param loop Whether to loop or not
          * @param framerate Max framerate (FPS) to output frames
+         * @param gain Gain
+         * @param dynamicRange Dynamic range
+         * @param scanConversionWidth Width of scan converted image
+         * @param scanConversionHeight Height of scan converted image
+         * @param doScanConversion Whether to perform scan conversion or not
          * @return instance
          */
         FAST_CONSTRUCTOR(UFFStreamer,
@@ -44,7 +50,10 @@ class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
              bool, loop, = false,
              uint, framerate, = 30,
              float, gain, = 10,
-             float, dynamicRange, = 60
+             float, dynamicRange, = 60,
+             int, scanConversionWidth, = 1024,
+             int, scanConversionHeight, = 1024,
+             bool, doScanConversion, = true
         );
         void setFilename(std::string filename);
         void setGain(float gain);
@@ -71,6 +80,9 @@ class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
         std::shared_ptr<UFFData> m_uffData;
         float m_dynamicRange = 60;
         float m_gain = 10;
+        bool m_doScanConversion = true;
+        std::shared_ptr<ScanConverter> m_scanConverter;
+        std::shared_ptr<EnvelopeAndLogCompressor> m_envelopeAndLogCompressor;
 };
 
 

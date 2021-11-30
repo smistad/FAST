@@ -10,10 +10,7 @@
 namespace fast {
 
 
-inline float linearInterpolate(float a, float b, float t);
-inline void cart2pol(float x, float y, float &r, float &th);
 inline void pol2cart(float r, float th, float &x, float &y);
-inline uchar normalizeToGrayScale(float dBPixel, int dynamic_range = 60, int gain = 10);
 
 
 /**
@@ -56,31 +53,6 @@ class UFFReader {
         void readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFData> dataStruct);
         void readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFData> dataStruct);
 };
-
-
-/**
-* A scan converter for data from the ultrasound file format (UFF).
-*
-*/
-class UFFScanConvert {
-    public:
-        UFFScanConvert();
-        void loadData(std::shared_ptr<UFFData> uffData);
-        bool scanConvert(int newWidth, int newHeight, bool linearInterpolation);
-        std::shared_ptr<UFFData> getUffData();
-        float m_gain = 10;
-        float m_dynamicRange = 60;
-    protected:
-        std::shared_ptr<UFFData> m_uffData;
-        std::vector<std::unique_ptr<float[]>> mBeamData;
-
-        bool scanConvertCartesianCoordinates(int newWidth = 512, int newHeight = 512, bool linearInterpolation = true);
-        bool scanConvertPolarCoordinates(int newWidth = 512, int newHeight = 512, bool linearInterpolation = true);
-        void normalizeEnvelopeAndLogCompress();
-        std::complex<float> findMax();
-        float getCartesianPixelValue(float xIq, float yIq, int frameNr, bool linear);
-        float getPixelValue(float radius, float theta, int frameNr, bool linear = true);
-    };
 
 //Operator function to be used with H5Literate
 herr_t file_info(hid_t loc_id, const char* name, const H5L_info_t* linfo, void* opdata) {
@@ -402,6 +374,9 @@ void UFFStreamer::execute() {
 }
 
 UFFStreamer::UFFStreamer() {
+    m_envelopeAndLogCompressor = EnvelopeAndLogCompressor::create();
+    m_scanConverter = ScanConverter::create(1024, 1024)
+            ->connect(m_envelopeAndLogCompressor);
 	createOutputPort(0, "Image");
 	m_loop = false;
 	m_framerate = 30;
@@ -411,7 +386,10 @@ UFFStreamer::UFFStreamer() {
 	createBooleanAttribute("loop", "Loop", "Loop recordin", false);
 }
 
-UFFStreamer::UFFStreamer(std::string filename, bool loop, uint framerate, float gain, float dynamicRange) {
+UFFStreamer::UFFStreamer(std::string filename, bool loop, uint framerate, float gain, float dynamicRange, int width, int height, bool scanConvert) {
+    m_envelopeAndLogCompressor = EnvelopeAndLogCompressor::create();
+    m_scanConverter = ScanConverter::create(width, height)
+            ->connect(m_envelopeAndLogCompressor);
     createOutputPort(0, "Image");
     if(filename.empty())
         throw Exception("You must give a filename to the UFF streamer");
@@ -420,6 +398,7 @@ UFFStreamer::UFFStreamer(std::string filename, bool loop, uint framerate, float 
     setFramerate(framerate);
     setGain(gain);
     setDynamicRange(dynamicRange);
+    m_doScanConversion = scanConvert;
 }
 
 void UFFStreamer::loadAttributes() {
@@ -479,18 +458,6 @@ void UFFStreamer::generateStream() {
             }
         }
     } else {
-        UFFScanConvert scanconverter;
-        scanconverter.m_gain = m_gain;
-        scanconverter.m_dynamicRange = m_dynamicRange;
-        scanconverter.loadData(m_uffData);
-
-        mRuntimeManager->enable();
-        mRuntimeManager->startRegularTimer("scan-convert");
-        scanconverter.scanConvert(1024, 1024, true);
-        m_uffData = scanconverter.getUffData();
-        mRuntimeManager->stopRegularTimer("scan-convert");
-        mRuntimeManager->print("scan-convert");
-
         while (true){
             bool pause = getPause();
             if(pause)
@@ -504,9 +471,59 @@ void UFFStreamer::generateStream() {
 
             int frameNr = getCurrentFrameIndexAndUpdate();
 
-            auto image = Image::create(m_uffData->width, m_uffData->height, DataType::TYPE_UINT8, 1,
-                                       m_uffData->dataScanconverted[frameNr].get());
-            image->setSpacing(m_uffData->spacing.x(), m_uffData->spacing.y(), m_uffData->spacing.z());
+            // DO SCAN CONVERSION ETC.
+            float startRadius = m_uffData->depth_axis.front();
+            float stopRadius = m_uffData->depth_axis.back();
+            float startTheta = m_uffData->azimuth_axis.front();
+            float stopTheta = m_uffData->azimuth_axis.back();
+
+            auto image = Image::create(
+                    m_uffData->width,
+                    m_uffData->height,
+                    TYPE_FLOAT,
+                    2,
+                    m_uffData->iqData[frameNr].data()
+            );
+
+            float startX, startY, stopX, stopY, notUsed;
+            if(m_uffData->polarCoordinates) {
+                pol2cart(startRadius, startTheta, startY, notUsed);
+                pol2cart(stopRadius, startTheta, notUsed, startX);
+                pol2cart(stopRadius, 0, stopY, notUsed);
+                pol2cart(stopRadius, stopTheta, notUsed, stopX);
+                image->setFrameData("isPolar", "true");
+            } else {
+                startX = startTheta;
+                stopX = stopTheta;
+                startY = startRadius;
+                stopY = stopRadius;
+                image->setFrameData("isPolar", "false");
+            }
+
+            float newXSpacing = (stopX - startX) / (m_scanConverter->getWidth() - 1); //Subtract 1 because num spaces is 1 less than num elements
+            float newYSpacing = (stopY - startY) / (m_scanConverter->getHeight() - 1);
+
+            image->setFrameData("startRadius", std::to_string(startRadius));
+            image->setFrameData("stopRadius", std::to_string(stopRadius));
+            image->setFrameData("startTheta", std::to_string(startTheta));
+            image->setFrameData("stopTheta", std::to_string(stopTheta));
+            image->setFrameData("depthSpacing", std::to_string(m_uffData->depth_axis[1]-m_uffData->depth_axis[0]));
+            image->setFrameData("azimuthSpacing", std::to_string(m_uffData->azimuth_axis[1]-m_uffData->azimuth_axis[0]));
+
+            m_envelopeAndLogCompressor->connect(image);
+
+            Image::pointer resultImage;
+            if(m_doScanConversion) {
+                m_envelopeAndLogCompressor->enableRuntimeMeasurements();
+                m_scanConverter->enableRuntimeMeasurements();
+                resultImage = m_scanConverter->runAndGetOutputData<Image>();
+                resultImage->setSpacing(newXSpacing*1000, newYSpacing*1000, 1.0f);
+                m_scanConverter->getRuntime()->print();
+                m_envelopeAndLogCompressor->getRuntime()->print();
+            } else {
+                resultImage = m_envelopeAndLogCompressor->runAndGetOutputData<Image>();
+            }
+
             if(!pause) {
                 std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
                 std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
@@ -515,7 +532,7 @@ void UFFStreamer::generateStream() {
                 previousTime = std::chrono::high_resolution_clock::now();
             }
             try {
-                addOutputData(0, image);
+                addOutputData(0, resultImage);
                 frameAdded();
             } catch(ThreadStopped & e) {
                 break;
@@ -534,344 +551,13 @@ int UFFStreamer::getNrOfFrames() {
 }
 
 void UFFStreamer::setGain(float gain) {
-    m_gain = gain;
-    if(m_uffData)
-        m_uffData->isScanConverted = false;
+    m_scanConverter->setGain(gain);
     setModified(true);
 }
 
 void UFFStreamer::setDynamicRange(float dynamicRange) {
-    m_dynamicRange = dynamicRange;
-}
-
-float linearInterpolate(float a, float b, float t) {
-    return a + t * (b -a );
-}
-
-void cart2pol(float x, float y, float &r, float &th) {
-    r = std::sqrt(x*x + y*y);
-    th = std::atan2(y,x);//Use atan2(), as atan(0/0) don't work
-}
-
-void pol2cart(float r, float th, float &x, float &y) {
-    x = r * std::cos(th);
-    y = r * std::sin(th);
-}
-
-// Normalize from dB image to 0 - 255 image and apply gain and dynamic range
-uchar normalizeToGrayScale(float dBPixel, int dynamic_range, int gain) {
-    float img_sc_reject = dBPixel + gain;
-    img_sc_reject = (img_sc_reject < -dynamic_range) ? -dynamic_range : img_sc_reject; //Reject everything below dynamic range
-    img_sc_reject = (img_sc_reject > 0) ? 0 : img_sc_reject; //Everything above 0 dB should be saturated
-    uchar img_gray_scale = round(255*(img_sc_reject+dynamic_range)/dynamic_range);
-    return img_gray_scale;
-}
-
-UFFScanConvert::UFFScanConvert() {
-
-}
-
-void UFFScanConvert::loadData(std::shared_ptr<UFFData> uffData) {
-    m_uffData = uffData;
-}
-
-std::complex<float> UFFScanConvert::findMax() {
-    //TODO: Should the abs of the complex numbers be used for the comparison?
-
-    //std::max_element needs a lambda function for the comparison
-    auto absLess = [](const std::complex<float> &a,
-                      const std::complex<float> &b) { return abs(a) < abs(b); };
-
-    std::complex<float> max(0,0);
-
-    for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
-        std::vector<std::complex<float> >::iterator maxIter;
-        maxIter = std::max_element(m_uffData->iqData[frame].begin(), m_uffData->iqData[frame].end(), absLess);
-        //std::cout << "maxIter: " << *maxIter << std::endl;
-        if(absLess(max, *maxIter))
-            max = *maxIter;
-    }
-    return max;
-}
-
-
-void UFFScanConvert::normalizeEnvelopeAndLogCompress() {
-    mBeamData.resize(m_uffData->numFrames);//Store beam data in data structure as well?
-    std::complex<float> max = findMax();
-
-    for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
-        int numPixels = m_uffData->height * m_uffData->width;
-        auto beamImage = make_uninitialized_unique<float[]>(numPixels);
-
-        for(int pixel = 0; pixel < numPixels; ++pixel) {
-            //img_dB = 20*log10(abs(img./max(img(:)))); %Log compress, and normalize on max for all images
-
-            std::complex<float> iq = m_uffData->iqData[frame][pixel];
-            beamImage[pixel] = 20.0f * std::log10(std::abs(iq/max));
-        }//for
-        mBeamData[frame] = std::move(beamImage);
-    }//for
-}
-
-bool UFFScanConvert::scanConvert(int newWidth, int newHeight, bool linearInterpolation) {
-    if(m_uffData->polarCoordinates)
-        return scanConvertPolarCoordinates(newWidth, newHeight, linearInterpolation);
-    else
-        return scanConvertCartesianCoordinates(newWidth, newHeight, linearInterpolation);
-}
-
-bool UFFScanConvert::scanConvertCartesianCoordinates(int newWidth, int newHeight, bool linearInterpolation) {
-    if(m_uffData->isScanConverted)
-        return false;
-    if(m_uffData->polarCoordinates)
-        return false;
-
-    //X and Y values are stored in azimuth_axis and depth_axis for now
-    //UFFData.x_axis_name and UFFData.y_axis_name should hold axis names
-    float startY = m_uffData->depth_axis.front();
-    float stopY = m_uffData->depth_axis.back();
-    float startX = m_uffData->azimuth_axis.front();
-    float stopX = m_uffData->azimuth_axis.back();
-
-    float newXSpacing = (stopX - startX) / (newWidth - 1); //Subtract 1 because num spaces is 1 less than num elements
-    float newYSpacing = (stopY - startY) / (newHeight - 1);
-
-    m_uffData->dataScanconverted.resize(m_uffData->numFrames);//Make room for frames
-    for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
-        auto image = Image::create(
-                m_uffData->width,
-                m_uffData->height,
-                TYPE_FLOAT,
-                2,
-                m_uffData->iqData[frame].data()
-        );
-        image->setFrameData("isPolar", "false");
-        image->setFrameData("startRadius", std::to_string(startY));
-        image->setFrameData("stopRadius", std::to_string(stopY));
-        image->setFrameData("startTheta", std::to_string(startX));
-        image->setFrameData("stopTheta", std::to_string(stopX));
-        image->setFrameData("depthSpacing", std::to_string(m_uffData->depth_axis[1]-m_uffData->depth_axis[0]));
-        image->setFrameData("azimuthSpacing", std::to_string(m_uffData->azimuth_axis[1]-m_uffData->azimuth_axis[0]));
-
-        auto envelopeAndLogCompress = EnvelopeAndLogCompressor::create()
-                ->connect(image);
-        envelopeAndLogCompress->enableRuntimeMeasurements();
-        auto scanConverter = ScanConverter::create(newWidth, newHeight, m_gain, m_dynamicRange)
-                ->connect(envelopeAndLogCompress);
-        scanConverter->enableRuntimeMeasurements();
-        auto resultImage = scanConverter->runAndGetOutputData<Image>();
-        scanConverter->getRuntime()->print();
-        envelopeAndLogCompress->getRuntime()->print();
-        auto access = resultImage->getImageAccess(ACCESS_READ);
-        // TODO copy..
-        auto dest = make_uninitialized_unique<uchar[]>(resultImage->getNrOfVoxels());
-        std::memcpy(dest.get(), access->get(), resultImage->getNrOfVoxels()*sizeof(uchar));
-        m_uffData->dataScanconverted[frame] = std::move(dest);
-    }
-
-    m_uffData->isScanConverted = true;
-    m_uffData->height = newHeight;
-    m_uffData->width = newWidth;
-    m_uffData->spacing.x() = newXSpacing * 1000;
-    m_uffData->spacing.y() = newYSpacing * 1000;
-
-    return true;
-}
-
-float UFFScanConvert::getCartesianPixelValue(float xIq, float yIq, int frameNr, bool linear) {
-    float depth_spacing = m_uffData->depth_axis[1] - m_uffData->depth_axis[0];
-    float azimuth_spacing = m_uffData->azimuth_axis[1] - m_uffData->azimuth_axis[0];
-    int yNum = std::ceil((yIq - m_uffData->depth_axis[0])/depth_spacing);
-    int xNum = std::ceil((xIq - m_uffData->azimuth_axis[0])/azimuth_spacing);
-    int pixelNum = xNum + (yNum * m_uffData->width);
-
-    if(yNum < 0 || yNum >= m_uffData->height || xNum < 0 || xNum >= m_uffData->width)
-        return std::nanf("");
-
-    float pixelValue_dB = 0;
-    if(linear) {
-        float y = yIq;
-        float x = xIq;
-        float y1, y2, x1, x2;
-
-        y2 = m_uffData->depth_axis[yNum];
-        if(yNum > 0)
-            y1 = m_uffData->depth_axis[yNum-1];
-        else {
-            //std::cout << "Radius iterator out of bounds" << std::endl;
-            y1 = m_uffData->depth_axis[0];
-        }
-
-        x2 = m_uffData->azimuth_axis[xNum];
-        if(xNum > 0)
-            x1 = m_uffData->azimuth_axis[xNum-1];
-        else {
-            //std::cout << "Theta iterator out of bounds" << std::endl;
-            x1 = m_uffData->azimuth_axis[0];
-        }
-
-        //Find values of all 4 neighbours
-        float row1Val1 = mBeamData[frameNr][pixelNum - 1];
-        float row1Val2 = mBeamData[frameNr][pixelNum];
-        float row2Val1 = mBeamData[frameNr][pixelNum - (int)m_uffData->width - 1];
-        float row2Val2 = mBeamData[frameNr][pixelNum - (int)m_uffData->width];
-
-        float tY = 1.0f - (y - y1) / (y2 - y1);
-        float tX = (x - x1) / (x2 - x1);
-        float row1 = linearInterpolate(row1Val1, row1Val2, tX);
-        float row2 = linearInterpolate(row2Val1, row2Val2, tX);
-        pixelValue_dB = linearInterpolate(row1, row2, tY);
-    } else {
-        pixelValue_dB = mBeamData[frameNr][pixelNum]; //Nearest Neighbour (actually largest neighbour)
-    }
-    return pixelValue_dB;
-}
-
-bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bool linearInterpolation) {
-    if(m_uffData->isScanConverted)
-        return false;
-    if(!m_uffData->polarCoordinates)
-        return false;
-
-    //Use std::max_element/std::min_element instead of first/last?
-    //Seems like it's not necessary
-    float startRadius = m_uffData->depth_axis.front();
-    float stopRadius = m_uffData->depth_axis.back();
-    float startTheta = m_uffData->azimuth_axis.front();
-    float stopTheta = m_uffData->azimuth_axis.back();
-
-
-    // x and Y is swapped?
-    float startX, startY, stopX, stopY, notUsed;
-    pol2cart(startRadius, startTheta, startY, notUsed);
-    pol2cart(stopRadius, startTheta, notUsed, startX);
-    pol2cart(stopRadius, 0, stopY, notUsed);
-    pol2cart(stopRadius, stopTheta, notUsed, stopX);
-
-    float newXSpacing = (stopX - startX) / (newWidth - 1); //Subtract 1 because num spaces is 1 less than num elements
-    float newYSpacing = (stopY - startY) / (newHeight - 1);
-
-    int frameSize = newWidth * newHeight;
-
-    m_uffData->dataScanconverted.resize(m_uffData->numFrames);//Make room for frames
-    for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
-        auto image = Image::create(
-                m_uffData->width,
-                m_uffData->height,
-                TYPE_FLOAT,
-                2,
-                m_uffData->iqData[frame].data()
-        );
-        image->setFrameData("isPolar", "true");
-        image->setFrameData("startRadius", std::to_string(startRadius));
-        image->setFrameData("stopRadius", std::to_string(stopRadius));
-        image->setFrameData("startTheta", std::to_string(startTheta));
-        image->setFrameData("stopTheta", std::to_string(stopTheta));
-        image->setFrameData("depthSpacing", std::to_string(m_uffData->depth_axis[1]-m_uffData->depth_axis[0]));
-        image->setFrameData("azimuthSpacing", std::to_string(m_uffData->azimuth_axis[1]-m_uffData->azimuth_axis[0]));
-
-        auto envelopeAndLogCompress = EnvelopeAndLogCompressor::create()
-                ->connect(image);
-        envelopeAndLogCompress->enableRuntimeMeasurements();
-        auto scanConverter = ScanConverter::create(newWidth, newHeight, m_gain, m_dynamicRange)
-                ->connect(envelopeAndLogCompress);
-        scanConverter->enableRuntimeMeasurements();
-        auto resultImage = scanConverter->runAndGetOutputData<Image>();
-        scanConverter->getRuntime()->print();
-        envelopeAndLogCompress->getRuntime()->print();
-        auto access = resultImage->getImageAccess(ACCESS_READ);
-        // TODO copy..
-        auto dest = make_uninitialized_unique<uchar[]>(resultImage->getNrOfVoxels());
-        std::memcpy(dest.get(), access->get(), resultImage->getNrOfVoxels()*sizeof(uchar));
-        m_uffData->dataScanconverted[frame] = std::move(dest);
-
-
-        /*
-        auto image_data = make_uninitialized_unique<uchar[]>(frameSize);
-
-        if(m_uffData->polarCoordinates) {
-            for(int y = 0; y < newHeight; ++y) {
-                for(int x = 0; x < newWidth; ++x) {
-                    //Swap x and y? Not here maybe later?
-                    float xPos = x*newXSpacing + startX;
-                    float yPos = y*newYSpacing + startY;
-                    float r, th;
-                    cart2pol(yPos, xPos, r, th);//Swap x and y
-                    float pixelValue_dB = getPixelValue(r, th, frame, linearInterpolation); // This func eats a lot of runtime
-                    if(std::isnan(pixelValue_dB)) {
-                        image_data[x + (y*newWidth)] = 0;
-                    } else {
-                        uchar pixelValue = normalizeToGrayScale(pixelValue_dB, m_dynamicRange, m_gain);
-                        image_data[x + (y*newWidth)] = pixelValue;
-                    }
-                }
-            }
-        }
-
-        m_uffData->dataScanconverted[frame] = std::move(image_data);
-         */
-    }
-
-    //Remove input (not scanconverted data)?
-    m_uffData->isScanConverted = true;
-    m_uffData->height = newHeight;
-    m_uffData->width = newWidth;
-    m_uffData->spacing.x() = newXSpacing * 1000;
-    m_uffData->spacing.y() = newYSpacing * 1000;
-
-    return true;
-}
-
-std::shared_ptr<UFFData> UFFScanConvert::getUffData()
-{
-    return m_uffData;
-}
-
-float UFFScanConvert::getPixelValue(float radius, float theta, int frameNr, bool linear) {
-    float depth_spacing = m_uffData->depth_axis[1] - m_uffData->depth_axis[0];
-    float azimuth_spacing = m_uffData->azimuth_axis[1] - m_uffData->azimuth_axis[0];
-    int rNum = std::ceil((radius - m_uffData->depth_axis[0])/depth_spacing);
-    int thNum = std::ceil((theta - m_uffData->azimuth_axis[0])/azimuth_spacing);
-    int pixelNum = thNum + (rNum * m_uffData->width);
-
-    float pixelValue_dB = 0;
-    if(rNum < 0 || rNum >= m_uffData->height || thNum < 0 || thNum >= m_uffData->width)
-        return std::nanf("");
-
-    if(linear) {
-        float r = radius;
-        float th = theta;
-        float r1, r2, th1, th2;
-        r2 = m_uffData->depth_axis[rNum];
-        if(rNum > 0)
-            r1 = m_uffData->depth_axis[rNum-1];
-        else {
-            r1 = m_uffData->depth_axis[0];
-        }
-
-        th2 = m_uffData->azimuth_axis[thNum];
-        if(thNum > 0)
-            th1 = m_uffData->azimuth_axis[thNum-1];
-        else {
-            th1 = m_uffData->azimuth_axis[0];
-        }
-
-        //Find values of all 4 neighbours
-        float row1Val1 = mBeamData[frameNr][pixelNum - 1];
-        float row1Val2 = mBeamData[frameNr][pixelNum];
-        float row2Val1 = mBeamData[frameNr][pixelNum - (int)m_uffData->width - 1];
-        float row2Val2 = mBeamData[frameNr][pixelNum - (int)m_uffData->width];
-
-        //Interpolation weight between r values and th values (bi-linear interpolation)
-        float tR = 1.0f - (r - r1) / (r2 - r1);
-        float tTh = (th - th1) / (th2 - th1);
-        float row1 = linearInterpolate(row1Val1, row1Val2, tTh);
-        float row2 = linearInterpolate(row2Val1, row2Val2, tTh);
-        pixelValue_dB = linearInterpolate(row1, row2, tR);
-    } else {
-        pixelValue_dB = mBeamData[frameNr][pixelNum]; //Nearest Neighbour (actually largest neighbour)
-    }
-    return pixelValue_dB;
+    m_scanConverter->setDynamicRange(dynamicRange);
+    setModified(true);
 }
 
 }

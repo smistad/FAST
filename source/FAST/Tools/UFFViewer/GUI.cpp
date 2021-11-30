@@ -136,7 +136,7 @@ UFFViewerWindow::UFFViewerWindow() {
     m_gainInput->setCurrentIndex(9);
     menuLayout->addWidget(m_gainInput);
     QObject::connect(m_gainInput, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
-        loadView();
+        m_streamer->setGain(index+1);
 	});
 
 
@@ -150,7 +150,7 @@ UFFViewerWindow::UFFViewerWindow() {
     m_dynamicRangeInput->setCurrentIndex(59);
     menuLayout->addWidget(m_dynamicRangeInput);
     QObject::connect(m_dynamicRangeInput, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
-        loadView();
+        m_streamer->setDynamicRange(index+1);
     });
 
 	// Playback controls

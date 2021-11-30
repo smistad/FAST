@@ -13,37 +13,49 @@ void EnvelopeAndLogCompressor::execute() {
     auto input = getInputData<Image>();
     auto output = Image::create(input->getWidth(), input->getHeight(), TYPE_FLOAT, 1);
 
-    std::complex<float> maxValue;
+    auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
+    auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+
     {
-        // TODO This is slow. Get max using GPU instead
-        auto access = input->getImageAccess(ACCESS_READ);
-        maxValue = std::complex<float>(access->getScalarFast<float>(0, 0), access->getScalarFast<float>(0, 1));
-        for(int i = 0; i < input->getNrOfVoxels(); ++i) {
-            std::complex<float> value(access->getScalarFast<float>(i, 0), access->getScalarFast<float>(i, 1));
-            if(std::abs(value) > std::abs(maxValue))
-                maxValue = value;
-        }
+        auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        cl::Kernel kernel(getOpenCLProgram(device), "envelopeAndLogCompress");
+        kernel.setArg(0, *inputAccess->get2DImage());
+        kernel.setArg(1, *outputAccess->get2DImage());
+
+        device->getCommandQueue().enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(input->getWidth(), input->getHeight()),
+                cl::NullRange
+                );
     }
 
-    auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    cl::Kernel kernel(getOpenCLProgram(device), "envelopeAndLogCompress");
+    if(m_maxInitialize) {
+        m_maxValue = std::max(m_maxValue, output->calculateMaximumIntensity());
+    } else {
+        m_maxValue = output->calculateMaximumIntensity();
+        m_maxInitialize = true;
+    }
 
-    auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
-    auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    {
+        auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ, device);
+        auto normalizedOutput = Image::createFromImage(output);
+        auto normalizedOutputAccess = normalizedOutput->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
-    kernel.setArg(0, *inputAccess->get2DImage());
-    kernel.setArg(1, *outputAccess->get2DImage());
-    kernel.setArg(2, maxValue.real());
-    kernel.setArg(3, maxValue.imag());
+        cl::Kernel kernel(getOpenCLProgram(device), "normalizeEnvelope");
+        kernel.setArg(0, *outputAccess->get2DImage());
+        kernel.setArg(1, *normalizedOutputAccess->get2DImage());
+        kernel.setArg(2, m_maxValue);
 
-    device->getCommandQueue().enqueueNDRangeKernel(
-            kernel,
-            cl::NullRange,
-            cl::NDRange(input->getWidth(), input->getHeight()),
-            cl::NullRange
-            );
+        device->getCommandQueue().enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(input->getWidth(), input->getHeight()),
+                cl::NullRange
+        );
+        addOutputData(0, normalizedOutput);
+    }
 
-    addOutputData(0, output);
 }
 
 }
