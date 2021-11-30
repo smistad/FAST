@@ -258,8 +258,8 @@ void UFFReader::readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UF
     hsize_t dims_out[4];
     int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
 
-    if (ndims != 4) {
-        throw Exception("Exepected 4 dimensions in UFF file, got " + std::to_string(ndims));
+    if(ndims != 4 && ndims != 2) {
+        throw Exception("Exepected 4 or 2 dimensions in UFF file, got " + std::to_string(ndims));
     }
 
     int frameCount = dims_out[0];
@@ -271,11 +271,20 @@ void UFFReader::readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UF
     auto realDataset = dataGroup.openDataSet("real");
     auto realDataspace = realDataset.getSpace();
 
-    hsize_t count[4] = { 1, 1, 1, 1 }; // how many blocks to extract
-    hsize_t blockSize[4] = { 1, 1, 1, hsize_t(dataStruct->width * dataStruct->height) }; // block
-    hsize_t offset[4] = { 0, 0, 0, 0 };   // hyperslab offset in the file
+    std::vector<hsize_t> count;
+    std::vector<hsize_t> blockSize;
+    std::vector<hsize_t> offset;
+    if(ndims == 4) {
+        count = { 1, 1, 1, 1 }; // how many blocks to extract
+        blockSize = { 1, 1, 1, hsize_t(dataStruct->width * dataStruct->height) }; // block
+        offset = { 0, 0, 0, 0 };   // hyperslab offset in the file
+    } else {
+        count = { 1, 1 }; // how many blocks to extract
+        blockSize = { 1, hsize_t(dataStruct->width * dataStruct->height) }; // block
+        offset = { 0, 0 };   // hyperslab offset in the file
+    }
 
-    H5::DataSpace memspace(4, blockSize);
+    H5::DataSpace memspace(ndims, blockSize.data());
 
     //dataStruct.dataNotScanconverted.resize(frameCount);//Make room for pointers in vector
     dataStruct->iqData.resize(frameCount);//Make room for pointers in vector
@@ -286,9 +295,9 @@ void UFFReader::readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UF
         auto imaginary = std::make_unique<float[]>(dataStruct->width * dataStruct->height);
         auto real = std::make_unique<float[]>(dataStruct->width * dataStruct->height);
         offset[0] = frameNr;
-        imagDataspace.selectHyperslab(H5S_SELECT_SET, count, offset, NULL, blockSize);
+        imagDataspace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data(), NULL, blockSize.data());
         imagDataset.read(imaginary.get(), H5::PredType::NATIVE_FLOAT, memspace, imagDataspace);
-        realDataspace.selectHyperslab(H5S_SELECT_SET, count, offset, NULL, blockSize);
+        realDataspace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data(), NULL, blockSize.data());
         realDataset.read(real.get(), H5::PredType::NATIVE_FLOAT, memspace, realDataspace);
 
         //std::cout << "Start reading values" << std::endl;
@@ -321,8 +330,8 @@ void UFFReader::readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFDa
     hsize_t dims_out[4];
     int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
 
-    if (ndims != 4) {
-        throw Exception("Exepected 4 dimensions in UFF file, got " + std::to_string(ndims));
+    if(ndims != 4 && ndims != 2) {
+        throw Exception("Exepected 4 or 2 dimensions in UFF file, got " + std::to_string(ndims));
     }
 
     int frameCount = dims_out[0];
@@ -330,11 +339,20 @@ void UFFReader::readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFDa
 
     dataStruct->numFrames = frameCount;
 
-    hsize_t count[4] = { 1, 1, 1, 1 }; // how many blocks to extract
-    hsize_t blockSize[4] = { 1, 1, 1, hsize_t(dataStruct->width * dataStruct->height) }; // block
-    hsize_t offset[4] = { 0, 0, 0, 0 };   // hyperslab offset in the file
+    std::vector<hsize_t> count;
+    std::vector<hsize_t> blockSize;
+    std::vector<hsize_t> offset;
+    if(ndims == 4) {
+        count = { 1, 1, 1, 1 }; // how many blocks to extract
+        blockSize = { 1, 1, 1, hsize_t(dataStruct->width * dataStruct->height) }; // block
+        offset = { 0, 0, 0, 0 };   // hyperslab offset in the file
+    } else {
+        count = { 1, 1 }; // how many blocks to extract
+        blockSize = { 1, hsize_t(dataStruct->width * dataStruct->height) }; // block
+        offset = { 0, 0 };   // hyperslab offset in the file
+    }
 
-    H5::DataSpace memspace(4, blockSize);
+    H5::DataSpace memspace(4, blockSize.data());
 
     dataStruct->dataScanconverted.resize(frameCount);//Make room for pointers in vector
 
@@ -343,7 +361,7 @@ void UFFReader::readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFDa
         // Extract 1 frame
         auto data = std::make_unique<unsigned char[]>(dataStruct->width * dataStruct->height);
         offset[0] = frameNr;
-        dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, NULL, blockSize);
+        dataspace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data(), NULL, blockSize.data());
         dataset.read(data.get(), H5::PredType::NATIVE_UCHAR, memspace, dataspace);
 
         int dataSize = dataStruct->width * dataStruct->height;
@@ -627,9 +645,9 @@ bool UFFScanConvert::scanConvertCartesianCoordinates(int newWidth, int newHeight
 
         for(int x = 0; x < newWidth; ++x) {
             for(int y = 0; y < newHeight; ++y) {
-                float beamDataX = x * newXSpacing;
-                float beamDataY = y * newYSpacing;
-                float pixelValue_dB = getCartesianPixelValue(beamDataY, beamDataX, frame, linearInterpolation);
+                float beamDataX = x * newXSpacing + startX;
+                float beamDataY = y * newYSpacing + startY;
+                float pixelValue_dB = getCartesianPixelValue(beamDataX, beamDataY, frame, linearInterpolation); // TODO FIX NOT WORKING with linear interpolation
                 uchar pixelValue = normalizeToGrayScale(pixelValue_dB, m_dynamicRange, m_gain);
                 image_data[x + (y*newWidth)] = pixelValue;
             }
@@ -654,7 +672,7 @@ float UFFScanConvert::getCartesianPixelValue(float xIq, float yIq, int frameNr, 
 
     int yNum = yIter - m_uffData->depth_axis.begin();
     int xNum = xIter - m_uffData->azimuth_axis.begin();
-    int pixelNum = yNum + (xNum * m_uffData->height);
+    int pixelNum = xNum + (yNum * m_uffData->width);
 
     float pixelValue_dB = 0;
     if(linear) {
@@ -683,7 +701,7 @@ float UFFScanConvert::getCartesianPixelValue(float xIq, float yIq, int frameNr, 
         float row2Val1 = mBeamData[frameNr][pixelNum - (int)m_uffData->width - 1];
         float row2Val2 = mBeamData[frameNr][pixelNum - (int)m_uffData->width];
 
-        float tY = (y - y1) / (y2 - y1);
+        float tY = 1.0f - (y - y1) / (y2 - y1);
         float tX = (x - x1) / (x2 - x1);
         float row1 = linearInterpolate(row1Val1, row1Val2, tX);
         float row2 = linearInterpolate(row2Val1, row2Val2, tX);
@@ -724,8 +742,8 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
     // Create lookuptable
     auto lookupTableRadius = make_uninitialized_unique<int[]>(newWidth*newHeight);
     auto lookupTableTheta = make_uninitialized_unique<int[]>(newWidth*newHeight);
-    for(int x = 0; x < newWidth; ++x) {
-        for(int y = 0; y < newHeight; ++y) {
+    for(int y = 0; y < newHeight; ++y) {
+        for(int x = 0; x < newWidth; ++x) {
 
             //Swap x and y? Not here maybe later?
             float xPos = x*newXSpacing + startX;
@@ -738,22 +756,28 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
             if((r < startRadius) || (r > stopRadius)) {
                 lookupTableRadius[x + y*newWidth] = -1;
                 lookupTableTheta[x + y*newWidth] = -1;
-                continue;
-            }
-
-            if((th < startTheta) || (th > stopTheta)) {
+            } else if((th < startTheta) || (th > stopTheta)) {
                 lookupTableRadius[x + y*newWidth] = -1;
                 lookupTableTheta[x + y*newWidth] = -1;
-                continue;
+            } else {
+                // TODO: These are very slow, why are they needed?:
+                int rNum = -1;
+                int thNum = -1;
+                for(int i = 0; i < m_uffData->depth_axis.size(); ++i) {
+                    if(r < m_uffData->depth_axis[i]) {
+                        rNum = i;
+                        break;
+                    }
+                }
+                for(int i = 0; i < m_uffData->azimuth_axis.size(); ++i) {
+                    if(th < m_uffData->azimuth_axis[i]) {
+                        thNum = i;
+                        break;
+                    }
+                }
+                lookupTableRadius[x + y*newWidth] = rNum;
+                lookupTableTheta[x + y*newWidth] = thNum;
             }
-
-            std::vector<float>::iterator rIter;
-            std::vector<float>::iterator thIter;
-            // TODO: These are very slow, why are they needed?:
-            getIteratorToElementAfterValue(r, m_uffData->depth_axis, rIter);
-            getIteratorToElementAfterValue(th, m_uffData->azimuth_axis, thIter);
-            lookupTableRadius[x + y*newWidth] = rIter - m_uffData->depth_axis.begin();
-            lookupTableTheta[x + y*newWidth] = thIter - m_uffData->azimuth_axis.begin();
         }
     }
 
@@ -765,17 +789,14 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
         auto image_data = make_uninitialized_unique<uchar[]>(frameSize);
 
         if(m_uffData->polarCoordinates) {
-            for(int x = 0; x < newWidth; ++x) {
-                for(int y = 0; y < newHeight; ++y) {
-
-                    //Swap x and y? Not here maybe later?
-                    float xPos = x*newXSpacing + startX;
-                    float yPos = y*newYSpacing + startY;
-
-                    float r, th;
-                    cart2pol(yPos, xPos, r, th);//Swap x and y
-
+            for(int y = 0; y < newHeight; ++y) {
+                for(int x = 0; x < newWidth; ++x) {
                     if(lookupTableRadius[x + y*newWidth] >= 0) {
+                        //Swap x and y? Not here maybe later?
+                        float xPos = x*newXSpacing + startX;
+                        float yPos = y*newYSpacing + startY;
+                        float r, th;
+                        cart2pol(yPos, xPos, r, th);//Swap x and y
                         float pixelValue_dB = getPixelValue(r, th, lookupTableRadius[x + y*newWidth], lookupTableTheta[x + y*newWidth], frame, linearInterpolation); // This func eats a lot of runtime
                         uchar pixelValue = normalizeToGrayScale(pixelValue_dB, m_dynamicRange, m_gain);
                         image_data[x + (y*newWidth)] = pixelValue;
