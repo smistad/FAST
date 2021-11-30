@@ -4,6 +4,8 @@
 
 #define H5_BUILT_AS_DYNAMIC_LIB
 #include <H5Cpp.h>
+#include <FAST/Algorithms/Ultrasound/ScanConverter.hpp>
+#include <FAST/Algorithms/Ultrasound/EnvelopeAndLogCompressor.hpp>
 
 namespace fast {
 
@@ -623,9 +625,6 @@ bool UFFScanConvert::scanConvertCartesianCoordinates(int newWidth, int newHeight
         return false;
     if(m_uffData->polarCoordinates)
         return false;
-    normalizeEnvelopeAndLogCompress();
-
-    int frameSize = newWidth * newHeight;
 
     //X and Y values are stored in azimuth_axis and depth_axis for now
     //UFFData.x_axis_name and UFFData.y_axis_name should hold axis names
@@ -639,23 +638,35 @@ bool UFFScanConvert::scanConvertCartesianCoordinates(int newWidth, int newHeight
 
     m_uffData->dataScanconverted.resize(m_uffData->numFrames);//Make room for frames
     for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
+        auto image = Image::create(
+                m_uffData->width,
+                m_uffData->height,
+                TYPE_FLOAT,
+                2,
+                m_uffData->iqData[frame].data()
+        );
+        image->setFrameData("isPolar", "false");
+        image->setFrameData("startRadius", std::to_string(startY));
+        image->setFrameData("stopRadius", std::to_string(stopY));
+        image->setFrameData("startTheta", std::to_string(startX));
+        image->setFrameData("stopTheta", std::to_string(stopX));
+        image->setFrameData("depthSpacing", std::to_string(m_uffData->depth_axis[1]-m_uffData->depth_axis[0]));
+        image->setFrameData("azimuthSpacing", std::to_string(m_uffData->azimuth_axis[1]-m_uffData->azimuth_axis[0]));
 
-        auto image_data = make_uninitialized_unique<uchar[]>(frameSize);
-
-        for(int x = 0; x < newWidth; ++x) {
-            for(int y = 0; y < newHeight; ++y) {
-                float beamDataX = x * newXSpacing + startX;
-                float beamDataY = y * newYSpacing + startY;
-                float pixelValue_dB = getCartesianPixelValue(beamDataX, beamDataY, frame, linearInterpolation); // TODO FIX NOT WORKING with linear interpolation
-                if(std::isnan(pixelValue_dB)) {
-                    image_data[x + (y*newWidth)] = 0;
-                } else {
-                    uchar pixelValue = normalizeToGrayScale(pixelValue_dB, m_dynamicRange, m_gain);
-                    image_data[x + (y*newWidth)] = pixelValue;
-                }
-            }
-        }
-        m_uffData->dataScanconverted[frame] = std::move(image_data);
+        auto envelopeAndLogCompress = EnvelopeAndLogCompressor::create()
+                ->connect(image);
+        envelopeAndLogCompress->enableRuntimeMeasurements();
+        auto scanConverter = ScanConverter::create(newWidth, newHeight, m_gain, m_dynamicRange)
+                ->connect(envelopeAndLogCompress);
+        scanConverter->enableRuntimeMeasurements();
+        auto resultImage = scanConverter->runAndGetOutputData<Image>();
+        scanConverter->getRuntime()->print();
+        envelopeAndLogCompress->getRuntime()->print();
+        auto access = resultImage->getImageAccess(ACCESS_READ);
+        // TODO copy..
+        auto dest = make_uninitialized_unique<uchar[]>(resultImage->getNrOfVoxels());
+        std::memcpy(dest.get(), access->get(), resultImage->getNrOfVoxels()*sizeof(uchar));
+        m_uffData->dataScanconverted[frame] = std::move(dest);
     }
 
     m_uffData->isScanConverted = true;
@@ -722,16 +733,13 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
     if(!m_uffData->polarCoordinates)
         return false;
 
-    normalizeEnvelopeAndLogCompress();
-
-    int numPixels = m_uffData->height * m_uffData->width;
-
     //Use std::max_element/std::min_element instead of first/last?
     //Seems like it's not necessary
     float startRadius = m_uffData->depth_axis.front();
     float stopRadius = m_uffData->depth_axis.back();
     float startTheta = m_uffData->azimuth_axis.front();
     float stopTheta = m_uffData->azimuth_axis.back();
+
 
     // x and Y is swapped?
     float startX, startY, stopX, stopY, notUsed;
@@ -747,7 +755,38 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
 
     m_uffData->dataScanconverted.resize(m_uffData->numFrames);//Make room for frames
     for(int frame = 0; frame < m_uffData->numFrames; ++frame) {
+        auto image = Image::create(
+                m_uffData->width,
+                m_uffData->height,
+                TYPE_FLOAT,
+                2,
+                m_uffData->iqData[frame].data()
+        );
+        image->setFrameData("isPolar", "true");
+        image->setFrameData("startRadius", std::to_string(startRadius));
+        image->setFrameData("stopRadius", std::to_string(stopRadius));
+        image->setFrameData("startTheta", std::to_string(startTheta));
+        image->setFrameData("stopTheta", std::to_string(stopTheta));
+        image->setFrameData("depthSpacing", std::to_string(m_uffData->depth_axis[1]-m_uffData->depth_axis[0]));
+        image->setFrameData("azimuthSpacing", std::to_string(m_uffData->azimuth_axis[1]-m_uffData->azimuth_axis[0]));
 
+        auto envelopeAndLogCompress = EnvelopeAndLogCompressor::create()
+                ->connect(image);
+        envelopeAndLogCompress->enableRuntimeMeasurements();
+        auto scanConverter = ScanConverter::create(newWidth, newHeight, m_gain, m_dynamicRange)
+                ->connect(envelopeAndLogCompress);
+        scanConverter->enableRuntimeMeasurements();
+        auto resultImage = scanConverter->runAndGetOutputData<Image>();
+        scanConverter->getRuntime()->print();
+        envelopeAndLogCompress->getRuntime()->print();
+        auto access = resultImage->getImageAccess(ACCESS_READ);
+        // TODO copy..
+        auto dest = make_uninitialized_unique<uchar[]>(resultImage->getNrOfVoxels());
+        std::memcpy(dest.get(), access->get(), resultImage->getNrOfVoxels()*sizeof(uchar));
+        m_uffData->dataScanconverted[frame] = std::move(dest);
+
+
+        /*
         auto image_data = make_uninitialized_unique<uchar[]>(frameSize);
 
         if(m_uffData->polarCoordinates) {
@@ -770,6 +809,7 @@ bool UFFScanConvert::scanConvertPolarCoordinates(int newWidth, int newHeight, bo
         }
 
         m_uffData->dataScanconverted[frame] = std::move(image_data);
+         */
     }
 
     //Remove input (not scanconverted data)?
