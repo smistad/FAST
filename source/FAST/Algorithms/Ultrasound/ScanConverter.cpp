@@ -13,7 +13,7 @@ ScanConverter::ScanConverter(int width, int height, float gain, float dynamicRan
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Ultrasound/ScanConverter.cl");
 }
 
-void pol2cart(float r, float th, float &x, float &y) {
+static void pol2cart(float r, float th, float &x, float &y) {
     x = r * std::cos(th);
     y = r * std::sin(th);
 }

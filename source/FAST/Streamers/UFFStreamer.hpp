@@ -28,7 +28,7 @@ class UFFData;
  * - @ref display_ultrasound_file_format_data_with_matplotlib.py
  * - @ref streamUFFData.cpp
  *
- * @ingroup streamers
+ * @ingroup streamers ultrasound
 */
 class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
     FAST_PROCESS_OBJECT(UFFStreamer)

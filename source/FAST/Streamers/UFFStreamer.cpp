@@ -10,8 +10,10 @@
 namespace fast {
 
 
-inline void pol2cart(float r, float th, float &x, float &y);
-
+static void pol2cart(float r, float th, float &x, float &y) {
+    x = r * std::cos(th);
+    y = r * std::sin(th);
+}
 
 /**
 * A data structure for the ultrasound file format (UFF).
@@ -28,8 +30,8 @@ public:
     std::string dataGroupName;
     int numFrames;
     bool polarCoordinates;
-    std::vector<std::unique_ptr<uchar[]>> dataScanconverted;
-    std::vector<std::vector<std::complex<float> > > iqData;
+    std::vector<Image::pointer> dataScanconverted;
+    std::vector<Image::pointer> iqData;
 
     std::vector<float> azimuth_axis;
     std::vector<float> depth_axis;
@@ -262,7 +264,7 @@ void UFFReader::readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UF
     //dataStruct.dataNotScanconverted.resize(frameCount);//Make room for pointers in vector
     dataStruct->iqData.resize(frameCount);//Make room for pointers in vector
 
-    for (int frameNr = 0; frameNr < frameCount; ++frameNr) {
+    for(int frameNr = 0; frameNr < frameCount; ++frameNr) {
         //std::cout << "Extracting frame " << frameNr << " in UFF file" << std::endl;
         // Extract 1 frame
         auto imaginary = std::make_unique<float[]>(dataStruct->width * dataStruct->height);
@@ -273,27 +275,19 @@ void UFFReader::readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UF
         realDataspace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data(), NULL, blockSize.data());
         realDataset.read(real.get(), H5::PredType::NATIVE_FLOAT, memspace, realDataspace);
 
-        //std::cout << "Start reading values" << std::endl;
-        // TODO start env
         int dataSize = dataStruct->width * dataStruct->height;
-        //std::vector<float> image_data;
-        //image_data.resize(dataSize);
-        std::vector<std::complex<float> > complex_image;
-        complex_image.resize(dataSize);
+        auto complex_image = make_uninitialized_unique<float[]>(dataSize*2);
 
-        for (int y = 0; y < dataStruct->height; ++y) {
-            for (int x = 0; x < dataStruct->width; ++x) {
-                //TODO: Should axes be swapped?
-                int pos = y + x * dataStruct->height;
-                //image_data[x + y * dataStruct.width] = std::sqrt(imaginary[pos] * imaginary[pos] + real[pos] * real[pos]);
-                complex_image[x + y * dataStruct->width] = std::complex<float>(real[pos],imaginary[pos]);
+        for(int y = 0; y < dataStruct->height; ++y) {
+            for(int x = 0; x < dataStruct->width; ++x) {
+                int pos = x + y * dataStruct->width;
+                int pos2 = y + x * dataStruct->height;
+                complex_image[pos*2] = real[pos2];
+                complex_image[pos*2+1] = imaginary[pos2];
             }
         }
-        // TODO end env
-        //std::cout << "Got values. Move data to UFFData struct" << std::endl;
-        //dataStruct.dataNotScanconverted[frameNr] = image_data;
-        dataStruct->iqData[frameNr] = complex_image;
-
+        auto image = Image::create(dataStruct->width, dataStruct->height, TYPE_FLOAT, 2, std::move(complex_image));
+        dataStruct->iqData[frameNr] = image;
     }//for
 }
 
@@ -346,7 +340,9 @@ void UFFReader::readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFDa
                 image_data[x + y * dataStruct->width] = data[pos];
             }
         }
-        dataStruct->dataScanconverted[frameNr] = std::move(image_data);
+        auto image = Image::create(dataStruct->width, dataStruct->height, TYPE_UINT8, 1, std::move(image_data));
+        image->setSpacing(dataStruct->spacing.x(), dataStruct->spacing.y(), dataStruct->spacing.z());
+        dataStruct->dataScanconverted[frameNr] = image;
     }//for
 }
 
@@ -424,7 +420,7 @@ void UFFStreamer::generateStream() {
         m_currentFrameIndex = 0;
     }
 
-    if (m_uffData->isScanConverted) {
+    if(m_uffData->isScanConverted) {
 
         while (true) {
             bool pause = getPause();
@@ -439,9 +435,7 @@ void UFFStreamer::generateStream() {
 
             int frameNr = getCurrentFrameIndexAndUpdate();
 
-            auto image = Image::create(m_uffData->width, m_uffData->height, DataType::TYPE_UINT8, 1,
-                          m_uffData->dataScanconverted[frameNr].get());
-            image->setSpacing(m_uffData->spacing.x(), m_uffData->spacing.y(), m_uffData->spacing.z());
+            auto image = m_uffData->dataScanconverted[frameNr];
 
             if(!pause) {
                 std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
@@ -477,13 +471,7 @@ void UFFStreamer::generateStream() {
             float startTheta = m_uffData->azimuth_axis.front();
             float stopTheta = m_uffData->azimuth_axis.back();
 
-            auto image = Image::create(
-                    m_uffData->width,
-                    m_uffData->height,
-                    TYPE_FLOAT,
-                    2,
-                    m_uffData->iqData[frameNr].data()
-            );
+            auto image = m_uffData->iqData[frameNr];
 
             float startX, startY, stopX, stopY, notUsed;
             if(m_uffData->polarCoordinates) {

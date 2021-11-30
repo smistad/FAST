@@ -139,7 +139,6 @@ UFFViewerWindow::UFFViewerWindow() {
         m_streamer->setGain(index+1);
 	});
 
-
     auto dynamicRangeLabel = new QLabel;
     dynamicRangeLabel->setText("Dynamic range:");
     menuLayout->addWidget(dynamicRangeLabel);
