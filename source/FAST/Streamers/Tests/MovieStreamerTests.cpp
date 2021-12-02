@@ -6,8 +6,11 @@
 using namespace fast;
 
 TEST_CASE("MovieStreamer", "[fast][moviestreamer][visual]") {
-    MovieStreamer::pointer streamer = MovieStreamer::New();
-    streamer->setFilename(Config::getTestDataPath() + "US/sagittal_spine.avi");
+    MovieStreamer::pointer streamer = MovieStreamer::create(
+            Config::getTestDataPath() + "US/sagittal_spine.avi",
+            true,
+            false
+    );
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(streamer->getOutputPort());

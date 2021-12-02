@@ -4,6 +4,7 @@
 #include <QtMultimediaWidgets/QVideoWidget>
 #include <QApplication>
 #include <QThread>
+#include <QMediaPlaylist>
 #include <FAST/Data/Image.hpp>
 
 namespace fast {
@@ -119,11 +120,13 @@ MovieStreamer::MovieStreamer() {
 
     createStringAttribute("filename", "Filename", "Filepath to movie file", "");
     createBooleanAttribute("grayscale", "Grayscale", "Convert movie to grayscale while streaming", mGrayscale);
+    createBooleanAttribute("loop", "Loop", "Loop movie", m_loop);
 }
 
-MovieStreamer::MovieStreamer(std::string filename, bool grayscale) {
+MovieStreamer::MovieStreamer(std::string filename, bool grayscale, bool loop) {
     createOutputPort(0, "Image");
     setFilename(filename);
+    setLoop(loop);
     setGrayscale(grayscale);
 }
 
@@ -132,21 +135,28 @@ MovieStreamerWorker::MovieStreamerWorker(MovieStreamer* streamer) {
 }
 
 MovieStreamerWorker::~MovieStreamerWorker() {
+    delete m_myVideoSurface;
     Reporter::info() << "Movie streamer worker destroyed" << Reporter::end();
 }
 
 void MovieStreamerWorker::run() {
-    m_player = std::make_unique<QMediaPlayer>();
+    m_player = new QMediaPlayer();
+    QObject::connect(this, &MovieStreamerWorker::finished, m_player, &QMediaPlayer::deleteLater);
     //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    m_myVideoSurface = std::make_unique<VideoSurface>();
+    m_myVideoSurface = new VideoSurface();
     m_myVideoSurface->streamer = mStreamer;
     m_player->setMuted(true);
-    m_player->setVideoOutput(m_myVideoSurface.get());
-    QObject::connect(m_player.get(), &QMediaPlayer::stateChanged, std::bind(&VideoSurface::stateChanged, m_myVideoSurface.get(), std::placeholders::_1));
+    m_player->setVideoOutput(m_myVideoSurface);
+    QObject::connect(m_player, &QMediaPlayer::stateChanged, std::bind(&VideoSurface::stateChanged, m_myVideoSurface, std::placeholders::_1));
     std::string prefix = "";
     if(mStreamer->getFilename()[0] != '/' && mStreamer->getFilename()[1] == ':') // On windows w want file:///C:/asd/asd..
         prefix = "/";
-    m_player->setMedia(QUrl(("file://" + prefix + mStreamer->getFilename()).c_str()));
+    auto playlist = new QMediaPlaylist();
+    playlist->addMedia(QUrl(("file://" + prefix + mStreamer->getFilename()).c_str()));
+    if(mStreamer->getLoop()) {
+        playlist->setPlaybackMode(QMediaPlaylist::Loop);
+    }
+    m_player->setPlaylist(playlist);
     m_player->play(); // This does not block
     Reporter::info() << "Play returned" << Reporter::end();
 }
@@ -204,6 +214,15 @@ MovieStreamer::~MovieStreamer() {
 
 int MovieStreamer::getFramesAdded() const {
     return m_framesAdded;
+}
+
+void MovieStreamer::setLoop(bool loop) {
+    m_loop = loop;
+    setModified(true);
+}
+
+bool MovieStreamer::getLoop() const {
+    return m_loop;
 }
 
 }

@@ -29,11 +29,13 @@ class FAST_EXPORT MovieStreamer : public Streamer {
          * @brief Create instance
          * @param filename Movie file to stream from
          * @param grayscale Whether to convert to grayscale or not
+         * @param loop Whether to loop the video or not
          * @return instance
          */
         FAST_CONSTRUCTOR(MovieStreamer,
                          std::string, filename,,
-                         bool, grayscale, = true
+                         bool, grayscale, = true,
+                         bool, loop, = false
         );
         void setFilename(std::string filename);
         std::string getFilename() const;
@@ -42,6 +44,8 @@ class FAST_EXPORT MovieStreamer : public Streamer {
         void setGrayscale(bool grayscale);
         bool getGrayscale() const;
         void setFinished(bool finished);
+        void setLoop(bool loop);
+        bool getLoop() const;
         int getFramesAdded() const;
         ~MovieStreamer();
         void loadAttributes() override;
@@ -54,6 +58,7 @@ class FAST_EXPORT MovieStreamer : public Streamer {
         std::string mFilename;
         bool mGrayscale = true;
         bool m_finished = false;
+        bool m_loop = false;
         int64_t m_framesAdded = 0;
         std::chrono::high_resolution_clock::time_point m_startTime;
         QThread* thread;
@@ -76,8 +81,8 @@ class MovieStreamerWorker : public QObject {
         void error(QString err);
     private:
         MovieStreamer* mStreamer;
-        std::unique_ptr<QMediaPlayer> m_player;
-        std::unique_ptr<VideoSurface> m_myVideoSurface;
+        QMediaPlayer* m_player;
+        VideoSurface* m_myVideoSurface;
 };
 
 }
