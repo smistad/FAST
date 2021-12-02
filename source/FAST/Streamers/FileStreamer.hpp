@@ -27,6 +27,7 @@ class FAST_EXPORT FileStreamer : public Streamer {
         void setTimestampFilename(std::string filepath);
         void enableLooping();
         void disableLooping();
+        void setFramerate(int framerate);
         /**
          * Set a sleep time after each frame is read
          */
@@ -59,6 +60,7 @@ class FAST_EXPORT FileStreamer : public Streamer {
         int mNrOfFrames;
         int mMaximumNrOfFrames;
         uint mSleepTime;
+        int m_framerate = -1;
         uint mStepSize;
 
         bool mUseTimestamp = true;

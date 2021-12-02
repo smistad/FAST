@@ -13,12 +13,13 @@ int main(int argc, char** argv) {
     CommandLineParser parser("Stream images from disk");
     // The hashtag here will be replaced with an integer, starting with 0 as default
     parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "/US/CarotidArtery/Right/US-2D_#.mhd");
-    parser.addVariable("sleep-time", "50");
+    parser.addVariable("framerate", false, "Framerate");
     parser.addOption("render-in-3d");
     parser.parse(argc, argv);
 
     auto streamer = ImageFileStreamer::create(parser.get("filename"));
-    streamer->setSleepTime(parser.get<int>("sleep-time"));
+    if(parser.gotValue("framerate"))
+        streamer->setFramerate(parser.get<int>("framerate"));
 
     auto renderer = ImageRenderer::create()->connect(streamer);
 

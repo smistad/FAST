@@ -14,11 +14,13 @@ void FileStreamer::loadAttributes() {
     } else {
         disableLooping();
     }
+    setFramerate(getIntegerAttribute("framerate"));
 }
 
 FileStreamer::FileStreamer() {
     createStringAttribute("fileformat", "Fileformat", "Fileformat for streaming e.g. /path/to/data/frame_#.xx", "");
     createBooleanAttribute("loop", "Loop", "Loop streaming", false);
+    createIntegerAttribute("framerate", "Framerate", "Framerate", -1);
     mNrOfReplays = 0;
     mIsModified = true;
     mLoop = false;
@@ -123,6 +125,7 @@ void FileStreamer::generateStream() {
     uint i = mStartNumber;
     int replays = 0;
     int currentSequence = 0;
+    auto previousTime = std::chrono::high_resolution_clock::now();
     while(true) {
         {
             std::unique_lock<std::mutex> lock(m_stopMutex);
@@ -136,17 +139,23 @@ void FileStreamer::generateStream() {
         try {
             reportInfo() << "Filestreamer reading " << filename << reportEnd();
             DataObject::pointer dataFrame = getDataFrame(filename);
-            // Set and use timestamp if available
-            if(!mTimestampFilename.empty() && mUseTimestamp) {
+
+            // Timing
+            if(m_framerate > 0) {
+                std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
+                std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
+                if(sleepFor.count() > 0)
+                    std::this_thread::sleep_for(sleepFor);
+                previousTime = std::chrono::high_resolution_clock::now();
+            } else if(!mTimestampFilename.empty() && mUseTimestamp) {
+                // Set and use timestamp if available
                 std::string line;
                 std::getline(timestampFile, line);
                 if(!line.empty()) {
 					uint64_t timestamp = std::stoull(line);
                     dataFrame->setCreationTimestamp(timestamp);
                 }
-            }
-
-            if(dataFrame->getCreationTimestamp() != 0 && mUseTimestamp) {
+            } else if(dataFrame->getCreationTimestamp() != 0 && mUseTimestamp) {
                 uint64_t timestamp = dataFrame->getCreationTimestamp();
                 // Wait as long as necessary before adding image
                 // Time passed since last frame
@@ -163,6 +172,7 @@ void FileStreamer::generateStream() {
                 previousTimestamp = timestamp;
                 previousTimestampTime = std::chrono::high_resolution_clock::now();
             }
+            // End timing
 
             if(!fileExists(getFilename(i+1, currentSequence)) && !mLoop)
                 dataFrame->setLastFrame(getNameOfClass());
@@ -256,6 +266,11 @@ void FileStreamer::setStepSize(uint stepSize) {
 
 void FileStreamer::setUseTimestamp(bool use) {
     mUseTimestamp = use;
+}
+
+void FileStreamer::setFramerate(int framerate) {
+    m_framerate = framerate;
+    setModified(true);
 }
 
 } // end namespace fast
