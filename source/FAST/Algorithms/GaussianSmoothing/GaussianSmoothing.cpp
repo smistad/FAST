@@ -35,6 +35,7 @@ GaussianSmoothing::GaussianSmoothing(float stdDev, uchar maskSize) {
     createOutputPort(0, "Image");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GaussianSmoothing/GaussianSmoothing2D.cl", "2D");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GaussianSmoothing/GaussianSmoothing3D.cl", "3D");
+    createFloatAttribute("stdev", "Standard deviation", "Standard deviation", stdDev);
     mIsModified = true;
     mRecreateMask = true;
     mDimensionCLCodeCompiledFor = 0;
@@ -310,4 +311,8 @@ void GaussianSmoothing::waitToFinish() {
         OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
         device->getCommandQueue().finish();
     }
+}
+
+void GaussianSmoothing::loadAttributes() {
+    setStandardDeviation(getFloatAttribute("stdev"));
 }

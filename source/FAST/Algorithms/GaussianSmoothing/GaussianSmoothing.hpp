@@ -34,6 +34,7 @@ class FAST_EXPORT GaussianSmoothing : public ProcessObject {
         void setMaskSize(unsigned char maskSize);
         void setStandardDeviation(float stdDev);
         void setOutputType(DataType type);
+        void loadAttributes() override;
         ~GaussianSmoothing();
     protected:
         void execute();
