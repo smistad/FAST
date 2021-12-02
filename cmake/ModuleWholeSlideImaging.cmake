@@ -24,7 +24,7 @@ if(FAST_MODULE_WholeSlideImaging)
         )
         fast_download_dependency(openslide
                 3.4.1
-                6cd181e43057d8f67b31a71239fd3295a3ee43baaaedce827b8570ba95478ea2
+                a39521846a132b0c375047150e108e5ccbaa1d4f1d8cc36350bd36fb60889841
                 libopenslide.so
         )
     endif()
