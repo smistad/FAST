@@ -12,6 +12,11 @@ namespace fast {
  * This is useful for instance for comparing image quality of two or more data streams.
  * The speed in which they are interleaved can be controlled by the framerate parameter.
  *
+ * Inputs:
+ * - 0-N: Any types of data
+ *
+ * Outputs:
+ * - 0: Same as input data
  */
 class FAST_EXPORT Interleave : public Streamer {
     FAST_OBJECT(Interleave)

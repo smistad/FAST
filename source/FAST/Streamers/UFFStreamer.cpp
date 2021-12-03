@@ -502,12 +502,8 @@ void UFFStreamer::generateStream() {
 
             Image::pointer resultImage;
             if(m_doScanConversion) {
-                m_envelopeAndLogCompressor->enableRuntimeMeasurements();
-                m_scanConverter->enableRuntimeMeasurements();
                 resultImage = m_scanConverter->runAndGetOutputData<Image>();
                 resultImage->setSpacing(newXSpacing*1000, newYSpacing*1000, 1.0f);
-                m_scanConverter->getRuntime()->print();
-                m_envelopeAndLogCompressor->getRuntime()->print();
             } else {
                 resultImage = m_envelopeAndLogCompressor->runAndGetOutputData<Image>();
             }
