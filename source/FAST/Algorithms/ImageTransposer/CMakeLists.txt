@@ -1,0 +1,3 @@
+fast_add_sources(ImageTransposer.cpp ImageTransposer.hpp)
+fast_add_test_sources(Tests.cpp)
+fast_add_process_object(ImageTransposer ImageTransposer.hpp)
