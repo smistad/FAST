@@ -4,6 +4,7 @@
 #include <QtMultimediaWidgets/QVideoWidget>
 #include <QApplication>
 #include <QThread>
+#include <QDir>
 #include <QMediaPlaylist>
 #include <FAST/Data/Image.hpp>
 
@@ -149,8 +150,16 @@ void MovieStreamerWorker::run() {
     m_player->setVideoOutput(m_myVideoSurface);
     QObject::connect(m_player, &QMediaPlayer::stateChanged, std::bind(&VideoSurface::stateChanged, m_myVideoSurface, std::placeholders::_1));
     std::string prefix = "";
-    if(mStreamer->getFilename()[0] != '/' && mStreamer->getFilename()[1] == ':') // On windows w want file:///C:/asd/asd..
+    if(mStreamer->getFilename()[0] != '/' && mStreamer->getFilename()[1] == ':') { // On windows w want file:///C:/asd/asd..
         prefix = "/";
+    } else if (mStreamer->getFilename()[0] != '/' && mStreamer->getFilename()[1] != ':') {
+        // Relative path, make into absolute path:
+#ifdef WIN32
+        prefix = "/" + QDir::currentPath().toStdString() + "/";
+#else
+        prefix = QDir::currentPath().toStdString() + "/";
+#endif
+    }
     auto playlist = new QMediaPlaylist();
     playlist->addMedia(QUrl(("file://" + prefix + mStreamer->getFilename()).c_str()));
     if(mStreamer->getLoop()) {
