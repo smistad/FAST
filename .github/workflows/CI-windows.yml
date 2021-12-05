@@ -98,7 +98,7 @@ jobs:
         Write-Output "CUDA_PATH $($CUDA_PATH)"
         Write-Output "CUDA_PATH_VX_Y $($CUDA_PATH_VX_Y)"
     - name: Download cuDNN and TensorRT
-      uses: robinraju/release-downloader@v1.2
+      uses: robinraju/release-downloader@main
       with:
         repository: "smistad/FAST-secret-dependencies"
         latest: true
