@@ -42,7 +42,7 @@ std::string doCheck() {
             message << device.getInfo<CL_DEVICE_VENDOR>() << ": " << device.getInfo<CL_DEVICE_TYPE>() << " - " << device.getInfo<CL_DEVICE_NAME>() << std::endl;
             message << "-----------------------------------------" << std::endl;
             message << "Writing to 3D textures: ";
-            if(device.getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") == std::string::npos) {
+            if(device.getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos) {
                 message << "SUPPORTED" << std::endl;
             } else {
                 message << "NOT SUPPORTED" << std::endl;
