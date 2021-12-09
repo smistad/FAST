@@ -69,8 +69,6 @@ void LevelSetSegmentation::execute() {
 
     auto phi = Image::create(input->getSize(), TYPE_FLOAT, 1);
 
-    OpenCLImageAccess::pointer phiAccess = phi->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-    cl::Image3D phi_1 = *phiAccess->get3DImage();
 
     if(mSeeds.size() == 0)
         throw Exception("The LevelSetSegmentation algorithm must be given a seed point");
@@ -83,7 +81,15 @@ void LevelSetSegmentation::execute() {
 
         // Create seed
         cl::Kernel createSeedKernel(program, "initializeLevelSetFunction");
-        createSeedKernel.setArg(0, phi_1);
+
+        if(device->isWritingTo3DTexturesSupported()) {
+            auto phiAccess = phi->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            cl::Image3D phi_1 = *phiAccess->get3DImage();
+            createSeedKernel.setArg(0, phi_1);
+        } else {
+            auto phiAccess = phi->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+            createSeedKernel.setArg(0, *phiAccess->get());
+        }
         createSeedKernel.setArg(1, seedPos.x());
         createSeedKernel.setArg(2, seedPos.y());
         createSeedKernel.setArg(3, seedPos.z());
@@ -104,26 +110,55 @@ void LevelSetSegmentation::execute() {
     const float minimumSpacing = std::min(std::min(spacing.x(), spacing.y()), spacing.z());
 
     if(!device->isWritingTo3DTexturesSupported()) {
-        // Create auxillary buffer
-        cl::Buffer writeBuffer = cl::Buffer(
-                device->getContext(),
-                CL_MEM_WRITE_ONLY,
-                sizeof(float)*size.x()*size.y()*size.z()
-        );
+        auto phi2 = Image::create(input->getSize(), TYPE_FLOAT, 1);
+        auto speed = Image::create(input->getSize(), TYPE_FLOAT, 1);
 
-        /*
-        for(int i = 0; i < iterations; i++) {
-            updateLevelSetFunction(ocl, kernel, inputData, phi_1, writeBuffer, size, threshold, epsilon, alpha);
-            ocl.queue.enqueueCopyBufferToImage(
-                    writeBuffer,
-                    phi_1,
-                    0,
-                    origin,
-                    region
-            );
+        auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
+        kernel.setArg(0, *access->get3DImage());
+        kernel.setArg(3, mIntensityMean);
+        kernel.setArg(4, mIntensityVariance);
+        kernel.setArg(5, mCurvatureWeight);
+
+        float deltaT = 0.0001;
+        for(int i = 0; i < mIterations; i++) {
+            kernel.setArg(7, deltaT);
+            reportInfo() << "Iteration: " << i << " delta t: " << deltaT << reportEnd();
+            if(i % 2 == 0) {
+                auto access1 = phi->getOpenCLImageAccess(ACCESS_READ, device);
+                auto access2 = phi2->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+                kernel.setArg(1, *access1->get3DImage());
+                kernel.setArg(2, *access2->get());
+            } else {
+                auto access1 = phi->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+                auto access2 = phi2->getOpenCLImageAccess(ACCESS_READ, device);
+                kernel.setArg(1, *access2->get3DImage());
+                kernel.setArg(2, *access1->get());
+            }
+            {
+                auto speedAccess = speed->getOpenCLBufferAccess(ACCESS_READ_WRITE,device);
+                kernel.setArg(6, *speedAccess->get());
+                queue.enqueueNDRangeKernel(
+                        kernel,
+                        cl::NullRange,
+                        cl::NDRange(size.x(), size.y(), size.z()),
+                        cl::NullRange
+                        );
+                queue.finish();
+            }
+
+            // Calculate max speed and deltaT for next round
+            deltaT = 0.5f/speed->calculateMaximumIntensity();
         }
-         */
+        if(mIterations % 2 != 0) {
+            // Phi_2 was written to in the last iteration, copy this to the result
+            //auto access1 = phi->getOpenCLImageAccess(ACCESS_READ, device);
+            //auto access2 = phi2->getOpenCLImageAccess(ACCESS_READ, device);
+            phi = phi2->copy(device);
+            //queue.enqueueCopyImage(phi_2,phi_1,origin,origin,region);
+        }
     } else {
+        auto phiAccess = phi->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        cl::Image3D phi_1 = *phiAccess->get3DImage();
         cl::Image3D phi_2 = cl::Image3D(
                 device->getContext(),
                 CL_MEM_READ_WRITE,
@@ -172,8 +207,6 @@ void LevelSetSegmentation::execute() {
             queue.enqueueCopyImage(phi_2,phi_1,origin,origin,region);
         }
     }
-
-    phiAccess->release();
 
     // Create segmentation from level set function
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();

@@ -1,10 +1,9 @@
-#ifdef NO_3D_WRITE
-#define PHI_WRITE_TYPE __global float *
-#define WRITE_RESULT(storage, pos, value) storage[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value;
-#else
-#pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable
+#ifdef fast_3d_image_writes
 #define PHI_WRITE_TYPE __write_only image3d_t
 #define WRITE_RESULT(storage, pos, value) write_imagef(storage, pos, value)
+#else
+#define PHI_WRITE_TYPE __global float *
+#define WRITE_RESULT(storage, pos, value) storage[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value;
 #endif
 
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;

@@ -1,3 +1,4 @@
+#include <FAST/Visualization/SliceRenderer/SliceRenderer.hpp>
 #include "FAST/Testing.hpp"
 #include "LevelSetSegmentation.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
@@ -12,33 +13,29 @@ using namespace fast;
 
 /*
 TEST_CASE("Level set segmentation", "[fast][levelset][visual]") {
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
-    LevelSetSegmentation::pointer segmentation = LevelSetSegmentation::New();
+    auto segmentation = LevelSetSegmentation::New();
     segmentation->setIntensityMean(150);
     segmentation->setIntensityVariance(50);
-    segmentation->setCurvatureWeight(0.75);
-    segmentation->setMaxIterations(5000);
+    segmentation->setCurvatureWeight(0.5);
+    segmentation->setMaxIterations(500);
     segmentation->addSeedPoint(Vector3i(149, 210, 345), 10);
     segmentation->setInputConnection(importer->getOutputPort());
 
-    SurfaceExtraction::pointer extraction = SurfaceExtraction::create();
-    extraction->setInputConnection(segmentation->getOutputPort());
+    auto extraction = SurfaceExtraction::create()
+            ->connect(segmentation);
 
-    TriangleRenderer::pointer renderer = TriangleRenderer::New();
+    auto sliceRenderer = SliceRenderer::create(fast::PLANE_Z, 345)
+            ->connect(importer);
+
+    auto renderer = TriangleRenderer::create();
     renderer->addInputConnection(extraction->getOutputPort());
 
-    SegmentationRenderer::pointer segRenderer = SegmentationRenderer::New();
-    segRenderer->addInputConnection(segmentation->getOutputPort());
-
-    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
-    imageRenderer->addInputConnection(importer->getOutputPort());
-
-    DualViewWindow::pointer window = DualViewWindow::New();
+    auto window = DualViewWindow::create();
+    window->getTopLeftView()->addRenderer(sliceRenderer);
     window->getTopLeftView()->addRenderer(renderer);
     window->getTopLeftView()->set3DMode();
     window->start();
 }
-
- */
+*/
