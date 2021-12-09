@@ -35,7 +35,7 @@ TEST_CASE("Level set segmentation", "[fast][levelset][visual]") {
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
     imageRenderer->addInputConnection(importer->getOutputPort());
 
-    DualViewWindow::pointer window = DualViewWindow::New();
+    DualViewWindow::pointer window = DualViewWindow::create();
     window->getTopLeftView()->addRenderer(renderer);
     window->getTopLeftView()->set3DMode();
     window->start();
