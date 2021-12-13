@@ -64,7 +64,7 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
 		currentWidth = width / std::pow(2, currentLevel);
 		currentHeight = height / std::pow(2, currentLevel);
 
-        if(currentWidth < 4096 && currentHeight < 4096) // IMPORTANT: This should be the same as in PatchStitcher.
+        if(currentLevel > 0 && (currentWidth < 4096 && currentHeight < 4096)) // IMPORTANT: This should be the same as in PatchStitcher.
             break;
 
         reportInfo() << "Processing level " << currentLevel << reportEnd();
