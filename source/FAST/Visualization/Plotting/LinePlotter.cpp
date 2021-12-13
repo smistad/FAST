@@ -127,7 +127,15 @@ void LinePlotter::processQueue() {
 			    if(m_circularMode) {
 			        // Replace at current location
                     for(auto&& data : newDataList) {
-                        m_buffer[data.first][m_currentIndex % m_bufferSize] = data.second.y();
+                        if(std::isnan(data.second.y())) {
+                            if(m_currentIndex % m_bufferSize > 0) {
+                                m_buffer[data.first][m_currentIndex % m_bufferSize] = m_buffer[data.first][(m_currentIndex % m_bufferSize) - 1];
+                            } else {
+                                m_buffer[data.first][m_currentIndex % m_bufferSize] = std::nanf("");
+                            }
+                        } else {
+                            m_buffer[data.first][m_currentIndex % m_bufferSize] = data.second.y();
+                        }
                     }
                     // TODO how to update x?
                     //m_xAxis[m_currentIndex % m_bufferSize] = m_currentIndex;
@@ -159,7 +167,6 @@ void LinePlotter::processQueue() {
 			    }
 			}
 		}
-		std::cout << "MIN and MAX: " << globalMin << " " << globalMax << std::endl;
 		if(globalMin != std::numeric_limits<double>::max() && globalMax != std::numeric_limits<double>::min())
             m_plotterWidget->setY(globalMin, globalMax);
 		m_plotterWidget->setX(m_xAxis[0], m_xAxis[m_xAxis.size() - 1]);
