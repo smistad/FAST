@@ -151,13 +151,15 @@ void LinePlotter::processQueue() {
 		double globalMin = std::numeric_limits<double>::max();
 		double globalMax = std::numeric_limits<double>::min();
 		for(auto&& item : m_buffer) {
-			auto [min, max] = std::minmax_element(item.second.begin(), item.second.end());
-			if(*min < globalMin)
-				globalMin = *min;
-			if(*max > globalMax) {
-				globalMax = *max;
+			for(int i = 0; i < item.second.size(); ++i) {
+			    if(item.second[i] < globalMin)
+			        globalMin = item.second[i];
+			    if(item.second[i] > globalMax) {
+			        globalMax = item.second[i];
+			    }
 			}
 		}
+		std::cout << "MIN and MAX: " << globalMin << " " << globalMax << std::endl;
 		if(globalMin != std::numeric_limits<double>::max() && globalMax != std::numeric_limits<double>::min())
             m_plotterWidget->setY(globalMin, globalMax);
 		m_plotterWidget->setX(m_xAxis[0], m_xAxis[m_xAxis.size() - 1]);

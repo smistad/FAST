@@ -220,28 +220,28 @@ class FAST_EXPORT  ProcessObject : public Object {
 
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
 
-        std::unordered_map<uint, bool> mRequiredInputs;
-        std::unordered_map<uint, std::vector<uint> > mInputDevices;
-        std::unordered_map<uint, ExecutionDevice::pointer> mDevices;
-        std::unordered_map<uint, DeviceCriteria> mDeviceCriteria;
+        std::map<uint, bool> mRequiredInputs;
+        std::map<uint, std::vector<uint> > mInputDevices;
+        std::map<uint, ExecutionDevice::pointer> mDevices;
+        std::map<uint, DeviceCriteria> mDeviceCriteria;
 
         // New pipeline
-        std::unordered_map<uint, DataChannel::pointer> mInputConnections;
-        std::unordered_map<uint, std::vector<std::weak_ptr<DataChannel>>> mOutputConnections;
+        std::map<uint, DataChannel::pointer> mInputConnections;
+        std::map<uint, std::vector<std::weak_ptr<DataChannel>>> mOutputConnections;
         struct InputPort {
             std::string name;
             std::string description;
             bool required = true;
         };
-        std::unordered_map<uint, InputPort> mInputPorts;
+        std::map<uint, InputPort> mInputPorts;
         struct OutputPort {
             std::string name;
             std::string description;
             DataObject::pointer currentData = nullptr;
         };
-        std::unordered_map<uint, OutputPort> mOutputPorts;
+        std::map<uint, OutputPort> mOutputPorts;
         // <port id, timestep>, register the last timestep of input data which this PO executed with
-        std::unordered_map<uint, std::pair<DataObject::pointer, uint64_t>> mLastProcessed;
+        std::map<uint, std::pair<DataObject::pointer, uint64_t>> mLastProcessed;
 
         void validateInputPortExists(uint portID);
         void validateOutputPortExists(uint portID);
