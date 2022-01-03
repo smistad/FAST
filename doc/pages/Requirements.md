@@ -35,7 +35,7 @@ brew install openslide libomp
 
 Optional requirements
 --------------------------------
-* For TensorRT inference: CUDA 11.0, cuDNN 8.X and TensorRT 7.2.
+* For TensorRT inference: CUDA 11.0, cuDNN 8.X and TensorRT 8.X.
 * For TensorFlow CUDA inference: CUDA 11.0 + cuDNN 8.X
 * For video streaming:
     * **Linux**: ```sudo apt install ubuntu-restricted-extras libgstreamer1.0-dev libgstreamer-plugins-bad1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev```  
