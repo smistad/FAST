@@ -15,7 +15,7 @@ class FAST_EXPORT NonLocalMeans : public ProcessObject {
     FAST_PROCESS_OBJECT(NonLocalMeans);
     public:
         /**
-         * Creates instance of this process object
+         * @brief Creates instance of this process object
          * @param filterSize Size in pixels of the filter region to search for. Must be odd.
          * @param searchSize How many pixels to search in each direction. Must be odd.
          * @param smoothingAmount Parameter to control the amount of smoothing.

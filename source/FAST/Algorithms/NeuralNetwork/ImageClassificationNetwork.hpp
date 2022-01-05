@@ -53,6 +53,25 @@ class FAST_EXPORT ImageClassification : public SimpleDataObject<classifications>
 class FAST_EXPORT ImageClassificationNetwork : public NeuralNetwork {
 	FAST_PROCESS_OBJECT(ImageClassificationNetwork)
 	public:
+        /**
+         * @brief Create instance
+         * Python friendly constructor with almost all parameters.
+         *
+         * @param modelFilename Path to model to load
+         * @param scaleFactor A value which is multiplied with each pixel of input image before it is sent to the neural
+         *      network. Use this to scale your pixels values. Default: 1.0
+         * @param meanIntensity Mean intensity to subtract from each pixel of the input image
+         * @param standardDeviationIntensity Standard deviation to divide each pixel of the input image by
+         * @param temporalWindow Temporal window to average results over.
+         * @param inputNodes Specify names, and potentially shapes, of input nodes.
+         *      Not necessary unless you only want to use certain inputs or specify the input shape manually.
+         * @param outputNodes Specify names, and potentially shapes, of output nodes to use.
+         *      Not necessary unless you only want to use certain outputs or specify the output shape manually.
+         * @param inferenceEngine Specify which inference engine to use (TensorFlow, TensorRT, OpenVINO).
+         *      By default, FAST will select the best inference engine available on your system.
+         * @param customPlugins Specify path to any custom plugins/operators to load
+         * @return instance
+         */
         FAST_CONSTRUCTOR(ImageClassificationNetwork,
                          std::string, modelFilename,,
                          std::vector<std::string>, labels,,
@@ -64,15 +83,29 @@ class FAST_EXPORT ImageClassificationNetwork : public NeuralNetwork {
                          std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
                          std::string, inferenceEngine, = "",
                          std::vector<std::string>, customPlugins, = std::vector<std::string>()
-         )
+         );
 #ifndef SWIG
+        /**
+         * @brief Create instance
+         * C++ friendly create with parameters that must be set before loading
+         *
+         * @param modelFilename Path to model to load
+         * @param inputNodes Specify names, and potentially shapes, of input nodes.
+         *      Not necessary unless you only want to use certain inputs or specify the input shape manually.
+         * @param outputNodes Specify names, and potentially shapes, of output nodes to use.
+         *      Not necessary unless you only want to use certain outputs or specify the output shape manually.
+         * @param inferenceEngine Specify which inference engine to use (TensorFlow, TensorRT, OpenVINO).
+         *      By default, FAST will select the best inference engine available on your system.
+         * @param customPlugins Specify path to any custom plugins/operators to load
+         * @return instance
+         */
         FAST_CONSTRUCTOR(ImageClassificationNetwork,
                          std::string, modelFilename,,
                          std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
                          std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
                          std::string, inferenceEngine, = "",
                          std::vector<std::string>, customPlugins, = std::vector<std::string>()
-        )
+        );
 #endif
         void setTemporalWindow(int window);
         void setLabels(std::vector<std::string> labels);

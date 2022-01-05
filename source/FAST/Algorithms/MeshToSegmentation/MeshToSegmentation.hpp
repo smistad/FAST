@@ -21,6 +21,11 @@ namespace fast {
 class FAST_EXPORT MeshToSegmentation : public ProcessObject {
 	FAST_PROCESS_OBJECT(MeshToSegmentation)
 	public:
+        /**
+         * @brief Create instance
+         * @param size Size of segmentation image to output. If not set it will use the same size as the image given to input 1 (optional).
+         * @return instance
+         */
         FAST_CONSTRUCTOR(MeshToSegmentation, Vector3i, size, = Vector3i::Zero())
         /**
          * Set output image resolution in voxels

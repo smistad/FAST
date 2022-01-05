@@ -23,6 +23,13 @@ class Image;
 class FAST_EXPORT LungSegmentation : public ProcessObject {
     FAST_PROCESS_OBJECT(LungSegmentation)
 public:
+    /**
+     * @brief Create instance
+     * @param airwaySeedPoint Manually specify seed point for airways. By default it will automatically try to find the seed point.
+     * @param lungSeedPoint Manually specify seed point for lung. By default it will automatically try to find the seed point.
+     * @param extractBloodVessels Whether to extract blood vessels as well or not, Default: false
+     * @return instance
+     */
     FAST_CONSTRUCTOR(LungSegmentation,
                      Vector3i, airwaySeedPoint, = Vector3i::Zero(),
                      Vector3i, lungSeedPoint, = Vector3i::Zero(),

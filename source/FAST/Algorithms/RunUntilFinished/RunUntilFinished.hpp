@@ -14,7 +14,7 @@ namespace fast {
 class FAST_EXPORT RunUntilFinished : public ProcessObject {
     FAST_PROCESS_OBJECT(RunUntilFinished)
     public:
-        FAST_CONSTRUCTOR(RunUntilFinished)
+        FAST_CONSTRUCTOR(RunUntilFinished);
     private:
         void execute() override;
 };

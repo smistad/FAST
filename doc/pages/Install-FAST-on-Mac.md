@@ -3,9 +3,9 @@ Install FAST on macOS {#install-mac}
 
 Requirements
 ==================
-To install FAST on macOS, first make sure you have all the necessary requirements:
+**Make sure you have all the necessary requirements before installing FAST**:
 - macOS 10.13 or newer. Only intel (x86_64) architecture is supported atm.
-- Install [homebrew](https://brew.sh/) if you don't already have it. Install the following packages using homebrew:  
+- Install [homebrew](https://brew.sh/) if you don't already have it. Then, install the following packages using homebrew:  
 ```bash
 brew install openslide libomp
 ```

@@ -35,7 +35,7 @@ FAST_SIMPLE_DATA_OBJECT(RegionList, std::vector<Region>)
 class FAST_EXPORT RegionProperties : public ProcessObject {
     FAST_PROCESS_OBJECT(RegionProperties)
     public:
-        FAST_CONSTRUCTOR(RegionProperties)
+        FAST_CONSTRUCTOR(RegionProperties);
     protected:
         void execute() override;
 };

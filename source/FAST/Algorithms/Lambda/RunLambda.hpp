@@ -38,9 +38,28 @@ class DataList {
 class FAST_EXPORT RunLambda : public ProcessObject {
 	FAST_PROCESS_OBJECT(RunLambda)
 	public:
+        /**
+         * @brief Create instance
+         * @param lambda Lambda function which takes a single DataObject as input, and returns a DataList
+         * @return instance
+         */
         FAST_CONSTRUCTOR(RunLambda, std::function<DataList(DataObject::pointer data)>, lambda,)
+        /**
+         * @brief Create instance
+         * @param lambda Lambda function which takes no input, and returns a DataList
+         * @return instance
+         */
         FAST_CONSTRUCTOR(RunLambda, std::function<DataList()>, lambda,)
+        /**
+         * @brief Create instance
+         * @param lambda Lambda function which takes a DataList as input, and returns a DataList
+         * @return instance
+         */
         FAST_CONSTRUCTOR(RunLambda, std::function<DataList(DataList)>, lambda,)
+        /**
+         * @brief Specify whether the lambda function only should be run for the last frame
+         * @param lastFrameOnly
+         */
         void setRunOnLastFrameOnly(bool lastFrameOnly);
 	protected:
 		RunLambda();

@@ -12,6 +12,12 @@ namespace fast {
 class FAST_EXPORT TensorToSegmentation : public ProcessObject {
     FAST_PROCESS_OBJECT(TensorToSegmentation)
     public:
+        /**
+         * @brief Create instance
+         * @param threshold The minimum value of the class confidence value to be accepted. Default: 0.5
+         * @param hasBackgroundClass Whether the neural network has a channel 0 which represents the "background". Default: true
+         * @return instance
+         */
         FAST_CONSTRUCTOR(TensorToSegmentation,
                          float, threshold, = 0.5f,
                          bool, hasBackgroundClass, = true

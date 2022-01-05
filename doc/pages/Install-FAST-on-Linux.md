@@ -3,7 +3,8 @@ Install FAST for Ubuntu Linux {#install-ubuntu-linux}
 
 Requirements
 ==================
-To install FAST on Ubuntu Linux (18.04 or newer) make sure you have installed the requirements:
+**Make sure you have all the necessary requirements before installing FAST**:
+- Ubuntu Linux 18.04 or newer.
 - OpenGL: Usually installed along with your graphics driver.
 - OpenCL: To install OpenCL on Linux, download an implementation depending on the CPU/GPU you have:    
     - **NVIDIA** - Install [CUDA](https://developer.nvidia.com/cuda-downloads)  
@@ -85,13 +86,6 @@ If you can get an error, please see **[troubleshoot](#troubleshoot-linux)** sect
 
 To start using FAST, you might want to look at the [C++ introduction tutorial](@ref cpp-tutorial-intro)
 and the [C++ examples page](@ref cpp-examples).
-
-@m_class{m-block m-warning}
-
-@par Running FAST on a remote server
-If you want to run FAST on a remote server <b>AND</b> visualize you need to use VirtualGL.
-Plain X forwarding (ssh -X) most likely will not work.
-[See this page for more info on how to use VirtualGL](@ref fast-remote-server).
 
 Troubleshoot {#troubleshoot-linux}
 ==============

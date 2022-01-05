@@ -3,9 +3,9 @@ Install FAST on Windows {#install-windows}
 
 Requirements
 ======================
-To install FAST on Windows, first make sure you have all the necessary requirements installed:
-- **OpenCL and OpenGL**: These are usually installed along with your graphics driver on windows.
-- [Microsoft Visual C++ Redistributable 2015-2019 (64bit/x64)](https://aka.ms/vs/16/release/vc_redist.x64.exe)
+**Make sure you have all the necessary requirements before installing FAST**:
+- OpenCL and OpenGL: These are usually installed along with your graphics driver.
+- Download and install [Microsoft Visual C++ Redistributable 2015-2019 (64bit/x64)](https://aka.ms/vs/16/release/vc_redist.x64.exe).
 
 Some [optional requirements](@ref requirements) are needed for video streaming and GPU neural network inference, these can be installed later. 
 

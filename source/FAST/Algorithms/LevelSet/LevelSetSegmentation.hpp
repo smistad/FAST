@@ -21,6 +21,14 @@ namespace fast {
 class FAST_EXPORT  LevelSetSegmentation : public ProcessObject {
     FAST_PROCESS_OBJECT(LevelSetSegmentation)
     public:
+        /**
+         * @brief Create instance
+         * @param seedPoints List of 3D points to create seeds
+         * @param seedRadius Radius of seeds
+         * @param curvatureWeight Weight for curvature term
+         * @param maxIterations Maximum number of iterations
+         * @return instance
+         */
         FAST_CONSTRUCTOR(LevelSetSegmentation,
                      std::vector<Vector3i>, seedPoints,,
                      float, seedRadius, = 1.0f,

@@ -12,6 +12,11 @@ namespace fast {
 class FAST_EXPORT Erosion : public ProcessObject {
     FAST_PROCESS_OBJECT(Erosion)
     public:
+        /**
+         * @brief Create instance
+         * @param size Size of square dilation structuring element. Default 3: 3x3
+         * @return instance
+         */
         FAST_CONSTRUCTOR(Erosion, int, size, = 3)
         /**
          * Set size of structuring element, must be odd

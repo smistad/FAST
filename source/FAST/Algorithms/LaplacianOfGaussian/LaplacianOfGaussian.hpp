@@ -14,6 +14,12 @@ namespace fast {
 class FAST_EXPORT  LaplacianOfGaussian : public ProcessObject {
     FAST_PROCESS_OBJECT(LaplacianOfGaussian)
     public:
+        /**
+         * @brief Create instance
+         * @param stdDev Standard deviation of Gaussian, default: 1.0
+         * @param maskSize Size of mask used for Gaussian, if zero mask size is calculated based on stdDev. Default: 0
+         * @return instance
+         */
         FAST_CONSTRUCTOR(LaplacianOfGaussian,
                          float, stdDev, = 1.0f,
                          uchar, maskSize, = 0

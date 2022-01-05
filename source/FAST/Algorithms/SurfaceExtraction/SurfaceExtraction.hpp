@@ -22,6 +22,11 @@ namespace fast {
 class FAST_EXPORT  SurfaceExtraction : public ProcessObject {
     FAST_PROCESS_OBJECT(SurfaceExtraction)
     public:
+        /**
+         * @brief Create instance
+         * @param threshold Intensity threshold to accept a voxel as part the segmentation.
+         * @return instance
+         */
         FAST_CONSTRUCTOR(SurfaceExtraction, float, threshold, = 0.0f)
         void setThreshold(float threshold);
         float getThreshold() const;

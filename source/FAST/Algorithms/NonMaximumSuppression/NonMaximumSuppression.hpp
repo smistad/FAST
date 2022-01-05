@@ -20,7 +20,12 @@ namespace fast {
 class FAST_EXPORT NonMaximumSuppression : public ProcessObject {
 	FAST_PROCESS_OBJECT(NonMaximumSuppression)
 	public:
-        FAST_CONSTRUCTOR(NonMaximumSuppression, float, threshold, = 0.5f)
+        /**
+         * @brief Create instance
+         * @param threshold Minimum intersection over union to remove overlapping bounding box.
+         * @return instance
+         */
+        FAST_CONSTRUCTOR(NonMaximumSuppression, float, threshold, = 0.5f);
 		void setThreshold(float threshold);
 		void loadAttributes();
 	protected:

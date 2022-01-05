@@ -20,6 +20,13 @@ namespace fast {
 class FAST_EXPORT SeededRegionGrowing : public ProcessObject {
     FAST_PROCESS_OBJECT(SeededRegionGrowing)
     public:
+        /**
+         * @brief Create instance
+         * @param intensityMinimum Minimum intensity to accept voxel as part of segmentation.
+         * @param intensityMaximum Maximum intensity to accept voxel as part of segmentation.
+         * @param seedPoints List of seed points in pixel space. If 2D, z component is not used.
+         * @return instance
+         */
         FAST_CONSTRUCTOR(SeededRegionGrowing,
                          float, intensityMinimum,,
                          float, intensityMaximum,,
