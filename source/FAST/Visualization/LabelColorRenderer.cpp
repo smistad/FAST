@@ -48,9 +48,9 @@ LabelColorRenderer::~LabelColorRenderer() noexcept {
 }
 
 void LabelColorRenderer::setColors(std::map<uint, Color> colors) {
-    m_labelColors = std::move(colors);
-    if(m_labelColors.count(255) == 0)
-        m_labelColors[255] = Color::Cyan();
+    for(auto&& item : colors) {
+        m_labelColors[item.first] = item.second;
+    }
     m_colorsModified = true;
     setModified(true);
 }
