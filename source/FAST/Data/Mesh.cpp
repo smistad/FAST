@@ -29,6 +29,8 @@ Mesh::Mesh(
         mUseNormalVBO = false;
         mUseEBO = false;
         mNrOfTriangles = 0;
+        mHostHasData = true;
+        mHostDataIsUpToDate = true;
         updateModifiedTimestamp();
     	return;
     }
