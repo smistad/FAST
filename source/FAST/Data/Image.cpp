@@ -9,12 +9,14 @@
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
 #include <OpenGL/gl.h>
+#include <OpenGL/glext.h>
 #include <OpenGL/OpenGL.h>
 #elif _WIN32
 #include <GL/gl.h>
 #include <CL/cl_gl.h>
 #else
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include <CL/cl_gl.h>
 #endif
 
