@@ -602,7 +602,7 @@ bool ProcessObject::getExecuteOnLastFrameOnly() const {
     return m_executeOnLastFrameOnly;
 }
 
-    DataObject::pointer ProcessObject::getOutputData(uint portID) {
+DataObject::pointer ProcessObject::getOutputData(uint portID) {
     validateOutputPortExists(portID);
 
     auto data = mOutputPorts[portID].currentData;

@@ -225,7 +225,7 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         NeuralNetworkNode getNode(std::string name);
 
         /**
-         * Set the temporal window for dynamic mode.
+         * @brief Set the temporal window for dynamic mode.
          * If window > 1, assume the second dimension of the input tensor is the number of timesteps.
          * If the window is set to 4, the frames t-3, t-2, t-1 and t, where t is the current timestep,
          * will be given as input to the network.
@@ -233,6 +233,22 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          * @param window
          */
         void setTemporalWindow(uint window);
+
+        /**
+         * @brief Add a temporal state uses input and output nodes to remember state between runs
+         *
+         * Not all inference engines support stateful temporal neural networks directly.
+         * Stateful LSTM/GRU/ConvLSTM layers remembers it's internal state from one run to the next.
+         * Statefullness can still be enabled by having an additional input and output node for each
+         * temporal state in the neural network, and then copy the temporal state from the output node to the
+         * input node for the next run.
+         * The first run the input nodes for the temporal state are all zero.
+         *
+         * @param inputNodeName Name of the input node for the given temporal state
+         * @param outputNodeName Name of the output node for the given temporal state
+         * @param shape Shape of the temporal state tensor. If empty, FAST will try to find the shape automatically.
+         */
+        void addTemporalState(std::string inputNodeName, std::string outputNodeName, TensorShape shape = TensorShape());
 
         virtual void setInputSize(std::string name, std::vector<int> size);
 
@@ -258,6 +274,9 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
 
         std::unordered_map<std::string, std::vector<std::shared_ptr<Image>>> mInputImages;
         std::unordered_map<std::string, std::vector<std::shared_ptr<Tensor>>> mInputTensors;
+
+        std::map<std::string, Tensor::pointer> m_temporalStateNodes;
+        std::vector<std::pair<std::string, std::string>> m_temporalStateLinks;
 
         std::unordered_map<std::string, Tensor::pointer> processInputData();
         std::vector<std::shared_ptr<Image>> resizeImages(const std::vector<std::shared_ptr<Image>>& images, int width, int height, int depth);

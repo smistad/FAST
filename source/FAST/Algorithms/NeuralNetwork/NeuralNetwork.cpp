@@ -136,6 +136,12 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
             throw Exception("Unable to deduce input shape for input node " + inputNode.first + " from network file. "
                             "Either export the file with shape information or supply the input shape manually using setInputNode.");
 
+        if(m_temporalStateNodes.count(inputNode.first) > 0) {
+            tensors[inputNode.first] = m_temporalStateNodes[inputNode.first];
+            mInputTensors[inputNode.first] = std::vector<Tensor::pointer>{m_temporalStateNodes[inputNode.first]};
+            continue;
+        }
+
         std::shared_ptr<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
         mRuntimeManager->startRegularTimer("input_processing");
 
@@ -347,6 +353,11 @@ void NeuralNetwork::run() {
         // TODO and any frame data (such as patch info should be transferred)
         auto tensor = m_engine->getOutputData(node.first);
 
+        if(m_temporalStateNodes.count(node.first) > 0) {
+            m_temporalStateNodes[node.first] = tensor;
+            continue;
+        }
+
         if(m_batchSize > 1) {
             // Create a batch of tensors
             std::vector<Tensor::pointer> tensorList;
@@ -377,6 +388,10 @@ void NeuralNetwork::run() {
             m_processedOutputData[node.second.portID] = tensor;
         }
     }
+    // Copy any temporal state links
+    for(auto link : m_temporalStateLinks) {
+        m_temporalStateNodes[link.first] = m_temporalStateNodes[link.second];
+    }
     mRuntimeManager->stopRegularTimer("output_processing");
 }
 
@@ -385,8 +400,8 @@ void NeuralNetwork::execute() {
     run();
 
     // Add output data to output ports
-    for(const auto &node : m_engine->getOutputNodes()) {
-        addOutputData(node.second.portID, m_processedOutputData[node.second.portID]);
+    for(const auto &node : m_processedOutputData) {
+        addOutputData(node.first, node.second);
     }
 }
 
@@ -636,6 +651,44 @@ NeuralNetworkNode NeuralNetwork::getNode(std::string name) {
         }
     }
     throw Exception("Node with name " + name + " not found in neural network");
+}
+
+void NeuralNetwork::addTemporalState(std::string inputNodeName, std::string outputNodeName, TensorShape shape) {
+    bool found = false;
+    for(auto&& port : m_engine->getInputNodes()) {
+        if(port.first == inputNodeName) {
+            mInputPorts.erase(port.second.portID);
+            found = true;
+            break;
+        }
+    }
+    if(!found)
+        throw Exception("Could not find the input node with name " + inputNodeName + " given to addTemporalState()");
+    found = false;
+    for(auto&& port : m_engine->getOutputNodes()) {
+        if(port.first == outputNodeName) {
+            mOutputPorts.erase(port.second.portID);
+            found = true;
+            break;
+        }
+    }
+    if(!found)
+        throw Exception("Could not find the output node with name " + outputNodeName + " given to addTemporalState()");
+
+    // TODO reset port numbers? In case where main input gets an input number other than 0?
+
+    auto node = m_engine->getInputNode(inputNodeName);
+
+    // TODO Support batch size other than 1?
+    node.shape[0] = 1;
+    auto zeros = std::make_unique<float[]>(node.shape.getTotalSize());
+    auto tensor = Tensor::create(std::move(zeros), node.shape);
+
+    m_temporalStateNodes[inputNodeName] = tensor;
+    m_temporalStateNodes[outputNodeName] = nullptr;
+    m_temporalStateLinks.push_back(std::make_pair(inputNodeName, outputNodeName));
+
+    setModified(true);
 }
 
 Sequence::Sequence(std::vector<std::shared_ptr<Image>> images) {
