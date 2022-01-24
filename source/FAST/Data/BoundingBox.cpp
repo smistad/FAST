@@ -248,6 +248,7 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
 #endif
     } else {
         if(!mVBODataIsUpToDate) {
+#ifdef FAST_MODULE_VISUALIZATION
 			QGLFunctions *fun = Window::getMainGLContext()->functions();
             // Update VBO/EBO data from host
             // Coordinates
@@ -259,6 +260,9 @@ BoundingBoxSetOpenGLAccess::pointer BoundingBoxSet::getOpenGLAccess(
             // Labels
             fun->glBindBuffer(GL_ARRAY_BUFFER, m_labelVBO);
             fun->glBufferData(GL_ARRAY_BUFFER, m_labels.size()*sizeof(uchar), m_labels.data(), GL_STATIC_DRAW);
+#else
+            throw Exception("Creating bounding box set with VBO is disabled as FAST module visualization is disabled.");
+#endif
         }
     }
 	if(type == ACCESS_READ_WRITE) {

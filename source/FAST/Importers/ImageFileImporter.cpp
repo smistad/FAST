@@ -81,6 +81,7 @@ void ImageFileImporter::execute() {
                   matchExtension(ext, "tif") ||
                   matchExtension(ext, "tiff")
                 ) {
+#ifdef FAST_MODULE_VISUALIZATION
             auto importer = ImageImporter::New();
             importer->setFilename(m_filename);
             importer->setMainDevice(getMainDevice());
@@ -88,6 +89,9 @@ void ImageFileImporter::execute() {
             importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
+#else
+            throw Exception("Importing regular images requires FAST built with Qt");
+#endif
         } else {
             throw Exception("The ImageFileImporter does not recognize the file extension " + ext);
         }

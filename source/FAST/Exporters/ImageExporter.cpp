@@ -1,14 +1,10 @@
 #include "FAST/Exporters/ImageExporter.hpp"
-
 #include <utility>
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/Data/Image.hpp"
-#ifdef FAST_MODULE_VISUALIZATION
-#include <QImage>
 #include <FAST/Algorithms/ImageResampler/ImageResampler.hpp>
-
-#endif
+#include <QImage>
 
 namespace fast {
 

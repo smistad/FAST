@@ -1,6 +1,4 @@
 fast_add_sources(
-    ImageExporter.cpp
-    ImageExporter.hpp
     MetaImageExporter.cpp
     MetaImageExporter.hpp
     VTKMeshFileExporter.cpp
@@ -15,7 +13,6 @@ fast_add_sources(
 )
 fast_add_python_interfaces(Exporter.hpp FileExporter.hpp)
 fast_add_python_shared_pointers(Exporter FileExporter)
-fast_add_process_object(ImageExporter ImageExporter.hpp)
 fast_add_process_object(MetaImageExporter MetaImageExporter.hpp)
 fast_add_process_object(ImageFileExporter ImageFileExporter.hpp)
 fast_add_process_object(StreamToFileExporter StreamToFileExporter.hpp)
@@ -25,9 +22,14 @@ fast_add_test_sources(
     Tests/VTKMeshFileExporterTests.cpp
 )
 if(FAST_MODULE_Visualization)
-fast_add_test_sources(
-    Tests/ImageExporterTests.cpp
-)
+    fast_add_sources(
+        ImageExporter.cpp
+        ImageExporter.hpp
+    )
+    fast_add_process_object(ImageExporter ImageExporter.hpp)
+    fast_add_test_sources(
+        Tests/ImageExporterTests.cpp
+    )
 endif()
 if(FAST_MODULE_VTK)
     fast_add_sources(

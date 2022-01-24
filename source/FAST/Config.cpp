@@ -2,6 +2,12 @@
 #include "Exception.hpp"
 #include "Utility.hpp"
 #include <fstream>
+#ifndef WIN32
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#endif
+#ifdef FAST_MODULE_VISUALIZATION
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -11,6 +17,7 @@
 #include <QElapsedTimer>
 #include <QStandardPaths>
 #include <QDir>
+#endif
 
 // Includes needed to get path of dynamic library
 #ifdef _WIN32
@@ -55,7 +62,14 @@ namespace fast {
 			}
 		}
 
-
+        std::string getHomePath() {
+		    const char *homedir;
+		    if((homedir = getenv("HOME")) == NULL) {
+		        homedir = getpwuid(getuid())->pw_dir;
+		    }
+		    std::string homedircpp = std::string(homedir);
+		    return homedircpp;
+		}
 
 		std::string Config::getPath() {
 			if (mBasePath != "")
@@ -110,7 +124,7 @@ namespace fast {
 #ifdef WIN32
 				mTestDataPath = "C:/ProgramData/FAST/data/";
 #else
-				mTestDataPath = QDir::homePath().toStdString() + "/FAST/data/";
+				mTestDataPath = getHomePath() + "/FAST/data/";
 #endif
 			}
 #ifdef WIN32
@@ -119,9 +133,9 @@ namespace fast {
 			std::string writeablePath = "C:/ProgramData/FAST/";
 			mLibraryPath = getPath();
 #else
-			mKernelBinaryPath = QDir::homePath().toStdString() + "/FAST/kernel_binaries/";
-			mPipelinePath = QDir::homePath().toStdString() + "/FAST/pipelines/";
-			std::string writeablePath = QDir::homePath().toStdString() + "/FAST/";
+			mKernelBinaryPath = getHomePath() + "/FAST/kernel_binaries/";
+			mPipelinePath = getHomePath() + "/FAST/pipelines/";
+			std::string writeablePath = getHomePath() + "/FAST/";
 			mLibraryPath = getPath() + "/../lib/";
 #endif
 			mKernelSourcePath = getPath() + "../../source/FAST/";
@@ -321,6 +335,7 @@ namespace fast {
 		}
 
     void downloadTestDataIfNotExists(std::string destination, bool force) {
+#ifdef FAST_MODULE_VISUALIZATION
 			if(destination.empty())
 				destination = Config::getTestDataPath();
 			if(!force && fileExists(destination + "/LICENSE.md"))
@@ -375,6 +390,9 @@ namespace fast {
 
 			// Wait for it to finish
 			eventLoop->exec();
+#else
+			throw Exception("downloadTestDataIfNotExists() only available if FAST is built with Qt");
+#endif
 
 		}
 

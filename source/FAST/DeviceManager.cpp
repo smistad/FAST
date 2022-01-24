@@ -1,6 +1,7 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Exception.hpp"
 #include <algorithm>
+#include <FAST/Config.hpp>
 #ifdef FAST_MODULE_VISUALIZATION
 #include "FAST/Visualization/Window.hpp"
 #endif
