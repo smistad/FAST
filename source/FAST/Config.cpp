@@ -62,6 +62,7 @@ namespace fast {
 			}
 		}
 
+#ifndef WIN32
         std::string getHomePath() {
 		    const char *homedir;
 		    if((homedir = getenv("HOME")) == NULL) {
@@ -70,6 +71,7 @@ namespace fast {
 		    std::string homedircpp = std::string(homedir);
 		    return homedircpp;
 		}
+#endif
 
 		std::string Config::getPath() {
 			if (mBasePath != "")
