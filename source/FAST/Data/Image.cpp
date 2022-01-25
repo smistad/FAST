@@ -6,17 +6,18 @@
 #include "FAST/SceneGraph.hpp"
 #include "FAST/Config.hpp"
 #include <eigen3/unsupported/Eigen/CXX11/Tensor>
+#ifdef FAST_MODULE_VISUALIZATION
+#include <FAST/Visualization/Window.hpp>
+#endif
 #if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl_gl.h>
 #include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
+#include <OpenCL/cl_gl.h>
 #include <OpenGL/OpenGL.h>
 #elif _WIN32
 #include <GL/gl.h>
 #include <CL/cl_gl.h>
 #else
 #include <GL/gl.h>
-#include <GL/glext.h>
 #include <CL/cl_gl.h>
 #endif
 
@@ -1290,6 +1291,7 @@ Image::~Image() {
 }
 
 OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, OpenCLDevice::pointer device, bool compress) {
+#ifdef FAST_MODULE_VISUALIZATION
     if(type == ACCESS_READ_WRITE)
         throw Exception("Read-only access to OpenGL texture for now");
     if(mDimensions != 2)
@@ -1433,6 +1435,9 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
     }
 
     return std::make_unique<OpenGLTextureAccess>(m_GLtextureID, std::dynamic_pointer_cast<Image>(mPtr.lock()));
+#else
+    throw Exception("Image::getOpenGLTextureAccess() is only available when FAST is built with visualization/Qt");
+#endif
 }
 
 bool Image::isSegmentationType() const {
