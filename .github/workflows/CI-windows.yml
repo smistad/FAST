@@ -107,11 +107,11 @@ jobs:
     - name: Install cuDNN and TensorRT
       shell: powershell
       run: |
-        Expand-Archive -Path ${{github.workspace}}/cudnn-11.0-windows-x64-v8.0.5.39.zip -DestinationPath ${{github.workspace}}/cudnn/
+        Expand-Archive -Path ${{github.workspace}}/cudnn-11.4-windows-x64-v8.2.4.15.zip -DestinationPath ${{github.workspace}}/cudnn/
         cp ${{github.workspace}}/cudnn/cuda/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
         cp ${{github.workspace}}/cudnn/cuda/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
         cp ${{github.workspace}}/cudnn/cuda/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
-        Expand-Archive -Path ${{github.workspace}}/TensorRT-8.0.3.4.Windows10.x86_64.cuda-11.3.cudnn8.2.zip -DestinationPath ${{github.workspace}}/trt/
+        Expand-Archive -Path ${{github.workspace}}/TensorRT-8.2.3.0.Windows10.x86_64.cuda-11.4.cudnn8.2.zip -DestinationPath ${{github.workspace}}/trt/
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -125,9 +125,9 @@ jobs:
             -DFAST_MODULE_Clarius=ON `
             -DFAST_MODULE_TensorFlow=ON `
             -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/" `
-            -DTensorRT_ROOT="${{github.workspace}}/trt/TensorRT-8.0.3.4/" `
-            -DTensorRT_parsers_LIBRARY="${{github.workspace}}/trt/TensorRT-8.0.3.4/lib/nvparsers.lib" `
-            -DTensorRT_onnx_parser_LIBRARY="${{github.workspace}}/trt/TensorRT-8.0.3.4/lib/nvonnxparser.lib" `
+            -DTensorRT_ROOT="${{github.workspace}}/trt/TensorRT-8.2.3.0/" `
+            -DTensorRT_parsers_LIBRARY="${{github.workspace}}/trt/TensorRT-8.2.3.0/lib/nvparsers.lib" `
+            -DTensorRT_onnx_parser_LIBRARY="${{github.workspace}}/trt/TensorRT-8.2.3.0/lib/nvonnxparser.lib" `
             -DFAST_MODULE_TensorRT=ON `
             -DFAST_MODULE_HDF5=ON `
             -DFAST_MODULE_Plotting=ON `
