@@ -1,6 +1,6 @@
 #include <FAST/Data/Tensor.hpp>
-#include <ProcessObjectList.hpp>
 #include "TensorToBoundingBoxSet.hpp"
+#include <FAST/Data/BoundingBox.hpp>
 
 namespace fast {
 
