@@ -188,6 +188,13 @@ FAST_EXPORT std::vector<std::string> getDirectoryList(std::string path, bool get
 FAST_EXPORT std::string getDirName(std::string path);
 
 /**
+ * Returns the name of a file of a path. Example: getFileName("/home/user/something.txt") returns something.txt
+ * @param path
+ * @return
+ */
+FAST_EXPORT std::string getFileName(std::string path);
+
+/**
  * Returns a string of the current date
  * @param format see http://en.cppreference.com/w/cpp/chrono/c/strftime
  * @return

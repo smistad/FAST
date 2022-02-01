@@ -170,8 +170,8 @@ void TensorRTEngine::load() {
 
     const auto filename = getFilename();
     std::size_t hash = std::hash<std::string>{}(filename + std::to_string(m_maxBatchSize)); // Hash the full filename any other parameters
-    std::string serializedBinaryFilename = join(Config::getKernelBinaryPath(), filename.substr(filename.rfind('/')) + "_" + std::to_string(hash) + ".bin");
-    std::string serializedCacheFilename = join(Config::getKernelBinaryPath(), filename.substr(filename.rfind('/')) + "_" + std::to_string(hash) + ".cache");
+    std::string serializedBinaryFilename = join(Config::getKernelBinaryPath(), getFileName(filename) + "_" + std::to_string(hash) + ".bin");
+    std::string serializedCacheFilename = join(Config::getKernelBinaryPath(), getFileName(filename) + "_" + std::to_string(hash) + ".cache");
     bool loadSerializedFile = false;
     if(fileExists(serializedCacheFilename) && fileExists(serializedBinaryFilename)) {
         // Check if date is modified or not

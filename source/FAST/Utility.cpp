@@ -779,6 +779,15 @@ std::string getDirName(std::string path) {
     return path;
 }
 
+std::string getFileName(std::string path) {
+    // Replace \ with / so that this will work on windows
+    path = replace(path, "\\", "/");
+    auto pos = path.rfind('/');
+    if(pos == std::string::npos)
+        return path;
+    return path.substr(pos+1);
+}
+
 std::string currentDateTime(std::string format) {
     time_t     now = time(0);
     struct tm  tstruct;
