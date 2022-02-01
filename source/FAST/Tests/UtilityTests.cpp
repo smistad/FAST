@@ -49,3 +49,20 @@ TEST_CASE("Replace", "[replace][utility]") {
     str = "Hello world!";
     CHECK(replace(str, "world", "fantasy") == "Hello fantasy!");
 }
+
+TEST_CASE("getFileName", "[getFileName][utility][fast]") {
+    std::string str = "C:/asd/asdasda asd/asd.txt";
+    CHECK(getFileName(str) == "asd.txt");
+    str = "D:\\asd\\dasd asd\\asd asd.txt";
+    CHECK(getFileName(str) == "asd asd.txt");
+    str = "/home/asd/asd.txt";
+    CHECK(getFileName(str) == "asd.txt");
+    str = "/home/asd/asd asd";
+    CHECK(getFileName(str) == "asd asd");
+    str = "asd/klhasd/asd_asd.txt";
+    CHECK(getFileName(str) == "asd_asd.txt");
+    str = "asd\\klhasd\\asd_asd.txt";
+    CHECK(getFileName(str) == "asd_asd.txt");
+    str = "asd asd.txt";
+    CHECK(getFileName(str) == "asd asd.txt");
+}

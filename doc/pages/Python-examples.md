@@ -23,3 +23,4 @@ All the Python examples can be found in the [repository](https://github.com/smis
 |[Controlling a FAST surface extraction pipeline with a Qt GUI using PySide2](@ref surface_extraction_gui_with_pyside2.py)|@image html images/examples/python/pyside_surface_extraction.jpg width=350px;|
 |[Stream ultrasound file format (UFF) data, apply non-local means and display](@ref stream_uff_ultrasound_file_format_data.py)| |
 |[Stream ultrasound file format (UFF) data and display with matplotlib](@ref display_ultrasound_file_format_data_with_matplotlib.py)| |
+|[Perform envelope detection, log compression and scan conversion on ultrasound IQ data](@ref scan_convert_iq_data.py)| @image html images/examples/python/scan_convert_iq_data.jpg width=350px;|
