@@ -44,6 +44,7 @@ void ScanConverter::execute() {
 
     float newXSpacing = (stopX - startX) / (m_width - 1); //Subtract 1 because num spaces is 1 less than num elements
     float newYSpacing = (stopY - startY) / (m_height - 1);
+    output->setSpacing(newXSpacing, newYSpacing, 1.0f);
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Kernel kernel(getOpenCLProgram(device), "scanConvert");
