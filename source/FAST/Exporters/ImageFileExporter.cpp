@@ -1,6 +1,8 @@
 #include "ImageFileExporter.hpp"
 #include "MetaImageExporter.hpp"
+#ifdef FAST_MODULE_VISUALIZATION
 #include "ImageExporter.hpp"
+#endif
 #include "FAST/Data/Image.hpp"
 #include <algorithm>
 #include <utility>
@@ -45,11 +47,15 @@ void ImageFileExporter::execute() {
                   matchExtension(ext, "jpeg") ||
                   matchExtension(ext, "png") ||
                   matchExtension(ext, "bmp")) {
+#ifdef FAST_MODULE_VISUALIZATION
             auto exporter = ImageExporter::create(m_filename, m_resample)
                     ->connect(input);
             exporter->setFilename(m_filename);
             exporter->setInputData(input);
             exporter->update();
+#else
+            throw Exception("Image export to common image formats such as jpg, png and bmp needs FAST built with Qt");
+#endif
         } else {
             throw Exception("The ImageFileExporter does not recognize the file extension " + ext);
         }

@@ -58,9 +58,10 @@ else()
 endif()
 
 # Install Qt plugins
+if(FAST_MODULE_Visualization)
 install(DIRECTORY ${PROJECT_BINARY_DIR}/plugins/
     DESTINATION fast/plugins/
-	COMPONENT fast
+		COMPONENT fast
 )
 
 # Install qt moc
@@ -75,6 +76,7 @@ if(WIN32)
 		    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
 		    DESTINATION fast/bin
 		)
+endif()
 endif()
 
 # Install headers
@@ -92,7 +94,7 @@ install(DIRECTORY ${FAST_SOURCE_DIR}
 # External include files needed
 set(INCLUDE_FOLDERS
     eigen3
-	CL
+	  CL
     QtAccessibilitySupport
     QtConcurrent
     QtCore
@@ -136,16 +138,19 @@ endif()
 foreach(INCLUDE_FOLDER ${INCLUDE_FOLDERS})
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
+				OPTIONAL
 		COMPONENT fast
         FILES_MATCHING PATTERN "*.h"
     )
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
+				OPTIONAL
 		COMPONENT fast
         FILES_MATCHING PATTERN "*.hpp"
     )
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
+				OPTIONAL
 		COMPONENT fast
         FILES_MATCHING REGEX "/[^.]+$" # Files with no extension
     )
