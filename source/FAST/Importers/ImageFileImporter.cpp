@@ -25,6 +25,7 @@ ImageFileImporter::ImageFileImporter(std::string filename) : FileImporter(filena
 
 inline bool matchExtension(std::string extension, std::string extension2) {
     // Convert to lower case first
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
     std::transform(extension2.begin(), extension2.end(), extension2.begin(), ::tolower);
     return extension == extension2;
 
