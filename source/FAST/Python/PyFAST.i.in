@@ -35,6 +35,7 @@ using namespace fast;
 
 %}
 
+
 // General exception handler to avoid crashing python when something in FAST triggers an exception
 %exception {
     try {
@@ -121,6 +122,10 @@ public
 %ignore fast::ImagePyramidAccess::getPatchData;
 %ignore fast::ImagePyramidAccess::getPatch;
 %ignore fast::Tensor::create(std::unique_ptr<float[]> data, TensorShape shape);
+// Disable GIL on PythonStreamer execute to avoid deadlock between execute and generateStream
+%ignore fast::PythonStreamer::execute;
+%ignore fast::Streamer::waitForFirstFrame;
+%ignore fast::Streamer::startStream;
 
 %nodefaultdtor Config;
 
@@ -330,8 +335,12 @@ static float* _intToFloatPointer(std::size_t intPointer) {
 
 // Python process object functionality using directors feature
 
+
 %feature("director") PythonProcessObject;
 %shared_ptr(fast::PythonProcessObject)
+%feature("director") PythonStreamer;
+%shared_ptr(fast::PythonStreamer)
+
 
 %inline %{
 
@@ -380,6 +389,52 @@ namespace fast {
         }
 
     }; // end class python process object
+
+     class PythonStreamer : public Streamer {
+     public:
+         virtual void generateStream() = 0;
+         std::string getNameOfClass() const {
+             return "PythonStreamer";
+         }
+         void execute() {
+             std::cout << "Starting stream.." << std::endl;
+             startStream();
+             std::cout << "Done." << std::endl;
+             waitForFirstFrame();
+             std::cout << "Got first frame" << std::endl;
+         }
+         virtual ~PythonStreamer() { };
+         std::shared_ptr<PythonStreamer> m_hack;
+         PythonStreamer() {
+             // A hack to make this work as PythonStreamer does not return a smart pointer thread New as other POs.
+             // Use a custom deleter which doesn't delete to avoid double delete
+             m_hack.reset(this, [](PythonStreamer* obj) {});
+             mPtr = m_hack;
+         }
+
+         void addOutputData(int port, std::shared_ptr<DataObject> image) {
+             ProcessObject::addOutputData(port, image);
+         }
+
+         DataObject::pointer _getInputData(int port = 0) {
+             auto data = ProcessObject::getInputData<DataObject>(port);
+             return data;
+         }
+
+         DataChannel::pointer getOutputPort(uint portID = 0) {
+             return ProcessObject::getOutputPort(portID);
+         }
+
+         void createInputPort(int port) {
+             ProcessObject::createInputPort<DataObject>(port);
+         }
+         void createOutputPort(int port) {
+             ProcessObject::createOutputPort<DataObject>(port);
+         }
+         void frameAdded() {
+             Streamer::frameAdded();
+         }
+     }; // end class python process object
 } // end namespace
 %}
 
@@ -420,8 +475,43 @@ def connect(self, *args):
     return self
 %}
 }
+// Extend PythonStreamer with some Python code TODO code duplication from above
+%extend fast::PythonStreamer {
+%pythoncode %{
+@classmethod
+def create(cls, *args, **kwargs):
+    instance = cls(*args, **kwargs)
+    return instance
 
+def getInputData(self, portID:int=0):
+    val = self._getInputData(portID)
+    className = val.getNameOfClass()
+    val = eval(className + '.fromDataObject')(val)
+    return val
 
+def connect(self, *args):
+    inputPortID = 0
+    outputPortID = 0
+    if len(args) == 1:
+        parentProcessObject = args[0]
+    elif len(args) == 2:
+        if isinstance(args[0], int):
+            inputPortID = int(args[0])
+            parentProcessObject = args[1]
+        else:
+            parentProcessObject = args[0]
+            outputPortID = int(args[1])
+    elif len(args) == 3:
+        inputPortID = int(args[0])
+        parentProcessObject = args[1]
+        outputPortID = int(args[2])
+    else:
+        raise TypeError("Incorrect arguemnts to connect()")
+
+    super().connect(inputPortID, parentProcessObject, outputPortID)
+    return self
+%}
+}
 
 // Get proper error messages if python error occurs in PythonProcessObject director
 // This was taken from https://github.com/swig/swig/issues/1117
