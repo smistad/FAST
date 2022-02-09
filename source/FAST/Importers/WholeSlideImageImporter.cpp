@@ -126,6 +126,8 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
         reportInfo() << "VSI level: " << level << ": " << levelData.width << " " << levelData.height << reportEnd();
         levelData.tilesX = maxTiles[level].first+1;
         levelData.tilesY = maxTiles[level].second+1;
+        if(levelData.width < 2048 || levelData.height < 2048) // Skip very small levels
+            break;
         levelList.push_back(levelData);
     }
 

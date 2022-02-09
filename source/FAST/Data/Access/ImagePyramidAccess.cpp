@@ -48,6 +48,39 @@ void jpegErrorExit(j_common_ptr cinfo) {
     throw std::runtime_error( jpegLastErrorMsg );
 }
 
+
+void readVSITileToBuffer(std::ifstream* vsiHandle, vsi_tile_header tile, uchar* data) {
+    auto buffer = make_uninitialized_unique<char>(tile.numbytes);
+    vsiHandle->seekg(tile.offset);
+    vsiHandle->read(buffer.get(), tile.numbytes);
+
+    // TODO assuming JPEG here
+    jpeg_decompress_struct cinfo;
+    jpeg_error_mgr jerr; //error handling
+    jpeg_source_mgr src_mem;
+    jerr.error_exit = jpegErrorExit;
+    cinfo.err = jpeg_std_error(&jerr);
+    try {
+        jpeg_create_decompress(&cinfo);
+        jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
+        jpeg_read_header(&cinfo, true);
+        //cinfo.jpeg_color_space = JCS_YCbCr;
+        //cinfo.jpeg_color_space = JCS_RGB;
+        jpeg_start_decompress(&cinfo);
+        unsigned char* line = data;
+        while (cinfo.output_scanline < cinfo.output_height) {
+            jpeg_read_scanlines (&cinfo, &line, 1);
+            line += 3*cinfo.output_width;
+        }
+        jpeg_finish_decompress(&cinfo);
+        jpeg_destroy_decompress(&cinfo);
+    } catch(std::exception &e) {
+        std::cout << e.what() << std::endl;
+        jpeg_destroy_decompress( &cinfo );
+        throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
+    }
+}
+
 std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int y, int width, int height) {
     const int levelWidth = m_image->getLevelWidth(level);
     const int levelHeight = m_image->getLevelHeight(level);
@@ -133,37 +166,55 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             }
             if(!found)
                 throw Exception("Could not find tile for getPathcData in VSI");
-            auto buffer = make_uninitialized_unique<char>(tile.numbytes);
-            m_vsiHandle->seekg(tile.offset);
-            m_vsiHandle->read(buffer.get(), tile.numbytes);
 
-            // TODO assuming JPEG here
-            jpeg_decompress_struct cinfo;
-            jpeg_error_mgr jerr; //error handling
-            jpeg_source_mgr src_mem;
-            jerr.error_exit = jpegErrorExit;
-            cinfo.err = jpeg_std_error(&jerr);
-            try {
-                jpeg_create_decompress(&cinfo);
-                jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
-                jpeg_read_header(&cinfo, true);
-                //cinfo.jpeg_color_space = JCS_YCbCr;
-                //cinfo.jpeg_color_space = JCS_RGB;
-                jpeg_start_decompress(&cinfo);
-                unsigned char* line = data.get();
-                while (cinfo.output_scanline < cinfo.output_height) {
-                    jpeg_read_scanlines (&cinfo, &line, 1);
-                    line += 3*cinfo.output_width;
-                }
-                jpeg_finish_decompress(&cinfo);
-                jpeg_destroy_decompress(&cinfo);
-            } catch(std::exception &e) {
-                std::cout << e.what() << std::endl;
-                jpeg_destroy_decompress( &cinfo );
-                throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
-            }
+            readVSITileToBuffer(m_vsiHandle, tile, data.get());
         } else {
-            throw Exception("Reading tiles other than original tile grid is not implemented for CellSense VSI format yet");
+            std::vector<vsi_tile_header> tilesToRead;
+            int firstTileX = x / m_image->getLevelTileWidth(level);
+            int firstTileY = y / m_image->getLevelTileHeight(level);
+            int lastTileX = std::ceil((float)(x + width) / m_image->getLevelTileWidth(level));
+            int lastTileY = std::ceil((float)(y + height) / m_image->getLevelTileWidth(level));
+            for(int i = 0; i < m_vsiTiles.size(); ++i) {
+                vsi_tile_header currentTile = m_vsiTiles[i];
+                if(currentTile.level != level)
+                    continue;
+                if(
+                        !((currentTile.coord[0] >= firstTileX && currentTile.coord[0] < lastTileX) &&
+                        (currentTile.coord[1] >= firstTileY && currentTile.coord[1] < lastTileY)))
+                    continue;
+                tilesToRead.push_back(currentTile);
+            }
+            if(tilesToRead.empty())
+                throw Exception("Tiles to ready empty");
+
+            auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*tilesToRead.size()*channels);
+            const auto fullTileBufferWidth = (lastTileX-firstTileX)*tileWidth;
+            // Read tile to buffer
+            auto tileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*channels); // assume full tiles of same size for all
+            for(auto tile : tilesToRead) {
+                const int tileX = (tile.coord[0]-firstTileX)*tileWidth;
+                const int tileY = (tile.coord[1]-firstTileY)*tileHeight;
+                readVSITileToBuffer(m_vsiHandle, tile, tileBuffer.get());
+                // Stitch tile into full buffer
+                for(int cy = 0; cy < tileHeight; ++cy) {
+                    for(int cx = 0; cx < tileWidth; ++cx) {
+                        for(int channel = 0; channel < channels; ++channel) {
+                            fullTileBuffer[(tileX + cx + (tileY + cy)*fullTileBufferWidth)*channels + channel] = tileBuffer[(cx + cy*tileWidth)*channels + channel];
+                        }
+                    }
+                }
+            }
+
+            // Crop the full buffer to data[]
+            const int offsetX = x - firstTileX*tileWidth;
+            const int offsetY = y - firstTileY*tileHeight;
+            for(int cy = offsetY; cy < offsetY + height; ++cy) {
+                for(int cx = offsetX; cx < offsetX + width; ++cx) {
+                    for(int channel = 0; channel < channels; ++channel) {
+                        data[(cx - offsetX + (cy - offsetY) * width)*channels + channel] = fullTileBuffer[(cx + cy * fullTileBufferWidth)*channels + channel];
+                    }
+                }
+            }
         }
     } else {
         auto levelData = m_levels[level];
@@ -213,28 +264,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getLevelAsImage(int level) {
     if(width > 16384 || height > 16384)
         throw Exception("Image level is too large to convert into a FAST image");
 
-    Image::pointer image;
-    if(m_fileHandle == nullptr) {
-		image = Image::create(width, height, TYPE_UINT8, 4, m_levels[level].data);
-    } else {
-		auto data = make_uninitialized_unique<uchar[]>(width*height*4);
-        openslide_read_region(m_fileHandle, (uint32_t*)data.get(), 0, 0, level, width, height);
-		image = Image::create(width, height, TYPE_UINT8, 4, std::move(data));
-    }
-    image->setSpacing(Vector3f(
-            (float)m_image->getFullWidth() / width,
-            (float)m_image->getFullHeight() / height,
-            1.0f
-    ));
-    SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
-
-    // Data is stored as BGRA, need to delete alpha channel and reverse it
-    auto channelConverter = ImageChannelConverter::New();
-    channelConverter->setChannelsToRemove(false, false, false, true);
-    channelConverter->setReverseChannels(true);
-    channelConverter->setInputData(image);
-
-    return channelConverter->updateAndGetOutputData<Image>();
+    return getPatchAsImage(level, 0, 0, width, height, true);
 }
 
 std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offsetX, int offsetY, int width, int height, bool convertToRGB) {
@@ -248,7 +278,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
         throw Exception("offset + size exceeds level size");
 
     auto data = getPatchData(level, offsetX, offsetY, width, height);
-    float scale = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
+    float scale = m_image->getLevelScale(level);
     auto spacing = m_image->getSpacing();
     auto image = Image::create(width, height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
     // TODO, we should have added spacing here to scale, but then rendering doesn't work
@@ -294,11 +324,11 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     // Read the actual data
     auto data = getPatchData(level, tile.offsetX, tile.offsetY, tile.width, tile.height);
 
-    float scalex = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
+    float scale = m_image->getLevelScale(level);
     auto image = Image::create(tile.width, tile.height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
     image->setSpacing(Vector3f(
-            scalex,
-            scalex,
+            scale,
+            scale,
             1.0f
     ));
     // TODO Set transformation
