@@ -41,25 +41,22 @@ ImagePyramidPatch ImagePyramidAccess::getPatch(std::string tile) {
     return getPatch(level, tile_x, tile_y);
 }
 
-void jpegErrorExit ( j_common_ptr cinfo )
-{
+void jpegErrorExit(j_common_ptr cinfo) {
     char jpegLastErrorMsg[JMSG_LENGTH_MAX];
-    /* Create the message */
+    // Create message
     ( *( cinfo->err->format_message ) ) ( cinfo, jpegLastErrorMsg );
-
-    /* Jump to the setjmp point */
-    throw std::runtime_error( jpegLastErrorMsg ); // or your preffered exception ...
+    throw std::runtime_error( jpegLastErrorMsg );
 }
 
 std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int y, int width, int height) {
     const int levelWidth = m_image->getLevelWidth(level);
     const int levelHeight = m_image->getLevelHeight(level);
     const int channels = m_image->getNrOfChannels();
+    const int tileWidth = m_image->getLevelTileWidth(level);
+    const int tileHeight = m_image->getLevelTileHeight(level);
     auto data = std::make_unique<uchar[]>(width*height*channels);
     if(m_tiffHandle != nullptr) {
         // Read all tiles within region, then crop
-        const int tileWidth = m_image->getLevelTileWidth(level);
-        const int tileHeight = m_image->getLevelTileHeight(level);
         if(!isPatchInitialized(level, x, y)) {
             // Tile has not be initialized, fill with zeros and return..
             // TODO Do not try render these patches..
@@ -121,48 +118,52 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
 #endif
         openslide_read_region(m_fileHandle, (uint32_t*)data.get(), x * scale, y * scale, level, width, height);
     } else if(!m_vsiTiles.empty()) {
-        vsi_tile_header tile;
-        bool found = false;
-        for(int i = 0; i < m_vsiTiles.size(); ++i) {
-            vsi_tile_header currentTile = m_vsiTiles[i];
-            if(currentTile.level != level)
-                continue;
-            if(currentTile.coord[0] != x / m_image->getLevelTileWidth(level) || currentTile.coord[1] != y / m_image->getLevelTileHeight(level))
-                continue;
-            tile = currentTile;
-            found = true;
-            break;
-        }
-        if(!found)
-            throw Exception("Could not find tile for getPathcData in VSI");
-        auto buffer = make_uninitialized_unique<char>(tile.numbytes);
-        m_vsiHandle->seekg(tile.offset);
-        m_vsiHandle->read(buffer.get(), tile.numbytes);
-
-        // TODO assuming JPEG here
-        jpeg_decompress_struct cinfo;
-        jpeg_error_mgr jerr; //error handling
-        jpeg_source_mgr src_mem;
-        jerr.error_exit = jpegErrorExit;
-        cinfo.err = jpeg_std_error(&jerr);
-        try {
-            jpeg_create_decompress(&cinfo);
-            jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
-            jpeg_read_header(&cinfo, true);
-            //cinfo.jpeg_color_space = JCS_YCbCr;
-            //cinfo.jpeg_color_space = JCS_RGB;
-            jpeg_start_decompress(&cinfo);
-            unsigned char* line = data.get();
-            while (cinfo.output_scanline < cinfo.output_height) {
-                jpeg_read_scanlines (&cinfo, &line, 1);
-                line += 3*cinfo.output_width;
+        if(width == tileWidth && height == tileHeight) {
+            vsi_tile_header tile;
+            bool found = false;
+            for(int i = 0; i < m_vsiTiles.size(); ++i) {
+                vsi_tile_header currentTile = m_vsiTiles[i];
+                if(currentTile.level != level)
+                    continue;
+                if(currentTile.coord[0] != x / m_image->getLevelTileWidth(level) || currentTile.coord[1] != y / m_image->getLevelTileHeight(level))
+                    continue;
+                tile = currentTile;
+                found = true;
+                break;
             }
-            jpeg_finish_decompress(&cinfo);
-            jpeg_destroy_decompress(&cinfo);
-        } catch(std::exception &e) {
-            std::cout << e.what() << std::endl;
-            jpeg_destroy_decompress( &cinfo );
-            throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
+            if(!found)
+                throw Exception("Could not find tile for getPathcData in VSI");
+            auto buffer = make_uninitialized_unique<char>(tile.numbytes);
+            m_vsiHandle->seekg(tile.offset);
+            m_vsiHandle->read(buffer.get(), tile.numbytes);
+
+            // TODO assuming JPEG here
+            jpeg_decompress_struct cinfo;
+            jpeg_error_mgr jerr; //error handling
+            jpeg_source_mgr src_mem;
+            jerr.error_exit = jpegErrorExit;
+            cinfo.err = jpeg_std_error(&jerr);
+            try {
+                jpeg_create_decompress(&cinfo);
+                jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
+                jpeg_read_header(&cinfo, true);
+                //cinfo.jpeg_color_space = JCS_YCbCr;
+                //cinfo.jpeg_color_space = JCS_RGB;
+                jpeg_start_decompress(&cinfo);
+                unsigned char* line = data.get();
+                while (cinfo.output_scanline < cinfo.output_height) {
+                    jpeg_read_scanlines (&cinfo, &line, 1);
+                    line += 3*cinfo.output_width;
+                }
+                jpeg_finish_decompress(&cinfo);
+                jpeg_destroy_decompress(&cinfo);
+            } catch(std::exception &e) {
+                std::cout << e.what() << std::endl;
+                jpeg_destroy_decompress( &cinfo );
+                throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
+            }
+        } else {
+            throw Exception("Reading tiles other than original tile grid is not implemented for CellSense VSI format yet");
         }
     } else {
         auto levelData = m_levels[level];

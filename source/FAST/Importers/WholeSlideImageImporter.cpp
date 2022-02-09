@@ -86,6 +86,9 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
     READ(ets_header.dimy)
     READ(ets_header.dimz)
 
+    if(ets_header.compression != 2)
+        throw Exception("Importing CellSense VSI with another compression format than JPEG is not supported yet");
+
     stream.seekg(sis_header.offsettiles);
     std::vector<vsi_tile_header> tiles;
     int maxLevel = 0;
@@ -120,7 +123,7 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
         levelData.height = (maxTiles[level].second+1)*ets_header.dimy;
         fullWidth /= 2;
         fullHeight /= 2;
-        std::cout << level << ": " << levelData.width << " " << levelData.height << std::endl;
+        reportInfo() << "VSI level: " << level << ": " << levelData.width << " " << levelData.height << reportEnd();
         levelData.tilesX = maxTiles[level].first+1;
         levelData.tilesY = maxTiles[level].second+1;
         levelList.push_back(levelData);

@@ -229,6 +229,8 @@ void ImagePyramid::freeAll() {
     } else if(m_tiffHandle != nullptr) {
         m_levels.clear();
         TIFFClose(m_tiffHandle);
+    } else if(!m_vsiTiles.empty()) {
+        m_vsiFileHandle.close();
     } else {
 		for(auto& item : m_levels) {
 			if(item.memoryMapped) {
