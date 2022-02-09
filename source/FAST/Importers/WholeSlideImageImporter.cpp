@@ -8,8 +8,128 @@
 #include <algorithm>
 #include <openslide/openslide.h>
 #include <FAST/Data/ImagePyramid.hpp>
+#include <fstream>
+#include <jpeglib.h>
+#include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
+#include <FAST/Visualization/SimpleWindow.hpp>
+
 
 namespace fast {
+
+struct SIS_header {
+    char magic[4]; // SIS0
+    uint32_t headerSize;
+    uint32_t version;
+    uint32_t Ndim;
+    uint64_t etsoffset;
+    uint32_t etsnbytes;
+    uint32_t dummy0; // reserved
+    uint64_t offsettiles;
+    uint32_t ntiles;
+    uint32_t dummy1; // reserved
+    uint32_t dummy2; // reserved
+    uint32_t dummy3; // reserved
+    uint32_t dummy4; // reserved
+    uint32_t dummy5; // reserved
+};
+
+struct ETS_header {
+    char magic[4]; // ETS0
+    uint32_t version;
+    uint32_t pixelType;
+    uint32_t sizeC;
+    uint32_t colorspace;
+    uint32_t compression;
+    uint32_t quality;
+    uint32_t dimx;
+    uint32_t dimy;
+    uint32_t dimz;
+};
+
+#define READ(X) \
+    stream.read((char*)&X, sizeof(X)); \
+    //std::cout << # X ": " << X << std::endl; \
+
+void WholeSlideImageImporter::readVSI(std::string filename) {
+    std::string originalFilename = getFileName(filename);
+    std::string etsFilename = getDirName(filename) + "_" + originalFilename.substr(0, originalFilename.size()-4) + "_/stack1/frame_t.ets";
+    std::cout << etsFilename << std::endl;
+    std::ifstream stream(etsFilename.c_str(), std::ifstream::binary | std::ifstream::in);
+    if(!stream.is_open())
+        throw Exception("Unable to open file!");
+    SIS_header sis_header;
+
+    READ(sis_header.magic)
+    READ(sis_header.headerSize)
+    READ(sis_header.version)
+    READ(sis_header.Ndim)
+    READ(sis_header.etsoffset)
+    READ(sis_header.etsnbytes)
+    READ(sis_header.dummy0)
+    READ(sis_header.offsettiles)
+    READ(sis_header.ntiles)
+    READ(sis_header.dummy1)
+    READ(sis_header.dummy2)
+    READ(sis_header.dummy3)
+    READ(sis_header.dummy4)
+    READ(sis_header.dummy5)
+
+    ETS_header ets_header;
+    READ(ets_header.magic)
+    READ(ets_header.version)
+    READ(ets_header.pixelType)
+    READ(ets_header.sizeC)
+    READ(ets_header.colorspace)
+    READ(ets_header.compression)
+    READ(ets_header.quality)
+    READ(ets_header.dimx)
+    READ(ets_header.dimy)
+    READ(ets_header.dimz)
+
+    stream.seekg(sis_header.offsettiles);
+    std::vector<vsi_tile_header> tiles;
+    int maxLevel = 0;
+    std::map<int, std::pair<int, int>> maxTiles;
+    for(int i = 0; i < sis_header.ntiles; ++i) {
+        vsi_tile_header tile_header;
+        READ(tile_header.dummy1)
+        READ(tile_header.coord)
+        READ(tile_header.level)
+        READ(tile_header.offset)
+        READ(tile_header.numbytes)
+        READ(tile_header.dummy2)
+        tiles.push_back(tile_header);
+        if(maxTiles.count(tile_header.level) == 0) {
+            maxTiles[tile_header.level].first = tile_header.coord[0];
+            maxTiles[tile_header.level].second = tile_header.coord[1];
+        } else {
+            maxTiles[tile_header.level].first = std::max(maxTiles[tile_header.level].first, (int)tile_header.coord[0]);
+            maxTiles[tile_header.level].second = std::max(maxTiles[tile_header.level].second, (int)tile_header.coord[1]);
+        }
+        maxLevel = std::max(maxLevel, (int)tile_header.level);
+    }
+
+    std::vector<ImagePyramidLevel> levelList;
+    int fullWidth = (maxTiles[maxLevel].first+1)*ets_header.dimx*std::pow(2, maxLevel);
+    int fullHeight = (maxTiles[maxLevel].second+1)*ets_header.dimy*std::pow(2, maxLevel);
+    for(int level = 0; level <= maxLevel; ++level) {
+        ImagePyramidLevel levelData;
+        levelData.tileWidth = ets_header.dimx;
+        levelData.tileHeight = ets_header.dimy;
+        levelData.width = (maxTiles[level].first+1)*ets_header.dimx;
+        levelData.height = (maxTiles[level].second+1)*ets_header.dimy;
+        fullWidth /= 2;
+        fullHeight /= 2;
+        std::cout << level << ": " << levelData.width << " " << levelData.height << std::endl;
+        levelData.tilesX = maxTiles[level].first+1;
+        levelData.tilesY = maxTiles[level].second+1;
+        levelList.push_back(levelData);
+    }
+
+    auto image = ImagePyramid::create(std::move(stream), tiles, levelList);
+
+    addOutputData(0, image);
+}
 
 void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
     openslide_t* file = openslide_open(filename.c_str());
@@ -17,7 +137,6 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
         const char * message = openslide_get_error(file);
         throw Exception("Unable to open file " + filename + ". OpenSlide error message: " + message);
     }
-
 
     // Read metainformation
     auto names = openslide_get_property_names(file);
@@ -96,8 +215,12 @@ void WholeSlideImageImporter::execute() {
     if(!fileExists(m_filename))
         throw FileNotFoundException(m_filename);
 
-    //std::string extension = stringToLower(m_filename.substr(m_filename.rfind('.')));
-    readWithOpenSlide(m_filename);
+    std::string extension = stringToLower(m_filename.substr(m_filename.rfind('.')));
+    if(extension == ".vsi") {
+        readVSI(m_filename);
+    } else {
+        readWithOpenSlide(m_filename);
+    }
 }
 
 WholeSlideImageImporter::WholeSlideImageImporter() {

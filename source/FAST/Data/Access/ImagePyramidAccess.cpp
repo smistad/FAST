@@ -5,10 +5,11 @@
 #include <openslide/openslide.h>
 #include <tiffio.h>
 #include <FAST/Data/Image.hpp>
+#include <jpeglib.h>
 
 namespace fast {
 
-ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool write, std::unordered_set<std::string>& initializedPatchList) : m_initializedPatchList(initializedPatchList) {
+ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::ifstream* vsiHandle, std::vector<vsi_tile_header>& vsiTiles, std::shared_ptr<ImagePyramid> imagePyramid, bool write, std::unordered_set<std::string>& initializedPatchList) : m_initializedPatchList(initializedPatchList) {
 	if(levels.size() == 0)
 		throw Exception("Image pyramid has no levels");
 	m_image = imagePyramid;
@@ -16,6 +17,8 @@ ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, op
 	m_write = write;
     m_fileHandle = fileHandle;
     m_tiffHandle = tiffHandle;
+    m_vsiHandle = vsiHandle;
+    m_vsiTiles = vsiTiles;
 }
 
 void ImagePyramidAccess::release() {
@@ -36,6 +39,16 @@ ImagePyramidPatch ImagePyramidAccess::getPatch(std::string tile) {
     int tile_y = std::stoi(parts[2]);
 
     return getPatch(level, tile_x, tile_y);
+}
+
+void jpegErrorExit ( j_common_ptr cinfo )
+{
+    char jpegLastErrorMsg[JMSG_LENGTH_MAX];
+    /* Create the message */
+    ( *( cinfo->err->format_message ) ) ( cinfo, jpegLastErrorMsg );
+
+    /* Jump to the setjmp point */
+    throw std::runtime_error( jpegLastErrorMsg ); // or your preffered exception ...
 }
 
 std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int y, int width, int height) {
@@ -97,16 +110,60 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
         }
 
     } else if(m_fileHandle != nullptr) {
-		int scale = (float)m_image->getFullWidth()/levelWidth;
+        int scale = (float)m_image->getFullWidth()/levelWidth;
 #ifndef WIN32
         // HACK for black edge frames on ubuntu linux 20.04. This seems to be an issue with openslide or underlying libraries
-		if(level != 0) { // only occurs on levels != 0
-		    // Reading scale pixels further in eliminates the problem for some reason...
-		    x = x == 0 ? x+1 : x;
+        if(level != 0) { // only occurs on levels != 0
+            // Reading scale pixels further in eliminates the problem for some reason...
+            x = x == 0 ? x+1 : x;
             y = y == 0 ? y+1 : y;
-		}
+        }
 #endif
         openslide_read_region(m_fileHandle, (uint32_t*)data.get(), x * scale, y * scale, level, width, height);
+    } else if(!m_vsiTiles.empty()) {
+        vsi_tile_header tile;
+        bool found = false;
+        for(int i = 0; i < m_vsiTiles.size(); ++i) {
+            vsi_tile_header currentTile = m_vsiTiles[i];
+            if(currentTile.level != level)
+                continue;
+            if(currentTile.coord[0] != x / m_image->getLevelTileWidth(level) || currentTile.coord[1] != y / m_image->getLevelTileHeight(level))
+                continue;
+            tile = currentTile;
+            found = true;
+            break;
+        }
+        if(!found)
+            throw Exception("Could not find tile for getPathcData in VSI");
+        auto buffer = make_uninitialized_unique<char>(tile.numbytes);
+        m_vsiHandle->seekg(tile.offset);
+        m_vsiHandle->read(buffer.get(), tile.numbytes);
+
+        // TODO assuming JPEG here
+        jpeg_decompress_struct cinfo;
+        jpeg_error_mgr jerr; //error handling
+        jpeg_source_mgr src_mem;
+        jerr.error_exit = jpegErrorExit;
+        cinfo.err = jpeg_std_error(&jerr);
+        try {
+            jpeg_create_decompress(&cinfo);
+            jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
+            jpeg_read_header(&cinfo, true);
+            //cinfo.jpeg_color_space = JCS_YCbCr;
+            //cinfo.jpeg_color_space = JCS_RGB;
+            jpeg_start_decompress(&cinfo);
+            unsigned char* line = data.get();
+            while (cinfo.output_scanline < cinfo.output_height) {
+                jpeg_read_scanlines (&cinfo, &line, 1);
+                line += 3*cinfo.output_width;
+            }
+            jpeg_finish_decompress(&cinfo);
+            jpeg_destroy_decompress(&cinfo);
+        } catch(std::exception &e) {
+            std::cout << e.what() << std::endl;
+            jpeg_destroy_decompress( &cinfo );
+            throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
+        }
     } else {
         auto levelData = m_levels[level];
         for(int cy = y; cy < std::min(y + height, levelHeight); ++cy) {
@@ -186,7 +243,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     if(offsetX < 0 || offsetY < 0 || width <= 0 || height <= 0)
         throw Exception("Offset and size must be positive");
 
-    if(offsetX + width >= m_image->getLevelWidth(level) || offsetY + height >= m_image->getLevelHeight(level))
+    if(offsetX + width > m_image->getLevelWidth(level) || offsetY + height > m_image->getLevelHeight(level))
         throw Exception("offset + size exceeds level size");
 
     auto data = getPatchData(level, offsetX, offsetY, width, height);
@@ -236,11 +293,11 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     // Read the actual data
     auto data = getPatchData(level, tile.offsetX, tile.offsetY, tile.width, tile.height);
 
-    float scale = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
+    float scalex = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
     auto image = Image::create(tile.width, tile.height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
     image->setSpacing(Vector3f(
-            scale,
-            scale,
+            scalex,
+            scalex,
             1.0f
     ));
     // TODO Set transformation
