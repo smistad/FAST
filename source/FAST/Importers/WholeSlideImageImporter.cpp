@@ -47,15 +47,15 @@ struct ETS_header {
 };
 
 #define READ(X) \
-    stream.read((char*)&X, sizeof(X)); \
+    stream->read((char*)&X, sizeof(X)); \
     //std::cout << # X ": " << X << std::endl; \
 
 void WholeSlideImageImporter::readVSI(std::string filename) {
     std::string originalFilename = getFileName(filename);
     std::string etsFilename = getDirName(filename) + "_" + originalFilename.substr(0, originalFilename.size()-4) + "_/stack1/frame_t.ets";
     std::cout << etsFilename << std::endl;
-    std::ifstream stream(etsFilename.c_str(), std::ifstream::binary | std::ifstream::in);
-    if(!stream.is_open())
+    std::ifstream* stream = new std::ifstream(etsFilename.c_str(), std::ifstream::binary | std::ifstream::in);
+    if(!stream->is_open())
         throw Exception("Unable to open file!");
     SIS_header sis_header;
 
@@ -89,7 +89,7 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
     if(ets_header.compression != 2)
         throw Exception("Importing CellSense VSI with another compression format than JPEG is not supported yet");
 
-    stream.seekg(sis_header.offsettiles);
+    stream->seekg(sis_header.offsettiles);
     std::vector<vsi_tile_header> tiles;
     int maxLevel = 0;
     std::map<int, std::pair<int, int>> maxTiles;
@@ -129,7 +129,7 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
         levelList.push_back(levelData);
     }
 
-    auto image = ImagePyramid::create(std::move(stream), tiles, levelList);
+    auto image = ImagePyramid::create(stream, tiles, levelList);
 
     addOutputData(0, image);
 }
