@@ -12,8 +12,9 @@ if(FAST_MODULE_WholeSlideImaging)
         # Get OpenSlide and TIFF from OS
         find_package(OpenSlide REQUIRED)
         find_package(TIFF REQUIRED)
+        find_package(JPEG REQUIRED)
 
-        list(APPEND LIBRARIES ${OPENSLIDE_LIBRARIES} ${TIFF_LIBRARIES})
+        list(APPEND LIBRARIES ${OPENSLIDE_LIBRARIES} ${TIFF_LIBRARIES} ${JPEG_LIBRARIES})
         list(APPEND FAST_INCLUDE_DIRS ${OPENSLIDE_INCLUDE_DIRS} ${TIFF_INCLUDE_DIRS})
         message(STATUS "TIFF FOUND: ${TIFF_LIBRARY} ${TIFF_LIBRARIES} ${TIFF_INCLUDE_DIRS}")
     else()

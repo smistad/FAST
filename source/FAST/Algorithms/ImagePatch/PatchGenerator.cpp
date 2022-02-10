@@ -85,11 +85,11 @@ void PatchGenerator::generateStream() {
                 mRuntimeManager->startRegularTimer("create patch");
                 int patchWidth = m_width;
                 if(patchX*patchWidthWithoutOverlap + patchWidth - overlapInPixelsX >= levelWidth) {
-                    patchWidth = levelWidth - patchX * patchWidthWithoutOverlap + overlapInPixelsX - 1;
+                    patchWidth = levelWidth - patchX * patchWidthWithoutOverlap + overlapInPixelsX;
                 }
                 int patchHeight = m_height;
                 if(patchY*patchHeightWithoutOverlap + patchHeight - overlapInPixelsY >= levelHeight) {
-                    patchHeight = levelHeight - patchY * patchHeightWithoutOverlap + overlapInPixelsY - 1;
+                    patchHeight = levelHeight - patchY * patchHeightWithoutOverlap + overlapInPixelsY;
                 }
 
                 if(m_inputMask) {

@@ -273,7 +273,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         const int mTilesY = m_input->getLevelTilesY(level);
         const int tileWidth = m_input->getLevelTileWidth(level);
         const int tileHeight = m_input->getLevelTileHeight(level);
-        const float mCurrentTileScale = (float)fullWidth/levelWidth;
+        const float mCurrentTileScale = m_input->getLevelScale(level);
 
         for(int tile_x = 0; tile_x < mTilesX; ++tile_x) {
             for(int tile_y = 0; tile_y < mTilesY; ++tile_y) {

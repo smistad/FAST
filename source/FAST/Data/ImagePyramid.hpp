@@ -37,6 +37,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     public:
         FAST_CONSTRUCTOR(ImagePyramid, int, width,, int, height,, int, channels,, int, patchWidth, = 256, int, patchHeight, = 256);
         FAST_CONSTRUCTOR(ImagePyramid, openslide_t*, fileHandle,, std::vector<ImagePyramidLevel>, levels,);
+        FAST_CONSTRUCTOR(ImagePyramid, std::ifstream*, stream,, std::vector<vsi_tile_header>, tileHeaders,, std::vector<ImagePyramidLevel>, levels,);
         FAST_CONSTRUCTOR(ImagePyramid, TIFF*, fileHandle,, std::vector<ImagePyramidLevel>, levels,, int, channels,);
         int getNrOfLevels();
         int getLevelWidth(int level);
@@ -45,6 +46,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getLevelTileHeight(int level);
         int getLevelTilesX(int level);
         int getLevelTilesY(int level);
+        float getLevelScale(int level);
         int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;
@@ -87,6 +89,10 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         std::mutex m_dirtyPatchMutex;
         Vector3f m_spacing = Vector3f::Ones();
         std::unordered_set<std::string> m_initializedPatchList; // Keep a list of initialized patches, for tiff backend
+
+        // VSI stuff
+        std::ifstream* m_vsiFileHandle;
+        std::vector<vsi_tile_header> m_vsiTiles;
 };
 
 }

@@ -36,7 +36,7 @@ void TissueMicroArrayExtractor::generateStream() {
     const int height = m_input->getLevelHeight(level);
     const int fullWidth = m_input->getFullWidth();
     const int fullHeight = m_input->getFullHeight();
-    const float scale = (float)width/fullWidth;
+    const float scale = 1.0f/m_input->getLevelScale(level);
     const Vector3f pyramidSpacing = m_input->getSpacing();
     //std::vector<MeshVertex> vertices;
     //auto bbSet = BoundingBoxSet::create();

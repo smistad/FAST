@@ -157,6 +157,15 @@ ImagePyramid::ImagePyramid(openslide_t *fileHandle, std::vector<ImagePyramidLeve
     m_pyramidFullyInitialized = true;
 	m_counter += 1;
 }
+ImagePyramid::ImagePyramid(std::ifstream* stream, std::vector<vsi_tile_header> tileHeaders, std::vector<ImagePyramidLevel> levels) {
+    m_vsiFileHandle = stream;
+    m_levels = std::move(levels);
+    m_vsiTiles = std::move(tileHeaders);
+    m_channels = 3;
+    mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
+    m_initialized = true;
+    m_pyramidFullyInitialized = true;
+}
 
 ImagePyramid::ImagePyramid() {
     m_initialized = false;
@@ -220,6 +229,9 @@ void ImagePyramid::freeAll() {
     } else if(m_tiffHandle != nullptr) {
         m_levels.clear();
         TIFFClose(m_tiffHandle);
+    } else if(!m_vsiTiles.empty()) {
+        m_vsiFileHandle->close();
+        delete m_vsiFileHandle;
     } else {
 		for(auto& item : m_levels) {
 			if(item.memoryMapped) {
@@ -269,7 +281,7 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList);
+    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, m_vsiFileHandle, m_vsiTiles, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList);
 }
 
 void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {
@@ -367,6 +379,15 @@ bool ImagePyramid::usesOpenSlide() const {
 
 bool ImagePyramid::isPyramidFullyInitialized() const {
     return m_pyramidFullyInitialized;
+}
+
+float ImagePyramid::getLevelScale(int level) {
+    if(m_vsiTiles.empty()) {
+        return (float)getFullWidth()/getLevelWidth(level);
+    } else {
+        // Special treatment for VSI data
+        return getLevelTilesX(getNrOfLevels()-1)*std::pow(2, getNrOfLevels()-1)/(getLevelTilesX(getNrOfLevels()-1)*std::pow(2, getNrOfLevels() - level - 1));
+    }
 }
 
 }

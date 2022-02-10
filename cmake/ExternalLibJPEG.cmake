@@ -9,6 +9,9 @@ ExternalProject_Add(libjpeg
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/libjpeg/src/libjpeg/LibJPEG/9d/bin/libjpeg.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/
-)
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/libjpeg/src/libjpeg/LibJPEG/9d/bin/libjpeg.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+            ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/libjpeg/src/libjpeg/LibJPEG/9d/lib/libjpeg.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+            ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/libjpeg/src/libjpeg/LibJPEG/9d/include/ ${FAST_EXTERNAL_INSTALL_DIR}/include/
+    )
+    list(APPEND LIBRARIES libjpeg.lib)
 endif()

@@ -33,6 +33,7 @@ class FAST_EXPORT WholeSlideImageImporter : public FileImporter {
     private:
         WholeSlideImageImporter();
         void readWithOpenSlide(std::string filename);
+        void readVSI(std::string filename);
         void execute();
 };
 
