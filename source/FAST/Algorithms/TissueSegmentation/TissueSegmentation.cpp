@@ -14,7 +14,7 @@ TissueSegmentation::TissueSegmentation(int threshold, int dilationSize, int eros
     createIntegerAttribute("threshold", "Intensity threshold", "", m_thresh);
     createIntegerAttribute("dilate-kernel-size", "Kernel size for dilation", "", m_dilate);
     createIntegerAttribute("erode-kernel-size", "Kernel size for erosion", "", m_erode);
-    createBooleanAttribute("filter-zeros", "Include uint = 0 values into background class", "", m_filterZeros);
+    createBooleanAttribute("filter-zeros", "Include zero values to background/glass class", "", m_filterZeros);
     setThreshold(threshold);
     setDilate(dilationSize);
     setErode(erosionSize);
