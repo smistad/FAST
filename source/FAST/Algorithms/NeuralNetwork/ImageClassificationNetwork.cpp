@@ -68,7 +68,7 @@ void ImageClassificationNetwork::execute() {
             }
         }
         for(auto& label : mLabels)
-            outputMap[label] /= m_temporalWindow;
+            outputMap[label] /= m_results.size();
         auto output = ImageClassification::create(outputMap);
         addOutputData(0, output);
     } else {

@@ -53,7 +53,6 @@ struct ETS_header {
 void WholeSlideImageImporter::readVSI(std::string filename) {
     std::string originalFilename = getFileName(filename);
     std::string etsFilename = getDirName(filename) + "_" + originalFilename.substr(0, originalFilename.size()-4) + "_/stack1/frame_t.ets";
-    std::cout << etsFilename << std::endl;
     std::ifstream* stream = new std::ifstream(etsFilename.c_str(), std::ifstream::binary | std::ifstream::in);
     if(!stream->is_open())
         throw Exception("Unable to open file!");
@@ -87,7 +86,7 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
     READ(ets_header.dimz)
 
     if(ets_header.compression != 2)
-        throw Exception("Importing CellSense VSI with another compression format than JPEG is not supported yet");
+        throw Exception("Importing Olympus VSI with another compression format than JPEG is not supported yet. Compress format: " + std::to_string(ets_header.compression));
 
     stream->seekg(sis_header.offsettiles);
     std::vector<vsi_tile_header> tiles;
