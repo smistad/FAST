@@ -10,18 +10,21 @@ void NonLocalMeans::init() {
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NonLocalMeans/NonLocalMeans2D.cl");
 
     createFloatAttribute("smoothing", "Smoothing amount", "Controls how much smoothing to apply", 0.15);
+    createFloatAttribute("input-multiplication-weight", "Input image multiplication weight", "The input image is multipled with the NLM filteret image to recover some fine-grained details."
+                                                                                             "This weight determines how strongly this should be multipled in. With a value of zero, the input image is not multiplied in at all.", m_multiplicationWeight);
     createIntegerAttribute("search-size", "Search size", "How big pixel area to search", 11);
     createIntegerAttribute("filter-size", "Filter size", "Filter size", 3);
     createIntegerAttribute("iterations", "Iterations", "Number of multiscale iterations", 3);
     createBooleanAttribute("preprocess", "Preprocess", "Apply preprocessing (5x5 median filter) or not", true);
 }
 
-NonLocalMeans::NonLocalMeans(int filterSize, int searchSize, float smoothingAmount, int multiScaleIterations) {
+NonLocalMeans::NonLocalMeans(int filterSize, int searchSize, float smoothingAmount, int multiScaleIterations, float multiplicationWeight) {
     init();
     setFilterSize(filterSize);
     setSearchSize(searchSize);
     setSmoothingAmount(smoothingAmount);
     setMultiscaleIterations(multiScaleIterations);
+    setInputMultiplicationWeight(multiplicationWeight);
 }
 
 void NonLocalMeans::loadAttributes() {
@@ -37,6 +40,9 @@ void NonLocalMeans::execute() {
     auto output = Image::createFromImage(input);
     auto auxImage = Image::createFromImage(input);
 
+    if(input->getDataType() != TYPE_UINT8)
+        throw Exception("Non local means requries UINT8 image");
+
     const int width = input->getWidth();
     const int height = input->getHeight();
 
@@ -49,6 +55,7 @@ void NonLocalMeans::execute() {
 
     cl::Kernel kernelPreProcess(program, "preprocess");
     cl::Kernel kernelNLM(program, "nonLocalMeansFilter");
+    cl::Kernel kernelMultiply(program, "multiplyWithInput");
 
     auto accessInput = input->getOpenCLImageAccess(ACCESS_READ, device);
     auto accessOutput = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
@@ -100,8 +107,25 @@ void NonLocalMeans::execute() {
         bufferIn = bufferOut;
         bufferOut = tmp;
     }
-    queue.finish();
-    addOutputData(0, output);
+    if(m_multiplicationWeight > 0.0f) {
+        auto output2 = Image::createFromImage(input);
+        auto access2 = output2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        kernelMultiply.setArg(0, *accessInput->get2DImage());
+        kernelMultiply.setArg(1, *bufferOut);
+        kernelMultiply.setArg(2, *access2->get2DImage());
+        kernelMultiply.setArg(3, m_multiplicationWeight);
+        queue.enqueueNDRangeKernel(
+                kernelMultiply,
+                cl::NullRange,
+                cl::NDRange(width, height),
+                cl::NullRange
+                );
+        queue.finish();
+        addOutputData(0, output2);
+    } else {
+        queue.finish();
+        addOutputData(0, output);
+    }
 }
 
 void NonLocalMeans::setSmoothingAmount(float parameterH) {
@@ -132,6 +156,10 @@ void NonLocalMeans::setFilterSize(int filterSize) {
     if(filterSize < 3 || filterSize % 2 == 0)
         throw Exception("Filter size must be larger than 2 and be odd");
     m_filterSize = filterSize;
+}
+
+void NonLocalMeans::setInputMultiplicationWeight(float weight) {
+    m_multiplicationWeight = weight;
 }
 
 }
