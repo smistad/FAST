@@ -14,6 +14,7 @@ void HeatmapRenderer::loadAttributes() {
         setChannelHidden(std::stoi(item), true);
     setMaxOpacity(getFloatAttribute("max-opacity"));
     setMinConfidence(getFloatAttribute("min-confidence"));
+    setInterpolation(getBooleanAttribute("interpolation"));
 }
 
 HeatmapRenderer::HeatmapRenderer(bool hideChannelZero, bool useInterpolation, float minConfidence, float maxOpacity, std::map<uint, Color> channelColors) {
@@ -38,6 +39,7 @@ HeatmapRenderer::HeatmapRenderer(bool hideChannelZero, bool useInterpolation, fl
     createStringAttribute("hidden-channels", "Hidden Channels", "List of channels to hide", "");
     createFloatAttribute("max-opacity", "Max Opacity", "Max Opacity", mMaxOpacity);
     createFloatAttribute("min-confidence", "Min Confidence", "Min Confidence", mMinConfidence);
+    createBooleanAttribute("interpolation", "Interpolation", "Whether to interpolate when rendering heatmaps or not", mUseInterpolation);
 }
 
 void HeatmapRenderer::setChannelColor(uint channel, Color color) {

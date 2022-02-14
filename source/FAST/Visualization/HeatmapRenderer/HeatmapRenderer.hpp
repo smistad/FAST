@@ -16,7 +16,7 @@ class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
     FAST_PROCESS_OBJECT(HeatmapRenderer);
     public:
         FAST_CONSTRUCTOR(HeatmapRenderer,
-                         bool, hideChannelZero, = true,
+                         bool, hideChannelZero, = false,
                          bool, useInterpolation, = true,
                          float, minConfidence, = 0.5f,
                          float, maxOpacity, = 0.3f,
