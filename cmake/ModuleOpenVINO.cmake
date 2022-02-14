@@ -2,8 +2,8 @@ if(FAST_MODULE_OpenVINO)
     message("-- Enabling Intel OpenVINO inference engine module")
     if(WIN32)
         fast_download_dependency(openvino
-                2021.1
-                69628ba6f40094834b0f8b6f38efee6e7fc67cfb44805ffd638177de571aff3e
+                2021.4.2
+		7268d5ab14366e2df017a955ca2aa95c7cbd9a6c690f45113a26fb86d9199714
         )
     elseif(APPLE)
         fast_download_dependency(openvino
