@@ -20,18 +20,21 @@ class FAST_EXPORT NonLocalMeans : public ProcessObject {
          * @param searchSize How many pixels to search in each direction. Must be odd.
          * @param smoothingAmount Parameter to control the amount of smoothing.
          * @param multiScaleIterations Number of multiscale iterations to perform
+         * @param inputMultiplicationWeight If > 0, the input image will be multiplied with the output with this weight.
          * @return smart pointer to instance
          */
         FAST_CONSTRUCTOR(NonLocalMeans,
                          int, filterSize, = 3,
                          int, searchSize, = 11,
-                         float, smoothingAmount, = 0.15,
-                         int, multiScaleIterations, = 3)
+                         float, smoothingAmount, = 0.15f,
+                         int, multiScaleIterations, = 3,
+                         float, inputMultiplicationWeight, = 0.5f)
         void setSmoothingAmount(float parameterH);
         void setPreProcess(bool preProcess);
         void setMultiscaleIterations(int iterations);
         void setSearchSize(int searchSize);
         void setFilterSize(int filterSize);
+        void setInputMultiplicationWeight(float weight);
         void loadAttributes() override;
     private:
         void init();
@@ -42,5 +45,6 @@ class FAST_EXPORT NonLocalMeans : public ProcessObject {
         int m_iterations = 3; // How many multiscale iterations to do
         int m_searchSize = 11; // How large the pixel search area should be
         int m_filterSize = 3;
+        float m_multiplicationWeight = 0.5f;
     };
 }

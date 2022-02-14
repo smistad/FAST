@@ -60,7 +60,7 @@ __kernel void nonLocalMeansFilter(
         __private int filterSize,
         __private float parameterH,
         __private int iteration
-        ) { 
+        ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
     float sumBottom = 0.0f;
     float sumTop = 0.0f;
@@ -76,5 +76,19 @@ __kernel void nonLocalMeansFilter(
         }
     }
 
-    write_imageui(imageOutput, pos, (uchar)clamp((sumTop/sumBottom)*255.0f, 0.0f, 255.0f ));
+    write_imageui(imageOutput, pos, (uchar)round(clamp((sumTop/sumBottom)*255.0f, 0.0f, 255.0f)));
+}
+
+__kernel void multiplyWithInput(
+            __read_only image2d_t inputImage,
+            __read_only image2d_t NLMImage,
+            __write_only image2d_t output,
+            __private float multiplicationWeight
+    ) {
+
+    const int2 pos = {get_global_id(0), get_global_id(1)};
+    float inputValue = read_imageui(inputImage, sampler, pos).x;
+    float nlmValue = read_imageui(NLMImage, sampler, pos).x;
+
+    write_imageui(output, pos, (uchar)round(sqrt((inputValue*multiplicationWeight + nlmValue*(1.0f-multiplicationWeight))*nlmValue)));
 }
