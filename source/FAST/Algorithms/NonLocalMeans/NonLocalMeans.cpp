@@ -18,7 +18,7 @@ void NonLocalMeans::init() {
     createBooleanAttribute("preprocess", "Preprocess", "Apply preprocessing (5x5 median filter) or not", true);
 }
 
-NonLocalMeans::NonLocalMeans(int filterSize, int searchSize, float smoothingAmount, int multiScaleIterations, float multiplicationWeight) {
+NonLocalMeans::NonLocalMeans(int filterSize, int searchSize, float smoothingAmount, float multiplicationWeight, int multiScaleIterations) {
     init();
     setFilterSize(filterSize);
     setSearchSize(searchSize);

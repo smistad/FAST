@@ -27,7 +27,6 @@ int main(int argc, char** argv) {
             parser.get<int>("filter-size"),
             parser.get<int>("search-size"),
             parser.get<float>("smoothing"),
-            3,
             parser.get<float>("input-multiplication-weight")
             )->connect(streamer);
     filter->enableRuntimeMeasurements();
