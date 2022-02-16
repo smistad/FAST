@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     parser.addVariable("search-size", "11", "Search size of NLM");
     parser.addVariable("filter-size", "3", "Filter size of NLM");
     parser.addVariable("smoothing", "0.15", "Smoothing amount (paramter h in the NLM algorithmn)");
-    parser.addVariable("input-multiplication-weight", "0.5", "Input image multiplication weight");
+    parser.addVariable("input-multiplication-weight", "0.8", "Input image multiplication weight");
     parser.addOption("disable-preprocessing", "Disable median preprocessing useful for ultrasound images.");
     parser.parse(argc, argv);
 
