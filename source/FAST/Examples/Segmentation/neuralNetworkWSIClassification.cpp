@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
     auto renderer = ImagePyramidRenderer::create()
             ->connect(importer);
 
-    auto heatmapRenderer = HeatmapRenderer::create(true, true, 0.5, 0.3)
+    auto heatmapRenderer = HeatmapRenderer::create(true, false, 0.5, 0.3)
             ->connect(stitcher);
 
     auto window = SimpleWindow2D::create()

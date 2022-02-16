@@ -55,8 +55,8 @@ void PatchStitcher::processTensor(std::shared_ptr<Tensor> patch) {
     const int fullWidth = std::stoi(patch->getFrameData("original-width"));
     const int fullHeight = std::stoi(patch->getFrameData("original-height"));
 
-    const int patchWidth = std::stoi(patch->getFrameData("patch-width"));
-    const int patchHeight = std::stoi(patch->getFrameData("patch-height"));
+    const int patchWidth = std::stoi(patch->getFrameData("patch-width"))- 2*std::stoi(patch->getFrameData("patch-overlap-x"));;
+    const int patchHeight = std::stoi(patch->getFrameData("patch-height")) - 2*std::stoi(patch->getFrameData("patch-overlap-y"));;
 
     const float patchSpacingX = std::stof(patch->getFrameData("patch-spacing-x"));
     const float patchSpacingY = std::stof(patch->getFrameData("patch-spacing-y"));
@@ -86,9 +86,8 @@ void PatchStitcher::processTensor(std::shared_ptr<Tensor> patch) {
     auto outputTensorData = outputAccess->getData<3>();
 
     for(int i = 0; i < channels; ++i) {
-        outputTensorData(startY, startX, i) = tensorData(i); // TODO fix
+        outputTensorData(startY, startX, i) = tensorData(i);
     }
-    //outputTensorData(startY, startX, 1) = 1.0f; // TODO remove
 }
 
 void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
