@@ -83,8 +83,8 @@ void PatchGenerator::generateStream() {
         const int patchesX = std::ceil((float) levelWidth / (float) patchWidthWithoutOverlap);
         const int patchesY = std::ceil((float) levelHeight / (float) patchHeightWithoutOverlap);
 
-        for(int patchY = 1; patchY < patchesY; ++patchY) {
-            for(int patchX = 1; patchX < patchesX; ++patchX) {
+        for(int patchY = 0; patchY < patchesY; ++patchY) {
+            for(int patchX = 0; patchX < patchesX; ++patchX) {
                 mRuntimeManager->startRegularTimer("create patch");
                 int patchWidth = m_width;
                 if(patchX*patchWidthWithoutOverlap + patchWidth - overlapInPixelsX >= levelWidth) {
@@ -93,6 +93,14 @@ void PatchGenerator::generateStream() {
                 int patchHeight = m_height;
                 if(patchY*patchHeightWithoutOverlap + patchHeight - overlapInPixelsY >= levelHeight) {
                     patchHeight = levelHeight - patchY * patchHeightWithoutOverlap + overlapInPixelsY;
+                }
+                int patchOffsetX = patchX * patchWidthWithoutOverlap - overlapInPixelsX;
+                if(patchX == 0 && overlapInPixelsX > 0) {
+                    patchOffsetX = 0;
+                }
+                int patchOffsetY = patchY * patchHeightWithoutOverlap - overlapInPixelsY;
+                if(patchY == 0 && overlapInPixelsY > 0) {
+                    patchOffsetY = 0;
                 }
 
                 if(m_inputMask) {
@@ -115,12 +123,13 @@ void PatchGenerator::generateStream() {
                 }
                 reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
                 auto access = m_inputImagePyramid->getAccess(ACCESS_READ);
-                // TODO handle edge cases
                 if(patchWidth < overlapInPixelsX*2 || patchHeight < overlapInPixelsY*2)
                     continue;
-                auto patch = access->getPatchAsImage(m_level, patchX * patchWidthWithoutOverlap - overlapInPixelsX, patchY * patchHeightWithoutOverlap - overlapInPixelsY,
-                                                                  patchWidth,
-                                                                  patchHeight);
+                auto patch = access->getPatchAsImage(m_level,
+                                                     patchOffsetX,
+                                                     patchOffsetY,
+                                                     patchWidth,
+                                                     patchHeight);
 
                 // If patch does not have correct size, pad it
                 int paddingValue = m_paddingValue;
@@ -131,8 +140,13 @@ void PatchGenerator::generateStream() {
                         paddingValue = 0;
                     }
                 }
-                if(patch->getWidth() != m_width || patch->getHeight() != m_height)
-                    patch = patch->crop(Vector2i::Zero(), Vector2i(m_width, m_height), true, paddingValue);
+                if(patch->getWidth() != m_width || patch->getHeight() != m_height) {
+                    patch = patch->crop(Vector2i(0, 0), Vector2i(m_width, m_height), true, paddingValue);
+                } else if(m_overlapPercent > 0.0f && (patchX == 0 || patchY == 0)) {
+                    int offsetX = patchX == 0 ? -overlapInPixelsX : 0;
+                    int offsetY = patchY == 0 ? -overlapInPixelsY : 0;
+                    patch = patch->crop(Vector2i(offsetX, offsetY), Vector2i(m_width, m_height), true, paddingValue);
+                }
 
                 // Store some frame data useful for patch stitching
                 patch->setFrameData("original-width", std::to_string(levelWidth));
