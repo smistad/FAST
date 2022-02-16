@@ -268,7 +268,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
         /**
          * Create a new image which is a cropped version of this image
          */
-        Image::pointer crop(VectorXi offset, VectorXi size, bool allowOutOfBoundsCropping = false);
+        Image::pointer crop(VectorXi offset, VectorXi size, bool allowOutOfBoundsCropping = false, int croppingValue = 0);
 
         /**
          * Fill entire image with a value

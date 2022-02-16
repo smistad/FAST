@@ -22,13 +22,15 @@ PatchGenerator::PatchGenerator() {
     createIntegerAttribute("patch-level", "Patch level", "Patch level used for image pyramid inputs", m_level);
     createFloatAttribute("patch-overlap", "Patch overlap", "Patch overlap in percent", m_overlapPercent);
     createFloatAttribute("mask-threshold", "Mask threshold", "Threshold, in percent, for how much of the candidate patch must be inside the mask to be accepted", m_maskThreshold);
+    createIntegerAttribute("padding-value", "Padding value", "Value to pad patches with when out-of-bounds. Default is negative, meaning it will use (white)255 for color images, and (black)0 for grayscale images", m_paddingValue);
 }
 
-PatchGenerator::PatchGenerator(int width, int height, int depth, int level, float percent, float maskThreshold) : PatchGenerator() {
+PatchGenerator::PatchGenerator(int width, int height, int depth, int level, float percent, float maskThreshold, int paddingValue) : PatchGenerator() {
     setPatchSize(width, height, depth);
     setPatchLevel(level);
     setOverlap(percent);
     setMaskThreshold(maskThreshold);
+    setPaddingValue(paddingValue);
 }
 
 void PatchGenerator::loadAttributes() {
@@ -44,6 +46,7 @@ void PatchGenerator::loadAttributes() {
     setPatchLevel(getIntegerAttribute("patch-level"));
     setOverlap(getFloatAttribute("patch-overlap"));
     setMaskThreshold(getFloatAttribute("mask-threshold"));
+    setPaddingValue(getIntegerAttribute("padding-value"));
 }
 
 PatchGenerator::~PatchGenerator() {
@@ -119,6 +122,18 @@ void PatchGenerator::generateStream() {
                                                                   patchWidth,
                                                                   patchHeight);
 
+                // If patch does not have correct size, pad it
+                int paddingValue = m_paddingValue;
+                if(m_paddingValue < 0) {
+                    if(m_inputImagePyramid->getNrOfChannels() > 1) {
+                        paddingValue = 255;
+                    } else {
+                        paddingValue = 0;
+                    }
+                }
+                if(patch->getWidth() != m_width || patch->getHeight() != m_height)
+                    patch = patch->crop(Vector2i::Zero(), Vector2i(m_width, m_height), true, paddingValue);
+
                 // Store some frame data useful for patch stitching
                 patch->setFrameData("original-width", std::to_string(levelWidth));
                 patch->setFrameData("original-height", std::to_string(levelHeight));
@@ -157,7 +172,7 @@ void PatchGenerator::generateStream() {
                 break;
             }
         }
-    } else if(m_inputVolume) {
+    } else if(m_inputVolume) { // Could be 3D or 2D
         const int width = m_inputVolume->getWidth();
         const int height = m_inputVolume->getHeight();
         const int depth = m_inputVolume->getDepth();
@@ -193,7 +208,15 @@ void PatchGenerator::generateStream() {
             int z = patchZ * patchDepthWithoutOverlap - overlapInPixelsZ;
 
             reportInfo() << "Creating 2D image patch at offset " << x << " " << y << " " << z << " with size " << patchWidth << " " << patchHeight << " " << patchDepth << reportEnd();
-            auto patch = m_inputVolume->crop(Vector3i(x, y, z), Vector3i(patchWidth, patchHeight, patchDepth), true);
+            int paddingValue = m_paddingValue;
+            if(m_paddingValue < 0) {
+                if(m_inputVolume->getNrOfChannels() > 1) {
+                    paddingValue = 255;
+                } else {
+                    paddingValue = 0;
+                }
+            }
+            auto patch = m_inputVolume->crop(Vector3i(x, y, z), Vector3i(patchWidth, patchHeight, patchDepth), true, paddingValue);
             patch->setFrameData("original-width", std::to_string(width));
             patch->setFrameData("original-height", std::to_string(height));
             patch->setFrameData("original-depth", std::to_string(depth));
@@ -286,6 +309,11 @@ void PatchGenerator::setMaskThreshold(float percent) {
         throw Exception("Mask threshold must be >= 0 && <= 1");
     m_maskThreshold = percent;
     mIsModified = true;
+}
+
+void PatchGenerator::setPaddingValue(int paddingValue) {
+    m_paddingValue = paddingValue;
+    setModified(true);
 }
 
 }

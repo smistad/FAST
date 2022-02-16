@@ -31,6 +31,8 @@ class FAST_EXPORT PatchGenerator : public Streamer {
          * @param level Which level of an ImagePyramid to generate patches from.
          * @param overlapPercent Amount of patch overlap in percent.
          * @param maskThreshold Threshold to accept a patch if the additional mask is provided.
+         * @param paddingValue Value to pad patches with when out-of-bounds. Default is negative, meaning it will use
+         *  (white)255 for color images, and (black)0 for grayscale images
          * @return instance
          */
         FAST_CONSTRUCTOR(PatchGenerator,
@@ -39,7 +41,8 @@ class FAST_EXPORT PatchGenerator : public Streamer {
                          int, depth, = 1,
                          int, level, = 0,
                          float, overlapPercent, = 0.0f,
-                         float, maskThreshold, = 0.5f
+                         float, maskThreshold, = 0.5f,
+                         int, paddingValue, = -1
         )
         void setPatchSize(int width, int height, int depth = 1);
         /**
@@ -49,12 +52,14 @@ class FAST_EXPORT PatchGenerator : public Streamer {
         void setOverlap(float percent);
         void setPatchLevel(int level);
         void setMaskThreshold(float percent);
+        void setPaddingValue(int paddingValue);
         ~PatchGenerator();
         void loadAttributes() override;
     protected:
         int m_width, m_height, m_depth;
         float m_overlapPercent = 0;
         float m_maskThreshold = 0.5;
+        int m_paddingValue = -1;
 
         std::shared_ptr<ImagePyramid> m_inputImagePyramid;
         std::shared_ptr<Image> m_inputVolume;
