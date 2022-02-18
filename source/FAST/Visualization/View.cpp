@@ -205,30 +205,12 @@ void View::updateRenderers() {
     }
 }
 
-void View::lockRenderers() {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
-        renderer->lock();
-    }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
-        renderer->lock();
-    }
-}
-
 void View::stopRenderers() {
     for(Renderer::pointer renderer : mNonVolumeRenderers) {
         renderer->stopPipeline();
     }
     for(Renderer::pointer renderer : mVolumeRenderers) {
         renderer->stopPipeline();
-    }
-}
-
-void View::unlockRenderers() {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
-        renderer->unlock();
-    }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
-        renderer->unlock();
     }
 }
 
@@ -505,13 +487,9 @@ void View::initializeGL() {
     // Update all renderes, so that getBoundingBox works
     std::vector<Renderer::pointer> renderers = mNonVolumeRenderers;
     renderers.insert(renderers.end(), mVolumeRenderers.begin(), mVolumeRenderers.end());
-    // Disable synchronized rendering here to avoid blocking in renderer
     for(int i = 0; i < renderers.size(); i++) {
-        bool synchedRendering = renderers[i]->getSynchronizedRendering();
-        renderers[i]->setSynchronizedRendering(false);
         if(!renderers[i]->isDisabled())
             renderers[i]->update();
-        renderers[i]->setSynchronizedRendering(synchedRendering);
     }
     if(renderers.empty())
         return;
@@ -772,24 +750,6 @@ void View::mouseReleaseEvent(QMouseEvent *event) {
     }
 }
 
-void View::setSynchronizedRendering(bool sync) {
-	// Copy list of renderers while locked
-	std::unique_lock<std::mutex> lock(m_mutex);
-	auto nonVolumeRenderers = mNonVolumeRenderers;
-	auto volumeRenderers = mVolumeRenderers;
-	lock.unlock();
-
-	for(auto renderer : nonVolumeRenderers) {
-		renderer->setSynchronizedRendering(sync);
-        renderer->postDraw(); // TODO HACK
-	}
-	for(auto renderer : volumeRenderers) {
-		renderer->setSynchronizedRendering(sync);
-        renderer->postDraw(); // TODO HACK
-	}
-
-}
-
 void View::set2DMode() {
     mIsIn2DMode = true;
 }
@@ -858,15 +818,6 @@ bool View::eventFilter(QObject *object, QEvent *event) {
 }
 
 void View::changeEvent(QEvent *event) {
-    if(event->type() == QEvent::WindowStateChange) {
-        if(isMinimized()) {
-            Reporter::info() << "Window minimized; turning OFF synchronized rendering" << Reporter::end();
-            setSynchronizedRendering(false);
-        } else {
-            Reporter::info() << "Window not minimized; turning ON synchronized rendering" << Reporter::end();
-            setSynchronizedRendering(true);
-        }
-    }
 }
 
 

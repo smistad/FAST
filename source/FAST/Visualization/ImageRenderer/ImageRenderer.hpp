@@ -58,7 +58,7 @@ class FAST_EXPORT  ImageRenderer : public virtual Renderer {
         float m_opacity = -1;
         bool m_applyTransformationsIn2D = false;
 
-        void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation = false, bool useWindowLevel = true);
+        void drawTextures(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> copy, Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation = false, bool useWindowLevel = true);
 };
 
 }

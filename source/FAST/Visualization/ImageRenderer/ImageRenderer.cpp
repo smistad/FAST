@@ -80,9 +80,8 @@ void ImageRenderer::loadAttributes() {
 }
 
 void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    for(auto it : mDataToRender) {
+    auto dataToRender = getDataToRender();
+    for(auto it : dataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
 
@@ -124,15 +123,15 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
-    drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
+    drawTextures(dataToRender, perspectiveMatrix, viewingMatrix, mode2D);
     if(m_opacity >= 0.0f) {
         glDisable(GL_BLEND);
     }
 }
 
-void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation, bool useWindowLevel) {
+void ImageRenderer::drawTextures(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> copy, Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation, bool useWindowLevel) {
     GLuint filterMethod = useInterpolation ? GL_LINEAR : GL_NEAREST;
-    for(auto it : mDataToRender) {
+    for(auto it : copy) {
         auto input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
         // Delete old VAO

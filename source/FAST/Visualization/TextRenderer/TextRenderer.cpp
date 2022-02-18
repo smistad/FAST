@@ -29,11 +29,11 @@ TextRenderer::TextRenderer(uint fontSize, Color color, TextStyleType style, Text
 }
 
 void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
     if(!mode2D)
         throw Exception("TextRender is only implemented for 2D at the moment");
 
-    for(auto it : mDataToRender) {
+    auto dataToRender = getDataToRender();
+    for(auto it : dataToRender) {
         auto input = std::static_pointer_cast<Text>(it.second);
         uint inputNr = it.first;
 

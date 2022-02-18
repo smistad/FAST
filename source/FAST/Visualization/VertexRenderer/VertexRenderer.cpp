@@ -5,7 +5,6 @@
 namespace fast {
 
 void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
     glEnable(GL_POINT_SPRITE); // Circles created in fragment shader will not work without this
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
@@ -13,7 +12,8 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
     setShaderUniform("perspectiveTransform", perspectiveMatrix);
     setShaderUniform("viewTransform", viewingMatrix);
 
-    for(auto it : mDataToRender) {
+    auto dataToRender = getDataToRender();
+    for(auto it : dataToRender) {
         // Delete old VAO
         if(mVAO.count(it.first) > 0)
             glDeleteVertexArrays(1, &mVAO[it.first]);
@@ -83,69 +83,6 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
     }
 
     deactivateShader();
-}
-
-void VertexRenderer::draw2D(
-                cl::BufferGL PBO,
-                uint width,
-                uint height,
-                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
-                float PBOspacing,
-                Vector2f translation
-        ) {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    cl::CommandQueue queue = device->getCommandQueue();
-    std::vector<cl::Memory> v;
-    v.push_back(PBO);
-    queue.enqueueAcquireGLObjects(&v);
-
-    // Map would probably be better here, but doesn't work on NVIDIA, segfault surprise!
-    //float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
-    std::unique_ptr<float[]> pixels(new float[width*height*sizeof(float)*4]);
-    queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
-
-    for(auto it : mDataToRender) {
-    	Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
-
-		Color color = mDefaultColor;
-        if(mInputColors.count(it.first) > 0) {
-            color = mInputColors[it.first];
-        }
-
-    	MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
-        std::vector<MeshVertex> vertices = access->getVertices();
-
-        // Draw each line
-        int size = 3;
-        for(int i = 0; i < vertices.size(); ++i) {
-        	Vector2f position = vertices[i].getPosition().head(2); // In mm
-        	Vector2i positinInPixles(
-        			round(position.x() / PBOspacing),
-        			round(position.y() / PBOspacing)
-        	);
-
-        	// Draw the line
-        	for(int j = -size; j <= size; ++j) {
-        	for(int k = -size; k <= size; ++k) {
-
-        		int x = positinInPixles.x() + j;
-        		int y = positinInPixles.y() + k;
-        		y = height - 1 - y;
-        		if(x < 0 || y < 0 || x >= width || y >= height)
-        			continue;
-
-        		pixels[4*(x + y*width)] = color.getRedValue();
-        		pixels[4*(x + y*width) + 1] = color.getGreenValue();
-        		pixels[4*(x + y*width) + 2] = color.getBlueValue();
-        	}}
-        }
-    }
-
-    //queue.enqueueUnmapMemObject(PBO, pixels);
-    queue.enqueueWriteBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
-    queue.enqueueReleaseGLObjects(&v);
 }
 
 VertexRenderer::VertexRenderer(float size, Color color, bool drawOnTop) {

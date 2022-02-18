@@ -33,7 +33,7 @@ void ImagePyramidRenderer::clearPyramid() {
         glDeleteTextures(1, &texture.second);
     }
     mTexturesToRender.clear();
-    mDataToRender.clear();
+    clearDataToRender();
 }
 
 ImagePyramidRenderer::~ImagePyramidRenderer() {
@@ -67,7 +67,8 @@ void ImagePyramidRenderer::loadAttributes() {
 }
 
 void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    if(mDataToRender.empty())
+    auto dataToRender = getDataToRender();
+    if(dataToRender.empty())
         return;
 
     if(!m_bufferThread) {
@@ -205,7 +206,6 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
             }
         });
     }
-    std::lock_guard<std::mutex> lock(mMutex);
 
     Vector4f bottom_left = (perspectiveMatrix*viewingMatrix).inverse()*Vector4f(-1,-1,0,1);
     Vector4f top_right = (perspectiveMatrix*viewingMatrix).inverse()*Vector4f(1,1,0,1);
@@ -218,7 +218,10 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     //std::cout << "Offset x:" << offset_x << std::endl;
     //std::cout << "Offset y:" << offset_y << std::endl;
 
-    m_input = std::static_pointer_cast<ImagePyramid>(mDataToRender[0]);
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        m_input = std::static_pointer_cast<ImagePyramid>(dataToRender[0]);
+    }
     // Determine which level to use
     // If nr of pixels in viewport is larger than the current width and height of view, than increase the magnification
     int fullWidth = m_input->getFullWidth();

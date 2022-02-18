@@ -55,10 +55,10 @@ void HeatmapRenderer::setChannelHidden(uint channel, bool hide) {
 }
 
 void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    if(mDataToRender.empty())
+    auto dataToRender = getDataToRender();
+    if(dataToRender.empty())
         return;
     GLuint filterMethod = mUseInterpolation ? GL_LINEAR : GL_NEAREST;
-    std::lock_guard<std::mutex> lock(mMutex);
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
 
@@ -71,7 +71,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
         Color::Cyan(),
     };
     int maxChannels = 0;
-    for(auto it : mDataToRender) {
+    for(auto it : dataToRender) {
         auto input = std::static_pointer_cast<Tensor>(it.second);
         int nrOfChannels = input->getShape()[2];
         maxChannels = std::max(nrOfChannels, maxChannels);
@@ -116,7 +116,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
     }
 
     cl::Kernel kernel(getOpenCLProgram(device), "renderToTexture");
-    for(auto it : mDataToRender) {
+    for(auto it : dataToRender) {
         auto input = std::static_pointer_cast<Tensor>(it.second);
         uint inputNr = it.first;
 
@@ -229,13 +229,13 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
     glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC1_ALPHA);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
+    drawTextures(dataToRender, perspectiveMatrix, viewingMatrix, mode2D);
     glDisable(GL_BLEND);
 
 }
 
-void HeatmapRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
-    for(auto it : mDataToRender) {
+void HeatmapRenderer::drawTextures(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> dataToRender, Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
+    for(auto it : dataToRender) {
         auto input = std::static_pointer_cast<Tensor>(it.second);
         uint inputNr = it.first;
         // Delete old VAO

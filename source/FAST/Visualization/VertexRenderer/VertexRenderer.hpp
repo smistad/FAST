@@ -39,14 +39,6 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
         void setColor(uint inputNr, Color color);
         void setSize(uint inputNr, float size);
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
-		void draw2D(
-                cl::BufferGL PBO,
-                uint width,
-                uint height,
-                Affine3f pixelToViewportTransform,
-                float PBOspacing,
-                Vector2f translation
-        );
     private:
         float mDefaultPointSize;
         Color mDefaultColor;

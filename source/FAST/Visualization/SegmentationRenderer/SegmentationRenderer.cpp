@@ -47,30 +47,29 @@ SegmentationRenderer::SegmentationRenderer(std::map<uint, Color> labelColors, fl
 }
 
 void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
-    if(mDataToRender.empty())
+    auto dataToRender = getDataToRender();
+    if(dataToRender.empty())
         return;
     createColorUniformBufferObject();
 #ifdef FAST_MODULE_WSI
-    if(std::dynamic_pointer_cast<ImagePyramid>(mDataToRender.begin()->second)) {
-        drawPyramid(perspectiveMatrix, viewingMatrix, zNear, zFar);
+    if(std::dynamic_pointer_cast<ImagePyramid>(dataToRender.begin()->second)) {
+        drawPyramid(dataToRender.begin()->second, perspectiveMatrix, viewingMatrix, zNear, zFar);
     } else {
-        drawNormal(perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
+        drawNormal(dataToRender, perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
     }
 #else
-    drawNormal(perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
+    drawNormal(dataToRender, perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
 #endif
 }
-void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void SegmentationRenderer::drawNormal(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-
 
     // TODO move to func?
     auto colorsIndex = glGetUniformBlockIndex(getShaderProgram("unsigned-integer"), "Colors");
     glUniformBlockBinding(getShaderProgram("unsigned-integer"), colorsIndex, 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_colorsUBO);
 
-    for(auto it : mDataToRender) {
+    for(auto it : dataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
 
@@ -111,12 +110,12 @@ void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewi
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawTextures(perspectiveMatrix, viewingMatrix, mode2D, false, false);
+    drawTextures(dataToRender, perspectiveMatrix, viewingMatrix, mode2D, false, false);
     glDisable(GL_BLEND);
 }
 
 
-void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar) {
+void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar) {
 #ifdef FAST_MODULE_WSI
         GLuint filterMethod = GL_NEAREST;
 
@@ -271,7 +270,7 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
         //std::cout << "Offset x:" << offset_x << std::endl;
         //std::cout << "Offset y:" << offset_y << std::endl;
 
-        m_input = std::dynamic_pointer_cast<ImagePyramid>(mDataToRender[0]);
+        m_input = std::dynamic_pointer_cast<ImagePyramid>(dataToRender);
         if(m_input == nullptr)
             throw Exception("The SegmentationPyramidRenderer requires an ImagePyramid data object");
         int fullWidth = m_input->getFullWidth();

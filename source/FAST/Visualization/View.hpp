@@ -105,8 +105,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
         void resizeGL(int width, int height);
 		void updateRenderersInput(int executeToken);
 		void updateRenderers();
-		void lockRenderers();
-		void unlockRenderers();
 		void stopRenderers();
 		void resetRenderers();
 

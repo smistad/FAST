@@ -11,13 +11,13 @@
 namespace fast {
 
 void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
 
     activateShader();
     setShaderUniform("perspectiveTransform", perspectiveMatrix);
     setShaderUniform("viewTransform", viewingMatrix);
     // For all input data
-    for(auto it : mDataToRender) {
+    auto dataToRender = getDataToRender();
+    for(auto it : dataToRender) {
         Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
 
         // Delete old VAO

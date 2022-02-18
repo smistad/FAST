@@ -42,8 +42,6 @@ void TriangleRenderer::setLineSize(int size) {
 }
 
 void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
-
     if(mWireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -52,7 +50,8 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, 
     setShaderUniform("viewTransform", viewingMatrix);
     setShaderUniform("mode2D", mode2D);
     setShaderUniform("ignoreInvertedNormals", mIgnoreInvertedNormals);
-    for(auto it : mDataToRender) {
+    auto dataToRender = getDataToRender();
+    for(auto it : dataToRender) {
         Mesh::pointer surfaceToRender = std::static_pointer_cast<Mesh>(it.second);
 
         // Delete old VAO

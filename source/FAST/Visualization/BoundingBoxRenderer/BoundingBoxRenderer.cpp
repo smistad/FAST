@@ -31,11 +31,10 @@ void BoundingBoxRenderer::setBorderSize(float borderSize) {
 }
 
 void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
-
     if(!mode2D)
         throw Exception("BoundingBoxRenderer has only been implemented for 2D so far");
 
+    auto dataToRender = getDataToRender();
     createColorUniformBufferObject();
 
 	glDisable(GL_DEPTH_TEST);
@@ -47,7 +46,7 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
 	glUniformBlockBinding(getShaderProgram(), colorsIndex, 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_colorsUBO); 
     // For all input data
-    for(auto it : mDataToRender) {
+    for(auto it : dataToRender) {
         auto boxes = std::static_pointer_cast<BoundingBoxSet>(it.second);
         if(boxes->getNrOfLines() == 0)
             continue;

@@ -36,8 +36,8 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColo
         virtual ~SegmentationRenderer();
     protected:
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
-        void drawPyramid(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar);
-        void drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) ;
+        void drawPyramid(std::shared_ptr<SpatialDataObject> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar);
+        void drawNormal(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) ;
         virtual void deleteAllTextures() override;
 
         int mBorderRadius = 2;

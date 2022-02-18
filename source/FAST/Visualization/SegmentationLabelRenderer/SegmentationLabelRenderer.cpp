@@ -45,38 +45,40 @@ SegmentationLabelRenderer::SegmentationLabelRenderer(std::map<uint, std::string>
 
 
 void SegmentationLabelRenderer::execute() {
-    std::unique_lock<std::mutex> lock(mMutex);
-    if(m_disabled)
-        return;
-    if(mStop) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        if(m_disabled)
+            return;
+        if(mStop) {
+            return;
+        }
     }
 
-    // Check if current images has not been rendered, if not wait
-    while(!mHasRendered && m_synchedRendering) {
-        mRenderedCV.wait(lock);
-    }
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         if(hasNewInputData(inputNr)) {
             SpatialDataObject::pointer input = getInputData<SpatialDataObject>(inputNr);
 
-            mHasRendered = false;
-            mDataToRender[inputNr] = input;
-
-            auto regionProps = RegionProperties::New();
-            regionProps->setInputData(input);
-            m_regions[inputNr] = regionProps->updateAndGetOutputData<RegionList>();
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                if(mHasRendered) {
+                    mHasRendered = false;
+                    mDataToRender[inputNr] = input;
+                    auto regionProps = RegionProperties::New();
+                    regionProps->setInputData(input);
+                    m_regions[inputNr] = regionProps->updateAndGetOutputData<RegionList>();
+                }
+            }
         }
     }
 }
 
 void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
     if(!mode2D)
         throw Exception("SegmentationLabelRenderer is only implemented for 2D at the moment");
 
-    for(auto it : mDataToRender) {
+    auto dataToRender = getDataToRender();
+    for(auto it : dataToRender) {
         auto input = std::static_pointer_cast<Image>(it.second);
         if(input->getDataType() != TYPE_UINT8)
             throw Exception("Input to SegmentationLabelRenderer must be image of type UINT8");
@@ -116,7 +118,10 @@ void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewin
         textimg.fill(QColor(0, 0, 0, 0));
         QPainter painter(&textimg);
         float pixelArea = spacing.x()*spacing.y();
-        for(auto& region : m_regions[inputNr]->get()) {
+        std::unique_lock<std::mutex> lock(mMutex);
+        auto regionsCopy = m_regions;
+        lock.unlock();
+        for(auto& region : regionsCopy[inputNr]->get()) {
 
             if(region.pixelCount * pixelArea < m_areaThreshold) // If object to small.. (area in mm^2)
                 continue;

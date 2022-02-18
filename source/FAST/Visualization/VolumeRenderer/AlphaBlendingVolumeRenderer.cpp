@@ -77,7 +77,7 @@ void AlphaBlendingVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     );
     mKernel.setArg(1, image);
 
-    auto input = std::dynamic_pointer_cast<Image>(mDataToRender[0]);
+    auto input = std::dynamic_pointer_cast<Image>(getDataToRender()[0]);
     if(m_transferFunction.getSize() == 0) {
         // No transfer function selected, choose default based on data type
         switch(input->getDataType()) {
