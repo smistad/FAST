@@ -239,6 +239,10 @@ void Window::start() {
         mWidget->connect(timer,SIGNAL(timeout()),mWidget,SLOT(close()));
     }
 
+    for(auto view : getViews()) {
+        view->reinitialize();
+    }
+
     startComputationThread();
 
     mEventLoop->exec(); // This call blocks and starts rendering

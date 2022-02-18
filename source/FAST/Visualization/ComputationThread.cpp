@@ -118,6 +118,8 @@ void ComputationThread::stop() {
 }
 
 void ComputationThread::start() {
+    if(isRunning())
+        return;
     // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
     reportInfo() << "Trying to start computation thread" << Reporter::end();
     QThread* thread = new QThread();

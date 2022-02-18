@@ -108,6 +108,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
 		void resetRenderers();
 
 		std::mutex m_mutex;
+		std::atomic_bool m_initialized = false;
 
     friend class ComputationThread;
 

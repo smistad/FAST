@@ -472,10 +472,14 @@ void View::recalculateCamera() {
 }
 
 void View::reinitialize() {
+    m_initialized = false;
     initializeGL();
 }
 
 void View::initializeGL() {
+    if(m_initialized)
+        return;
+    m_initialized = true;
     for(auto renderer : getRenderers())
         renderer->initializeOpenGLFunctions();
     //QGLFunctions *fun = Window::getMainGLContext()->functions();

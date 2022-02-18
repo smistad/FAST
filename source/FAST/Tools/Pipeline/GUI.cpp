@@ -186,7 +186,10 @@ void GUI::loadPipeline() {
 		    }
 		}
 
-		// Restart computation thread
+        for(auto view : pipeline.getViews()) {
+            view->reinitialize();
+        }
+        // Restart computation thread
 		startComputationThread();
 
 	} catch(Exception &e) {
