@@ -27,7 +27,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
         void wheelEvent(QWheelEvent* event);
         void changeEvent(QEvent* event);
         bool eventFilter(QObject* object, QEvent* event);
-        void setSynchronizedRendering(bool sync);
         void setMaximumFramerate(unsigned int framerate);
         void setCameraInputConnection(DataChannel::pointer port);
         void set2DMode();
