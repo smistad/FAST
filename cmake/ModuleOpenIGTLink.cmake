@@ -15,8 +15,8 @@ if(FAST_MODULE_OpenIGTLink)
         )
     else()
         fast_download_dependency(OpenIGTLink
-                2.1
-                404b6cb26923c9361d3ffb53210abc573696258e08c57ffed3d38aa9857f793b
+                3.1
+                99d45eb03c5fddacdbd5ac424347ede2907394e180e6aba03fb335480cde858f
                 libOpenIGTLink.so
         )
     endif()
