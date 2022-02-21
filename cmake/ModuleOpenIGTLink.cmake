@@ -3,8 +3,8 @@
 if(FAST_MODULE_OpenIGTLink)
     if(WIN32)
         fast_download_dependency(OpenIGTLink
-                2.1
-                8dd74058444f4dc903dee4a400ae13bc84e1d0f93255390ace034da988553296
+                3.1
+                c6eeb156cc445a7a0d0765868f17b8ca0230470b8db26dfd970d4d659bf70d2b
                 OpenIGTLink.lib
         )
     elseif(APPLE)

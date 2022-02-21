@@ -29,15 +29,9 @@ void OpenIGTLinkStreamer::setConnectionPort(uint port) {
 }
 
 DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(uint portID) {
-	if (mOutputPortDeviceNames.count("") == 0) {
-		portID = getNrOfOutputPorts();
-		createOutputPort<Image>(portID);
-		//getOutputData<Image>(portID); // This initializes the output data
-		mOutputPortDeviceNames[""] = portID;
-	}
-	else {
-		portID = mOutputPortDeviceNames[""];
-	}
+    if(getNrOfInputPorts() == 0) {
+        int portID = getOutputPortNumber("");
+    }
 	return ProcessObject::getOutputPort(portID);
 }
 
@@ -184,8 +178,9 @@ void OpenIGTLinkStreamer::generateStream() {
         headerMsg->InitPack();
 
         // Receive generic header from the socket
-        int r = mSocketWrapper->socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
-        if(r == 0) {
+        bool timeout = false;
+        int r = mSocketWrapper->socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize(), timeout);
+        if(r == 0 || timeout) {
             //connectionLostSignal();
             mSocketWrapper->socket->CloseSocket();
             break;
@@ -232,7 +227,14 @@ void OpenIGTLinkStreamer::generateStream() {
             transMsg->SetMessageHeader(headerMsg);
             transMsg->AllocatePack();
             // Receive transform data from the socket
-            mSocketWrapper->socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
+            bool timeout = false;
+            int r = mSocketWrapper->socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize(), timeout);
+			if(r == 0 || timeout) {
+				//connectionLostSignal();
+				mSocketWrapper->socket->CloseSocket();
+				break;
+			}
+
             // Deserialize the transform data
             // If you want to skip CRC check, call Unpack() without argument.
             int c = transMsg->Unpack(1);
@@ -280,7 +282,13 @@ void OpenIGTLinkStreamer::generateStream() {
             imgMsg->AllocatePack();
 
             // Receive transform data from the socket
-            mSocketWrapper->socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
+            bool timeout = false;
+            int r = mSocketWrapper->socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize(), timeout);
+			if(r == 0 || timeout) {
+				//connectionLostSignal();
+				mSocketWrapper->socket->CloseSocket();
+				break;
+			}
 
             // Deserialize the transform data
             // If you want to skip CRC check, call Unpack() without argument.
@@ -333,7 +341,15 @@ void OpenIGTLinkStreamer::generateStream() {
             message->AllocatePack();
 
             // Receive transform data from the socket
-            mSocketWrapper->socket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize());
+            bool timeout = false;
+            int r = mSocketWrapper->socket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize(), timeout);
+			if(r == 0 || timeout) {
+				//connectionLostSignal();
+				mSocketWrapper->socket->CloseSocket();
+				break;
+			}
+
+
             if(statusMessageCounter > 3 && !mInFreezeMode) {
                 reportInfo() << "3 STATUS MESSAGE received, freeze detected" << Reporter::end();
                 mInFreezeMode = true;
@@ -350,7 +366,15 @@ void OpenIGTLinkStreamer::generateStream() {
           message->AllocatePack();
 
           // Receive transform data from the socket
-          mSocketWrapper->socket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize());
+          bool timeout = false;
+          int r = mSocketWrapper->socket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize(), timeout);
+		  if(r == 0 || timeout) {
+				//connectionLostSignal();
+				mSocketWrapper->socket->CloseSocket();
+				break;
+	     }
+
+
 
           // Deserialize the transform data
           // If you want to skip CRC check, call Unpack() without argument.
