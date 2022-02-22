@@ -1,3 +1,4 @@
+#include <FAST/Algorithms/Lambda/RunLambda.hpp>
 #include "Streamer.hpp"
 
 namespace fast {
@@ -53,6 +54,18 @@ StreamingMode Streamer::getStreamingMode() const {
 
 void Streamer::setStreamingMode(StreamingMode mode) {
     m_streamingMode = mode;
+}
+
+DataChannel::pointer Streamer::getOutputPort(uint portID) {
+    if(!m_outputPO) {
+        auto channel = ProcessObject::getOutputPort(portID);
+        m_outputPO = RunLambda::create([](DataObject::pointer data) -> DataList {
+            return DataList(data);
+        });
+        m_outputPO->setInputConnection(channel);
+    }
+
+    return m_outputPO->getOutputPort();
 }
 
 }

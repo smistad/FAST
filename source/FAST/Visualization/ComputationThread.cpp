@@ -62,7 +62,7 @@ void ComputationThread::run() {
                 view->updateRenderersInput(executeToken);
             }
             for(View *view : mViews) {
-                view->updateRenderers();
+                view->updateRenderers(executeToken);
             }
         } catch(ThreadStopped &e) {
             reportInfo() << "Thread stopped exception occured in ComputationThread, exiting.." << reportEnd();

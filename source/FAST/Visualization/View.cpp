@@ -189,7 +189,7 @@ void View::updateRenderersInput(int executeToken) {
 
 }
 
-void View::updateRenderers() {
+void View::updateRenderers(int executeToken) {
     // Copy list of renderers while locked
     std::unique_lock<std::mutex> lock(m_mutex);
     auto nonVolumeRenderers = mNonVolumeRenderers;
@@ -198,10 +198,10 @@ void View::updateRenderers() {
 
     // Then execute
     for(auto renderer : nonVolumeRenderers) {
-        renderer->execute();
+        renderer->update(executeToken);
     }
     for(auto renderer : volumeRenderers) {
-        renderer->execute();
+        renderer->update(executeToken);
     }
 }
 

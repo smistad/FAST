@@ -32,7 +32,7 @@ DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(uint portID) {
     if(getNrOfInputPorts() == 0) {
         int portID = getOutputPortNumber("");
     }
-	return ProcessObject::getOutputPort(portID);
+	return Streamer::getOutputPort(portID);
 }
 
 uint OpenIGTLinkStreamer::getOutputPortNumber(std::string deviceName) {
@@ -462,7 +462,7 @@ DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(std::string deviceName) 
     } else {
         portID = mOutputPortDeviceNames[deviceName];
     }
-    return ProcessObject::getOutputPort(portID);
+    return Streamer::getOutputPort(portID);
 }
 
 uint OpenIGTLinkStreamer::createOutputPortForDevice(std::string deviceName) {

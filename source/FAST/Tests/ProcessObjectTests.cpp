@@ -393,8 +393,8 @@ TEST_CASE("Stream with multiple receiver POs PROCESS_ALL", "[process_all_frames]
     int timestep = 0;
     while(timestep < frames) {
         // Update both branches
-        po1->update();
-        po3->update();
+        po1->update(timestep);
+        po3->update(timestep);
 
         auto image1 = port1->getNextFrame<DummyDataObject>();
         auto image2 = port2->getNextFrame<DummyDataObject>();
@@ -428,8 +428,8 @@ TEST_CASE("Stream with multiple receiver POs, NEWEST_FRAME", "[ProcessObject][fa
     int previousID2 = -1;
     while(timestep < frames) {
         // Update both branches
-        po1->update();
-        po3->update();
+        po1->update(timestep);
+        po3->update(timestep);
 
         auto image1 = port1->getNextFrame<DummyDataObject>();
         auto image2 = port2->getNextFrame<DummyDataObject>();
