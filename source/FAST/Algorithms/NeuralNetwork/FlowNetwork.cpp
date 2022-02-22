@@ -25,7 +25,7 @@ FlowNetwork::FlowNetwork(std::string modelFilename, float scaleFactor, float mea
 
 void FlowNetwork::execute() {
     // Prepare input node: Should be two images in a sequence
-    run();
+    runNeuralNetwork();
 
     auto tensor = std::dynamic_pointer_cast<Tensor>(m_processedOutputData[0]);
     if(!tensor)

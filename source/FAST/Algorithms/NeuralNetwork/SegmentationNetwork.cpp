@@ -68,7 +68,7 @@ void SegmentationNetwork::setResizeBackToOriginalSize(bool resize) {
 }
 
 void SegmentationNetwork::execute() {
-    run();
+    runNeuralNetwork();
 
     auto data = m_processedOutputData[0];
     if(mHeatmapOutput) {

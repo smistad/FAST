@@ -37,7 +37,7 @@ void ImageClassificationNetwork::setLabels(std::vector<std::string> labels) {
 
 void ImageClassificationNetwork::execute() {
 
-    run();
+    runNeuralNetwork();
 
     // TODO batch support
     auto tensor = std::dynamic_pointer_cast<Tensor>(m_processedOutputData[0]);

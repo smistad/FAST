@@ -328,7 +328,7 @@ Tensor::pointer NeuralNetwork::standardizeOutputTensorData(Tensor::pointer tenso
     return tensor;
 }
 
-void NeuralNetwork::run() {
+void NeuralNetwork::runNeuralNetwork() {
     // TODO move load and input processing to execute? or a separate function?
     // Check if network is loaded, if not do it
     if(!m_engine->isLoaded())
@@ -346,6 +346,10 @@ void NeuralNetwork::run() {
 	m_engine->run();
     mRuntimeManager->stopRegularTimer("inference");
 
+    processOutputTensors();
+}
+
+void NeuralNetwork::processOutputTensors() {
     mRuntimeManager->startRegularTimer("output_processing");
     // Collect output data of network and add to output ports
     for(const auto &node : m_engine->getOutputNodes()) {
@@ -397,7 +401,7 @@ void NeuralNetwork::run() {
 
 void NeuralNetwork::execute() {
     // Load, prepare input and run network
-    run();
+    runNeuralNetwork();
 
     // Add output data to output ports
     for(const auto &node : m_processedOutputData) {

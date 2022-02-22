@@ -52,7 +52,7 @@ BoundingBoxNetwork::BoundingBoxNetwork(std::string modelFilename, float scaleFac
 }
 
 void BoundingBoxNetwork::execute() {
-    run();
+    runNeuralNetwork();
 
     mRuntimeManager->startRegularTimer("output_processing");
     std::cout << "Size of nr of input nodes: " <<m_processedOutputData.size() << std::endl;
