@@ -46,6 +46,9 @@ set(FAST_LIBRARIES
 	${OPENGL_LIBRARIES}
 	${X11_LIBRARIES}
 )
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    list(APPEND FAST_LIBRARIES pthread)
+endif()
 if(@FAST_MODULE_Visualization@)
     list(APPEND FAST_LIBRARIES
       	Qt5Core
