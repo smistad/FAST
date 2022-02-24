@@ -97,6 +97,7 @@ if is_windows:
             'bin/runPipeline.exe',
             'bin/systemCheck.exe',
             'bin/plugins.xml',
+            'bin/cache.json',
             'bin/fast_configuration.txt',
             'README.md',
             'pipelines/**/*',
@@ -111,6 +112,7 @@ elif is_apple:
     link_args = ['-bundle', '-Wl,-rpath,@loader_path/../lib', '-framework', 'OpenCL', '-framework', 'OpenGL']
     package_data = {'': [
             'lib/plugins.xml',
+            'lib/cache.json',
             'bin/UFFviewer',
             'bin/runPipeline',
             'bin/systemCheck',
@@ -146,6 +148,7 @@ else:
     link_args = ['-Wl,-rpath=$ORIGIN/../lib']
     package_data = {'': [
             'lib/plugins.xml',
+            'lib/cache.json',
             'bin/UFFviewer',
             'bin/runPipeline',
             'bin/systemCheck',
