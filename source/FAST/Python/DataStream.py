@@ -15,9 +15,11 @@ class DataStream:
         if self.finished:
             raise StopIteration
 
-        for po in self._processObjects:
-            po.run(self._executeToken)
+        for port in self._ports:
+            port.getProcessObject().run(self._executeToken)
         self._executeToken += 1
+        if self._executeToken < 0:
+            self._executeToken = 0
         result = []
         for port in self._ports:
             data = port.getNextFrame()
