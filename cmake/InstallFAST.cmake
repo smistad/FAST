@@ -292,12 +292,12 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/licences/
 )
 if(FAST_MODULE_OpenVINO)
 	if(WIN32)
-		install(FILES ${PROJECT_BINARY_DIR}/bin/plugins.xml
+		install(FILES ${PROJECT_BINARY_DIR}/bin/plugins.xml ${PROJECT_BINARY_DIR}/bin/cache.json
 		  DESTINATION fast/bin/
 			COMPONENT fast
 	  )
 	else()
-		install(FILES ${PROJECT_BINARY_DIR}/lib/plugins.xml
+		install(FILES ${PROJECT_BINARY_DIR}/lib/plugins.xml ${PROJECT_BINARY_DIR}/lib/cache.json
 			DESTINATION fast/lib/
 			COMPONENT fast
 		)
