@@ -878,8 +878,8 @@ float Image::calculateSumIntensity() {
     // Calculate sum if image has changed or it is the first time
     if(!mSumInitialized || mSumIntensityTimestamp != getTimestamp()) {
         unsigned int nrOfElements = mWidth*mHeight*mDepth;
-        if(mHostHasData && mHostDataIsUpToDate) {
-            // Host data is up to date, calculate min and max on host
+        if((mHostHasData && mHostDataIsUpToDate) || getNrOfVoxels() < 256) {
+            // Host data is up to date, or image is very small, calculate min and max on host
             ImageAccess::pointer access = getImageAccess(ACCESS_READ);
             void* data = access->get();
             switch(mType) {
