@@ -21,7 +21,7 @@ void DataObject::blockIfBeingWrittenTo() {
 void DataObject::blockIfBeingAccessed() {
     std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
     while(mDataIsBeingAccessed) {
-        mDataIsBeingWrittenToCondition.wait(lock);
+        mDataIsBeingAccessedCondition.wait(lock);
     }
 }
 
@@ -29,14 +29,14 @@ void DataObject::accessFinished() {
 	{
         std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
         mDataIsBeingWrittenTo = false;
+        mDataIsBeingWrittenToCondition.notify_all();
 	}
-	mDataIsBeingWrittenToCondition.notify_one();
 
 	{
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = false;
+        mDataIsBeingAccessedCondition.notify_all();
 	}
-	mDataIsBeingAccessedCondition.notify_one();
 }
 
 uint64_t DataObject::getTimestamp() const {
