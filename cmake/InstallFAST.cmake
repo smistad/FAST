@@ -300,6 +300,7 @@ if(FAST_MODULE_OpenVINO)
 		install(FILES ${PROJECT_BINARY_DIR}/lib/plugins.xml ${PROJECT_BINARY_DIR}/lib/cache.json
 			DESTINATION fast/lib/
 			COMPONENT fast
+			OPTIONAL
 		)
 	endif()
 endif()
