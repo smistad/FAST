@@ -13,7 +13,7 @@ if(FAST_MODULE_OpenVINO)
     else()
         fast_download_dependency(openvino
                 2021.4.2
-                9e3fd9733cfdfc1312bd436abfcff74992cfb5c33e09e36e25a627617c608fa3
+		6a47b44b4d80e41ef22d6df19b829e59b985c202b9ab596056570a6d1c65c21e
         )
 
     endif()
