@@ -29,13 +29,17 @@ class FAST_EXPORT TissueMicroArrayExtractor : public Streamer {
          * @brief Create instance
          * @param level Which image pyramid level to extract TMAs from. Default is 0 which is highest resolution level.
          *      Negative level means the last level (lowest resolution).
+         * @param areaThreshold Percentage of max area a TMA disc candidate has to have to be included.
          * @return instance
          */
         FAST_CONSTRUCTOR(TissueMicroArrayExtractor,
-                         int, level, = 0
+                         int, level, = 0,
+                         float, areaThreshold, = 0.5f
         )
         void setLevel(int level);
         int getLevel() const;
+        void setAreaThreshold(float threshold);
+        float getAreaThreshold() const;
         ~TissueMicroArrayExtractor() { stop(); };
     private:
         void generateStream();
@@ -44,7 +48,8 @@ class FAST_EXPORT TissueMicroArrayExtractor : public Streamer {
         std::shared_ptr<ImagePyramid> m_input;
         std::shared_ptr<Image> m_tissue;
         std::shared_ptr<RegionList> m_regions;
-        int m_level;
+        int m_level = 0;
+        float m_areaThreshold = 0.5f;
 };
 
 }
