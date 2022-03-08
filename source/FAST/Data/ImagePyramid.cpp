@@ -390,4 +390,22 @@ float ImagePyramid::getLevelScale(int level) {
     }
 }
 
+
+DataBoundingBox ImagePyramid::getTransformedBoundingBox() const {
+    auto T = SceneGraph::getEigenTransformFromNode(getSceneGraphNode());
+
+    // Add image spacing
+    T.scale(getSpacing());
+
+    return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
+}
+
+DataBoundingBox ImagePyramid::getBoundingBox() const {
+    // Add image spacing
+    auto T = Affine3f::Identity();
+    T.scale(getSpacing());
+
+    return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
+}
+
 }

@@ -107,14 +107,19 @@ void PatchGenerator::generateStream() {
                     // If a mask exist, check if this patch should be included or not
                     // At least half of the patch should be clasified as foreground
                     auto access = m_inputMask->getImageAccess(ACCESS_READ);
+                    // Calculate physical position and size
+                    float x = patchOffsetX * m_inputImagePyramid->getLevelScale(m_level) * m_inputImagePyramid->getSpacing().x();
+                    float y = patchOffsetY * m_inputImagePyramid->getLevelScale(m_level) * m_inputImagePyramid->getSpacing().y();
+                    float width = patchWidth * m_inputImagePyramid->getLevelScale(m_level) * m_inputImagePyramid->getSpacing().x();
+                    float height = patchHeight * m_inputImagePyramid->getLevelScale(m_level) * m_inputImagePyramid->getSpacing().y();
                     auto croppedMask = m_inputMask->crop(
                         Vector2i(
-                            round(m_inputMask->getWidth() * ((float)patchX / patchesX)),
-                            round(m_inputMask->getHeight() * ((float)patchY / patchesY))
+                            round(x/m_inputMask->getSpacing().x()),
+                            round(y/m_inputMask->getSpacing().y())
                         ),
                         Vector2i(
-                            round(m_inputMask->getWidth() * (1.0f/patchesX)),
-                            round(m_inputMask->getHeight() * (1.0f/patchesY))
+                            round(width/m_inputMask->getSpacing().x()),
+                            round(height/m_inputMask->getSpacing().y())
                         )
                     );
                     float average = croppedMask->calculateAverageIntensity();

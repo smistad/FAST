@@ -68,6 +68,9 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         void free(ExecutionDevice::pointer device) override;
         void freeAll() override;
         ~ImagePyramid();
+        // Override
+        DataBoundingBox getTransformedBoundingBox() const override;
+        DataBoundingBox getBoundingBox() const override;
     private:
         ImagePyramid();
         std::vector<ImagePyramidLevel> m_levels;

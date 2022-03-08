@@ -213,8 +213,8 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     float height = std::fabs(top_right.y() - bottom_left.y());
     //std::cout << "Viewing coordinates:" << bottom_left.transpose() << " " <<  top_right.transpose() << std::endl;
     //std::cout << "Current Size:" << width << " " <<  height << std::endl;
-    int offset_x = bottom_left.x();
-    int offset_y = top_right.y();
+    float offset_x = bottom_left.x();
+    float offset_y = top_right.y();
     //std::cout << "Offset x:" << offset_x << std::endl;
     //std::cout << "Offset y:" << offset_y << std::endl;
 
@@ -222,6 +222,12 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         std::lock_guard<std::mutex> lock(mMutex);
         m_input = std::static_pointer_cast<ImagePyramid>(dataToRender[0]);
     }
+
+    Vector3f spacing = m_input->getSpacing();
+    offset_x *= 1.0f/spacing.x();
+    offset_y *= 1.0f/spacing.y();
+    width *= 1.0f/spacing.x();
+    height *= 1.0f/spacing.y();
     // Determine which level to use
     // If nr of pixels in viewport is larger than the current width and height of view, than increase the magnification
     int fullWidth = m_input->getFullWidth();
@@ -254,13 +260,13 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     }
     m_currentLevel = levelToUse;
 
-    const Vector3f spacing = m_input->getSpacing();
     activateShader();
 
     // This is the actual rendering
     Affine3f transform = Affine3f::Identity();
 
-    //transform.scale(it.second->getSpacing());
+    transform.scale(spacing);
+
 
     uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
