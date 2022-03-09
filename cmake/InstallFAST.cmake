@@ -47,7 +47,26 @@ elseif(APPLE)
 			DESTINATION fast/lib/
 			COMPONENT fast
 			FILES_MATCHING PATTERN "*.dylib*")
+	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
+			DESTINATION fast/lib/
+			COMPONENT fast
+			FILES_MATCHING PATTERN "*.so*")
 	install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
+	if(FAST_SIGN_CODE)
+		install(CODE "
+    file(GLOB installedSOs
+            \"$ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/lib/*.dylib*\"
+            \"$ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/lib/*.so*\")
+
+    foreach(SO $\{installedSOs\})
+		execute_process(COMMAND codesign -s \"Erik Smistad\" --timestamp --signature-size=12000 $\{SO\} RESULT_VARIABLE res OUTPUT_VARIABLE out ERROR_VARIABLE err)
+		if (NOT res EQUAL 0)
+			message(\"Unable to sign $\{SO\} - $\{err\}\")
+		endif ()
+	endforeach()
+    message(\"Binaries signed\")
+		" COMPONENT fast)
+	endif()
 else()
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
