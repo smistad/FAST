@@ -56,7 +56,9 @@ elseif(APPLE)
 		install(CODE "
     file(GLOB installedSOs
             \"$ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/lib/*.dylib*\"
-            \"$ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/lib/*.so*\")
+            \"$ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/lib/*.so*\"
+            \"$ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/bin/*\"
+	)
 
     foreach(SO $\{installedSOs\})
 		execute_process(COMMAND codesign -s \"Erik Smistad\" --timestamp --signature-size=12000 $\{SO\} RESULT_VARIABLE res OUTPUT_VARIABLE out ERROR_VARIABLE err)
