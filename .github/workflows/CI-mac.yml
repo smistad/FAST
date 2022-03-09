@@ -34,7 +34,7 @@ jobs:
         pip3 install numpy==1.19.5 twine
 
     - name: Setup keychain
-      if: github.event_name != 'pull_request'
+      if: ${{ github.event_name != 'pull_request' }}
       run: |
         echo ${{ secrets.MACOS_CERTIFICATE }} | base64 —decode > certificate.p12
         security create-keychain -p ${{ secrets.MACOS_CERTIFICATE_PWD }} build.keychain
