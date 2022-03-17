@@ -33,6 +33,7 @@ void NonLocalMeans::loadAttributes() {
     setFilterSize(getIntegerAttribute("filter-size"));
     setMultiscaleIterations(getIntegerAttribute("iterations"));
     setPreProcess(getBooleanAttribute("preprocess"));
+    setInputMultiplicationWeight(getFloatAttribute("input-multiplication-weight"));
 }
 
 void NonLocalMeans::execute() {
