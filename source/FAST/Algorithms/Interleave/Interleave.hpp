@@ -33,11 +33,6 @@ class FAST_EXPORT Interleave : public Streamer {
         void loadAttributes() override;
         void generateStream() override;
         ~Interleave();
-        std::shared_ptr<Interleave> connect(uint inputPortID, std::shared_ptr<ProcessObject> parentProcessObject, uint outputPortID = 0) {
-            if(mInputConnections.count(inputPortID) == 0)
-                createInputPort(inputPortID);
-            return std::dynamic_pointer_cast<Interleave>(ProcessObject::connect(inputPortID, parentProcessObject, outputPortID));
-        };
     private:
         void execute();
         int m_framerate;

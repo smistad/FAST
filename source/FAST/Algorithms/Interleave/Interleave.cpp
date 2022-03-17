@@ -3,6 +3,8 @@
 namespace fast {
 
 Interleave::Interleave(int framerate) {
+    for(int i = 0; i < 10; ++i)
+        createInputPort(i, "", "", false);
     createOutputPort(0);
     setFramerate(framerate);
     createIntegerAttribute("framerate", "Framerate", "", framerate);
