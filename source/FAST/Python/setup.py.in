@@ -132,11 +132,15 @@ elif is_apple:
                 # OpenVINO
                 'libInferenceEngineTensorFlow.dylib',
                 'libInferenceEngineOpenVINO.dylib',
-                'libinference_engine_ir_reader.dylib',
-                'libinference_engine_ir__v7_reader.dylib',
-                'libinference_engine_onnx_reader.dylib',
-                'libMKLDNNPlugin.dylib',
-                'libmyriadPlugin.dylib',
+                'libinference_engine_ir_reader.so',
+                'libinference_engine_ir_v7_reader.so',
+                'libinference_engine_onnx_reader.so',
+                'libonnx_importer.dylib',
+                'libonnx_proto.dylib',
+                'libprotobuf.3.7.1.0.dylib',
+                'libngraph.dylib',
+                'libMKLDNNPlugin.so',
+                'libmyriadPlugin.so',
             ])
           }
     additional_libraries = []

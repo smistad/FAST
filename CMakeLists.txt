@@ -39,6 +39,7 @@ option(FAST_MODULE_Plotting "Build plotting module (JKQTPlotter)" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 option(FAST_BUILD_QT5 "Download and build Qt 5. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 option(FAST_BUILD_ALL_DEPENDENCIES "Download and build all dependencies" OFF)
+option(FAST_SIGN_CODE "Whether to sign binaries" OFF)
 set(FAST_Python_Version "" CACHE STRING "Python version to use for building pyFAST")
 
 # Base URL for downloading prebuilt dependencies
