@@ -47,31 +47,55 @@ void ScanConverter::execute() {
     output->setSpacing(newXSpacing, newYSpacing, 1.0f);
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    cl::Kernel kernel(getOpenCLProgram(device), "scanConvert");
-
     auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
     auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
-    kernel.setArg(0, *inputAccess->get2DImage());
-    kernel.setArg(1, *outputAccess->get2DImage());
-    kernel.setArg(2, m_gain);
-    kernel.setArg(3, m_dynamicRange);
-    kernel.setArg(4, newXSpacing);
-    kernel.setArg(5, newYSpacing);
-    kernel.setArg(6, startX);
-    kernel.setArg(7, startY);
-    kernel.setArg(8, startRadius);
-    kernel.setArg(9, startTheta);
-    kernel.setArg(10, depthSpacing);
-    kernel.setArg(11, azimuthSpacing);
-    kernel.setArg(12, (int)(input->getFrameData("isPolar") == "true" ? 1 : 0));
+    if(input->getDataType() == TYPE_FLOAT) {
+        cl::Kernel kernel(getOpenCLProgram(device), "scanConvert");
 
-    device->getCommandQueue().enqueueNDRangeKernel(
-            kernel,
-            cl::NullRange,
-            cl::NDRange(m_width, m_height),
-            cl::NullRange
-    );
+        kernel.setArg(0, *inputAccess->get2DImage());
+        kernel.setArg(1, *outputAccess->get2DImage());
+        kernel.setArg(2, m_gain);
+        kernel.setArg(3, m_dynamicRange);
+        kernel.setArg(4, newXSpacing);
+        kernel.setArg(5, newYSpacing);
+        kernel.setArg(6, startX);
+        kernel.setArg(7, startY);
+        kernel.setArg(8, startRadius);
+        kernel.setArg(9, startTheta);
+        kernel.setArg(10, depthSpacing);
+        kernel.setArg(11, azimuthSpacing);
+        kernel.setArg(12, (int)(input->getFrameData("isPolar") == "true" ? 1 : 0));
+
+        device->getCommandQueue().enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(m_width, m_height),
+                cl::NullRange
+        );
+    } else {
+        // Already grayscale..
+        cl::Kernel kernel(getOpenCLProgram(device), "scanConvertGrayscale");
+
+        kernel.setArg(0, *inputAccess->get2DImage());
+        kernel.setArg(1, *outputAccess->get2DImage());
+        kernel.setArg(2, newXSpacing);
+        kernel.setArg(3, newYSpacing);
+        kernel.setArg(4, startX);
+        kernel.setArg(5, startY);
+        kernel.setArg(6, startRadius);
+        kernel.setArg(7, startTheta);
+        kernel.setArg(8, depthSpacing);
+        kernel.setArg(9, azimuthSpacing);
+        kernel.setArg(10, (int)(input->getFrameData("isPolar") == "true" ? 1 : 0));
+
+        device->getCommandQueue().enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(m_width, m_height),
+                cl::NullRange
+        );
+    }
 
     addOutputData(0, output);
 
