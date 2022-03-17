@@ -202,68 +202,91 @@ void UFFViewerWindow::setFilename(std::string filename) {
 }
 
 void UFFViewerWindow::loadView() {
-	// Set up pipeline and view
-	try {
-		m_streamer = UFFStreamer::create(
-		        m_filename,
-		        true,
-		        m_framerate,
-		        m_gainInput->currentIndex()+1,
-		        m_dynamicRangeInput->currentIndex()+1
+    // Set up pipeline and view
+    try {
+        m_streamer = UFFStreamer::create(
+                m_filename,
+                true,
+                m_framerate,
+                m_gainInput->currentIndex()+1,
+                m_dynamicRangeInput->currentIndex()+1
         );
-		m_streamer->setMaximumNrOfFrames(1); // To avoid glitches in playback we set the queue size to 1
-	} catch(Exception &e) {
-		std::string errorMessage = e.what();
-		int ret = QMessageBox::critical(mWidget, "UFF Viewer",
-                               ("An error occured while opening the file: " + errorMessage).c_str(),
-                               QMessageBox::Ok,
-                               QMessageBox::Ok);
-		return;
-	}
-
-	stopComputationThread();
-
-	// Remove and delete old views
-	auto views = getViews();
-	clearViews();
-	for(auto& view : views) {
-		delete view;
-	}
-
-	// Load pipeline
-	Pipeline pipeline(Config::getPipelinePath() + "/uff_viewer/" + m_pipelineFile);
-	pipeline.parse({}, {{"UFFstream", m_streamer}});
-
-	// Setup renderers and views
-    auto renderers = pipeline.getRenderers();
-
-    // Disable renderers for now
-    for(auto&& renderer : renderers)
-        renderer->setDisabled(true);
-    
-    // Add all pipeline views to the window:
-    for(auto view : pipeline.getViews()) {
-        view->setAutoUpdateCamera(true);
-        addView(view);
+        m_streamer->setMaximumNrOfFrames(1); // To avoid glitches in playback we set the queue size to 1
+    } catch(Exception &e) {
+        std::string errorMessage = e.what();
+        int ret = QMessageBox::critical(mWidget, "UFF Viewer",
+                                        ("An error occured while opening the file: " + errorMessage).c_str(),
+                                        QMessageBox::Ok,
+                                        QMessageBox::Ok);
+        return;
     }
 
-	// Recreate the view layout
-	delete m_viewLayout;
-	m_viewLayout = new QHBoxLayout;
-	for(auto view : pipeline.getViews()) {
-		m_viewLayout->addWidget(view);
-	}
-	m_rightSideLayout->insertLayout(0, m_viewLayout);
+    // Set up pipeline and view
+    try {
 
-    m_streamer->update(); // This must be called to start streamer in correct thread
-    m_slider->setRange(0, m_streamer->getNrOfFrames()-1); // This must be called after update, due to refactoring in UFFStreamer
+        stopComputationThread();
 
-    // Enable renderers again
-    for(auto&& renderer : renderers)
-        renderer->setDisabled(false);
+        // Remove and delete old views
+        auto views = getViews();
+        clearViews();
+        for(auto view : views) {
+            delete view;
+        }
 
-	// Restart computation thread
-	startComputationThread();
+        // Load pipeline (must be done after stopComputationThread)
+        Pipeline pipeline(Config::getPipelinePath() + "/uff_viewer/" + m_pipelineFile);
+        pipeline.parse({}, {{"UFFstream", m_streamer}});
+
+        // Setup renderers and views
+        auto renderers = pipeline.getRenderers();
+
+        // Disable renderers for now
+        for(auto&& renderer : renderers)
+            renderer->setDisabled(true);
+
+        // Add all pipeline views to the window:
+        for(auto view : pipeline.getViews()) {
+            view->setAutoUpdateCamera(true);
+            addView(view);
+        }
+
+        // Recreate the view layout
+        delete m_viewLayout;
+        m_viewLayout = new QHBoxLayout;
+        for(auto view : pipeline.getViews()) {
+            m_viewLayout->addWidget(view);
+        }
+        m_rightSideLayout->insertLayout(0, m_viewLayout);
+
+        // Enable renderers again
+        for(auto&& renderer : renderers) {
+            renderer->update();
+            renderer->setDisabled(false);
+        }
+
+        for(auto&& po : pipeline.getProcessObjects()) {
+            if(po.second->getNrOfOutputPorts() == 0 && std::dynamic_pointer_cast<Renderer>(po.second) == nullptr) {
+                // Process object has no output ports, must add to window to make sure it is updated.
+                reportInfo() << "Process object " << po.first << " had no output ports defined in pipeline, therefore adding to window so it is updated." << reportEnd();
+                addProcessObject(po.second);
+            }
+        }
+
+        for(auto view : pipeline.getViews()) {
+            view->reinitialize();
+        }
+        m_slider->setRange(0, m_streamer->getNrOfFrames()-1); // This must be called after update, due to refactoring in UFFStreamer
+        // Restart computation thread
+        startComputationThread();
+
+    } catch(Exception &e) {
+        std::string errorMessage = e.what();
+        int ret = QMessageBox::critical(mWidget, "Pipeline",
+                                        ("An error occured while opening the pipeline file: " + errorMessage).c_str(),
+                                        QMessageBox::Ok,
+                                        QMessageBox::Ok);
+        return;
+    }
 }
 
 }

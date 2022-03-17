@@ -35,6 +35,10 @@ public:
 
     std::vector<float> azimuth_axis;
     std::vector<float> depth_axis;
+
+    bool hasGrayscaleData() {
+        return !dataScanconverted.empty();
+    }
 };
 
 class UFFReader {
@@ -203,9 +207,11 @@ H5::Group UFFReader::getDataGroupAndIsScanconverted(std::shared_ptr<UFFData> dat
     H5Eset_auto2(error_stack, NULL, NULL);
 
     try {
+        // Is IQ data
         dataGroup = mFile.openGroup(dataStruct->dataGroupName);
     }
     catch (...) {
+        // Is grayscale data
         dataStruct->dataGroupName = dataStruct->groupName;
         dataGroup = mFile.openGroup(dataStruct->dataGroupName);
         dataStruct->isScanConverted = true;
@@ -238,7 +244,7 @@ void UFFReader::readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UF
     }
 
     int frameCount = dims_out[0];
-    std::cout << "Number of frames in UFF file: " << frameCount << std::endl;
+    Reporter::info() << "Number of frames in UFF file: " << frameCount << Reporter::end();
     dataStruct->numFrames = frameCount;//TODO
 
     auto imagDataset = dataGroup.openDataSet("imag");
@@ -302,7 +308,7 @@ void UFFReader::readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFDa
     }
 
     int frameCount = dims_out[0];
-    std::cout << "Number of frames in UFF file: " << frameCount << std::endl;
+    Reporter::info() << "Number of frames in UFF file: " << frameCount << Reporter::end();
 
     dataStruct->numFrames = frameCount;
 
@@ -420,106 +426,90 @@ void UFFStreamer::generateStream() {
         m_currentFrameIndex = 0;
     }
 
-    if(m_uffData->isScanConverted) {
+    while (true){
+        bool pause = getPause();
+        if(pause)
+            waitForUnpause();
+        pause = getPause();
 
-        while (true) {
-            bool pause = getPause();
-            if(pause)
-                waitForUnpause();
-            pause = getPause();
-
-            {
-                std::lock_guard<std::mutex> lock(m_stopMutex);
-                if(m_stop) break;
-            }
-
-            int frameNr = getCurrentFrameIndexAndUpdate();
-
-            auto image = m_uffData->dataScanconverted[frameNr];
-
-            if(!pause) {
-                std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
-                std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
-                if(sleepFor.count() > 0)
-                    std::this_thread::sleep_for(sleepFor);
-                previousTime = std::chrono::high_resolution_clock::now();
-            }
-            try {
-                addOutputData(0, image);
-                frameAdded();
-            } catch(ThreadStopped & e) {
-                break;
-            }
+        {
+            std::lock_guard<std::mutex> lock(m_stopMutex);
+            if(m_stop) break;
         }
-    } else {
-        while (true){
-            bool pause = getPause();
-            if(pause)
-                waitForUnpause();
-            pause = getPause();
 
-            {
-                std::lock_guard<std::mutex> lock(m_stopMutex);
-                if(m_stop) break;
-            }
+        int frameNr = getCurrentFrameIndexAndUpdate();
 
-            int frameNr = getCurrentFrameIndexAndUpdate();
+        // DO SCAN CONVERSION ETC.
+        float startRadius = m_uffData->depth_axis.front();
+        float stopRadius = m_uffData->depth_axis.back();
+        float startTheta = m_uffData->azimuth_axis.front();
+        float stopTheta = m_uffData->azimuth_axis.back();
 
-            // DO SCAN CONVERSION ETC.
-            float startRadius = m_uffData->depth_axis.front();
-            float stopRadius = m_uffData->depth_axis.back();
-            float startTheta = m_uffData->azimuth_axis.front();
-            float stopTheta = m_uffData->azimuth_axis.back();
+        Image::pointer image ;
+        if(m_uffData->hasGrayscaleData()) {
+            image = m_uffData->dataScanconverted[frameNr];
+        } else {
+            image = m_uffData->iqData[frameNr];
+        }
 
-            auto image = m_uffData->iqData[frameNr];
+        float startX, startY, stopX, stopY, notUsed;
+        if(m_uffData->polarCoordinates) {
+            pol2cart(startRadius, startTheta, startY, notUsed);
+            pol2cart(stopRadius, startTheta, notUsed, startX);
+            pol2cart(stopRadius, 0, stopY, notUsed);
+            pol2cart(stopRadius, stopTheta, notUsed, stopX);
+            image->setFrameData("isPolar", "true");
+        } else {
+            startX = startTheta;
+            stopX = stopTheta;
+            startY = startRadius;
+            stopY = stopRadius;
+            image->setFrameData("isPolar", "false");
+        }
 
-            float startX, startY, stopX, stopY, notUsed;
-            if(m_uffData->polarCoordinates) {
-                pol2cart(startRadius, startTheta, startY, notUsed);
-                pol2cart(stopRadius, startTheta, notUsed, startX);
-                pol2cart(stopRadius, 0, stopY, notUsed);
-                pol2cart(stopRadius, stopTheta, notUsed, stopX);
-                image->setFrameData("isPolar", "true");
+        float newXSpacing = (stopX - startX) / (m_scanConverter->getWidth() - 1); //Subtract 1 because num spaces is 1 less than num elements
+        float newYSpacing = (stopY - startY) / (m_scanConverter->getHeight() - 1);
+
+        image->setFrameData("startRadius", std::to_string(startRadius));
+        image->setFrameData("stopRadius", std::to_string(stopRadius));
+        image->setFrameData("startTheta", std::to_string(startTheta));
+        image->setFrameData("stopTheta", std::to_string(stopTheta));
+        image->setFrameData("depthSpacing", std::to_string(m_uffData->depth_axis[1]-m_uffData->depth_axis[0]));
+        image->setFrameData("azimuthSpacing", std::to_string(m_uffData->azimuth_axis[1]-m_uffData->azimuth_axis[0]));
+
+        Image::pointer resultImage;
+        if(m_doScanConversion) {
+            // Do scan conversion
+            if(m_uffData->hasGrayscaleData()) {
+                m_scanConverter->connect(image);
             } else {
-                startX = startTheta;
-                stopX = stopTheta;
-                startY = startRadius;
-                stopY = stopRadius;
-                image->setFrameData("isPolar", "false");
+                // We must perform envelope and log compression
+                m_envelopeAndLogCompressor->connect(image);
             }
-
-            float newXSpacing = (stopX - startX) / (m_scanConverter->getWidth() - 1); //Subtract 1 because num spaces is 1 less than num elements
-            float newYSpacing = (stopY - startY) / (m_scanConverter->getHeight() - 1);
-
-            image->setFrameData("startRadius", std::to_string(startRadius));
-            image->setFrameData("stopRadius", std::to_string(stopRadius));
-            image->setFrameData("startTheta", std::to_string(startTheta));
-            image->setFrameData("stopTheta", std::to_string(stopTheta));
-            image->setFrameData("depthSpacing", std::to_string(m_uffData->depth_axis[1]-m_uffData->depth_axis[0]));
-            image->setFrameData("azimuthSpacing", std::to_string(m_uffData->azimuth_axis[1]-m_uffData->azimuth_axis[0]));
-
-            m_envelopeAndLogCompressor->connect(image);
-
-            Image::pointer resultImage;
-            if(m_doScanConversion) {
-                resultImage = m_scanConverter->runAndGetOutputData<Image>();
+            resultImage = m_scanConverter->runAndGetOutputData<Image>();
+        } else {
+            // Skip scan conversion
+            if(m_uffData->hasGrayscaleData()) {
+                resultImage = image;
             } else {
+                // We must perform envelope and log compression
+                m_envelopeAndLogCompressor->connect(image);
                 resultImage = m_envelopeAndLogCompressor->runAndGetOutputData<Image>();
             }
+        }
 
-            if(!pause) {
-                std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
-                std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
-                if(sleepFor.count() > 0)
-                    std::this_thread::sleep_for(sleepFor);
-                previousTime = std::chrono::high_resolution_clock::now();
-            }
-            try {
-                addOutputData(0, resultImage);
-                frameAdded();
-            } catch(ThreadStopped & e) {
-                break;
-            }
+        if(!pause) {
+            std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
+            std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
+            if(sleepFor.count() > 0)
+                std::this_thread::sleep_for(sleepFor);
+            previousTime = std::chrono::high_resolution_clock::now();
+        }
+        try {
+            addOutputData(0, resultImage);
+            frameAdded();
+        } catch(ThreadStopped & e) {
+            break;
         }
     }
 }
