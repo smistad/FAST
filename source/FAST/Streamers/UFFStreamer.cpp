@@ -293,6 +293,8 @@ void UFFReader::readNotScanconvertedData(H5::Group dataGroup, std::shared_ptr<UF
             }
         }
         auto image = Image::create(dataStruct->width, dataStruct->height, TYPE_FLOAT, 2, std::move(complex_image));
+        if(frameNr == frameCount-1)
+            image->setLastFrame("UFFStreamer");
         dataStruct->iqData[frameNr] = image;
     }//for
 }
@@ -348,6 +350,8 @@ void UFFReader::readScanconvertedData(H5::Group dataGroup, std::shared_ptr<UFFDa
         }
         auto image = Image::create(dataStruct->width, dataStruct->height, TYPE_UINT8, 1, std::move(image_data));
         image->setSpacing(dataStruct->spacing.x(), dataStruct->spacing.y(), dataStruct->spacing.z());
+        if(frameNr == frameCount-1)
+            image->setLastFrame("UFFStreamer");
         dataStruct->dataScanconverted[frameNr] = image;
     }//for
 }
