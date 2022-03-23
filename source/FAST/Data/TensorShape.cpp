@@ -14,8 +14,6 @@ TensorShape::TensorShape(VectorXi dimensions) {
         m_data.push_back(dimensions[i]);
 }
 
-TensorShape::TensorShape() = default;
-
 bool TensorShape::empty() const {
     return m_data.empty();
 }
