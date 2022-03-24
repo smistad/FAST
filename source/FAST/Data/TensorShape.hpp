@@ -24,7 +24,7 @@ class FAST_EXPORT TensorShape {
          * Construct tensor shape
          * @param dimensions
          */
-        TensorShape(VectorXi dimensions);
+        explicit TensorShape(VectorXi dimensions);
 
         /**
          * Copy constructor
@@ -42,7 +42,7 @@ class FAST_EXPORT TensorShape {
         * Construct tensor shape
         * @param dimensions
         */
-        explicit TensorShape(std::vector<int> dimensions = {});
+        explicit TensorShape(std::vector<int> dimensions = std::vector<int>());
         /**
          * If shape is empty or not
          */
