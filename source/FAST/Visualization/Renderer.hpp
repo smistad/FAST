@@ -9,6 +9,7 @@
 namespace fast {
 
 class View;
+class RenderToImage;
 class DataBoundingBox;
 
 /**
@@ -106,6 +107,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         std::unordered_map<uint, SpatialDataObject::pointer> mDataToRender;
 
         friend class View;
+        friend class RenderToImage;
 
         View* m_view;
     private:

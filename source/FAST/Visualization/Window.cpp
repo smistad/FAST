@@ -1,6 +1,6 @@
 #include "Window.hpp"
 #include <QApplication>
-#include <QOffscreenSurface>
+#include <QGLPixelBuffer>
 #include <QEventLoop>
 #include <QScreen>
 #include <QIcon>
@@ -118,7 +118,7 @@ void Window::initializeQtApp() {
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
-#if defined(WIN32) || defined(__APPLE__) 
+#if defined(WIN32) || defined(__APPLE__)
         QApplication* app = new FASTApplication(*argc,NULL);
 #else
         if(XOpenDisplay(nullptr) == nullptr) {
@@ -153,13 +153,14 @@ void Window::initializeQtApp() {
     }
 
      // Create computation GL context, if it doesn't exist
-    if(mMainGLContext == NULL && Config::getVisualization()) {
+    if(mMainGLContext == NULL) {
         Reporter::info() << "Creating new GL context for computation thread" << Reporter::end();
 
         // Create GL context to be shared with the CL contexts
-        QGLWidget* widget = new QGLWidget;
-        mMainGLContext = new QGLContext(View::getGLFormat(), widget); // by including widget here the context becomes valid
-        mMainGLContext->create();
+        // Do this by creating an offscreen GL context using a dummy QGLPixelBuffer
+        auto buffer = new QGLPixelBuffer(8,8, View::getGLFormat());
+        buffer->makeCurrent();
+        mMainGLContext = buffer->context();
         if(!mMainGLContext->isValid()) {
             throw Exception("Qt GL context is invalid!");
         }
