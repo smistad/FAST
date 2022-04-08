@@ -11,7 +11,7 @@
 using namespace fast;
 
 TEST_CASE("RenderToImage", "[fast][RenderToImage]") {
-    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/US-2D.bmp");
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/US-2D.jpg");
 
     auto threshold = BinaryThresholding::create(50)->connect(importer);
 

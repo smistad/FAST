@@ -20,10 +20,17 @@ namespace fast {
 class FAST_EXPORT RenderToImage : public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     FAST_OBJECT(RenderToImage)
     public:
+        /**
+         * @brief Create instance
+         * @param bgcolor Background color of scene
+         * @param width Width of image to render to. If negative, the width will be determined using height and aspect ratio of scene.
+         * @param height Height of image to render to. If negative, the height will be determined using width and aspect ratio of scene.
+         * @return
+         */
         FAST_CONSTRUCTOR(RenderToImage,
                      Color, bgcolor, = Color::White(),
-                     uint, width, = 1024,
-                     uint, height, = 1024);
+                     int, width, = 1024,
+                     int, height, = -1);
         void addRenderer(std::shared_ptr<Renderer> renderer);
         std::vector<std::shared_ptr<Renderer>> getRenderers();
         std::shared_ptr<RenderToImage> connect(std::shared_ptr<Renderer> renderer);

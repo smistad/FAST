@@ -6,7 +6,7 @@
 
 namespace fast {
 
-RenderToImage::RenderToImage(Color bgcolor, uint width, uint height) {
+RenderToImage::RenderToImage(Color bgcolor, int width, int height) {
     mBackgroundColor = bgcolor;
     m_width = width;
     m_height = height;
@@ -64,10 +64,10 @@ void RenderToImage::execute() {
         renderer->update();
     }
     setModified(true); // TODO hack in order to keep running
-    std::cout << "Executing.." << std::endl;
 
     // If first run: Initialize..
     if(!m_initialized) {
+        recalculateCamera();
         // Create framebuffer to render to
         glGenFramebuffers(1, &m_FBO);
         GLuint render_buf;
@@ -80,7 +80,7 @@ void RenderToImage::execute() {
         initializeGL();
     }
 
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+    //std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     // Do drawing
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
     paintGL();
@@ -97,8 +97,8 @@ void RenderToImage::execute() {
                  GL_UNSIGNED_BYTE,
                  data.get());
     auto image = Image::create(m_width, m_height, TYPE_UINT8, 3, std::move(data));
-    std::chrono::duration<float, std::milli> duration = std::chrono::high_resolution_clock::now() - start;
-    std::cout << "Runtime grab frame: " << duration.count() << std::endl;
+    //std::chrono::duration<float, std::milli> duration = std::chrono::high_resolution_clock::now() - start;
+    //std::cout << "Runtime grab frame: " << duration.count() << std::endl;
     addOutputData(0, image);
 }
 
@@ -149,6 +149,7 @@ void RenderToImage::recalculateCamera() {
         getMinMaxFromBoundingBoxes(false, min, max);
         mBBMin = min;
         mBBMax = max;
+
         // Calculate area of each side of the resulting bounding box
         float area[3] = {(max[0] - min[0]) * (max[1] - min[1]), // XY plane
                          (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
@@ -210,6 +211,19 @@ void RenderToImage::recalculateCamera() {
         //mCameraPosition[1] = height()*0.5 - centroid[1];
         // Calculate z distance
         mCameraPosition[2] = -centroid[2]; // first move objects to origo
+
+
+        float aspect = (max[yDirection] - min[yDirection])/(max[xDirection] - min[xDirection]);
+        std::cout << "Aspect: " << aspect << std::endl;
+        if(m_width < 0 && m_height < 0)
+            throw Exception("Width and height in RenderToImage can't both be below 0");
+        if(m_height < 0) {
+            m_height = round(m_width*(aspect));
+        }
+        if(m_width < 0) {
+            m_width = round(m_height*(1.0f/aspect));
+        }
+        std::cout << m_width << " " << m_height << std::endl;
         // Move objects away from camera so that we see everything
         float z_width = (max[xDirection] - min[xDirection]);
         float z_height = (max[yDirection] - min[yDirection]);
