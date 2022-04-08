@@ -51,6 +51,8 @@ class FAST_EXPORT Colormap {
         bool isGrayscale() const;
         bool isInterpolated() const;
         int getSteps() const;
+
+        static Colormap Ultrasound(bool grayscale = false);
     private:
         std::vector<float> m_data;
         bool m_grayscale;

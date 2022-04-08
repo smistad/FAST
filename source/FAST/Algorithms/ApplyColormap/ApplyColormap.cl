@@ -100,11 +100,16 @@ __kernel void applyColormapGrayscale(
             __write_only image2d_t output,
             __constant float* colormap,
             __private int steps,
-            __private char interpolate
+            __private char interpolate,
+            __private char grayscale
     ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
 
     float4 value = readImageAsFloat2D(input, sampler, pos);
 
-    writeImageAsFloat2D(output, pos, getIntensityFromColormap(value.x, colormap, steps, interpolate));
+    if(grayscale == 1) {
+        writeImageAsFloat2D(output, pos, getIntensityFromColormap(value.x, colormap, steps, interpolate));
+    } else {
+        writeImageAsFloat42D(output, pos, getColorFromColormap(value.x, colormap, steps, interpolate));
+    }
 }

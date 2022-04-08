@@ -13,7 +13,7 @@ TEST_CASE("ApplyColormap", "[fast][ApplyColormap][visual]") {
         {100, 90},
         {200, 200},
         {255, 255},
-        }, false);
+        }, true);
     auto applyColormap = ApplyColormap::create(colormap)->connect(importer);
 
     auto renderer = ImageRenderer::create()->connect(applyColormap);

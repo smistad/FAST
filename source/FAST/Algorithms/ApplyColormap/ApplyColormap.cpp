@@ -49,6 +49,7 @@ void ApplyColormap::execute() {
     kernel.setArg(2, m_colormapBuffer);
     kernel.setArg(3, m_colormap.getSteps());
     kernel.setArg(4, (char)(m_colormap.isInterpolated() ? 1 : 0));
+    kernel.setArg(5, (char)(m_colormap.isGrayscale() ? 1 : 0));
 
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,
@@ -136,6 +137,33 @@ Colormap::Colormap(std::vector<float> values, bool grayscale, bool interpolate) 
     m_grayscale = grayscale;
     checkData();
     m_interpolate = interpolate;
+}
+
+Colormap Colormap::Ultrasound(bool grayscale) {
+    // Create a nonlinear S-curve
+    std::vector<float> values;
+    for(int i = 0; i < 256; ++i) {
+        float k = -0.2;
+        float intensity = ((float)i/255.0f)*2.0f-1.0f;
+        float value  = (float)round(255*(((intensity - k*intensity)/(k - 2*k*std::fabs(intensity)+1))+1.0f)/2.0f);
+
+        values.push_back((float)i);
+        if(grayscale) {
+            values.push_back(value);
+        } else {
+            Vector3f color = {value, value, value};
+            // Apply a hint of blue
+            if(value > 0) {
+                color.y() -= 1;
+                color.z() += 4;
+            }
+            values.push_back(color.x());
+            values.push_back(color.y());
+            values.push_back(std::min(color.z(), 255.0f));
+        }
+    }
+
+    return Colormap(values, grayscale, false);
 }
 
 }
