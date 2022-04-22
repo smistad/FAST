@@ -6,6 +6,8 @@
 #include <windows.h>
 #include <direct.h> // Needed for _mkdir
 #include <io.h> // needed for _access_s
+#include <sys/types.h>
+#include <sys/stat.h> // _stat
 #else
 // Needed for making directory
 #include <sys/types.h>
@@ -839,4 +841,18 @@ std::string stringToUpper(std::string s) {
 	);
     return s;
 }
+
+uint64_t fileSize(std::string filename) {
+#ifdef WIN32
+    struct __stat64 stat_buf;
+    int rc = _stat64(filename.c_str(), &stat_buf);
+#else
+    struct stat stat_buf;
+    int rc = stat(filename.c_str(), &stat_buf);
+#endif
+    if(rc != 0)
+        throw Exception("Unable to get file size of " + filename);
+    return stat_buf.st_size;
+}
+
 } // end namespace fast
