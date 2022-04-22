@@ -157,7 +157,15 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 Image::pointer tile;
                 {
                     auto access = m_input->getAccess(ACCESS_READ);
-                    tile = access->getPatchAsImage(level, tile_x, tile_y, false);
+                    try {
+                        tile = access->getPatchAsImage(level, tile_x, tile_y, false);
+                    } catch(Exception &e) {
+                        //reportWarning() << "Error occured while trying to open patch " << tile_x << " " << tile_y << reportEnd();
+                        // Tile was missing, just skip it..
+                        std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+                        mTexturesToRender[tileID] = 0;
+                        continue;
+                    }
                     if(m_postProcessingSharpening) {
                         m_sharpening->setInputData(tile);
                         tile = m_sharpening->updateAndGetOutputData<Image>();
@@ -351,6 +359,9 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 } else {
                     textureID = mTexturesToRender[tileString];
                 }
+
+                if(textureID == 0) // This tile was missing or something, just skip it
+                    continue;
 
                 if(mVAO.count(tileString) == 0) {
                     // Create VAO
