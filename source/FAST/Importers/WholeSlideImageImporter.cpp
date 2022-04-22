@@ -52,7 +52,23 @@ struct ETS_header {
 
 void WholeSlideImageImporter::readVSI(std::string filename) {
     std::string originalFilename = getFileName(filename);
-    std::string etsFilename = getDirName(filename) + "_" + originalFilename.substr(0, originalFilename.size()-4) + "_/stack1/frame_t.ets";
+    std::string directoryName = getDirName(filename) + "_" + originalFilename.substr(0, originalFilename.size()-4) + "_/";
+    std::string etsFilename = "";
+    for(auto folder : getDirectoryList(directoryName, false, true)) {
+        if(fileExists(join(directoryName, folder, "frame_t.ets"))) {
+            if(!etsFilename.empty()) {
+                // Select the biggest frame_t.ets file
+                if(fileSize(etsFilename) < fileSize(join(directoryName, folder, "frame_t.ets"))) {
+                    etsFilename = join(directoryName, folder, "frame_t.ets");
+                }
+            } else {
+                etsFilename = join(directoryName, folder, "frame_t.ets");
+            }
+        }
+    }
+    if(etsFilename.empty())
+        throw Exception("Could not find frame_t.ets file under " + directoryName + " while importing " + filename);
+
     std::ifstream* stream = new std::ifstream(etsFilename.c_str(), std::ifstream::binary | std::ifstream::in);
     if(!stream->is_open())
         throw Exception("Unable to open file!");
