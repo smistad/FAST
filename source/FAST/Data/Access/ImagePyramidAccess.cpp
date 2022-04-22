@@ -49,10 +49,14 @@ void jpegErrorExit(j_common_ptr cinfo) {
 }
 
 
-void readVSITileToBuffer(std::ifstream* vsiHandle, vsi_tile_header tile, uchar* data) {
+void ImagePyramidAccess::readVSITileToBuffer(vsi_tile_header tile, uchar* data) {
     auto buffer = make_uninitialized_unique<char>(tile.numbytes);
-    vsiHandle->seekg(tile.offset);
-    vsiHandle->read(buffer.get(), tile.numbytes);
+    {
+        // Reading VSI tiles is not thread safe
+        std::lock_guard<std::mutex> lock(m_tiffMutex);
+        m_vsiHandle->seekg(tile.offset);
+        m_vsiHandle->read(buffer.get(), tile.numbytes);
+    }
 
     // TODO assuming JPEG here
     jpeg_decompress_struct cinfo;
@@ -167,7 +171,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             if(!found)
                 throw Exception("Could not find tile for getPathcData in VSI");
 
-            readVSITileToBuffer(m_vsiHandle, tile, data.get());
+            readVSITileToBuffer(tile, data.get());
         } else {
             std::vector<vsi_tile_header> tilesToRead;
             int firstTileX = x / m_image->getLevelTileWidth(level);
@@ -194,7 +198,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             for(auto tile : tilesToRead) {
                 const int tileX = (tile.coord[0]-firstTileX)*tileWidth;
                 const int tileY = (tile.coord[1]-firstTileY)*tileHeight;
-                readVSITileToBuffer(m_vsiHandle, tile, tileBuffer.get());
+                readVSITileToBuffer(tile, tileBuffer.get());
                 // Stitch tile into full buffer
                 for(int cy = 0; cy < tileHeight; ++cy) {
                     for(int cx = 0; cx < tileWidth; ++cx) {
@@ -287,7 +291,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
             1.0f
     ));
     // Set transformation
-    auto T = Transform::create(Vector3f(scale*offsetX, scale*offsetY, 0.0f));
+    auto T = Transform::create(Vector3f(offsetX*scale, offsetY*scale, 0.0f));
     image->setTransform(T);
     SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
 
@@ -297,7 +301,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
         channelConverter->setChannelsToRemove(false, false, false, true);
         channelConverter->setReverseChannels(true);
         channelConverter->setInputData(image);
-        return channelConverter->updateAndGetOutputData<Image>();
+        image = channelConverter->updateAndGetOutputData<Image>();
     }
     return image;
 }

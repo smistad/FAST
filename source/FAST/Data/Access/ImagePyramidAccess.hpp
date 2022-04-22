@@ -73,6 +73,7 @@ private:
     std::mutex m_tiffMutex;
     std::ifstream* m_vsiHandle;
     std::vector<vsi_tile_header> m_vsiTiles;
+    void readVSITileToBuffer(vsi_tile_header tile, uchar* data);
 };
 
 }
