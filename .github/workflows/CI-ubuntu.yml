@@ -14,6 +14,7 @@ env:
 
 jobs:
   build:
+    name: Build
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
@@ -136,9 +137,34 @@ jobs:
         pip3 install pyfast==${GITHUB_REF#refs/tags/v}
       shell: bash
 
-
-#    - name: System Check
-#      run: ${{github.workspace}}/build/systemCheck
-
-#    - name: Test
-#      run: ${{github.workspace}}/build/bin/testFAST [processobject]
+  test:
+    name: Run C++ tests
+    needs: [build]
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: 'Archive package (tar.xz)'
+          path: ${{github.workspace}}
+      - name: Extract artifact
+        run: |
+          cd ${{github.workspace}}
+          tar -xf fast_*.tar.xz
+      - name: Download test data
+        run: |
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
+          ./downloadTestData
+      - name: Run tests
+        run: |
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
+          ./testFAST ~[visual]
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -Rf ${{github.workspace}}
+          rm -Rf $HOME/FAST/kernel_binaries/*
