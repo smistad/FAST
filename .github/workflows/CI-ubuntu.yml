@@ -137,6 +137,7 @@ jobs:
       shell: bash
 
   test:
+    needs: [build]
     runs-on: [self-hosted, linux]
     steps:
       - name: Download artifacts
