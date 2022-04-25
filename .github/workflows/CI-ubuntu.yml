@@ -136,9 +136,27 @@ jobs:
         pip3 install pyfast==${GITHUB_REF#refs/tags/v}
       shell: bash
 
-
-#    - name: System Check
-#      run: ${{github.workspace}}/build/systemCheck
-
-#    - name: Test
-#      run: ${{github.workspace}}/build/bin/testFAST [processobject]
+  test:
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: fast_*.tar.xz
+          path: ${{github.workspace}}
+      - name: Extract artifact
+        run: |
+          cd ${{github.workspace}}
+          tar -xzvf fast_*.tar.xz
+      - name: Download test data
+        run: |
+          cd  ${{github.workspace}}/fast/bin/
+          ./downloadTestData
+      - name: Run tests
+        run: |
+          cd  ${{github.workspace}}/fast/bin/
+          ./testFAST ~[visual]
+      - name: Cleanup
+        run: |
+          rm -Rf ${{github.workspace}}
+          rm -Rf $HOME/FAST/kernel_binaries/*
