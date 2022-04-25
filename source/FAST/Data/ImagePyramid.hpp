@@ -96,6 +96,9 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         // VSI stuff
         std::ifstream* m_vsiFileHandle;
         std::vector<vsi_tile_header> m_vsiTiles;
+
+        // A mutex needed to control multi-threaded reading of VSI and TIFF files
+        std::mutex m_readMutex;
 };
 
 }

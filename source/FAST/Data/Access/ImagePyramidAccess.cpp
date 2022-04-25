@@ -9,7 +9,16 @@
 
 namespace fast {
 
-ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::ifstream* vsiHandle, std::vector<vsi_tile_header>& vsiTiles, std::shared_ptr<ImagePyramid> imagePyramid, bool write, std::unordered_set<std::string>& initializedPatchList) : m_initializedPatchList(initializedPatchList) {
+ImagePyramidAccess::ImagePyramidAccess(
+        std::vector<ImagePyramidLevel> levels,
+        openslide_t* fileHandle,
+        TIFF* tiffHandle,
+        std::ifstream* vsiHandle,
+        std::vector<vsi_tile_header>& vsiTiles,
+        std::shared_ptr<ImagePyramid> imagePyramid,
+        bool write,
+        std::unordered_set<std::string>& initializedPatchList,
+        std::mutex& readMutex) : m_initializedPatchList(initializedPatchList), m_readMutex(readMutex) {
 	if(levels.size() == 0)
 		throw Exception("Image pyramid has no levels");
 	m_image = imagePyramid;
@@ -48,12 +57,12 @@ void jpegErrorExit(j_common_ptr cinfo) {
     throw std::runtime_error( jpegLastErrorMsg );
 }
 
-
 void ImagePyramidAccess::readVSITileToBuffer(vsi_tile_header tile, uchar* data) {
     auto buffer = make_uninitialized_unique<char>(tile.numbytes);
+
+    // Reading VSI tiles is not thread safe
     {
-        // Reading VSI tiles is not thread safe
-        std::lock_guard<std::mutex> lock(m_tiffMutex);
+        std::lock_guard<std::mutex> lock(m_readMutex);
         m_vsiHandle->seekg(tile.offset);
         m_vsiHandle->read(buffer.get(), tile.numbytes);
     }
@@ -67,7 +76,10 @@ void ImagePyramidAccess::readVSITileToBuffer(vsi_tile_header tile, uchar* data) 
     try {
         jpeg_create_decompress(&cinfo);
         jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
-        jpeg_read_header(&cinfo, true);
+        int ret = jpeg_read_header(&cinfo, false);
+        if(ret != 1) {
+            throw Exception("Jpeg error..");
+        }
         //cinfo.jpeg_color_space = JCS_YCbCr;
         //cinfo.jpeg_color_space = JCS_RGB;
         jpeg_start_decompress(&cinfo);
@@ -79,7 +91,6 @@ void ImagePyramidAccess::readVSITileToBuffer(vsi_tile_header tile, uchar* data) 
         jpeg_finish_decompress(&cinfo);
         jpeg_destroy_decompress(&cinfo);
     } catch(std::exception &e) {
-        std::cout << e.what() << std::endl;
         jpeg_destroy_decompress( &cinfo );
         throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
     }
@@ -101,13 +112,13 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             return data;
         }
         if(width == tileWidth && height == tileHeight) {
-            std::lock_guard<std::mutex> lock(m_tiffMutex);
+            std::lock_guard<std::mutex> lock(m_readMutex);
             TIFFSetDirectory(m_tiffHandle, level);
             int bytesRead = TIFFReadTile(m_tiffHandle, (void *) data.get(), x, y, 0, 0);
         } else if(width < tileWidth || height < tileHeight) {
             auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
             {
-                std::lock_guard<std::mutex> lock(m_tiffMutex);
+                std::lock_guard<std::mutex> lock(m_readMutex);
                 TIFFSetDirectory(m_tiffHandle, level);
                 // In TIFF all tiles have the same size, thus they are padded..
                 int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), x, y, 0, 0);
@@ -377,7 +388,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
     auto data = (uchar*)patchAccess->get();
     uint32_t tile_id;
     {
-        std::lock_guard<std::mutex> lock(m_tiffMutex);
+        std::lock_guard<std::mutex> lock(m_readMutex);
         TIFFSetDirectory(m_tiffHandle, level);
         TIFFWriteTile(m_tiffHandle, (void *) data, x, y, 0, 0);
         TIFFCheckpointDirectory(m_tiffHandle);
@@ -425,7 +436,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
             }
         }
         {
-            std::lock_guard<std::mutex> lock(m_tiffMutex);
+            std::lock_guard<std::mutex> lock(m_readMutex);
             TIFFSetDirectory(m_tiffHandle, level);
             TIFFWriteTile(m_tiffHandle, (void *) newData.get(), x, y, 0, 0);
             TIFFCheckpointDirectory(m_tiffHandle);
@@ -447,7 +458,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
 bool ImagePyramidAccess::isPatchInitialized(uint level, uint x, uint y) {
     if(m_image->isPyramidFullyInitialized())
         return true;
-    std::lock_guard<std::mutex> lock(m_tiffMutex);
+    std::lock_guard<std::mutex> lock(m_readMutex);
     TIFFSetDirectory(m_tiffHandle, level);
     auto tile = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
     return m_initializedPatchList.count(std::to_string(level) + "-" + std::to_string(tile)) > 0;
