@@ -153,13 +153,18 @@ jobs:
           tar -xf fast_*.tar.xz
       - name: Download test data
         run: |
-          cd  ${{github.workspace}}/fast/bin/
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
           ./downloadTestData
       - name: Run tests
         run: |
-          cd  ${{github.workspace}}/fast/bin/
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
           ./testFAST ~[visual]
       - name: Cleanup
+        if: always()
         run: |
           rm -Rf ${{github.workspace}}
           rm -Rf $HOME/FAST/kernel_binaries/*
