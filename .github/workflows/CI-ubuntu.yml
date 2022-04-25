@@ -14,6 +14,7 @@ env:
 
 jobs:
   build:
+    name: Build
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
@@ -137,18 +138,19 @@ jobs:
       shell: bash
 
   test:
+    name: Run C++ tests
     needs: [build]
     runs-on: [self-hosted, linux]
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: fast_*.tar.xz
+          name: 'Archive package (tar.xz)'
           path: ${{github.workspace}}
       - name: Extract artifact
         run: |
           cd ${{github.workspace}}
-          tar -xzvf fast_*.tar.xz
+          tar -xf fast_*.tar.xz
       - name: Download test data
         run: |
           cd  ${{github.workspace}}/fast/bin/
