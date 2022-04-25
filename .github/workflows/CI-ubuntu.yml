@@ -146,11 +146,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: 'Archive package (tar.xz)'
-          path: ${{github.workspace}}
+          path: ${{github.workspace}}/download/
       - name: Extract artifact
         run: |
-          cd ${{github.workspace}}
-          tar -xf fast_*.tar.xz
+          mkdir -p ${{github.workspace}}/download/
+          cd ${{github.workspace}}/download/
+          tar -xf fast_*.tar.xz -C ${{github.workspace}}
       - name: Download test data
         run: |
           cd ${{github.workspace}}
@@ -160,7 +161,7 @@ jobs:
       - name: Run tests
         run: |
           cd ${{github.workspace}}
-          cd fast*
+          cd fast_*
           cd fast/bin/
           ./testFAST ~[visual]
       - name: Cleanup
