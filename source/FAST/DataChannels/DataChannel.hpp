@@ -45,7 +45,7 @@ class FAST_EXPORT DataChannel : public Object {
         virtual bool hasCurrentData() = 0;
 
         /**
-         * Get current frame, throws if current frame is not available.
+         * @brief Get current frame, throws if current frame is not available.
          */
         virtual DataObject::pointer getFrame() = 0;
 

@@ -86,7 +86,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
          */
         void set3DMode();
 protected:
-    void startComputationThread();
+        void startComputationThread();
         void stopComputationThread();
         Window();
         View* createView();

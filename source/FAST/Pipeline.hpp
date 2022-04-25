@@ -15,9 +15,9 @@ class View;
 class FAST_EXPORT  Pipeline : public Object {
     public:
         Pipeline(std::string filename, std::map<std::string, std::string> variables = {{}});
-        std::vector<View*> getViews();
+        std::vector<View*> getViews() const;
         std::vector<std::shared_ptr<Renderer>> getRenderers();
-        std::map<std::string, std::shared_ptr<ProcessObject>> getProcessObjects();
+        std::map<std::string, std::shared_ptr<ProcessObject>> getProcessObjects() const;
         std::shared_ptr<ProcessObject> getProcessObject(std::string name);
         std::string getName() const;
         std::string getDescription() const;

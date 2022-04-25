@@ -312,9 +312,9 @@ void Pipeline::parse(std::map<std::string, std::shared_ptr<DataObject>> inputDat
     }
 }
 
-std::vector<View*> Pipeline::getViews() {
+std::vector<View*> Pipeline::getViews() const {
     Reporter::info() << "Setting up pipeline.." << Reporter::end();
-    if(mProcessObjects.size() == 0)
+    if(mProcessObjects.empty())
         throw Exception("You have to parse the pipeline file before calling getViews on the pipeline");
 
     // Get renderers
@@ -370,9 +370,9 @@ std::vector<Pipeline> getAvailablePipelines(std::string path) {
     return pipelines;
 }
 
-std::map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() {
-    if(mProcessObjects.size() == 0)
-        parse();
+std::map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() const {
+    if(mProcessObjects.empty())
+        throw Exception("You have to parse the pipeline before getting output data");
 
     return mProcessObjects;
 }

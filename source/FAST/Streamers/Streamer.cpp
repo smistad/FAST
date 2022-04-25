@@ -30,6 +30,7 @@ Streamer::Streamer() {
     m_firstFrameIsInserted = false;
     m_streamIsStarted = false;
     m_stop = false;
+    m_frameData["streaming"] = "yes";
 }
 
 void Streamer::stop() {
