@@ -293,6 +293,9 @@ void Pipeline::parse(std::map<std::string, std::shared_ptr<DataObject>> inputDat
             m_views[id] = view;
             if(tokens.size() > 2) {
                 for(int i = 2; i < tokens.size(); ++i) {
+                    if(mProcessObjects.count(tokens[i]) == 0)
+                        throw Exception("Renderer with name " + tokens[i] + " not found in pipeline file.");
+
                     view->addRenderer(std::dynamic_pointer_cast<Renderer>(mProcessObjects[tokens[i]]));
                     reportInfo() << "Added renderer " << tokens[i] << " to the view" << reportEnd();
                 }
