@@ -90,6 +90,7 @@ BoundingBoxSet::BoundingBoxSet() {
     mIsInitialized = true;
     mHostHasData = true;
     mHostDataIsUpToDate = true;
+    m_minimumSize = std::numeric_limits<float>::max();
 }
 
 int BoundingBoxSet::getNrOfLines() {
@@ -178,7 +179,7 @@ BoundingBoxSetAccess::pointer BoundingBoxSet::getAccess(accessType type) {
         mDataIsBeingAccessed = true;
     }
 
-    BoundingBoxSetAccess::pointer accessObject(new BoundingBoxSetAccess(&mCoordinates, &mLines, &m_labels, &m_scores, std::static_pointer_cast<BoundingBoxSet>(mPtr.lock())));
+    BoundingBoxSetAccess::pointer accessObject(new BoundingBoxSetAccess(&mCoordinates, &mLines, &m_labels, &m_scores, &m_minimumSize, std::static_pointer_cast<BoundingBoxSet>(mPtr.lock())));
 	return std::move(accessObject);
 }
 
@@ -360,6 +361,10 @@ DataBoundingBox BoundingBoxSet::getBoundingBox() const {
     return DataBoundingBox(Vector3f(minX, minY, 0), Vector3f(maxX - minX, maxY - minY, 0));
 }
 
+float BoundingBoxSet::getMinimumSize() const {
+    return m_minimumSize;
+}
+
 
 BoundingBoxSetAccumulator::BoundingBoxSetAccumulator() {
     createInputPort<BoundingBoxSet>(0);
@@ -385,7 +390,7 @@ void BoundingBoxSetAccumulator::execute() {
         coords[i + 1] += offsetY;
     }
 
-    outputAccess->addBoundingBoxes(coords, inputAccess->getLines(), inputAccess->getLabels(), inputAccess->getScores());
+    outputAccess->addBoundingBoxes(coords, inputAccess->getLines(), inputAccess->getLabels(), inputAccess->getScores(), input->getMinimumSize());
     addOutputData(0, m_accumulatedBBset);
 }
 

@@ -64,6 +64,7 @@ void TensorToBoundingBoxSet::execute() {
     int nodeIdx = 0;
     for(auto node : outputNodes) {
         auto tensor = std::dynamic_pointer_cast<Tensor>(node.second);
+        Vector3f spacing = tensor->getSpacing();
         if(!tensor)
             throw Exception("Output data " + std::to_string(node.first) + " was not a tensor");
         const auto shape = tensor->getShape();
@@ -79,7 +80,7 @@ void TensorToBoundingBoxSet::execute() {
         outputWidth = shape[1];
         channels = shape[2];
         float* tensorData = access->getRawData();
-        // Output tensor is 8x8x18, or 8x8x Anchors x (classes + 5)
+        // Output tensor is 8x8x18, or 8x8x (Anchors * (classes + 5))
         const int classes = channels / (int)m_anchors[nodeIdx].size() - 5;
 
         // Loop over grid
@@ -111,7 +112,7 @@ void TensorToBoundingBoxSet::execute() {
                     // Check if the bbox is properly inside the patch (at least 0.5 should be inside patch)
                     //float intersectionArea = (std::min(b_x + b_w, (float)inputWidth) - std::max(b_x, 0.0f)) * (std::min(b_y + b_h, (float)inputHeight) - std::max(b_y, 0.0f));
                     if (bestScore >= m_threshold/* && intersectionArea/(b_w*b_h) >= 0.5*/) {
-                        outputAccess->addBoundingBox(Vector2f(b_x, b_y), Vector2f(b_w, b_h), bestClass + 1, bestScore);
+                        outputAccess->addBoundingBox(Vector2f(b_x*spacing.x(), b_y*spacing.y()), Vector2f(b_w*spacing.x(), b_h*spacing.y()), bestClass + 1, bestScore);
                     }
                 }
             }

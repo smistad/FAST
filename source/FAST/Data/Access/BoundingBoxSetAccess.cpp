@@ -9,8 +9,9 @@ BoundingBoxSetAccess::BoundingBoxSetAccess(
 	std::vector<uint>* lines,
 	std::vector<uchar>* labels,
 	std::vector<float>* scores,
+	float* minimumSize,
 	std::shared_ptr<BoundingBoxSet> bbset
-	) : m_coordinates(coordinates), m_lines(lines), m_labels(labels), m_scores(scores), m_bbset(bbset) {
+	) : m_coordinates(coordinates), m_lines(lines), m_labels(labels), m_scores(scores), m_bbset(bbset), m_minimumSize(minimumSize) {
 
 }
 
@@ -22,6 +23,9 @@ void BoundingBoxSetAccess::addBoundingBox(BoundingBox::pointer box) {
 void BoundingBoxSetAccess::addBoundingBox(Vector2f position, Vector2f size, uchar label, float score) {
 	if(!m_released) {
 		int count = m_coordinates->size() / 3;
+
+		*m_minimumSize = std::min(*m_minimumSize, size.x());
+        *m_minimumSize = std::min(*m_minimumSize, size.y());
 
 		// Add the four corners of a bounding box
 		m_coordinates->push_back(position.x());
@@ -79,13 +83,14 @@ std::vector<float> BoundingBoxSetAccess::getScores() const {
 	return *m_scores;
 }
 
-void BoundingBoxSetAccess::addBoundingBoxes(std::vector<float> coordinates, std::vector<uint> lines, std::vector<uchar> labels, std::vector<float> scores) {
+void BoundingBoxSetAccess::addBoundingBoxes(std::vector<float> coordinates, std::vector<uint> lines, std::vector<uchar> labels, std::vector<float> scores, float minimumSize) {
 	const int size = m_coordinates->size() / 3;
 	m_coordinates->insert(m_coordinates->end(), coordinates.begin(), coordinates.end());
 	// Have to update indexes of new lines:
 	std::transform(lines.begin(), lines.end(), lines.begin(), [size](uint index) -> uint {
 		return index + size;
 	});
+	*m_minimumSize = std::min(*m_minimumSize, minimumSize);
 	m_lines->insert(m_lines->end(), lines.begin(), lines.end());
 	m_labels->insert(m_labels->end(), labels.begin(), labels.end());
 	m_scores->insert(m_scores->end(), scores.begin(), scores.end());

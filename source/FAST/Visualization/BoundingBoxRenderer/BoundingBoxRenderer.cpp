@@ -25,8 +25,6 @@ BoundingBoxRenderer::~BoundingBoxRenderer() {
 }
 
 void BoundingBoxRenderer::setBorderSize(float borderSize) {
-    if(borderSize <= 0.0f)
-        throw Exception("Border size to bounding box renderer must be > 0");
     m_borderSize = borderSize;
 }
 
@@ -39,7 +37,6 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
 
 	glDisable(GL_DEPTH_TEST);
     activateShader();
-    setShaderUniform("borderSize", m_borderSize);
     setShaderUniform("perspectiveTransform", perspectiveMatrix);
     setShaderUniform("viewTransform", viewingMatrix);
     auto colorsIndex = glGetUniformBlockIndex(getShaderProgram(), "Colors");   
@@ -48,6 +45,10 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
     // For all input data
     for(auto it : dataToRender) {
         auto boxes = std::static_pointer_cast<BoundingBoxSet>(it.second);
+        float borderSize = m_borderSize;
+        if(borderSize <= 0)
+            borderSize = boxes->getMinimumSize()*0.1f;
+        setShaderUniform("borderSize", borderSize);
         if(boxes->getNrOfLines() == 0)
             continue;
 
