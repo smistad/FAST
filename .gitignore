@@ -1,6 +1,7 @@
 build*/
 TestData/
 .idea/
+.vs/
 *.cl.bin
 *cl.cache
 .cproject
