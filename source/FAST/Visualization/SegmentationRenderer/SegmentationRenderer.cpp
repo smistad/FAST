@@ -265,14 +265,17 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
         float height = std::fabs(top_right.y() - bottom_left.y());
         //std::cout << "Viewing coordinates:" << bottom_left.transpose() << " " <<  top_right.transpose() << std::endl;
         //std::cout << "Current Size:" << width << " " <<  height << std::endl;
-        int offset_x = bottom_left.x();
-        int offset_y = top_right.y();
-        //std::cout << "Offset x:" << offset_x << std::endl;
-        //std::cout << "Offset y:" << offset_y << std::endl;
-
+        float offset_x = bottom_left.x();
+        float offset_y = top_right.y();
         m_input = std::dynamic_pointer_cast<ImagePyramid>(dataToRender);
         if(m_input == nullptr)
             throw Exception("The SegmentationPyramidRenderer requires an ImagePyramid data object");
+
+        Vector3f spacing = m_input->getSpacing();
+        offset_x *= 1.0f/spacing.x();
+        offset_y *= 1.0f/spacing.y();
+        width *= 1.0f/spacing.x();
+        height *= 1.0f/spacing.y();
         int fullWidth = m_input->getFullWidth();
         int fullHeight = m_input->getFullHeight();
         //std::cout << "scaling: " << fullWidth/width << std::endl;
@@ -306,7 +309,6 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
             m_tileQueue.clear();
         }
         m_currentLevel = levelToUse;
-
         /*
         bool queueChanged = false;
         {
@@ -323,7 +325,6 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
             m_queueEmptyCondition.notify_one();
             */
 
-        Vector3f spacing = m_input->getSpacing();
         activateShader();
         setShaderUniform("opacity", m_opacity);
         setShaderUniform("borderOpacity", mBorderOpacity);
@@ -333,7 +334,7 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
         // If rendering is in 2D mode we skip any transformations
         Affine3f transform = Affine3f::Identity();
 
-        //transform->getTransform().scale(m_input->getSpacing());
+        transform.scale(spacing);
 
         uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
@@ -372,10 +373,10 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
                 if(tile_y == mTilesY - 1)
                     tile_height = levelHeight - tile_offset_y;
 
-                tile_width *= spacing.x();
-                tile_height *= spacing.y();
-                tile_offset_x *= spacing.x();
-                tile_offset_y *= spacing.y();
+                //tile_width *= spacing.x();
+                //tile_height *= spacing.y();
+                //tile_offset_x *= spacing.x();
+                //tile_offset_y *= spacing.y();
 
                 // Only process visible patches
                 // Fully contained and partly
