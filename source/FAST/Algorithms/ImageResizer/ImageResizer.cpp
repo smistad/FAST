@@ -43,6 +43,7 @@ void ImageResizer::loadAttributes() {
     setHeight(size[1]);
     if(size.size() == 3)
         setDepth(size[2]);
+    setInterpolation(getBooleanAttribute("interpolate"));
 }
 
 ImageResizer::ImageResizer() {
@@ -57,6 +58,7 @@ ImageResizer::ImageResizer() {
     mInterpolation = true;
 
     createIntegerAttribute("size", "Size", "Size", 0);
+    createBooleanAttribute("interpolate", "Whether to interpolate", "", mInterpolation);
 }
 
 ImageResizer::ImageResizer(int width, int height, int depth, bool useInterpolation, bool preserveAspectRatio) : ImageResizer() {
