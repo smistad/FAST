@@ -153,14 +153,20 @@ void Window::initializeQtApp() {
     }
 
      // Create computation GL context, if it doesn't exist
-    if(mMainGLContext == NULL) {
+    if(mMainGLContext == NULL && Config::getVisualization()) {
         Reporter::info() << "Creating new GL context for computation thread" << Reporter::end();
 
         // Create GL context to be shared with the CL contexts
+        QGLWidget* widget = new QGLWidget;
+        mMainGLContext = new QGLContext(View::getGLFormat(), widget); // by including widget here the context becomes valid
+        mMainGLContext->create();
+        /*
         // Do this by creating an offscreen GL context using a dummy QGLPixelBuffer
+        // TODO this is not working for some.. why?
         auto buffer = new QGLPixelBuffer(8,8, View::getGLFormat());
         buffer->makeCurrent();
         mMainGLContext = buffer->context();
+         */
         if(!mMainGLContext->isValid()) {
             throw Exception("Qt GL context is invalid!");
         }
