@@ -160,7 +160,7 @@ jobs:
           ./downloadTestData
       - name: Run tests
         env:
-          DISPLAY: ':0.0'
+          DISPLAY: ':1'
         run: |
           cd ${{github.workspace}}
           cd fast_*
