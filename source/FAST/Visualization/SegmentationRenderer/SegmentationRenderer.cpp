@@ -195,15 +195,6 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
                         m_tileQueue.pop_back();
                     }
 
-                    // Check if tile has been processed before
-                    bool dirtyPatch = false;
-                    if(mPyramidTexturesToRender.count(tileID) > 0) {
-                        if(m_input->getDirtyPatches().count(tileID) == 0) {
-                            //continue; // This would mean only dirty patches are created..
-                        } else {
-                            dirtyPatch = true;
-                        }
-                    }
                     // Create texture
                     auto parts = split(tileID, "_");
                     if(parts.size() != 3)
@@ -217,9 +208,9 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
                     Image::pointer patch;
                     {
                         auto access = m_input->getAccess(ACCESS_READ);
-                        // TODO This is causing issues, why?
                         //if(!access->isPatchInitialized(level, tile_x*m_input->getLevelTileWidth(level), tile_y*m_input->getLevelTileHeight(level)))
                         //    continue;
+                        m_input->clearDirtyPatches({tileID}); // Have to clear this here to avoid clearing a dirty patch prematurely
                         patch = access->getPatchAsImage(level, tile_x, tile_y);
                     }
                     auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, true);
@@ -247,10 +238,6 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
                     } else {
                         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
                         mPyramidTexturesToRender[tileID] = textureID;
-                    }
-
-                    if(dirtyPatch) {
-                        m_input->clearDirtyPatches({tileID});
                     }
 
                     m_memoryUsage += compressedImageSize;

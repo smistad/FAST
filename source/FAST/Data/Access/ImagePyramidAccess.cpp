@@ -384,6 +384,8 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
         }
         patch = paddedImage;
     }
+
+    // Write tile to this level
     auto patchAccess = patch->getImageAccess(ACCESS_READ);
     auto data = (uchar*)patchAccess->get();
     uint32_t tile_id;
