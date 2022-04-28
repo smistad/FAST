@@ -263,9 +263,13 @@ static void* _intToVoidPointer(std::size_t intPointer) {
         has_channels = True
     elif len(shape) == 3 and shape[-1] > 4:
         is_2d = False
+    elif len(shape) >= 5:
+        raise ValueError('Input to image cannot have shape with more than 4 dimensions')
     elif len(shape) > 3:
         is_2d = False
         has_channels = True
+    elif len(shape) < 2:
+        raise ValueError('Input to image must have a shape with at least 2 dimensions')
     if is_2d:
         return Image.create(
             shape[1],
