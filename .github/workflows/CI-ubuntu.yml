@@ -178,8 +178,6 @@ jobs:
     runs-on: [self-hosted, linux]
     steps:
       - uses: actions/checkout@v2
-        with:
-          persist-credentials: false
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -188,6 +186,8 @@ jobs:
       - name: Create environment and install python packages
         run: |
           cd ${{github.workspace}}
+          mkdir tmp
+          cd tmp
           virtualenv -p python3 venv
           source venv/bin/activate
           pip3 install pytest
@@ -196,13 +196,13 @@ jobs:
         env:
           DISPLAY: ':1'
         run: |
-          cd ${{github.workspace}}
+          cd ${{github.workspace}}/tmp/
           source venv/bin/activate
-          cd source/FAST/
-          pytest
+          pytest ../source/FAST/
       - name: Cleanup
         if: always()
         run: |
-          rm -Rf ${{github.workspace}}
+          rm -Rf ${{github.workspace}}/download/
+          rm -Rf ${{github.workspace}}/tmp/
           rm -Rf $HOME/FAST/kernel_binaries/*
 
