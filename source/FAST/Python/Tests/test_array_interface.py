@@ -1,5 +1,6 @@
 import fast
 import numpy as np
+import pytest
 
 
 def test_2D_image_array_interface():
@@ -67,3 +68,14 @@ def test_3D_image_array_interface():
             assert image.getNrOfChannels() == channels
             assert image.getDataType() == fast_type
             assert np.array_equal(np.asarray(image), data)
+
+def test_image_array_interface_exceptions():
+    data = ''
+    with pytest.raises(ValueError):
+        fast.Image.createFromArray(data)
+    data = np.ndarray((16,), dtype=np.uint8)
+    with pytest.raises(ValueError):
+        fast.Image.createFromArray(data)
+    data = np.ndarray((16,34,23,54,23), dtype=np.uint8)
+    with pytest.raises(ValueError):
+        fast.Image.createFromArray(data)

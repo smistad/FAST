@@ -1,3 +1,8 @@
+# Check that user is importing FAST in main thread, which is necessary for Qt
+import threading
+if threading.current_thread() != threading.main_thread():
+    raise ImportError('FAST must be imported in main thread (import fast)!')
+
 import os
 import sys
 is_windows = sys.platform.startswith('win')
@@ -14,4 +19,4 @@ from .fast import *
 fast.Config.setBasePath(bin_path)
 fast.Config.setTerminateHandlerDisabled(True)
 if True not in [x in sys.argv[0] for x in ['UFFviewer', 'runPipeline', 'systemCheck']]:
-    fast.Object() # Trigger splash
+    fast.ImageFileImporter.create('') # Trigger splash, GL context initialization etc.
