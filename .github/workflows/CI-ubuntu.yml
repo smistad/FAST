@@ -193,11 +193,11 @@ jobs:
       - name: Run tests
         env:
           DISPLAY: ':1'
-          run: |
-            cd ${{github.workspace}}
-            source venv/bin/activate
-            cd source/FAST/
-            pytest
+        run: |
+          cd ${{github.workspace}}
+          source venv/bin/activate
+          cd source/FAST/
+          pytest
       - name: Cleanup
         if: always()
         run: |
