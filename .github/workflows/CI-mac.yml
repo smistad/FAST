@@ -19,18 +19,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Setup keychain
-      if: ${{ github.event_name != 'pull_request' }}
-      run: |
-        echo "${{ secrets.MACOS_CERTIFICATE }}" | base64 --decode > certificate.p12
-        security create-keychain -p ${{ secrets.MACOS_CERTIFICATE_PW }} build.keychain
-        security default-keychain -s build.keychain
-        security set-keychain-settings -lut 10800
-        security unlock-keychain -p ${{ secrets.MACOS_CERTIFICATE_PW }} build.keychain
-        security import certificate.p12 -k build.keychain -P ${{ secrets.MACOS_CERTIFICATE_PW }} -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.MACOS_CERTIFICATE_PW }} build.keychain
-      shell: bash
-    
     - name: Setup pyenv
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -49,7 +37,6 @@ jobs:
     - name: Configure CMake
       run: |
         cmake -B ${{github.workspace}}/build \
-            -DFAST_SIGN_CODE=${{ github.event_name == 'pull_request' && 'OFF' || 'ON' }} \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
             -DFAST_MODULE_OpenVINO=ON \
             -DFAST_MODULE_Dicom=ON \
