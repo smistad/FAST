@@ -19,18 +19,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Setup keychain
-      if: ${{ github.event_name != 'pull_request' }}
-      run: |
-        echo "${{ secrets.MACOS_CERTIFICATE }}" | base64 --decode > certificate.p12
-        security create-keychain -p ${{ secrets.MACOS_CERTIFICATE_PW }} build.keychain
-        security default-keychain -s build.keychain
-        security set-keychain-settings -lut 10800
-        security unlock-keychain -p ${{ secrets.MACOS_CERTIFICATE_PW }} build.keychain
-        security import certificate.p12 -k build.keychain -P ${{ secrets.MACOS_CERTIFICATE_PW }} -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.MACOS_CERTIFICATE_PW }} build.keychain
-      shell: bash
-    
     - name: Setup pyenv
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -49,7 +37,6 @@ jobs:
     - name: Configure CMake
       run: |
         cmake -B ${{github.workspace}}/build \
-            -DFAST_SIGN_CODE=${{ github.event_name == 'pull_request' && 'OFF' || 'ON' }} \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
             -DFAST_MODULE_OpenVINO=ON \
             -DFAST_MODULE_Dicom=ON \
@@ -122,3 +109,68 @@ jobs:
         sleep 30
         pip3 install pyfast==${GITHUB_REF#refs/tags/v}
       shell: bash
+
+  test-cpp:
+    name: Run C++ Tests
+    needs: [build]
+    runs-on: [self-hosted, macos]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: 'Archive package (tar.xz)'
+          path: ${{github.workspace}}/download/
+      - name: Extract artifact
+        run: |
+          mkdir -p ${{github.workspace}}/download/
+          cd ${{github.workspace}}/download/
+          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+      - name: Download test data
+        run: |
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
+          ./downloadTestData
+      - name: Run tests
+        run: |
+          cd ${{github.workspace}}
+          cd fast_*
+          cd fast/bin/
+          ./testFAST ~[visual]
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -Rf ${{github.workspace}}
+          rm -Rf $HOME/FAST/kernel_binaries/*
+          
+  test-python:
+    name: Run Python Tests
+    needs: [build]
+    runs-on: [self-hosted, macos]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: 'Python wheel'
+          path: ${{github.workspace}}/download/
+      - name: Create environment and install python packages
+        run: |
+          cd ${{github.workspace}}
+          mkdir tmp
+          cd tmp
+          virtualenv -p python3 venv
+          source venv/bin/activate
+          pip3 install pytest
+          pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+      - name: Run tests
+        run: |
+          cd ${{github.workspace}}/tmp/
+          source venv/bin/activate
+          pytest ../source/FAST/
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -Rf ${{github.workspace}}/download/
+          rm -Rf ${{github.workspace}}/tmp/
+          rm -Rf $HOME/FAST/kernel_binaries/*
