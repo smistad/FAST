@@ -127,21 +127,26 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
         maxLevel = std::max(maxLevel, (int)tile_header.level);
     }
 
+    // This format does necessarily have the same aspect ratio for each level. And downsampling factor varies from level to level
+    // Thus we create a fake pyramid which is half downsampled for each level from level 0. Any tiles or data requested outside should be blank.
+    // The format does not seem to store tiles which are just glass at a high-resolution.
     std::vector<ImagePyramidLevel> levelList;
-    int fullWidth = (maxTiles[maxLevel].first+1)*ets_header.dimx*std::pow(2, maxLevel);
-    int fullHeight = (maxTiles[maxLevel].second+1)*ets_header.dimy*std::pow(2, maxLevel);
+    int fullWidth = (maxTiles[0].first+1)*ets_header.dimx;
+    int fullHeight = (maxTiles[0].second+1)*ets_header.dimy;
     for(int level = 0; level <= maxLevel; ++level) {
         ImagePyramidLevel levelData;
         levelData.tileWidth = ets_header.dimx;
         levelData.tileHeight = ets_header.dimy;
-        levelData.width = (maxTiles[level].first+1)*ets_header.dimx;
-        levelData.height = (maxTiles[level].second+1)*ets_header.dimy;
+        //levelData.width = (maxTiles[level].first+1)*ets_header.dimx;
+        //levelData.height = (maxTiles[level].second+1)*ets_header.dimy;
+        levelData.width = fullWidth;
+        levelData.height = fullHeight;
+        reportInfo() << "VSI level: " << level << ": " << levelData.width << " " << levelData.height << reportEnd();
+        levelData.tilesX = std::ceil((float)fullWidth / ets_header.dimx);
+        levelData.tilesY = std::ceil((float)fullHeight / ets_header.dimy);
         fullWidth /= 2;
         fullHeight /= 2;
-        reportInfo() << "VSI level: " << level << ": " << levelData.width << " " << levelData.height << reportEnd();
-        levelData.tilesX = maxTiles[level].first+1;
-        levelData.tilesY = maxTiles[level].second+1;
-        if(levelData.width < 2048 || levelData.height < 2048) // Skip very small levels
+        if(levelData.width < 1024 || levelData.height < 1024) // Skip very small levels
             break;
         levelList.push_back(levelData);
     }

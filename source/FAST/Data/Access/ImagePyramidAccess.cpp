@@ -188,7 +188,8 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             int firstTileX = x / m_image->getLevelTileWidth(level);
             int firstTileY = y / m_image->getLevelTileHeight(level);
             int lastTileX = std::ceil((float)(x + width) / m_image->getLevelTileWidth(level));
-            int lastTileY = std::ceil((float)(y + height) / m_image->getLevelTileWidth(level));
+            int lastTileY = std::ceil((float)(y + height) / m_image->getLevelTileHeight(level));
+            const int targetNumberOfTiles = std::ceil((float)width/m_image->getLevelTileWidth(level))*std::ceil((float)height/m_image->getLevelTileHeight(level));
             for(int i = 0; i < m_vsiTiles.size(); ++i) {
                 vsi_tile_header currentTile = m_vsiTiles[i];
                 if(currentTile.level != level)
@@ -202,7 +203,14 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             if(tilesToRead.empty())
                 throw Exception("Tiles to ready empty");
 
-            auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*tilesToRead.size()*channels);
+            auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*targetNumberOfTiles*channels);
+            if(tilesToRead.size() != targetNumberOfTiles) { // Some tiles are missing.. (edge case) fill with some blank value
+                if(channels > 1) {
+                    std::memset(fullTileBuffer.get(), 255, tileWidth*tileHeight*targetNumberOfTiles*channels);
+                } else {
+                    std::memset(fullTileBuffer.get(), 0, tileWidth*tileHeight*targetNumberOfTiles*channels);
+                }
+            }
             const auto fullTileBufferWidth = (lastTileX-firstTileX)*tileWidth;
             // Read tile to buffer
             auto tileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*channels); // assume full tiles of same size for all
@@ -339,10 +347,11 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     auto data = getPatchData(level, tile.offsetX, tile.offsetY, tile.width, tile.height);
 
     float scale = m_image->getLevelScale(level);
+    Vector3f spacing = m_image->getSpacing();
     auto image = Image::create(tile.width, tile.height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
     image->setSpacing(Vector3f(
-            scale,
-            scale,
+            scale*spacing.x(),
+            scale*spacing.y(),
             1.0f
     ));
     // TODO Set transformation

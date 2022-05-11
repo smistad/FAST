@@ -382,12 +382,7 @@ bool ImagePyramid::isPyramidFullyInitialized() const {
 }
 
 float ImagePyramid::getLevelScale(int level) {
-    if(m_vsiTiles.empty()) {
-        return (float)getFullWidth()/getLevelWidth(level);
-    } else {
-        // Special treatment for VSI data
-        return getLevelTilesX(getNrOfLevels()-1)*std::pow(2, getNrOfLevels()-1)/(getLevelTilesX(getNrOfLevels()-1)*std::pow(2, getNrOfLevels() - level - 1));
-    }
+    return (float)getFullWidth()/getLevelWidth(level);
 }
 
 

@@ -214,7 +214,6 @@ void RenderToImage::recalculateCamera() {
 
 
         float aspect = (max[yDirection] - min[yDirection])/(max[xDirection] - min[xDirection]);
-        std::cout << "Aspect: " << aspect << std::endl;
         if(m_width < 0 && m_height < 0)
             throw Exception("Width and height in RenderToImage can't both be below 0");
         if(m_height < 0) {
@@ -223,7 +222,6 @@ void RenderToImage::recalculateCamera() {
         if(m_width < 0) {
             m_width = round(m_height*(1.0f/aspect));
         }
-        std::cout << m_width << " " << m_height << std::endl;
         // Move objects away from camera so that we see everything
         float z_width = (max[xDirection] - min[xDirection]);
         float z_height = (max[yDirection] - min[yDirection]);
