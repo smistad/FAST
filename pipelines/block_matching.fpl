@@ -3,6 +3,8 @@ PipelineDescription "Block matching on image stream"
 
 ProcessObject streamer ImageFileStreamer
 Attribute fileformat @@fileformat=$TEST_DATA_PATH$/US/Heart/ApicalFourChamber/US-2D_#.mhd@@
+Attribute framerate 10
+Attribute loop true
 
 ProcessObject blockMatch BlockMatching
 Attribute search-size @@search-size=9@@
