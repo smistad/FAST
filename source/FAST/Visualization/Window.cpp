@@ -374,4 +374,8 @@ void Window::clearViews() {
     mThread->clearViews();
 }
 
+std::shared_ptr<ComputationThread> Window::getComputationThread() {
+    return mThread;
+}
+
 } // end namespace fast

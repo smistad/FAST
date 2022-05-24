@@ -88,6 +88,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
 protected:
         void startComputationThread();
         void stopComputationThread();
+        std::shared_ptr<ComputationThread> getComputationThread();
         Window();
         View* createView();
 
