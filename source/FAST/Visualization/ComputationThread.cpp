@@ -95,15 +95,21 @@ void ComputationThread::run() {
             for(View *view : mViews) {
                 view->updateRenderers(executeToken);
             }
-
-            if(m_signalFinished) {
+            bool signalFinished;
+            {
+                std::lock_guard<std::mutex> lock(mUpdateThreadMutex);
+                signalFinished = m_signalFinished;
+            }
+            if(signalFinished) {
                 if(isStreaming) {
                     if(isDone) {
                         emit pipelineFinished();
+                        std::lock_guard<std::mutex> lock(mUpdateThreadMutex);
                         m_signalFinished = false;
                     }
                 } else {
                     emit pipelineFinished();
+                    std::lock_guard<std::mutex> lock(mUpdateThreadMutex);
                     m_signalFinished = false;
                 }
             }
@@ -231,10 +237,16 @@ std::vector<std::shared_ptr<ProcessObject>> ComputationThread::getProcessObjects
 }
 
 void ComputationThread::setPipeline(const Pipeline &pipeline) {
+    std::lock_guard<std::mutex> lock(mUpdateThreadMutex);
     for(auto po : pipeline.getProcessObjects()) {
         m_processObjects.push_back(po.second);
     }
     m_views = pipeline.getViews();
+    m_signalFinished = true;
+}
+
+void ComputationThread::reset() {
+    std::lock_guard<std::mutex> lock(mUpdateThreadMutex);
     m_signalFinished = true;
 }
 

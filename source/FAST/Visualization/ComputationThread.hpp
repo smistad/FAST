@@ -49,6 +49,7 @@ class FAST_EXPORT ComputationThread : public QObject, public Object {
          * @param pipeline
          */
         void setPipeline(const Pipeline& pipeline);
+        void reset();
     public Q_SLOTS:
         void run();
     Q_SIGNALS:
