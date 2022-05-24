@@ -58,7 +58,7 @@ void jpegErrorExit(j_common_ptr cinfo) {
 }
 
 void ImagePyramidAccess::readVSITileToBuffer(vsi_tile_header tile, uchar* data) {
-    auto buffer = make_uninitialized_unique<char>(tile.numbytes);
+    auto buffer = make_uninitialized_unique<char[]>(tile.numbytes);
 
     // Reading VSI tiles is not thread safe
     {
@@ -189,7 +189,8 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             int firstTileY = y / m_image->getLevelTileHeight(level);
             int lastTileX = std::ceil((float)(x + width) / m_image->getLevelTileWidth(level));
             int lastTileY = std::ceil((float)(y + height) / m_image->getLevelTileHeight(level));
-            const int targetNumberOfTiles = std::ceil((float)width/m_image->getLevelTileWidth(level))*std::ceil((float)height/m_image->getLevelTileHeight(level));
+            // How many tiles we are supposed to have
+            const int targetNumberOfTiles = (lastTileX-firstTileX)*(lastTileY-firstTileY);
             for(int i = 0; i < m_vsiTiles.size(); ++i) {
                 vsi_tile_header currentTile = m_vsiTiles[i];
                 if(currentTile.level != level)
