@@ -25,6 +25,7 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
         std::string line;
         std::getline(file, line);
         line = replace(line, "$TEST_DATA_PATH$", Config::getTestDataPath());
+        line = replace(line, "$CURRENT_PATH$", getDirName(filename));
 
         trim(line);
         if(line.empty() || line[0] == '#')
