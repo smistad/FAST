@@ -21,7 +21,7 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         void setSharpening(bool sharpening);
         bool getSharpening() const;
         void loadAttributes() override;
-        ~ImagePyramidRenderer() override;
+        ~ImagePyramidRenderer();
         void clearPyramid();
     private:
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);

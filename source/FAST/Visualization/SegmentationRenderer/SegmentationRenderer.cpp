@@ -521,13 +521,18 @@ void SegmentationRenderer::deleteAllTextures() {
 }
 
 SegmentationRenderer::~SegmentationRenderer() {
-    m_stop = true;
+    reportInfo() << "Destroying SegmentationRenderer in THREAD: " << std::this_thread::get_id() << reportEnd();
+    {
+        std::unique_lock<std::mutex> lock(m_tileQueueMutex);
+        m_stop = true;
+    }
     m_queueEmptyCondition.notify_one();
     if(m_bufferThread) {
         m_bufferThread->join();
         reportInfo() << "Buffer thread in SegmentationRenderer stopped" << reportEnd();
     }
     deleteAllTextures();
+    reportInfo() << "Textures cleared" << reportEnd();
 }
 
 }

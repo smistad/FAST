@@ -37,11 +37,16 @@ void ImagePyramidRenderer::clearPyramid() {
 }
 
 ImagePyramidRenderer::~ImagePyramidRenderer() {
-    m_stop = true;
+    reportInfo() << "Destroying ImagePyramidRenderer in THREAD: " << std::this_thread::get_id() << reportEnd();
+    {
+        std::unique_lock<std::mutex> lock(m_tileQueueMutex);
+        m_stop = true;
+    }
     m_queueEmptyCondition.notify_one();
     m_bufferThread->join();
     reportInfo() << "Buffer thread in ImagePyramidRenderer stopped" << reportEnd();
-    clearPyramid();
+    clearPyramid(); // Free memory
+    reportInfo() << "Pyramid cleared" << reportEnd();
 }
 
 ImagePyramidRenderer::ImagePyramidRenderer(bool sharpening) : Renderer() {
