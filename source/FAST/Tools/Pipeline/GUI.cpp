@@ -136,13 +136,15 @@ GUI::GUI() {
 void GUI::loadPipeline() {
 	// Set up pipeline and view
 	try {
-
-		stopComputationThread();
+	    auto thread = getComputationThread();
+	    thread->clearViews();
+        thread->clearProcessObjects();
 
 		// Remove and delete old views
 		auto views = getViews();
 		clearViews();
 		for(auto view : views) {
+		    view->stopPipeline();
 			delete view;
 		}
 
@@ -189,8 +191,6 @@ void GUI::loadPipeline() {
         for(auto view : pipeline.getViews()) {
             view->reinitialize();
         }
-        // Restart computation thread
-		startComputationThread();
 
 	} catch(Exception &e) {
 		std::string errorMessage = e.what();

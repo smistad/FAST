@@ -223,13 +223,15 @@ void UFFViewerWindow::loadView() {
 
     // Set up pipeline and view
     try {
-
-        stopComputationThread();
+        auto thread = getComputationThread();
+        thread->clearViews();
+        thread->clearProcessObjects();
 
         // Remove and delete old views
         auto views = getViews();
         clearViews();
         for(auto view : views) {
+            view->stopPipeline();
             delete view;
         }
 
@@ -276,9 +278,6 @@ void UFFViewerWindow::loadView() {
             view->reinitialize();
         }
         m_slider->setRange(0, m_streamer->getNrOfFrames()-1); // This must be called after update, due to refactoring in UFFStreamer
-        // Restart computation thread
-        startComputationThread();
-
     } catch(Exception &e) {
         std::string errorMessage = e.what();
         int ret = QMessageBox::critical(mWidget, "Pipeline",
