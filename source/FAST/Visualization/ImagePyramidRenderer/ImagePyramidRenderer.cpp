@@ -46,8 +46,10 @@ ImagePyramidRenderer::~ImagePyramidRenderer() {
         m_stop = true;
     }
     m_queueEmptyCondition.notify_one();
-    m_bufferThread->join();
-    reportInfo() << "Buffer thread in ImagePyramidRenderer stopped" << reportEnd();
+    if(m_bufferThread) {
+        m_bufferThread->join();
+        reportInfo() << "Buffer thread in ImagePyramidRenderer stopped" << reportEnd();
+    }
     clearPyramid(); // Free memory
     reportInfo() << "Pyramid cleared" << reportEnd();
 }
