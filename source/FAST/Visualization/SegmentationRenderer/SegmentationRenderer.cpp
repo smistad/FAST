@@ -4,8 +4,11 @@
 #include "SegmentationRenderer.hpp"
 #include <QGLContext>
 #include <FAST/Visualization/View.hpp>
-#if defined(__APPLE__) || defined(__MACOSX)
+#ifdef WIN32
+#elif defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
+#else
+#include <GL/glx.h>
 #endif
 
 namespace fast {
@@ -126,7 +129,6 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
 
         if(!m_bufferThread) {
             // Create thread to load patches
-#ifdef WIN32
             // Create a GL context for the thread which is sharing with the context of the view
             auto context = new QGLContext(View::getGLFormat(), m_view);
             context->create(m_view->context());
@@ -138,26 +140,15 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
                 throw Exception("The custom Qt GL context is not sharing!");
 
             context->makeCurrent();
+#ifdef WIN32
             auto nativeContextHandle = wglGetCurrentContext();
             context->doneCurrent();
             m_view->context()->makeCurrent();
             auto dc = wglGetCurrentDC();
 
             m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle]() {
-            wglMakeCurrent(dc, nativeContextHandle);
-
+                wglMakeCurrent(dc, nativeContextHandle);
 #elif defined(__APPLE__)
-            // Create a GL context for the thread which is sharing with the context of the view
-            auto context = new QGLContext(View::getGLFormat(), m_view);
-            context->create(m_view->context());
-
-            if(!context->isValid())
-                throw Exception("The custom Qt GL context is invalid!");
-
-            if(!context->isSharing())
-                throw Exception("The custom Qt GL context is not sharing!");
-
-            context->makeCurrent();
             auto nativeContextHandle = CGLGetCurrentContext();
             context->doneCurrent();
             m_view->context()->makeCurrent();
@@ -165,16 +156,14 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
             m_bufferThread = std::make_unique<std::thread>([this, nativeContextHandle]() {
                 CGLSetCurrentContext(nativeContextHandle);
 #else
-            m_bufferThread = std::make_unique<std::thread>([this]() {
-                // Create a GL context for the thread which is sharing with the context of the view
-                auto context = new QGLContext(View::getGLFormat(), m_view);
-                context->create(m_view->context());
-                if(!context->isValid())
-                    throw Exception("The custom Qt GL context is invalid!");
+            auto nativeContextHandle = glXGetCurrentContext();
+            auto drawable = glXGetCurrentDrawable();
+            auto display = glXGetCurrentDisplay();
+            context->doneCurrent();
+            m_view->context()->makeCurrent();
 
-                if(!context->isSharing())
-                    throw Exception("The custom Qt GL context is not sharing!");
-                context->makeCurrent();
+            m_bufferThread = std::make_unique<std::thread>([this, display, drawable, nativeContextHandle]() {
+                glXMakeCurrent(display, drawable, nativeContextHandle);
 #endif
                 OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
