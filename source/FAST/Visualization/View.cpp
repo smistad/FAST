@@ -176,12 +176,12 @@ void View::execute() {
 }
 
 void View::updateRenderersInput(int executeToken) {
-    for(auto&& renderer : mNonVolumeRenderers) {
+    for(auto renderer : mNonVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
             renderer->getInputPort(i)->getProcessObject()->update(executeToken);
         }
     }
-    for(auto&& renderer : mVolumeRenderers) {
+    for(auto renderer : mVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
             renderer->getInputPort(i)->getProcessObject()->update(executeToken);
         }
@@ -561,7 +561,7 @@ void View::paintGL() {
     if(mIsIn2DMode) {
 
         mRuntimeManager->startRegularTimer("draw2D");
-        for(auto& renderer : mNonVolumeRenderers) {
+        for(auto renderer : mNonVolumeRenderers) {
             if(!renderer->isDisabled()) {
                 renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true);
                 renderer->postDraw();
@@ -578,7 +578,7 @@ void View::paintGL() {
         }
 
         mRuntimeManager->startRegularTimer("draw");
-        for(auto& renderer : mNonVolumeRenderers) {
+        for(auto renderer : mNonVolumeRenderers) {
             if(!renderer->isDisabled()) {
                 renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
                 renderer->postDraw();
@@ -587,7 +587,7 @@ void View::paintGL() {
 
         if(!mVolumeRenderers.empty()) {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
-            for(auto& renderer : mVolumeRenderers) {
+            for(auto renderer : mVolumeRenderers) {
                 if(!renderer->isDisabled()) {
                     renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
                     renderer->postDraw();
@@ -763,6 +763,7 @@ void View::set3DMode() {
 }
 
 std::vector<Renderer::pointer> View::getRenderers() {
+    std::lock_guard<std::mutex> lock(m_mutex);
     std::vector<Renderer::pointer> newList = mNonVolumeRenderers;
     newList.insert(newList.cend(), mVolumeRenderers.begin(), mVolumeRenderers.end());
     return newList;
