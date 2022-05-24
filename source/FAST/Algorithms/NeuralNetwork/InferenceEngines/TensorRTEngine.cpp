@@ -191,6 +191,7 @@ void TensorRTEngine::load() {
         }
     }
     if(!loadSerializedFile) {
+        reportWarning() << "TensorRT will now perform auto-tuning for your model. This may take a while! But this is only done the first time loading a new model." << reportEnd();
         // File is not serialized: Create it
         if(!fileExists(filename))
             throw FileNotFoundException(filename);
