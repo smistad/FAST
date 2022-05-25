@@ -47,8 +47,25 @@ void HDF5TensorImporter::execute() {
 
 	auto data = std::make_unique<float[]>(shape.getTotalSize());
 	dataset.read(data.get(), H5::PredType::NATIVE_FLOAT, dataspace, dataspace);
+
+    // Read spacing information (if any)
+    VectorXf spacing;
+    bool spacingRead = false;
+    try {
+        auto dataset = file.openDataSet("spacing");
+        auto data = std::make_unique<float[]>(shape.getDimensions());
+        auto dataspace = dataset.getSpace();
+        spacing = VectorXf(shape.getDimensions());
+        dataset.read(spacing.data(), H5::PredType::NATIVE_FLOAT, dataspace, dataspace);
+        spacingRead = true;
+    } catch(std::exception &e) {
+        reportWarning() << "Exception reading spacing from HDF5 file: " << e.what() << reportEnd();
+    }
+
 	file.close();
     auto tensor = Tensor::create(std::move(data), shape);
+    if(spacingRead)
+        tensor->setSpacing(spacing);
 	addOutputData(0, tensor);
 }
 
