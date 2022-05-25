@@ -176,47 +176,27 @@ void View::execute() {
 }
 
 void View::updateRenderersInput(int executeToken) {
-    for(auto renderer : mNonVolumeRenderers) {
+    for(auto renderer : getRenderers()) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
             renderer->getInputPort(i)->getProcessObject()->update(executeToken);
         }
     }
-    for(auto renderer : mVolumeRenderers) {
-        for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            renderer->getInputPort(i)->getProcessObject()->update(executeToken);
-        }
-    }
-
 }
 
 void View::updateRenderers(int executeToken) {
-    // Copy list of renderers while locked
-    std::unique_lock<std::mutex> lock(m_mutex);
-    auto nonVolumeRenderers = mNonVolumeRenderers;
-    auto volumeRenderers = mVolumeRenderers;
-    lock.unlock();
-
-    // Then execute
-    for(auto renderer : nonVolumeRenderers) {
-        renderer->update(executeToken);
-    }
-    for(auto renderer : volumeRenderers) {
+    for(auto renderer : getRenderers()) {
         renderer->update(executeToken);
     }
 }
 
 void View::stopRenderers() {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
-        renderer->stopPipeline();
-    }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
+    for(auto renderer : getRenderers()) {
         renderer->stopPipeline();
     }
 }
 
 void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f &min, Vector3f &max) {
-    std::vector<Renderer::pointer> renderers = mNonVolumeRenderers;
-    renderers.insert(renderers.end(), mVolumeRenderers.begin(), mVolumeRenderers.end());
+    std::vector<Renderer::pointer> renderers = getRenderers();
     // Get bounding boxes of all objects
     bool initialized = false;
     for(int i = 0; i < renderers.size(); i++) {
@@ -489,8 +469,7 @@ void View::initializeGL() {
     // Enable transparency
     glEnable(GL_BLEND);
     // Update all renderes, so that getBoundingBox works
-    std::vector<Renderer::pointer> renderers = mNonVolumeRenderers;
-    renderers.insert(renderers.end(), mVolumeRenderers.begin(), mVolumeRenderers.end());
+    std::vector<Renderer::pointer> renderers = getRenderers();
     for(int i = 0; i < renderers.size(); i++) {
         if(!renderers[i]->isDisabled())
             renderers[i]->update();
@@ -559,7 +538,6 @@ void View::paintGL() {
     }
 
     if(mIsIn2DMode) {
-
         mRuntimeManager->startRegularTimer("draw2D");
         for(auto renderer : mNonVolumeRenderers) {
             if(!renderer->isDisabled()) {
@@ -568,7 +546,6 @@ void View::paintGL() {
             }
         }
         mRuntimeManager->stopRegularTimer("draw2D");
-
     } else {
         if(getNrOfInputConnections() > 0) {
             // Has camera input connection, get camera
@@ -770,10 +747,7 @@ std::vector<Renderer::pointer> View::getRenderers() {
 }
 
 void View::resetRenderers() {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
-        renderer->reset();
-    }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
+    for(auto renderer : getRenderers()) {
         renderer->reset();
     }
 }
