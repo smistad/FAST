@@ -136,7 +136,7 @@ jobs:
           cd ${{github.workspace}}
           cd fast_*
           cd fast/bin/
-          ./testFAST ~[visual]
+          ./testFAST ~[visual]~[unstablemac]
       - name: Cleanup
         if: always()
         run: |
