@@ -3,6 +3,7 @@
 #include "View.hpp"
 #include <QGLContext>
 #include <QApplication>
+#include <QMessageBox>
 
 namespace fast {
 
@@ -116,7 +117,29 @@ void ComputationThread::run() {
         } catch(ThreadStopped &e) {
             reportInfo() << "Thread stopped exception occured in ComputationThread, exiting.." << reportEnd();
             break;
+		} catch(Exception &e) {
+            QString msg = "FAST exception caught: " + QString(e.what());
+            emit criticalError(msg);
+            for (View* view : mViews) {
+                view->stopPipeline();
+                view->removeAllRenderers();
+            }
+        } catch(cl::Error &e) {
+			QString msg = "OpenCL exception caught: "  + QString(e.what()) + "(" + QString(getCLErrorString(e.err()).c_str()) + ")";
+            emit criticalError(msg);
+            for (View* view : mViews) {
+                view->stopPipeline();
+                view->removeAllRenderers();
+            }
+        } catch(std::exception &e) {
+            QString msg = "Standard (std) exception caught: " + QString(e.what());
+            emit criticalError(msg);
+            for (View* view : mViews) {
+                view->stopPipeline();
+                view->removeAllRenderers();
+            }
         }
+
         ++executeToken;
     }
 

@@ -5,6 +5,7 @@
 #include <QScreen>
 #include <QIcon>
 #include <QFontDatabase>
+#include <QMessageBox>
 #ifndef WIN32
 #ifndef __APPLE__
 #include <X11/Xlib.h>
@@ -26,18 +27,27 @@ public:
 
     // reimplemented from QApplication so we can throw exceptions in slots
     virtual bool notify(QObject *receiver, QEvent *event) {
+        QString msg;
         try {
             return QApplication::notify(receiver, event);
         } catch(Exception &e) {
-            Reporter::error() << "FAST exception caught in Qt event handler " << e.what() << Reporter::end();
-            throw e;
+            msg = "FAST exception caught in Qt event handler " + QString(e.what());
+            Reporter::error() << msg.toStdString() << Reporter::end();
+			if(!Config::getVisualization())
+				throw e;
         } catch(cl::Error &e) {
-            Reporter::error() << "OpenCL exception caught in Qt event handler " << e.what() << "(" << getCLErrorString(e.err()) << ")" << Reporter::end();
-            throw e;
+			msg = "OpenCL exception caught in Qt event handler " + QString(e.what()) + "(" + QString(getCLErrorString(e.err()).c_str()) + ")";
+            Reporter::error() << msg.toStdString() << Reporter::end();
+			if(!Config::getVisualization())
+				throw e;
         } catch(std::exception &e) {
-            Reporter::error() << "Std exception caught in Qt event handler " << e.what() << Reporter::end();
-            throw e;
+            msg = "Standard (std) exception caught in Qt event handler " + QString(e.what());
+            Reporter::error() << msg.toStdString() << Reporter::end();
+			if(!Config::getVisualization())
+				throw e;
         }
+		int ret = QMessageBox::critical(nullptr, "Error", msg);
+
         return false;
     }
 };
@@ -80,6 +90,11 @@ Window::Window() {
     mHeight = 512*windowScaling;
     mFullscreen = false;
     mMaximized = false;
+
+    QObject::connect(mThread.get(), &ComputationThread::criticalError, mWidget, [this](QString msg) {
+        //std::cout << "Got critical error signal. Thread: " << std::this_thread::get_id() << std::endl;
+        int ret = QMessageBox::critical(mWidget, "Error", msg);
+    }, Qt::QueuedConnection); // Queued connection ensures this runs in main thread
 }
 
 void Window::enableFullscreen() {

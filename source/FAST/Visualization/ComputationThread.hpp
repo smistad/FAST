@@ -66,6 +66,10 @@ class FAST_EXPORT ComputationThread : public QObject, public Object {
          * which is marked as last frame.
          */
         void pipelineFinished();
+        /**
+         * @brief Signal when critical error happens in thread
+         */
+        void criticalError(QString msg);
     private:
 
         bool mIsRunning;
