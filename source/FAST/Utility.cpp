@@ -740,8 +740,9 @@ std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool 
 			const std::string name = data.cFileName;
             if (name == "." || name == "..")
                 continue;
-            if(getDirectories && (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-                list.push_back(name);
+            if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                if(getDirectories)
+					list.push_back(name);
 			} else if(getFiles) {
                 list.push_back(name);
 			}
