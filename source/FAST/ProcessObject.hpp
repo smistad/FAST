@@ -261,6 +261,8 @@ class FAST_EXPORT  ProcessObject : public Object {
         int m_maximumNrOfFrames = -1;
         bool m_executeOnLastFrameOnly = false;
 
+        std::mutex m_mutex;
+
 };
 
 template<class DataType>
