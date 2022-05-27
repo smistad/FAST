@@ -118,8 +118,8 @@ void PatchGenerator::generateStream() {
                             round(y/m_inputMask->getSpacing().y())
                         ),
                         Vector2i(
-                            round(width/m_inputMask->getSpacing().x()),
-                            round(height/m_inputMask->getSpacing().y())
+                            std::floor(width/m_inputMask->getSpacing().x()),
+                            std::floor(height/m_inputMask->getSpacing().y())
                         )
                     );
                     float average = croppedMask->calculateAverageIntensity();
