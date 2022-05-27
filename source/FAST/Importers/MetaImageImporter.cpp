@@ -146,7 +146,7 @@ void MetaImageImporter::execute() {
     Matrix3f transformMatrix = Matrix3f::Identity();
     bool isCompressed = false;
     std::size_t compressedDataSize = 0;
-    std::unordered_map<std::string, std::string> metadata;
+    std::map<std::string, std::string> metadata;
 
     // Blacklist of keys to avoid importing as metadata
     std::set<std::string> blacklist = {

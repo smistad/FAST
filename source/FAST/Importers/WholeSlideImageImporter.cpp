@@ -166,7 +166,7 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
     // Read metainformation
     auto names = openslide_get_property_names(file);
     int i = 0;
-    std::unordered_map<std::string, std::string> metadata;
+    std::map<std::string, std::string> metadata;
     while(names[i] != nullptr) {
         std::string name = names[i];
         std::string value = openslide_get_property_value(file, names[i]);

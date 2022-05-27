@@ -94,6 +94,7 @@ public
 %template(NeuralNetworkNodeMap) std::map<std::string, fast::NeuralNetworkNode>;
 %template(ColorMap) std::map<uint, fast::Color>;
 %template(LabelNames) std::map<uint, std::string>;
+%template(StringMap) std::map<std::string, std::string>;
 // This avoids the no default constructor available problem for this vector types:
 %ignore std::vector<fast::MeshVertex>::vector(size_type);
 %ignore std::vector<fast::MeshVertex>::resize;

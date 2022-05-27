@@ -2,8 +2,8 @@
 
 #include "FAST/Object.hpp"
 #include "FAST/ExecutionDevice.hpp"
-#include <unordered_map>
-#include <unordered_set>
+#include <map>
+#include <set>
 #include <condition_variable>
 
 namespace fast {
@@ -25,9 +25,9 @@ class FAST_EXPORT  DataObject : public Object {
         DataObject();
         typedef std::shared_ptr<DataObject> pointer;
         void setMetadata(std::string name, std::string value);
-        void setMetadata(std::unordered_map<std::string, std::string> metadata);
+        void setMetadata(std::map<std::string, std::string> metadata);
         std::string getMetadata(std::string name) const;
-        std::unordered_map<std::string, std::string> getMetadata() const;
+        std::map<std::string, std::string> getMetadata() const;
         void deleteMetadata(std::string name);
         uint64_t getTimestamp() const;
         void updateModifiedTimestamp();
@@ -44,11 +44,12 @@ class FAST_EXPORT  DataObject : public Object {
         bool isLastFrame(std::string streamer);
         void removeLastFrame(std::string streamer);
         void clearLastFrame();
-        std::unordered_set<std::string> getLastFrame();
+        std::set<std::string> getLastFrame();
         void setFrameData(std::string name, std::string value);
+        void setFrameData(std::map<std::string, std::string> frameData);
         std::string getFrameData(std::string name);
         bool hasFrameData(std::string name) const;
-        std::unordered_map<std::string, std::string> getFrameData();
+        std::map<std::string, std::string> getFrameData();
         void accessFinished();
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
@@ -72,13 +73,13 @@ class FAST_EXPORT  DataObject : public Object {
         // Timestamp is set to 0 when data object is constructed
         uint64_t mTimestampCreated;
 
-        std::unordered_map<std::string, std::string> mMetadata;
+        std::map<std::string, std::string> mMetadata;
 
         // Frame data
         // Similar to metadata, only this is transferred from input to output
-        std::unordered_map<std::string, std::string> m_frameData;
+        std::map<std::string, std::string> m_frameData;
         // Indicates whether this data object is the last frame in a stream, and if so, the name of the stream
-        std::unordered_set<std::string> m_lastFrame;
+        std::set<std::string> m_lastFrame;
 
 
 };
