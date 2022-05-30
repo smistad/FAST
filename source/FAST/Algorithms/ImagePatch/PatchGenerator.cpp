@@ -297,11 +297,9 @@ void PatchGenerator::generateStream() {
         }
         reportInfo() << "Done generating patches" << reportEnd();
     } catch(std::exception &e) {
-        std::cout << "Caught expcetion in patch gen thread" << std::endl;
         // Exception happened in thread. Stop pipeline, and propagate error message.
         for(auto item : mOutputConnections) {
             for(auto output : item.second) {
-                std::cout << "Stopping with message: " << e.what() << std::endl;
                 output.lock()->stop(e.what());
             }
         }
