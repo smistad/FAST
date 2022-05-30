@@ -9,10 +9,11 @@ class FAST_EXPORT  Color {
     private:
         Vector3f mColorVector;
         bool m_null = false;
+        std::string m_name;
     public:
         Color() : mColorVector(Vector3f(0, 0, 0)), m_null(true) {};
 
-        Color(float red, float green, float blue) : mColorVector(Vector3f(red, green, blue)), m_null(false) {};
+        Color(float red, float green, float blue, std::string name = "") : mColorVector(Vector3f(red, green, blue)), m_null(false), m_name(name) {};
 
         /**
          * Whether the color is set or not
@@ -55,6 +56,9 @@ class FAST_EXPORT  Color {
         float getBlueValue() const {
             return mColorVector.z();
         }
+        std::string getName() const {
+            return m_name;
+        }
         /**
          * The color Null means NO COLOR, or not set, resulting in isNull() returning true
          * @return
@@ -63,31 +67,31 @@ class FAST_EXPORT  Color {
             return Color();
         }
         static Color Red() {
-            return Color(1,0,0);
+            return Color(1,0,0, "red");
         }
         static Color Green() {
-            return Color(0,1,0);
+            return Color(0,1,0, "green");
         }
         static Color Blue() {
-            return Color(0,0,1);
+            return Color(0,0,1, "blue");
         }
         static Color White() {
-            return Color(1,1,1);
+            return Color(1,1,1, "white");
         }
         static Color Black() {
-            return Color(0,0,0);
+            return Color(0,0,0, "black");
         }
         static Color Yellow() {
-            return Color(1, 1, 0);
+            return Color(1, 1, 0, "yellow");
         }
         static Color Magenta() {
-            return Color(1, 0, 1);
+            return Color(1, 0, 1, "magenta");
         }
         static Color Cyan() {
-            return Color(0, 1, 1);
+            return Color(0, 1, 1, "cyan");
         }
         static Color Brown() {
-            return Color(1, 0.6, 0.2);
+            return Color(1, 0.6, 0.2, "brown");
         }
 
 };
