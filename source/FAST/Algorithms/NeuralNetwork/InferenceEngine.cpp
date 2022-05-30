@@ -48,11 +48,11 @@ InferenceEngine::NetworkNode InferenceEngine::getOutputNode(std::string name) co
     return mOutputNodes.at(name);
 }
 
-std::unordered_map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getOutputNodes() const {
+std::map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getOutputNodes() const {
     return mOutputNodes;
 }
 
-std::unordered_map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getInputNodes() const {
+std::map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getInputNodes() const {
     return mInputNodes;
 }
 

@@ -4,6 +4,7 @@
 #include <FAST/Data/Access/TensorAccess.hpp>
 #include <FAST/Data/Access/Access.hpp>
 #include <FAST/Data/TensorShape.hpp>
+#include <unordered_map>
 
 namespace fast {
 
