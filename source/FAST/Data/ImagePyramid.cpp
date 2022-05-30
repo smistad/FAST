@@ -403,4 +403,42 @@ DataBoundingBox ImagePyramid::getBoundingBox() const {
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
+int ImagePyramid::getLevelForMagnification(int magnification, float slackPercentage) {
+    if(magnification <= 0)
+        throw Exception("Magnification must be larger than 0 in getLevleForMagnification");
+    const Vector3f spacing = getSpacing();
+    // For this calculation we assume the following:
+    /*
+    * 40X -> 0.00025 mm
+    * 20X -> 0.0005 mm
+    * 10X -> 0.001 mm
+    * 5X -> 0.002 mm
+    * 1X -> 0.01 mm
+     */
+    float level0spacing = spacing.x();
+    if(!m_vsiTiles.empty()) {
+        // For VSI format we assume that level 0 is 40X for now.
+        // Because we have now spacing information for this format.
+        level0spacing = 0.00025;
+    }
+    float targetSpacing = 0.00025f * (40.0f / (float)magnification);
+    float minDistance = std::numeric_limits<float>::max();
+    int levelResult = 0;
+    for(int i = 0; i < m_levels.size(); ++i) {
+        auto scale = getLevelScale(i);
+        float levelSpacing = scale*level0spacing;
+        float distance = std::fabs(levelSpacing - targetSpacing);
+        if(distance < minDistance) {
+            minDistance = distance;
+            levelResult = i;
+        }
+    }
+
+    // How much slack to allow?
+    if(minDistance > targetSpacing*slackPercentage)
+        throw Exception("No level close enough to magnification of " + std::to_string(magnification) + " was found in the image pyramid.");
+
+    return levelResult;
+}
+
 }

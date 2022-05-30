@@ -47,6 +47,14 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getLevelTilesX(int level);
         int getLevelTilesY(int level);
         float getLevelScale(int level);
+        /**
+         * @brief Get level for a given magnification
+         * @param magnification Magnification amount (e.g. 40, 20, 10 etc.)
+         * @param slackPercentage Slack to allow from target magnification, given in percentage of target spacing/magnification.
+         *      If distance between closest level and target magnification is larger than this, an exception is thrown.
+         * @return level
+         */
+        int getLevelForMagnification(int magnification, float slackPercentage = 0.5f);
         int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;
