@@ -99,12 +99,14 @@ jobs:
         Write-Output "CUDA_PATH_VX_Y $($CUDA_PATH_VX_Y)"
     - name: Download cuDNN and TensorRT
       uses: robinraju/release-downloader@main
+      if: ${{ github.event_name != 'pull_request' }}
       with:
         repository: "smistad/FAST-secret-dependencies"
         latest: true
         fileName: "*"
         token: ${{ secrets.DOWNLOAD_SECRET_DEPENDENCIES }}
     - name: Install cuDNN and TensorRT
+      if: ${{ github.event_name != 'pull_request' }}
       shell: powershell
       run: |
         Expand-Archive -Path ${{github.workspace}}/cudnn-11.4-windows-x64-v8.2.4.15.zip -DestinationPath ${{github.workspace}}/cudnn/
@@ -112,7 +114,8 @@ jobs:
         cp ${{github.workspace}}/cudnn/cuda/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
         cp ${{github.workspace}}/cudnn/cuda/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
         Expand-Archive -Path ${{github.workspace}}/TensorRT-8.2.3.0.Windows10.x86_64.cuda-11.4.cudnn8.2.zip -DestinationPath ${{github.workspace}}/trt/
-    - name: Configure CMake
+    - name: Configure CMake (with TensorRT)
+      if: ${{ github.event_name != 'pull_request' }}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
@@ -134,6 +137,25 @@ jobs:
             -DFAST_MODULE_Python=ON `
             -DFAST_MODULE_RealSense=ON `
             -DFAST_BUILD_EXAMPLES=ON 
+    - name: Configure CMake (without TensorRT)
+      if: ${{ github.event_name == 'pull_request' }}
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+        cmake ${{github.workspace}} -B ${{github.workspace}}/build `
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} `
+            -DFAST_MODULE_OpenVINO=ON `
+            -DFAST_MODULE_Dicom=ON `
+            -DFAST_MODULE_WholeSlideImaging=ON `
+            -DFAST_MODULE_OpenIGTLink=ON `
+            -DFAST_MODULE_Clarius=ON `
+            -DFAST_MODULE_TensorFlow=ON `
+            -DFAST_MODULE_TensorRT=OFF `
+            -DFAST_MODULE_HDF5=ON `
+            -DFAST_MODULE_Plotting=ON `
+            -DFAST_MODULE_Python=ON `
+            -DFAST_MODULE_RealSense=ON `
+            -DFAST_BUILD_EXAMPLES=ON             
 
     - name: Build
       # Build your program with the given configuration
