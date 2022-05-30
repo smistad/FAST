@@ -55,7 +55,6 @@ void BoundingBoxNetwork::execute() {
     runNeuralNetwork();
 
     mRuntimeManager->startRegularTimer("output_processing");
-    std::cout << "Size of nr of input nodes: " <<m_processedOutputData.size() << std::endl;
     m_tensorToBoundingBoxSet->setNrOfInputNodes(m_processedOutputData.size());
     for(auto node : m_processedOutputData) {
         auto tensor = std::dynamic_pointer_cast<Tensor>(node.second);
