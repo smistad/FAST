@@ -37,9 +37,10 @@ class FAST_EXPORT DataChannel : public Object {
         virtual int getMaximumNumberOfFrames() const = 0;
 
         /**
-         * This will unblock if this DataChannel is currently blocking. Used to stop a pipeline.
+         * @brief This will unblock if this DataChannel is currently blocking. Used to stop a pipeline.
+         * @param Error message to supply.
          */
-        virtual void stop() = 0;
+        virtual void stop(std::string errorMessage = "") = 0;
 
         // TODO consider removing, it is equal to getSize() > 0 atm
         virtual bool hasCurrentData() = 0;
@@ -53,6 +54,7 @@ class FAST_EXPORT DataChannel : public Object {
         void setProcessObject(std::shared_ptr<ProcessObject> po);
     protected:
         bool m_stop;
+        std::string m_errorMessage = "";
         std::mutex m_mutex;
         std::shared_ptr<ProcessObject> m_processObject;
 

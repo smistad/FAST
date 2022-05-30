@@ -72,10 +72,11 @@ void PatchStitcher::processTensor(std::shared_ptr<Tensor> patch) {
         TensorShape fullShape({(int)std::ceil((float)fullHeight / patchHeight), (int)std::ceil((float)fullWidth / patchWidth), channels});
         auto initializedData = std::make_unique<float[]>(fullShape.getTotalSize());
         m_outputTensor = Tensor::create(std::move(initializedData), fullShape);
+        // TODO Use Y-X or X-Y ordering on spacing here? Changes will influence other objects
         m_outputTensor->setSpacing(Vector3f(patchHeight*patchSpacingY, patchWidth*patchSpacingX, 1.0f));
     }
     reportInfo() << "Stitching " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y") << reportEnd();
-    reportInfo() << "Stitching data" << patch->getFrameData("patch-spacing-x") << " " << patch->getFrameData("patch-spacing-y") << reportEnd();
+    reportInfo() << "Stitching data with spacing " << patch->getFrameData("patch-spacing-x") << " " << patch->getFrameData("patch-spacing-y") << reportEnd();
 
     const int startX = std::stoi(patch->getFrameData("patchid-x"));
     const int startY = std::stoi(patch->getFrameData("patchid-y"));

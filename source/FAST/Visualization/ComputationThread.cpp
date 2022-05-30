@@ -116,7 +116,16 @@ void ComputationThread::run() {
             }
         } catch(ThreadStopped &e) {
             reportInfo() << "Thread stopped exception occured in ComputationThread, exiting.." << reportEnd();
-            break;
+            std::cout << "Thread stopped" << std::endl;
+            if(e.wasDueToError()) {
+                std::cout << "Thread stopped due to error: " << e.what() << std::endl;
+                QString msg = "Exception caught: " + QString(e.what());
+                emit criticalError(msg);
+                for (View* view : mViews) {
+                    view->stopPipeline();
+                    view->removeAllRenderers();
+                }
+            }
 		} catch(Exception &e) {
             QString msg = "FAST exception caught: " + QString(e.what());
             emit criticalError(msg);
