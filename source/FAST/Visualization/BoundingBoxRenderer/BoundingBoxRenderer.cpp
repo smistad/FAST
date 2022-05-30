@@ -106,4 +106,9 @@ float BoundingBoxRenderer::getBorderSize() const {
     return m_borderSize;
 }
 
+std::string BoundingBoxRenderer::attributesToString() {
+    std::stringstream ss;
+    return ss.str();
+}
+
 }

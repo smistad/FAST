@@ -524,4 +524,16 @@ SegmentationRenderer::~SegmentationRenderer() {
     reportInfo() << "Textures cleared" << reportEnd();
 }
 
+std::string SegmentationRenderer::attributesToString() {
+    std::stringstream ss;
+    ss << "Attribute opacity " << m_opacity << "\n";
+    ss << "Attribute border-opacity " << mBorderOpacity << "\n";
+    ss << "Attribute label-colors";
+    for(auto color : m_labelColors) {
+        ss << " \"" << color.first << "\" \"" << color.second.getName() << "\"";
+    }
+    ss << "\n";
+    return ss.str();
+}
+
 }

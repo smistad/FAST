@@ -32,6 +32,7 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColo
         )
         void setBorderRadius(int radius);
         void setOpacity(float opacity, float borderOpacity = -1);
+        std::string attributesToString() override;
         void loadAttributes() override;
         virtual ~SegmentationRenderer();
     protected:

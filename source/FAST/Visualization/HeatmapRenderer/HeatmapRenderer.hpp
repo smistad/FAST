@@ -27,6 +27,7 @@ class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
         void setChannelColor(uint channel, Color color);
         void setChannelHidden(uint channel, bool hide);
         void setInterpolation(bool useInterpolation);
+        std::string attributesToString() override;
         void loadAttributes() override;
     protected:
         void drawTextures(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> dataToRender, Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);

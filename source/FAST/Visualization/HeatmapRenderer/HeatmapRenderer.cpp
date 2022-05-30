@@ -341,4 +341,29 @@ void HeatmapRenderer::setInterpolation(bool useInterpolation) {
     deleteAllTextures();
 }
 
+
+std::string HeatmapRenderer::attributesToString() {
+    std::stringstream ss;
+    ss << "Attribute max-opacity " << mMaxOpacity << "\n";
+    ss << "Attribute min-confidence " << mMinConfidence << "\n";
+    if(!mColors.empty()) {
+        ss << "Attribute channel-colors ";
+        for(auto color : mColors) {
+            ss << color.first << " " << color.second.getName();
+        }
+        ss << "\n";
+    }
+    ss << "Attribute interpolation " << (mUseInterpolation ? "true" : "false") << "\n";
+    if(!mHide.empty()) {
+        ss << "Attribute hidden-channels ";
+        for(auto channel : mHide) {
+            if(channel.second)
+                ss << channel.first << " ";
+        }
+        ss << "\n";
+    }
+
+    return ss.str();
+}
+
 }

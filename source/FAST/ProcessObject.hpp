@@ -165,6 +165,12 @@ class FAST_EXPORT  ProcessObject : public Object {
          */
         void setExecuteOnLastFrameOnly(bool executeOnLastFrameOnly);
         bool getExecuteOnLastFrameOnly() const;
+
+        /**
+         * @brief Convert attributes to string
+         * @return
+         */
+        virtual std::string attributesToString() { return ""; };
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
