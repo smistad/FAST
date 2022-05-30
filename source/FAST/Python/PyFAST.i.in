@@ -319,7 +319,7 @@ static float* _intToFloatPointer(std::size_t intPointer) {
         raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
 
     # Check data type if it is correct
-    if ndarray.__array_interface__['typestr'] != 'f4': # Is Float 32 bit?
+    if ndarray.__array_interface__['typestr'][1:] != 'f4': # Is Float 32 bit?
         print('WARNING: ndarray given to fast::Tensor::createFromArray was not 32 bit float and will now be converted.')
     # Make sure it is C contiguous first
     ndarray = np.ascontiguousarray(ndarray, dtype=np.float32)
