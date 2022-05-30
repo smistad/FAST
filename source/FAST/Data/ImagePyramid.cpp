@@ -420,6 +420,7 @@ int ImagePyramid::getLevelForMagnification(int magnification, float slackPercent
         // For VSI format we assume that level 0 is 40X for now.
         // Because we have now spacing information for this format.
         level0spacing = 0.00025;
+        reportWarning() << "Assuming the image pyramid is 40X since not able to extract pixel spacing information from the Olympus CellSense format atm." << reportEnd();
     }
     float targetSpacing = 0.00025f * (40.0f / (float)magnification);
     float minDistance = std::numeric_limits<float>::max();
