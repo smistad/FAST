@@ -2,6 +2,7 @@
 
 #include "FAST/Data/DataTypes.hpp"
 #include <cctype> // std::tolower
+#include <FAST/Utility.hpp>
 
 namespace fast {
 
@@ -24,6 +25,16 @@ class FAST_EXPORT  Color {
         }
 
         static Color fromString(std::string str) {
+            if(str.find(';') != std::string::npos) { // CHeck if on the form RED;GREEN;BLUE, where these are integers from 0 to 255
+                auto parts = split(str, ";");
+                if(parts.size() != 3)
+                    throw Exception("Parse error of color from string: " + str);
+                float red = std::stoi(parts[0]) / 255.0f;
+                float green = std::stoi(parts[1]) / 255.0f;
+                float blue = std::stoi(parts[2]) / 255.0f;
+                return Color(red, green, blue);
+            }
+
             std::transform(str.begin(), str.end(), str.begin(),
                 [](unsigned char c) { return std::tolower(c); });
             std::map<std::string, Color> mapping = {
@@ -57,6 +68,12 @@ class FAST_EXPORT  Color {
             return mColorVector.z();
         }
         std::string getName() const {
+            if(m_name.empty()) {
+                Vector3i intVector = (mColorVector*255).cast<int>();
+                return std::to_string(intVector.x()) + ";" +
+                        std::to_string(intVector.y()) + ";" +
+                        std::to_string(intVector.z());
+            }
             return m_name;
         }
         /**
