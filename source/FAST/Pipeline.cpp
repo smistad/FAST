@@ -454,6 +454,10 @@ std::map<std::string, std::string> Pipeline::getRequiredPipelineInputData() cons
     return inputs;
 }
 
+std::map<std::string, std::string> Pipeline::getPipelineAttributes() const {
+    return m_attributes;
+}
+
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {
     auto processObjects = pipeline.getProcessObjects();
     for(auto object : processObjects) {

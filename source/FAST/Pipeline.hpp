@@ -29,6 +29,11 @@ class FAST_EXPORT  Pipeline : public Object {
          */
         std::string getPipelineAttribute(std::string name) const;
         /**
+         * @brief Get all pipeline attributes;
+         * @return map of attributes
+         */
+        std::map<std::string, std::string> getPipelineAttributes() const;
+        /**
          * @brief Parse the pipeline file
          *
          * @param inputData Input data objects
@@ -52,7 +57,7 @@ class FAST_EXPORT  Pipeline : public Object {
         std::unordered_map<std::string, View*> m_views;
         std::vector<std::string> mRenderers;
         std::vector<std::string> m_lines;
-        std::unordered_map<std::string, std::string> m_attributes;
+        std::map<std::string, std::string> m_attributes;
         std::map<std::string, std::pair<std::string, uint>> m_pipelineOutputData;
         std::map<std::string, std::pair<std::string, std::shared_ptr<DataObject>>> m_pipelineInputData;
 
