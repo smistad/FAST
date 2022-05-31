@@ -5,7 +5,7 @@
 namespace fast {
 
 ImageToBatchGenerator::ImageToBatchGenerator() {
-    createInputPort<Image>(0);
+    createInputPort<Image>(0, false);
     createOutputPort<Batch>(0);
 
     m_maxBatchSize = -1;
@@ -74,7 +74,7 @@ void ImageToBatchGenerator::execute() {
     if(!m_streamIsStarted) {
         m_streamIsStarted = true;
         mParent = mInputConnections[0];
-        //mInputConnections.clear(); // Severe the connection  @FIXME: haivng this results in "Input port X is missing its required connection when streaming. Hence, I removed this. Why was it used?"
+        mInputConnections.clear();
         m_thread = std::make_unique<std::thread>(std::bind(&ImageToBatchGenerator::generateStream, this));
     }
 
