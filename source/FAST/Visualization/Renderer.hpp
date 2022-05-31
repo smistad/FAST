@@ -57,6 +57,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         void setView(View* view);
         bool is2DOnly() const;
         bool is3DOnly() const;
+        void loadAttributes() override;
     protected:
         Renderer();
         virtual void execute() override;

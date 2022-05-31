@@ -23,17 +23,31 @@ class FAST_EXPORT HeatmapRenderer : public ImageRenderer {
                          LabelColors, channelColors, = LabelColors()
         )
         void setMinConfidence(float confidence);
+        float getMinConfidence() const;
         void setMaxOpacity(float opacity);
+        float getMaxOpacity() const;
         void setChannelColor(uint channel, Color color);
+        Color getChannelColor(uint channel);
         void setChannelHidden(uint channel, bool hide);
+        bool getChannelHidden(uint channel);
         void setInterpolation(bool useInterpolation);
+        bool getInterpolation() const;
         std::string attributesToString() override;
         void loadAttributes() override;
     protected:
         void drawTextures(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> dataToRender, Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
 
-        std::map<uint, Color> mColors;
+        std::map<uint, Color> mColors = {
+                {0, Color::Green()},
+                {1, Color::Blue()},
+                {2, Color::Red()},
+                {3, Color::Yellow()},
+                {4, Color::Cyan()},
+                {5, Color::Magenta()},
+                {6, Color::Brown()},
+                {255, Color::Cyan()}
+        };
         std::map<uint, bool> mHide;
         std::map<uint, std::shared_ptr<Tensor>> mTensorUsed;
 

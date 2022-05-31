@@ -32,6 +32,7 @@ class FAST_EXPORT BoundingBoxRenderer : public LabelColorRenderer {
         void setBorderSize(float size);
         float getBorderSize() const;
         std::string attributesToString() override;
+        void loadAttributes() override;
         virtual ~BoundingBoxRenderer();
     protected:
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);

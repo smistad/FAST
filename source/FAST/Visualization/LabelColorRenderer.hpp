@@ -7,6 +7,7 @@ namespace fast {
 
 class FAST_EXPORT LabelColorRenderer : public virtual Renderer {
     public:
+        Color getColor(int label) const;
         void setColor(int label, Color color);
         void setColors(LabelColors colors);
         ~LabelColorRenderer();

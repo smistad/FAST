@@ -14,12 +14,14 @@
 namespace fast {
 
 void SegmentationRenderer::loadAttributes() {
+    Renderer::loadAttributes();
     auto borderOpacity = getFloatAttribute("border-opacity");
     if(borderOpacity >= 0.0) {
         setOpacity(getFloatAttribute("opacity"), borderOpacity);
     } else {
         setOpacity(getFloatAttribute("opacity"));
     }
+    setBorderRadius(getIntegerAttribute("border-radius"));
     auto colors = getStringListAttribute("label-colors");
     for(int i = 0; i < colors.size(); i += 2) {
         int label = std::stoi(colors[i]);
@@ -36,6 +38,7 @@ SegmentationRenderer::SegmentationRenderer(std::map<uint, Color> labelColors, fl
 
     createFloatAttribute("opacity", "Segmentation Opacity", "", m_opacity);
     createFloatAttribute("border-opacity", "Segmentation border opacity", "", -1);
+    createIntegerAttribute("border-radius", "Segmentation border radius", "", mBorderRadius);
     createStringAttribute("label-colors", "Label color", "Label color set as <label1> <color1> <label2> <color2>", "");
 
     createShaderProgram({
@@ -472,7 +475,6 @@ void SegmentationRenderer::setBorderRadius(int radius) {
         throw Exception("Border radius must be >= 0");
 
     mBorderRadius = radius;
-    deleteAllTextures();
 }
 
 void SegmentationRenderer::setOpacity(float opacity, float borderOpacity) {
@@ -526,14 +528,34 @@ SegmentationRenderer::~SegmentationRenderer() {
 
 std::string SegmentationRenderer::attributesToString() {
     std::stringstream ss;
+    ss << "Attribute disabled " << (isDisabled() ? "true" : "false") << "\n";
     ss << "Attribute opacity " << m_opacity << "\n";
     ss << "Attribute border-opacity " << mBorderOpacity << "\n";
+    ss << "Attribute border-radius " << mBorderRadius << "\n";
     ss << "Attribute label-colors";
     for(auto color : m_labelColors) {
         ss << " \"" << color.first << "\" \"" << color.second.getName() << "\"";
     }
     ss << "\n";
     return ss.str();
+}
+
+void SegmentationRenderer::setBorderOpacity(float opacity) {
+    if(opacity < 0 || opacity > 1)
+        throw Exception("SegmentationRenderer opacity has to be >= 0 and <= 1");
+    mBorderOpacity = opacity;
+}
+
+float SegmentationRenderer::getOpacity() const {
+    return m_opacity;
+}
+
+float SegmentationRenderer::getBorderOpacity() const {
+    return mBorderOpacity;
+}
+
+int SegmentationRenderer::getBorderRadius() const {
+    return mBorderRadius;
 }
 
 }

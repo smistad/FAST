@@ -108,7 +108,12 @@ float BoundingBoxRenderer::getBorderSize() const {
 
 std::string BoundingBoxRenderer::attributesToString() {
     std::stringstream ss;
+    ss << "Attribute disabled " << (isDisabled() ? "true" : "false") << "\n";
     return ss.str();
+}
+
+void BoundingBoxRenderer::loadAttributes() {
+    Renderer::loadAttributes();
 }
 
 }

@@ -5,13 +5,16 @@
 namespace fast {
 
 void HeatmapRenderer::loadAttributes() {
+    Renderer::loadAttributes();
     auto classColors = getStringListAttribute("channel-colors");
     for(int i = 0; i < classColors.size(); i += 2) {
         setChannelColor(std::stoi(classColors[i]), Color::fromString(classColors[i+1]));
     }
-    auto hiddenChannels = getStringListAttribute("hidden-channels");
-    for(auto&& item : hiddenChannels)
-        setChannelHidden(std::stoi(item), true);
+    auto hiddenChannels = getIntegerListAttribute("hidden-channels");
+    for(auto&& item : hiddenChannels) {
+        if(item >= 0)
+            setChannelHidden(item, true);
+    }
     setMaxOpacity(getFloatAttribute("max-opacity"));
     setMinConfidence(getFloatAttribute("min-confidence"));
     setInterpolation(getBooleanAttribute("interpolation"));
@@ -36,7 +39,7 @@ HeatmapRenderer::HeatmapRenderer(bool hideChannelZero, bool useInterpolation, fl
     setMinConfidence(minConfidence);
     setMaxOpacity(maxOpacity);
     createStringAttribute("channel-colors", "Channel Colors", "Color of each channel", "");
-    createStringAttribute("hidden-channels", "Hidden Channels", "List of channels to hide", "");
+    createIntegerAttribute("hidden-channels", "Hidden Channels", "List of channels to hide", -1);
     createFloatAttribute("max-opacity", "Max Opacity", "Max Opacity", mMaxOpacity);
     createFloatAttribute("min-confidence", "Min Confidence", "Min Confidence", mMinConfidence);
     createBooleanAttribute("interpolation", "Interpolation", "Whether to interpolate when rendering heatmaps or not", mUseInterpolation);
@@ -344,12 +347,13 @@ void HeatmapRenderer::setInterpolation(bool useInterpolation) {
 
 std::string HeatmapRenderer::attributesToString() {
     std::stringstream ss;
+    ss << "Attribute disabled " << (isDisabled() ? "true" : "false") << "\n";
     ss << "Attribute max-opacity " << mMaxOpacity << "\n";
     ss << "Attribute min-confidence " << mMinConfidence << "\n";
     if(!mColors.empty()) {
-        ss << "Attribute channel-colors ";
+        ss << "Attribute channel-colors";
         for(auto color : mColors) {
-            ss << color.first << " " << color.second.getName();
+            ss << " \"" << color.first << "\" \"" << color.second.getName() << "\"";
         }
         ss << "\n";
     }
@@ -364,6 +368,30 @@ std::string HeatmapRenderer::attributesToString() {
     }
 
     return ss.str();
+}
+
+float HeatmapRenderer::getMinConfidence() const {
+    return mMinConfidence;
+}
+
+float HeatmapRenderer::getMaxOpacity() const {
+    return mMaxOpacity;
+}
+
+bool HeatmapRenderer::getInterpolation() const {
+    return mUseInterpolation;
+}
+
+Color HeatmapRenderer::getChannelColor(uint channel) {
+    if(mColors.count(channel) == 0)
+        mColors[channel] = Color::Green();
+    return mColors[channel];
+}
+
+bool HeatmapRenderer::getChannelHidden(uint channel) {
+    if(mHide.count(channel) == 0)
+        return false;
+    return mHide[channel];
 }
 
 }

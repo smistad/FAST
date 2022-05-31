@@ -6,6 +6,7 @@
 namespace fast {
 
 Renderer::Renderer() {
+    createBooleanAttribute("disabled", "Disabled", "", false);
 }
 
 
@@ -261,6 +262,10 @@ std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> Renderer::getDataTo
 
 void Renderer::clearDataToRender() {
     mDataToRender.clear();
+}
+
+void Renderer::loadAttributes() {
+    setDisabled(getBooleanAttribute("disabled"));
 }
 
 }
