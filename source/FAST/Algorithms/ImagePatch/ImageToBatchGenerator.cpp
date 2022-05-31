@@ -5,14 +5,21 @@
 namespace fast {
 
 ImageToBatchGenerator::ImageToBatchGenerator() {
-    createInputPort<Image>(0);
+    createInputPort<Image>(0, false);
     createOutputPort<Batch>(0);
 
     m_maxBatchSize = -1;
+    mIsModified = true;
+
+    createIntegerAttribute("max-batch-size", "Maximum batch size", "", m_maxBatchSize);
 }
 
 ImageToBatchGenerator::ImageToBatchGenerator(int maxBatchSize) : ImageToBatchGenerator() {
     setMaxBatchSize(maxBatchSize);
+}
+
+void ImageToBatchGenerator::loadAttributes() {
+    setMaxBatchSize(getIntegerAttribute("max-batch-size"));
 }
 
 void ImageToBatchGenerator::generateStream() {
@@ -61,13 +68,13 @@ void ImageToBatchGenerator::generateStream() {
 }
 
 void ImageToBatchGenerator::execute() {
-    if(m_maxBatchSize == 1)
+    if(m_maxBatchSize == -1)
         throw Exception("Max batch size must be given to the ImageToBatchGenerator");
 
     if(!m_streamIsStarted) {
         m_streamIsStarted = true;
         mParent = mInputConnections[0];
-        mInputConnections.clear(); // Severe the connection
+        mInputConnections.clear();
         m_thread = std::make_unique<std::thread>(std::bind(&ImageToBatchGenerator::generateStream, this));
     }
 
