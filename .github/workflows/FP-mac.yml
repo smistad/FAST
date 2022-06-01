@@ -13,7 +13,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
+    - name: Install dependencies
+      run: |
+        brew install openslide libomp
     - name: Configure CMake
       run: |
         cmake -B ${{github.workspace}}/build \
