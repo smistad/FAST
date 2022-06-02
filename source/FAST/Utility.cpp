@@ -682,7 +682,10 @@ bool fileExists(std::string filename) {
 
 bool isFile(const std::string& path) {
 #ifdef _WIN32
-    throw Exception("Not implemented");
+    auto dwAttrib = GetFileAttributesA(path.c_str());
+
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES && 
+           !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 #else
     struct stat buf;
     stat(path.c_str(), &buf);
