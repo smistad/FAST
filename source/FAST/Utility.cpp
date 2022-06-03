@@ -702,8 +702,8 @@ bool isDir(const std::string& path) {
 	return false; 
 #else
     struct stat buf;
-    stat(path.c_str(), &buf);
-    return S_ISDIR(buf.st_mode);
+    auto res = stat(path.c_str(), &buf);
+    return res == 0 && S_ISDIR(buf.st_mode); // Exists and is directory
 #endif
 }
 
