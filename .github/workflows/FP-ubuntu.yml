@@ -62,13 +62,15 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
 
     - name: Package
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+        mv ${{github.workspace}}/build/fast_*.tar.xz ${{github.workspace}}/build/fast_ubuntu18.04.tar.xz
 
     - name: Upload archive package
       uses: actions/upload-artifact@v2
       with:
         name: Archive package (tar.xz)
-        path: ${{github.workspace}}/build/fast_*.tar.xz
+        path: ${{github.workspace}}/build/fast_ubuntu18.04.tar.xz
         if-no-files-found: error
 
   test-cpp:
