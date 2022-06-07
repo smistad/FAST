@@ -409,6 +409,7 @@ int ImagePyramid::getLevelForMagnification(int magnification, float slackPercent
     const Vector3f spacing = getSpacing();
     // For this calculation we assume the following:
     /*
+    * 1 micron = 0.001 millimeters
     * 40X -> 0.00025 mm
     * 20X -> 0.0005 mm
     * 10X -> 0.001 mm
