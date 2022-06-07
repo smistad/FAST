@@ -27,6 +27,7 @@ set(FAST_INCLUDE_DIRS
     "${CMAKE_CURRENT_LIST_DIR}/../include/QtCore"
     "${CMAKE_CURRENT_LIST_DIR}/../include/QtWidgets"
     "${CMAKE_CURRENT_LIST_DIR}/../include/QtOpenGL"
+    "${CMAKE_CURRENT_LIST_DIR}/../include/QtNetwork"
     "${CMAKE_CURRENT_LIST_DIR}/../include/QtPrintSupport"
     "${CMAKE_CURRENT_LIST_DIR}/../include/QtGui"
     "${CMAKE_CURRENT_LIST_DIR}/../include/eigen3"
