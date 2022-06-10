@@ -61,7 +61,25 @@ GUI::GUI() {
 	auto stopButton = new QPushButton;
 	stopButton->setText("Stop");
 	connect(stopButton, &QPushButton::clicked, [this]() {
-		stopComputationThread();
+        auto thread = getComputationThread();
+        thread->clearViews();
+        thread->clearProcessObjects();
+
+        // Remove and delete old views
+        auto views = getViews();
+        clearViews();
+        for(auto view : views) {
+            view->stopPipeline();
+            delete view;
+	    }
+        delete m_viewLayout;
+        m_viewLayout = new QHBoxLayout;
+        // Add an empty dummy view
+        auto view = createView();
+        view->setBackgroundColor(Color::Black());
+        view->set2DMode();
+        m_viewLayout->addWidget(view);
+        m_mainLayout->insertLayout(1, m_viewLayout);
 	});
 	menuLayout->addWidget(stopButton);
 
@@ -191,7 +209,6 @@ void GUI::loadPipeline() {
         for(auto view : pipeline.getViews()) {
             view->reinitialize();
         }
-
 	} catch(Exception &e) {
 		std::string errorMessage = e.what();
 		int ret = QMessageBox::critical(mWidget, "Pipeline",
