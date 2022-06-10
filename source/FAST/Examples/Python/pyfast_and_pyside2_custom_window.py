@@ -13,8 +13,8 @@ from PySide2.QtWidgets import *
 from PySide2.QtOpenGL import QGLWidget
 from PySide2.QtCore import Slot
 import PySide2.QtSvg # Must import this before fast due to conflicting symbols
-from shiboken2 import wrapInstance
 import fast
+from shiboken2 import wrapInstance
 import threading
 import sys
 
@@ -55,7 +55,7 @@ class Window(QWidget):
 
         # Setup a FAST pipeline
         streamer = fast.ImageFileStreamer \
-            .create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
+            .create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd', framerate=25)
 
         renderer = fast.ImageRenderer.create() \
             .connect(streamer)
@@ -67,12 +67,12 @@ class Window(QWidget):
 
 
 if __name__ == '__main__':
-    # Create the Qt Application
-    app = QApplication(sys.argv)
+    # Get the Qt Application
+    app = QApplication.instance()
 
     # Create and show the window
     window = Window()
     window.show()
 
     # Run the main Qt loop
-    sys.exit(app.exec_())
+    app.exec_()
