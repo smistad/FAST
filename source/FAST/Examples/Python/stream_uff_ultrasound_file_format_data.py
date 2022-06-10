@@ -4,12 +4,12 @@
 import fast
 
 streamer = fast.UFFStreamer.create(
-    'path/to/file.uff',
+    fast.Config.getTestDataPath() + "US/UFF/P4_2_PLAX.uff",
     framerate=5,
-    loop=True
+    loop=True,
 )
 
-filter = fast.NonLocalMeans.create().connect(streamer)
+filter = fast.NonLocalMeans.create(smoothingAmount=0.4, inputMultiplicationWeight=0.8).connect(streamer)
 
 renderer = fast.ImageRenderer.create().connect(streamer)
 

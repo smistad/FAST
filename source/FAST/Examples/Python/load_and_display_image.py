@@ -6,8 +6,6 @@ import fast
 # This will download the test data needed to run the example
 fast.downloadTestDataIfNotExists()
 
-fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
-
 importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
 renderer = fast.ImageRenderer.create().connect(importer)

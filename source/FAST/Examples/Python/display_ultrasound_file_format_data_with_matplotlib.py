@@ -6,8 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 streamer = fast.UFFStreamer.create(
-    'path/to/file.uff',
-    framerate=5,
+    fast.Config.getTestDataPath() + 'US/UFF/P4_2_A4C.uff',
+    gain=0,
+    dynamicRange=60,
+    #doScanConversion=False # Set to False to get images in beamspace
+    #framerate=5,
 )
 
 # Create a 2x2 subplot for every set of 4 image frames
