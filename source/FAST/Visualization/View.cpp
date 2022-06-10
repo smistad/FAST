@@ -9,6 +9,7 @@
 #include <QGLFunctions>
 #include <algorithm>
 #include <QCursor>
+#include <QApplication>
 #include <FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp>
 
 namespace fast {
@@ -81,12 +82,14 @@ View::View() {
     timer->setSingleShot(false);
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 
+    if(QThread::currentThread() != QApplication::instance()->thread()) {
+        throw Exception("FAST View must be created in the main thread");
+    }
     QGLContext *context = new QGLContext(getGLFormat(), this);
-    context->create(fast::Window::getMainGLContext());
+    context->create(fast::Window::getSecondaryGLContext());
     this->setContext(context);
     if(!context->isValid() || !context->isSharing()) {
-        reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end();
-        exit(-1);
+        throw Exception("The custom Qt GL context in fast::View is invalid!");
     }
 }
 

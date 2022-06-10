@@ -21,6 +21,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
     public:
         static void initializeQtApp();
         static QGLContext* getMainGLContext();
+        static QGLContext* getSecondaryGLContext();
         static void setMainGLContext(QGLContext* context);
         /**
          * Makes the window close after a specific number of ms
@@ -102,6 +103,7 @@ protected:
         std::mutex m_mutex;
     private:
         static QGLContext* mMainGLContext;
+        static QGLContext* mSecondaryGLContext;
     public Q_SLOTS:
         void stop();
 

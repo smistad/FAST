@@ -14,7 +14,8 @@
 
 namespace fast {
 
-QGLContext* Window::mMainGLContext = NULL;
+QGLContext* Window::mMainGLContext = nullptr; // Lives in main thread or computation thread if it exists.
+QGLContext* Window::mSecondaryGLContext = nullptr; // Lives in main thread always
 
 class FAST_EXPORT FASTApplication : public QApplication {
 public:
@@ -175,6 +176,8 @@ void Window::initializeQtApp() {
         QGLWidget* widget = new QGLWidget;
         mMainGLContext = new QGLContext(View::getGLFormat(), widget); // by including widget here the context becomes valid
         mMainGLContext->create();
+        mSecondaryGLContext = new QGLContext(View::getGLFormat(), widget); // by including widget here the context becomes valid
+        mSecondaryGLContext->create(mMainGLContext);
         /*
         // Do this by creating an offscreen GL context using a dummy QGLPixelBuffer
         // TODO this is not working for some.. why?
@@ -184,6 +187,9 @@ void Window::initializeQtApp() {
          */
         if(!mMainGLContext->isValid()) {
             throw Exception("Qt GL context is invalid!");
+        }
+        if(!mSecondaryGLContext->isValid()) {
+            throw Exception("Secondary Qt GL context is invalid!");
         }
     }
 
@@ -292,7 +298,7 @@ void Window::setTimeout(unsigned int milliseconds) {
 }
 
 QGLContext* Window::getMainGLContext() {
-    if(mMainGLContext == NULL) {
+    if(mMainGLContext == nullptr) {
         if(!Config::getVisualization())
             throw Exception("Visualization in FAST was disabled, unable to continue.\nIf you want to run FAST with visualization on a remote server, see the wiki page\nhttps://github.com/smistad/FAST/wiki/Running-FAST-on-a-remote-server");
         initializeQtApp();
@@ -300,6 +306,18 @@ QGLContext* Window::getMainGLContext() {
 
     return mMainGLContext;
 }
+
+QGLContext* Window::getSecondaryGLContext() {
+    if(mSecondaryGLContext == nullptr) {
+        if(!Config::getVisualization())
+            throw Exception("Visualization in FAST was disabled, unable to continue.\nIf you want to run FAST with visualization on a remote server, see the wiki page\nhttps://github.com/smistad/FAST/wiki/Running-FAST-on-a-remote-server");
+        initializeQtApp();
+    }
+
+    return mSecondaryGLContext;
+}
+
+
 
 void Window::setMainGLContext(QGLContext* context) {
     mMainGLContext = context;
