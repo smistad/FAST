@@ -1,6 +1,11 @@
 # Setup all dependencies for FAST, both internal (have to be installed on the system)
 # and external (downloaded and built automatically)
 
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/lib/)
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include/)
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/licenses/)
+
 ## OpenCL
 if(WIN32)
     fast_download_dependency(opencl
