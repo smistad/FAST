@@ -73,6 +73,17 @@ jobs:
         path: ${{github.workspace}}/build/fast_ubuntu18.04.tar.xz
         if-no-files-found: error
 
+    - name: Upload package to external repo release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_name: AICAN-Research/FAST-Pathology-dependencies
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/build/fast_ubuntu18.04.tar.xz
+        asset_name: fast_ubuntu18.04.tar.xz
+        file_glob: true
+        tag: v1.0.0
+        overwrite: true
+
   test-cpp:
     name: Run C++ Tests
     needs: [build]
@@ -107,17 +118,3 @@ jobs:
         run: |
           rm -Rf ${{github.workspace}}
           rm -Rf $HOME/FAST/kernel_binaries/*
-
-  upload:
-    name: Upload artifact
-    needs: [test-cpp]
-    steps:
-      - uses: svenstaro/upload-release-action@v2
-        with:
-          repo_name: AICAN-Research/FAST-Pathology-dependencies
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{github.workspace}}/build/fast_ubuntu18.04.tar.xz
-          asset_name: fast_ubuntu18.04.tar.xz
-          file_glob: true
-          tag: v1.0.0
-          overwrite: true
