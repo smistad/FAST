@@ -177,7 +177,8 @@ void PatchGenerator::generateStream() {
                     patch->setFrameData("patch-spacing-x", std::to_string(patch->getSpacing().x()));
                     patch->setFrameData("patch-spacing-y", std::to_string(patch->getSpacing().y()));
                     patch->setFrameData("patch-level", std::to_string(level));
-                    patch->setFrameData("progress", std::to_string((float)(patchX+patchY*patchesX)/(patchesX*patchesY)));
+                    m_progress = (float)(patchX+patchY*patchesX)/(patchesX*patchesY);
+                    patch->setFrameData("progress", std::to_string(m_progress));
 
                     mRuntimeManager->stopRegularTimer("create patch");
                     try {
@@ -267,7 +268,8 @@ void PatchGenerator::generateStream() {
                         patch->setFrameData("patch-spacing-x", std::to_string(spacing.x()));
                         patch->setFrameData("patch-spacing-y", std::to_string(spacing.y()));
                         patch->setFrameData("patch-spacing-z", std::to_string(spacing.z()));
-                        patch->setFrameData("progress", std::to_string((float)(patchX+patchY*patchesX+patchZ*patchesX*patchesY)/(patchesX*patchesY*patchesZ)));
+                        m_progress = ((float)(patchX+patchY*patchesX+patchZ*patchesX*patchesY)/(patchesX*patchesY*patchesZ));
+                        patch->setFrameData("progress", std::to_string(m_progress));
                         try {
                             if(previousPatch) {
                                 addOutputData(0, previousPatch, false);
@@ -358,6 +360,10 @@ void PatchGenerator::setPaddingValue(int paddingValue) {
 void PatchGenerator::setPatchMagnification(int magnification) {
     m_magnification = magnification;
     setModified(true);
+}
+
+float PatchGenerator::getProgress() {
+    return m_progress;
 }
 
 }

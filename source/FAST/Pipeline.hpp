@@ -12,12 +12,32 @@ namespace fast {
 class Renderer;
 class View;
 
+/**
+ * @brief A class representing a text pipeline.
+ */
 class FAST_EXPORT  Pipeline : public Object {
     public:
         Pipeline(std::string filename, std::map<std::string, std::string> variables = {{}});
+        /**
+         * @brief Get all views in this pipeline
+         * @return list of views
+         */
         std::vector<View*> getViews() const;
+        /**
+         * @brief Get renderers in this pipeline
+         * @return list of renderers
+         */
         std::vector<std::shared_ptr<Renderer>> getRenderers();
+        /**
+         * @brief Get all process objects in this pipeline, excluding renderers.
+         * @return list of process objects
+         */
         std::map<std::string, std::shared_ptr<ProcessObject>> getProcessObjects() const;
+        /**
+         * @brief Get a process object in this pipeline
+         * @param name Name of process object to extract
+         * @return process object
+         */
         std::shared_ptr<ProcessObject> getProcessObject(std::string name);
         std::string getName() const;
         std::string getDescription() const;
@@ -46,10 +66,13 @@ class FAST_EXPORT  Pipeline : public Object {
                 bool visualization = true
         );
 
+        bool isParsed() const;
+
         std::map<std::string, std::string> getRequiredPipelineInputData() const;
         std::map<std::string, DataObject::pointer> getAllPipelineOutputData(std::function<void(float)> progressFunction = nullptr);
         DataObject::pointer getPipelineOutputData(std::string name, std::function<void(float)> progressFunction = nullptr);
     private:
+        bool m_parsed = false;
         std::string mName;
         std::string mDescription;
         std::string mFilename;

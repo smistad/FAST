@@ -78,3 +78,16 @@ jobs:
         run: |
           rm -Rf ${{github.workspace}}
           rm -Rf $HOME/FAST/kernel_binaries/*
+
+  upload:
+    name: Upload artifact
+    needs: [test-cpp]
+    uses: svenstaro/upload-release-action@v2
+      with:
+        repo_name: AICAN-Research/FAST-Pathology-dependencies
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/build/fast_*.tar.xz
+        asset_name: fast_macos10.13.tar.xz
+        file_glob: true
+        tag: v1.0.0
+        overwrite: true

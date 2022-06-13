@@ -62,12 +62,18 @@ class FAST_EXPORT PatchGenerator : public Streamer {
         void setPaddingValue(int paddingValue);
         ~PatchGenerator();
         void loadAttributes() override;
+        /**
+         * @brief Get progress of this patch generator in percent.
+         * @return progress in percent 0.0-1.0
+         */
+        float getProgress();
     protected:
         int m_width, m_height, m_depth;
         float m_overlapPercent = 0;
         float m_maskThreshold = 0.5;
         int m_paddingValue = -1;
         int m_magnification = -1;
+        float m_progress = 0.0f;
 
         std::shared_ptr<ImagePyramid> m_inputImagePyramid;
         std::shared_ptr<Image> m_inputVolume;

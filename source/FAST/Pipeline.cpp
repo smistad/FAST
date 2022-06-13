@@ -314,6 +314,7 @@ void Pipeline::parse(std::map<std::string, std::shared_ptr<DataObject>> inputDat
             m_attributes[tokens[1]] = value;
         }
     }
+    m_parsed = true;
 }
 
 std::vector<View*> Pipeline::getViews() const {
@@ -376,7 +377,7 @@ std::vector<Pipeline> getAvailablePipelines(std::string path) {
 
 std::map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() const {
     if(mProcessObjects.empty())
-        throw Exception("You have to parse the pipeline before getting output data");
+        throw Exception("You have to parse the pipeline before getting process objects");
 
     return mProcessObjects;
 }
@@ -456,6 +457,10 @@ std::map<std::string, std::string> Pipeline::getRequiredPipelineInputData() cons
 
 std::map<std::string, std::string> Pipeline::getPipelineAttributes() const {
     return m_attributes;
+}
+
+bool Pipeline::isParsed() const {
+    return m_parsed;
 }
 
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {
