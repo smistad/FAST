@@ -143,7 +143,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_name: AICAN-Research/FAST-Pathology-dependencies
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.FAST_PATHOLOGY_PUSH_TOKEN }}
         file: ${{github.workspace}}/build/fast_*.zip
         asset_name: fast_windows.zip
         file_glob: true
