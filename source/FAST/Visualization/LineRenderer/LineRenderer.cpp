@@ -2,6 +2,7 @@
 #include "FAST/Data/Access/MeshAccess.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/SceneGraph.hpp"
+#include <FAST/Visualization/View.hpp>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #else
@@ -10,11 +11,14 @@
 
 namespace fast {
 
-void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                        int viewWidth,
+                        int viewHeight) {
 
-    activateShader();
-    setShaderUniform("perspectiveTransform", perspectiveMatrix);
-    setShaderUniform("viewTransform", viewingMatrix);
+    std::string shaderName = mode2D ? "2D" : "3D";
+    activateShader(shaderName);
+    setShaderUniform("perspectiveTransform", perspectiveMatrix, shaderName);
+    setShaderUniform("viewTransform", viewingMatrix, shaderName);
     // For all input data
     auto dataToRender = getDataToRender();
     for(auto it : dataToRender) {
@@ -35,13 +39,12 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         if(!mode2D) {
             transform = SceneGraph::getEigenTransformFromData(it.second);
         }
-        setShaderUniform("transform", transform);
+        setShaderUniform("transform", transform, shaderName);
 
-        // TODO glLineWidth does not work with GL 3.3 CORE. Have to implemented in shader instead
-        if(mInputWidths.count(it.first) > 0) {
-            glLineWidth(mInputWidths[it.first]);
-        } else {
-            glLineWidth(mDefaultLineWidth);
+        if(mode2D) {
+            setShaderUniform("thickness", mDefaultLineWidth, shaderName);
+            //setShaderUniform("viewportWidth", viewWidth, shaderName);
+            //setShaderUniform("viewportHeight", viewHeight, shaderName);
         }
         bool useGlobalColor = false;
         Color color = Color::Green();
@@ -79,8 +82,8 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         } else {
             useGlobalColor = true;
         }
-        setShaderUniform("useGlobalColor", useGlobalColor);
-        setShaderUniform("globalColor", color.asVector());
+        setShaderUniform("useGlobalColor", useGlobalColor, shaderName);
+        setShaderUniform("globalColor", color.asVector(), shaderName);
 
         if(access->hasEBO()) {
             GLuint* EBO = access->getLineEBO();
@@ -101,14 +104,20 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
 
 LineRenderer::LineRenderer(Color color, bool drawOnTop) {
     createInputPort<Mesh>(0, false);
-    mDefaultLineWidth = 2;
+    mDefaultLineWidth = 1;
     mDefaultColor = color;
     mDefaultDrawOnTop = drawOnTop;
     mDefaultColorSet = true;
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.vert",
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.frag",
-    });
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.geom",
+    }, "2D");
+    // Drop geom shader for 3D, not supporting thick lines here yet.
+    createShaderProgram({
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.vert",
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer3D.frag",
+        }, "3D");
 }
 
 uint LineRenderer::addInputConnection(DataChannel::pointer port) {

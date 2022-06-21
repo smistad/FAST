@@ -453,7 +453,7 @@ void RenderToImage::paintGL() {
             mRuntimeManager->startRegularTimer("draw2D");
             for(auto& renderer : mNonVolumeRenderers) {
                 if(!renderer->isDisabled()) {
-                    renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true);
+                    renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true, m_width, m_height);
                     renderer->postDraw();
                 }
             }
@@ -470,7 +470,7 @@ void RenderToImage::paintGL() {
             mRuntimeManager->startRegularTimer("draw");
             for(auto& renderer : mNonVolumeRenderers) {
                 if(!renderer->isDisabled()) {
-                    renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
+                    renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false, m_width, m_height);
                     renderer->postDraw();
                 }
             }
@@ -479,7 +479,7 @@ void RenderToImage::paintGL() {
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
                 for(auto& renderer : mVolumeRenderers) {
                     if(!renderer->isDisabled()) {
-                        renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
+                        renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false, m_width, m_height);
                         renderer->postDraw();
                     }
                 }

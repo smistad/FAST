@@ -40,7 +40,7 @@ TEST_CASE("LineRenderer 2D", "[fast][LineRenderer][visual]") {
 
     auto renderer = LineRenderer::New();
     renderer->addInputData(mesh);
-    renderer->setDefaultLineWidth(10);
+    renderer->setDefaultLineWidth(2);
     renderer->setColor(0, Color::Red());
 
     auto window = SimpleWindow::New();

@@ -3,7 +3,9 @@
 
 namespace fast {
 
-void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar,
+                                      bool mode2D, int viewWidth,
+                                      int viewHeight) {
     // Get window/viewport size
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);

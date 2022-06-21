@@ -16,7 +16,9 @@ class FAST_EXPORT MaximumIntensityProjection : public VolumeRenderer {
     public:
         FAST_CONSTRUCTOR(MaximumIntensityProjection)
     protected:
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
+        void
+        draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D, int viewWidth,
+             int viewHeight) override;
 };
 
 }

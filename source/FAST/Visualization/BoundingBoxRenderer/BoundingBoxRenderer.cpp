@@ -28,7 +28,9 @@ void BoundingBoxRenderer::setBorderSize(float borderSize) {
     m_borderSize = borderSize;
 }
 
-void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                               int viewWidth,
+                               int viewHeight) {
     if(!mode2D)
         throw Exception("BoundingBoxRenderer has only been implemented for 2D so far");
 

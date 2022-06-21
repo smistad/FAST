@@ -35,7 +35,9 @@ class FAST_EXPORT BoundingBoxRenderer : public LabelColorRenderer {
         void loadAttributes() override;
         virtual ~BoundingBoxRenderer();
     protected:
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
+        void
+        draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D, int viewWidth,
+             int viewHeight);
 
         std::unordered_map<uint, float> mInputWidths;
         std::unordered_map<uint, bool> mInputDrawOnTop;

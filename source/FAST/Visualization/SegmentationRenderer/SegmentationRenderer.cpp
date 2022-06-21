@@ -52,7 +52,10 @@ SegmentationRenderer::SegmentationRenderer(std::map<uint, Color> labelColors, fl
     mIsModified = false;
 }
 
-void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void
+SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                           int viewWidth,
+                           int viewHeight) {
     auto dataToRender = getDataToRender();
     if(dataToRender.empty())
         return;

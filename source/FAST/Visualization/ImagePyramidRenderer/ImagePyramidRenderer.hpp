@@ -24,7 +24,9 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         ~ImagePyramidRenderer();
         void clearPyramid();
     private:
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
+        void
+        draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D, int viewWidth,
+             int viewHeight);
 
         std::unordered_map<std::string, uint> mTexturesToRender;
         std::unordered_map<uint, std::shared_ptr<ImagePyramid>> mImageUsed;

@@ -57,7 +57,9 @@ void HeatmapRenderer::setChannelHidden(uint channel, bool hide) {
     deleteAllTextures();
 }
 
-void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                           int viewWidth,
+                           int viewHeight) {
     auto dataToRender = getDataToRender();
     if(dataToRender.empty())
         return;

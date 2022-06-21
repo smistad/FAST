@@ -73,7 +73,9 @@ void SegmentationLabelRenderer::execute() {
     }
 }
 
-void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void SegmentationLabelRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar,
+                                     bool mode2D, int viewWidth,
+                                     int viewHeight) {
     if(!mode2D)
         throw Exception("SegmentationLabelRenderer is only implemented for 2D at the moment");
 

@@ -27,7 +27,9 @@ class DataBoundingBox;
 class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     public:
         typedef std::shared_ptr<Renderer> pointer;
-        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) = 0;
+        virtual void
+        draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D, int viewWidth,
+             int viewHeight) = 0;
         virtual void postDraw();
         /**
          * Adds a new input connection
@@ -110,7 +112,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         friend class View;
         friend class RenderToImage;
 
-        View* m_view;
+        View* m_view = nullptr;
     private:
 
         /**

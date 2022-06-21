@@ -79,7 +79,9 @@ void ImageRenderer::loadAttributes() {
     mLevel = (getFloatAttribute("level"));
 }
 
-void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                         int viewWidth,
+                         int viewHeight) {
     auto dataToRender = getDataToRender();
     for(auto it : dataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);

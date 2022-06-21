@@ -41,7 +41,9 @@ void TriangleRenderer::setLineSize(int size) {
 
 }
 
-void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                            int viewWidth,
+                            int viewHeight) {
     if(mWireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 

@@ -76,7 +76,10 @@ void ImagePyramidRenderer::loadAttributes() {
     setSharpening(getBooleanAttribute("sharpening"));
 }
 
-void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void
+ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                           int viewWidth,
+                           int viewHeight) {
     auto dataToRender = getDataToRender();
     if(dataToRender.empty())
         return;
