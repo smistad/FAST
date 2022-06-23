@@ -5,6 +5,8 @@ layout (triangle_strip, max_vertices = 4) out;  // always (for now) producing 2 
 in vec4 vertexColor[];
 out vec4 geomColor;
 
+uniform mat4 transform;
+uniform mat4 viewTransform;
 uniform mat4 perspectiveTransform;
 uniform float thickness;
 //uniform int viewportWidth;
@@ -16,20 +18,17 @@ void main()
     vec4 p1 = gl_in[0].gl_Position;
     vec4 p2 = gl_in[1].gl_Position;
 
-    //vec2 viewportSize = vec2(viewportWidth,viewportHeight);//vec2(perspectiveTransform[0][0], perspectiveTransform[1][1]);
-    vec2 size = vec2(thickness, thickness)/200; // Assumes thickness is given in percent.
-    //if(size.x < 1.0/viewportSize.x || size.y < 1.0/viewportSize.y) // minimum size
-    //    size = vec2(1, 1)/viewportSize;
+    float size = (thickness/100.0)/(perspectiveTransform[0][0]/2.0); // percent to mm
     vec2 dir    = normalize((p2.xy - p1.xy));
-    vec2 offset = vec2(-dir.y, dir.x) * size;
+    vec4 offset = vec4(-dir.y, dir.x, 0, 0) * size * 0.5;
 
-    gl_Position = p1 + vec4(offset.xy, 0.0, 0.0);
+    gl_Position = perspectiveTransform * viewTransform * transform * (p1 + offset);
     EmitVertex();
-    gl_Position = p1 - vec4(offset.xy, 0.0, 0.0);
+    gl_Position = perspectiveTransform * viewTransform * transform * (p1 - offset);
     EmitVertex();
-    gl_Position = p2 + vec4(offset.xy, 0.0, 0.0);
+    gl_Position = perspectiveTransform * viewTransform * transform * (p2 + offset);
     EmitVertex();
-    gl_Position = p2 - vec4(offset.xy, 0.0, 0.0);
+    gl_Position = perspectiveTransform * viewTransform * transform * (p2 - offset);
     EmitVertex();
 
     EndPrimitive();

@@ -99,6 +99,75 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
             glEnable(GL_DEPTH_TEST);
     }
     deactivateShader();
+    if(mode2D) {
+        glEnable(GL_POINT_SPRITE); // Circles created in fragment shader will not work without this
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        // Draw joints as points
+        shaderName = "2Djoints";
+        activateShader(shaderName);
+        setShaderUniform("perspectiveTransform", perspectiveMatrix, shaderName);
+        setShaderUniform("viewTransform", viewingMatrix, shaderName);
+        setShaderUniform("viewportWidth", viewWidth, shaderName);
+        auto dataToRender = getDataToRender();
+        for(auto it : dataToRender) {
+            // Delete old VAO
+            if(mVAO.count(it.first) > 0)
+                glDeleteVertexArrays(1, &mVAO[it.first]);
+            // Create VAO
+            uint VAO_ID;
+            glGenVertexArrays(1, &VAO_ID);
+            mVAO[it.first] = VAO_ID;
+            glBindVertexArray(VAO_ID);
+
+            Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
+            float pointSize = mDefaultLineWidth;
+            auto access = points->getVertexBufferObjectAccess(ACCESS_READ);
+            bool useGlobalColor = false;
+            Color color = Color::Green();
+            if(mInputColors.count(it.first) > 0) {
+                color = mInputColors[it.first];
+                useGlobalColor = true;
+            } else if(!mDefaultColor.isNull()) {
+                color = mDefaultColor;
+                useGlobalColor = true;
+            } else if(!access->hasColorVBO()) {
+                color = Color::Green();
+                useGlobalColor = true;
+            }
+            Affine3f transform = Affine3f::Identity();
+            // If rendering is in 2D mode we skip any transformations
+            if(!mode2D) {
+                transform = SceneGraph::getEigenTransformFromData(it.second);
+            }
+            setShaderUniform("transform", transform, shaderName);
+            setShaderUniform("pointSize", pointSize, shaderName);
+
+            GLuint* coordinateVBO = access->getCoordinateVBO();
+
+            // Coordinates buffer
+            glBindBuffer(GL_ARRAY_BUFFER, *coordinateVBO);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+
+            // Color buffer
+            if(access->hasColorVBO() && !useGlobalColor) {
+                GLuint *colorVBO = access->getColorVBO();
+                glBindBuffer(GL_ARRAY_BUFFER, *colorVBO);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+                glEnableVertexAttribArray(1);
+            } else {
+                useGlobalColor = true;
+            }
+            setShaderUniform("useGlobalColor", useGlobalColor, shaderName);
+            setShaderUniform("globalColor", color.asVector(), shaderName);
+
+            glDrawArrays(GL_POINTS, 0, points->getNrOfVertices());
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+        }
+        deactivateShader();
+    }
     glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the text renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
@@ -113,9 +182,13 @@ LineRenderer::LineRenderer(Color color, bool drawOnTop) {
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.frag",
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.geom",
     }, "2D");
+    createShaderProgram({
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRendererJoints.vert",
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRendererJoints.frag",
+        }, "2Djoints");
     // Drop geom shader for 3D, not supporting thick lines here yet.
     createShaderProgram({
-        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.vert",
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer3D.vert",
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer3D.frag",
         }, "3D");
 }
