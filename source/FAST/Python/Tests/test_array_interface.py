@@ -69,6 +69,7 @@ def test_3D_image_array_interface():
             assert image.getDataType() == fast_type
             assert np.array_equal(np.asarray(image), data)
 
+
 def test_image_array_interface_exceptions():
     data = ''
     with pytest.raises(ValueError):
@@ -79,3 +80,38 @@ def test_image_array_interface_exceptions():
     data = np.ndarray((16,34,23,54,23), dtype=np.uint8)
     with pytest.raises(ValueError):
         fast.Image.createFromArray(data)
+
+
+def test_tensor_array_interface():
+    types_to_test = [
+        (np.uint8, 255),
+        (np.int8, 127),
+        (np.float32, 1),
+        (np.float64, 1),
+        (np.uint16, 128),
+        (np.int16, 128)
+    ]
+    for type, scale in types_to_test:
+        shape = (23,)
+        numpy_tensor = (np.random.random(shape)*scale).astype(type)
+        fast_tensor = fast.Tensor.createFromArray(numpy_tensor)
+        assert fast_tensor.getShape().getDimensions() == len(shape)
+        assert fast_tensor.getShape().getAll()[0] == shape[0]
+        assert np.all(numpy_tensor.astype(np.float32) == np.array(fast_tensor))
+
+        shape = (23,1,23,67)
+        numpy_tensor = (np.random.random(shape)*scale).astype(type)
+        fast_tensor = fast.Tensor.createFromArray(numpy_tensor)
+        assert fast_tensor.getShape().getDimensions() == len(shape)
+        for i in range(len(shape)):
+            assert fast_tensor.getShape().getAll()[i] == shape[i]
+        assert np.all(numpy_tensor.astype(np.float32) == np.array(fast_tensor))
+
+
+def test_tensor_array_interface_exceptions():
+    data = ''
+    with pytest.raises(ValueError):
+        fast.Tensor.createFromArray(data)
+    #data = np.ndarray((16,0,1), dtype=np.float32)
+    #with pytest.raises(ValueError):
+    #    fast.Tensor.createFromArray(data)
