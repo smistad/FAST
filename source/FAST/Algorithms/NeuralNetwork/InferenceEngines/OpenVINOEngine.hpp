@@ -53,8 +53,6 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
 
         // This mutex is used to ensure only one thread is using this OpenVINO instance at the same time
         std::mutex m_mutex;
-
-        ImageOrdering m_imageOrdering;
 };
 
 DEFINE_INFERENCE_ENGINE(OpenVINOEngine, INFERENCEENGINEOPENVINO_EXPORT)

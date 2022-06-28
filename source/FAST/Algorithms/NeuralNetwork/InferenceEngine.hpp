@@ -132,6 +132,13 @@ class FAST_EXPORT InferenceEngine : public Object {
          * @param filename path to library (.so/.dll) or in the case of GPU/VPU OpenVINO .xml files.
          */
         virtual void loadCustomPlugins(std::vector<std::string> filenames);
+        /**
+         * @brief Set dimension image ordering manually.
+         * E.g. channel last or channel-first.
+         *
+         * @param ordering
+         */
+        virtual void setImageOrdering(ImageOrdering ordering);
     protected:
         virtual void setIsLoaded(bool loaded);
 
@@ -144,6 +151,7 @@ class FAST_EXPORT InferenceEngine : public Object {
 
         std::vector<uint8_t> m_model;
         std::vector<uint8_t> m_weights;
+        ImageOrdering m_imageOrdering;
     private:
         std::string m_filename = "";
         bool m_isLoaded = false;

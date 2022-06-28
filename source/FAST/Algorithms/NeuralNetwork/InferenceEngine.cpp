@@ -136,6 +136,9 @@ bool InferenceEngine::isModelFormatSupported(ModelFormat format) {
     return pos != formats.end();
 }
 
+void InferenceEngine::setImageOrdering(ImageOrdering ordering) {
+    m_imageOrdering = ordering;
+}
 
 std::string getModelFormatName(ModelFormat format) {
     std::map<ModelFormat, std::string> map = {

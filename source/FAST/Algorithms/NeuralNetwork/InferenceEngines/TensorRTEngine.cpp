@@ -246,7 +246,7 @@ void TensorRTEngine::load() {
             if(!uffparser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
                 throw Exception("Error parsing UFF file " + filename);
 
-            m_dimensionOrdering = ImageOrdering::ChannelFirst;
+            m_imageOrdering = ImageOrdering::ChannelFirst;
             reportInfo() << "Finished parsing UFF file" << reportEnd();
         } else {
             // Assuming file is ONNX format
@@ -309,14 +309,16 @@ void TensorRTEngine::load() {
             if(shape.getDimensions() >= 4) { // If image; 2D or 3D
                 type = NodeType::IMAGE;
                 // Try to determine channel ordering since TensorRT API doesn't seem to have a good way to do this..
-                if (shape[shape.getDimensions() - 1] <= 4) {
-                    m_dimensionOrdering = ImageOrdering::ChannelLast;
-                    reportInfo() << "Guessed image ordering to be channel last as shape was " << shape.toString()
-                                 << reportEnd();
-                } else {
-                    m_dimensionOrdering = ImageOrdering::ChannelFirst;
-                    reportInfo() << "Guessed image ordering to be channel first as shape was " << shape.toString()
-                                 << reportEnd();
+                if(m_engine->bindingIsInput(i)) {
+                    if (shape[shape.getDimensions() - 1] <= 4) {
+                        m_imageOrdering = ImageOrdering::ChannelLast;
+                        reportInfo() << "Guessed image ordering to be channel last as shape was " << shape.toString()
+                        << reportEnd();
+                    } else {
+                        m_imageOrdering = ImageOrdering::ChannelFirst;
+                        reportInfo() << "Guessed image ordering to be channel first as shape was " << shape.toString()
+                        << reportEnd();
+                    }
                 }
             } else {
                 type = NodeType::TENSOR;
@@ -362,7 +364,7 @@ void TensorRTEngine::load() {
 ImageOrdering TensorRTEngine::getPreferredImageOrdering() const {
     if(!isLoaded())
         throw Exception("Network must be loaded before calling getPreferredImageOrdering on TensorRTEngine");
-    return m_dimensionOrdering;
+    return m_imageOrdering;
 }
 
 TensorRTEngine::~TensorRTEngine() {
