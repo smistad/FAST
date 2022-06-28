@@ -29,7 +29,18 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
          * @brief Create instance
          * @return instance
          */
-        FAST_CONSTRUCTOR(PatchStitcher);
+        FAST_CONSTRUCTOR(PatchStitcher, bool, patchesAreCropped, = false);
+        void loadAttributes() override;
+        /**
+         * @brief Set whether incoming patches are cropped or not
+         * @param cropped
+         */
+        void setPatchesAreCropped(bool cropped);
+        /**
+         * @brief Get whether incoming patches are cropped or not
+         * @param cropped
+         */
+        bool getPatchesAreCropped() const;
     protected:
         void execute() override;
 
@@ -40,6 +51,7 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
         void processTensor(std::shared_ptr<Tensor> tensor);
         void processImage(std::shared_ptr<Image> tensor);
     private:
+        bool m_patchesAreCropped = false;
 
 };
 

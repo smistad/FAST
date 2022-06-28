@@ -2,16 +2,23 @@
 #include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Data/Tensor.hpp>
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
+#include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include "PatchStitcher.hpp"
 
 namespace fast {
 
-PatchStitcher::PatchStitcher() {
+PatchStitcher::PatchStitcher(bool patchesAreCropped) {
     createInputPort<DataObject>(0); // Can be Image, Batch or Tensor
     createOutputPort<DataObject>(0); // Can be Image or Tensor
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImagePatch/PatchStitcher2D.cl", "2D");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImagePatch/PatchStitcher3D.cl", "3D");
+    createBooleanAttribute("patches-are-cropped", "Patches are cropped", "Indicate whether incomming patches are already cropped or not.", false);
+    setPatchesAreCropped(patchesAreCropped);
+}
+
+void PatchStitcher::loadAttributes() {
+    setPatchesAreCropped(getBooleanAttribute("patches-are-cropped"));
 }
 
 void PatchStitcher::execute() {
@@ -193,11 +200,19 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 return;
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
             mRuntimeManager->startRegularTimer("copy patch");
-            if(patchOverlapX > 0 || patchOverlapY > 0) {
-                patch = patch->crop(
-                        Vector2i(patchOverlapX, patchOverlapY),
-                        Vector2i(patch->getWidth() - patchOverlapX * 2, patch->getHeight() - patchOverlapY * 2)
-                );
+            if(!m_patchesAreCropped) {
+                if(patchOverlapX > 0 || patchOverlapY > 0) {
+                    patch = patch->crop(
+                            Vector2i(patchOverlapX, patchOverlapY),
+                            Vector2i(patch->getWidth() - patchOverlapX * 2, patch->getHeight() - patchOverlapY * 2)
+                            );
+                }
+            }
+            if(patch->getWidth() != m_outputImagePyramid->getLevelTileWidth(0) || patch->getHeight() != m_outputImagePyramid->getLevelTileHeight(0)) {
+                // The patch size has been modified due to TIFF limitation of multiplum of 16
+                int diffX = patch->getWidth() - m_outputImagePyramid->getLevelTileWidth(0);
+                int diffY = patch->getHeight() - m_outputImagePyramid->getLevelTileHeight(0);
+                patch = patch->crop(Vector2i(diffX/2, diffY/2), Vector2i(patch->getWidth()-diffX, patch->getHeight()-diffY));
             }
             outputAccess->setPatch(0, startX, startY, patch);
             mRuntimeManager->stopRegularTimer("copy patch");
@@ -271,6 +286,15 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
 
 
     }
+}
+
+void PatchStitcher::setPatchesAreCropped(bool cropped) {
+    m_patchesAreCropped = cropped;
+    setModified(true);
+}
+
+bool PatchStitcher::getPatchesAreCropped() const {
+    return m_patchesAreCropped;
 }
 
 
