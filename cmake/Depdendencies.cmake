@@ -63,9 +63,13 @@ if(FAST_MODULE_Visualization)
             )
         else()
             fast_download_dependency(qt5
-                    5.14.0
-                    3281e50a545c1a7275cf7626b348468049ac41c05944bcc9fd08708831c2d28f
+                    5.15.5
+                    bd9dcfb8cd54f37946341195cbbc2d839e46e52c312560924deacbd151ab6fb4
                     libQt5Core.so libQt5Gui.so libQt5Widgets.so libQt5OpenGL.so libQt5Multimedia.so libQt5MultimediaWidgets.so libQt5Network.so libQt5PrintSupport.so libQt5SerialPort.so
+            )
+            fast_download_dependency(openssl
+                    1.1.1
+                    813d09d0e4fb8c03b4470692659d8600e5d56c77708aa27c0290e9be03cc7352
             )
         endif()
         # MOC setup
