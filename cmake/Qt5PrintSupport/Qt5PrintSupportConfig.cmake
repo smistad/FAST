@@ -60,8 +60,8 @@ if (NOT TARGET Qt5::PrintSupport)
 
     set(_Qt5PrintSupport_OWN_INCLUDE_DIRS "${_qt5PrintSupport_install_prefix}/include/" "${_qt5PrintSupport_install_prefix}/include/QtPrintSupport")
     set(Qt5PrintSupport_PRIVATE_INCLUDE_DIRS
-        "${_qt5PrintSupport_install_prefix}/include/QtPrintSupport/5.14.0"
-        "${_qt5PrintSupport_install_prefix}/include/QtPrintSupport/5.14.0/QtPrintSupport"
+        "${_qt5PrintSupport_install_prefix}/include/QtPrintSupport/5.15.5"
+        "${_qt5PrintSupport_install_prefix}/include/QtPrintSupport/5.15.5/QtPrintSupport"
     )
     include("${CMAKE_CURRENT_LIST_DIR}/ExtraSourceIncludes.cmake" OPTIONAL)
 
@@ -105,7 +105,7 @@ if (NOT TARGET Qt5::PrintSupport)
     foreach(_module_dep ${_Qt5PrintSupport_MODULE_DEPENDENCIES})
         if (NOT Qt5${_module_dep}_FOUND)
             find_package(Qt5${_module_dep}
-                5.14.0 ${_Qt5PrintSupport_FIND_VERSION_EXACT}
+                5.15.5 ${_Qt5PrintSupport_FIND_VERSION_EXACT}
                 ${_Qt5PrintSupport_DEPENDENCIES_FIND_QUIET}
                 ${_Qt5PrintSupport_FIND_DEPENDENCIES_REQUIRED}
                 PATHS "${CMAKE_CURRENT_LIST_DIR}/.." NO_DEFAULT_PATH
