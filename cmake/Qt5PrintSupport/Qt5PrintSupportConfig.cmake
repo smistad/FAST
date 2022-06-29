@@ -6,7 +6,7 @@ endif()
 get_filename_component(_qt5PrintSupport_install_prefix "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
 
 # For backwards compatibility only. Use Qt5PrintSupport_VERSION instead.
-set(Qt5PrintSupport_VERSION_STRING 5.14.0)
+set(Qt5PrintSupport_VERSION_STRING 5.15.5)
 
 set(Qt5PrintSupport_LIBRARIES Qt5::PrintSupport)
 
