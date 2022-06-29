@@ -47,11 +47,15 @@ if(FAST_MODULE_Visualization)
         # Let FAST build Qt 5
         if(WIN32)
             fast_download_dependency(qt5
-                    5.14.0
-                    280fbfac2e2c1ad918d5c4efc043b7cc0ec13a149e37f29492215d69968bec7e
+                    5.15.5
+                    0e253ac91463f3d722f100402c24b8ec2363bb28954636068d0b5bd30e0476a0
                     Qt5Core.lib Qt5Gui.lib Qt5Widgets.lib Qt5OpenGL.lib Qt5Multimedia.lib Qt5MultimediaWidgets.lib Qt5Network.lib Qt5PrintSupport.lib Qt5SerialPort.lib
             )
-	elseif(APPLE)
+            fast_download_dependency(openssl
+                    1.1.1
+                    e0f9b5d26627c70abbfa9e3b0d731a81995bdd2af2177eebf1c4b32691643c9e
+            )
+      	elseif(APPLE)
             fast_download_dependency(qt5
                     5.14.0
                     9751aa43880c0193c59836410cbb6b343796b1b4cd5f86861300370014eac162
