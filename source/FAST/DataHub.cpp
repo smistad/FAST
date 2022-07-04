@@ -188,6 +188,7 @@ DataHub::Item DataHub::Item::fromJSON(QJsonObject json) {
     itemObject.name = json["name"].toString().toStdString();
     itemObject.type = json["type"].toString().toStdString();
     itemObject.author = json["author"].toString().toStdString();
+    itemObject.downloads = json["downloads"].toInt();
     itemObject.copyright = json["copyright"].toString().toStdString();
     itemObject.description = json["description"].toString().toStdString();
     itemObject.license = json["license_name"].toString().toStdString();

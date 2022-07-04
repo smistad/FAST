@@ -47,6 +47,7 @@ class FAST_EXPORT DataHub : public QObject {
                 std::string licenseURL;
                 std::string thumbnailURL;
                 std::string downloadURL;
+                uint64_t downloads;
                 std::vector<DataHub::Item> needs;
                 /**
                  * @brief Convert this item to JSON string
@@ -216,6 +217,7 @@ class DataHubItemWidget : public QWidget {
             title->setText(QString::fromStdString(
               "<h3>" + item.name + "</h3>" +
                 "<p>" + item.description + "</p>" +
+                "<p>Downloads: " + std::to_string(item.downloads) + "</p>" +
                 "<p>Authors: " + glue(item.getAllAuthors(), ", ") + "</p>" +
                 "<p>Copyrights: " + glue(item.getAllCopyrights(), ", ") + "</p>" +
                 "<p>Licenses: " + licenseString + "</p>"
