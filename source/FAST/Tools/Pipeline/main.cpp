@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     if(parser.gotValue("pipeline-filename"))
 		gui->setPipelineFile(parser.get("pipeline-filename"), parser.getVariables());
     if(parser.gotValue("datahub")) {
-        DataHub hub();
+        DataHub hub;
         hub.download(parser.get("datahub"));
         gui->setPipelineFile(join(hub.getStorageDirectory(), parser.get("datahub"), "pipeline.fpl"), parser.getVariables());
     }

@@ -45,5 +45,5 @@ if(FAST_MODULE_Visualization)
         DataHub.cpp
         DataHub.hpp
 	)
-    fast_add_python_interfaces(DataHub.hpp)
+    fast_add_python_interfaces(DataHub.hpp Pipeline.hpp)
 endif()

@@ -158,6 +158,7 @@ public
 %template(vectorpo) std::vector<std::shared_ptr<fast::ProcessObject>>;
 %template(vectorimage) std::vector<std::shared_ptr<fast::Image>>;
 %template(vectortensor) std::vector<std::shared_ptr<fast::Tensor>>;
+%template(DataMap) std::map<std::string, std::shared_ptr<fast::DataObject>>;
 
 // Since python is dynamically typed, lets convert DataObjects to the right type before returning
 %pythonappend fast::ProcessObject::runAndGetOutputData(uint, int64_t) %{

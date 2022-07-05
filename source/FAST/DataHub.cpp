@@ -269,7 +269,7 @@ DataHub::Download DataHub::download(std::string itemID) {
     try {
         json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
     } catch(Exception &e) {
-        throw Exception("Unable to get item with item ID " + itemID);
+        throw Exception("Unable to get DataHub item with ID " + itemID);
     }
 
     std::stack<DataHub::Item> toDownload;
@@ -312,7 +312,7 @@ bool DataHub::isDownloaded(std::string itemID) {
     try {
         json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
     } catch(Exception &e) {
-        throw Exception("Unable to get item with item ID " + itemID);
+        throw Exception("Unable to get DataHub item with ID " + itemID);
     }
 
     bool isDownloaded = true;
@@ -345,7 +345,7 @@ DataHub::Item DataHub::getItem(std::string itemID) {
     try {
         json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
     } catch(Exception &e) {
-        throw Exception("Unable to get item with item ID " + itemID);
+        throw Exception("Unable to get DataHub item with ID " + itemID);
     }
 
     return DataHub::Item::fromJSON(json.object());

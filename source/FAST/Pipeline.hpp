@@ -16,7 +16,7 @@ class View;
 /**
  * @brief A class representing a text pipeline.
  */
-class FAST_EXPORT  Pipeline : public Object {
+class FAST_EXPORT  Pipeline {
     public:
         /**
          * @brief Setup a text pipeline
@@ -28,10 +28,12 @@ class FAST_EXPORT  Pipeline : public Object {
          * @brief Create pipeline object from DataHub
          * This will download the pipeline item from the DataHub and any dependencies (models, data etc.).
          *
-         * @param itemID
+         * @param itemID DataHub item ID
+         * @param variables
+         * @param hub
          * @return pipeline
          */
-        static Pipeline fromDataHub(std::string itemID, std::map<std::string, std::string> variables = {{}}, DataHub hub = DataHub());
+        static Pipeline fromDataHub(std::string itemID, std::map<std::string, std::string> variables = {{}}, DataHub&& hub = DataHub());
         /**
          * @brief Get all views in this pipeline
          * @return list of views
@@ -80,10 +82,50 @@ class FAST_EXPORT  Pipeline : public Object {
                 bool visualization = true
         );
 
+        /**
+         * @brief Check if pipeline has been parsed
+         * @return
+         */
         bool isParsed() const;
 
+        /**
+         * @brief Parse and run this pipeline. If pipeline contains views, it will open a window and render.
+         *
+         * @param inputData Input data objects
+         * @param processObjects Process objects to connect to this pipeline
+         * @param visualization If false parse will ignore any renderers and views
+         * @return pipeline output data
+         */
+        std::map<std::string, DataObject::pointer> run(
+                std::map<std::string, std::shared_ptr<DataObject>> inputData = {},
+                std::map<std::string, std::shared_ptr<ProcessObject>> processObjects = {},
+                bool visualization = true
+        );
+
+        /**
+         * @brief Get list of all required input data for this pipeline
+         * @return
+         */
         std::map<std::string, std::string> getRequiredPipelineInputData() const;
+        /**
+         * @brief Get all data objects which has been declared as output data in this pipeline
+         *
+         * Pipeline output data is declared using "PipelineOutputData <name> <process object> <output port id>"
+         * This function will block until done. Use progress function to log progress.
+         *
+         * @param progressFunction
+         * @return map of pipeline output data
+         */
         std::map<std::string, DataObject::pointer> getAllPipelineOutputData(std::function<void(float)> progressFunction = nullptr);
+        /**
+          * @brief Get data object which has been declared as output data in this pipeline with a given name.
+          *
+          * Pipeline output data is declared using "PipelineOutputData <name> <process object> <output port id>"
+          * This function will block until done. Use progress function to log progress.
+          *
+          * @param progressFunction
+          * @return pipeline output data object
+          */
         DataObject::pointer getPipelineOutputData(std::string name, std::function<void(float)> progressFunction = nullptr);
     private:
         bool m_parsed = false;
@@ -116,6 +158,7 @@ class FAST_EXPORT  Pipeline : public Object {
  */
 FAST_EXPORT std::vector<Pipeline> getAvailablePipelines(std::string path = "");
 
+#ifndef SWIG
 class FAST_EXPORT  PipelineWidget : public QToolBox {
     public:
         PipelineWidget(Pipeline pipeline, QWidget* parent = nullptr);
@@ -126,6 +169,7 @@ class FAST_EXPORT  ProcessObjectWidget : public QWidget {
     public:
         ProcessObjectWidget(std::shared_ptr<ProcessObject> po, QWidget* parent = nullptr);
 };
+#endif
 
 } // end namespace fast
 
