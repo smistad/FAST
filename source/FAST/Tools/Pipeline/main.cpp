@@ -19,5 +19,5 @@ int main(int argc, char** argv) {
         hub.download(parser.get("datahub"));
         gui->setPipelineFile(join(hub.getStorageDirectory(), parser.get("datahub"), "pipeline.fpl"), parser.getVariables());
     }
-    gui->start();
+    gui->run();
 }

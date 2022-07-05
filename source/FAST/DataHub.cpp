@@ -156,7 +156,7 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
     });
     QObject::connect(&manager, &QNetworkAccessManager::finished, [reply, &file, destination]() {
         if(reply->error() != QNetworkReply::NoError) {
-            std::cout << "\rERROR: Download failed!" << std::endl;
+            std::cout << "\33[2K\rERROR: Download failed!" << std::endl;
             file.close();
             file.remove();
             return;
@@ -165,13 +165,13 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
         try {
             extractZipFile(file.fileName().toStdString(), destination);
         } catch(Exception& e) {
-            std::cout << "\rERROR: Zip extraction failed!" << std::endl;
+            std::cout << "\33[2K\rERROR: Zip extraction failed!" << std::endl;
             file.remove();
             return;
         }
 
         file.remove();
-        std::cout << "\rComplete." << std::endl;
+        std::cout << "\33[2K\rComplete." << std::endl;
     });
 
     auto eventLoop = new QEventLoop(&manager);
