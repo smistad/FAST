@@ -202,7 +202,7 @@ class DataHubItemWidget : public QWidget {
                 licenseString += "<a href=\"" + license.second + "\">" + license.first + "</a>";
             }
             auto glue = [](std::set<std::string> set, std::string delimeter) -> std::string {
-                std::vector list(set.begin(), set.end());
+                std::vector<std::string> list(set.begin(), set.end());
                 std::string res = "";
                 if(!list.empty()) {
                     for(int i = 0; i < list.size()-1; ++i) {

@@ -16,10 +16,9 @@
 #include <sys/ioctl.h>
 #include <stdio.h>
 #include <unistd.h>
+#endif
 #include <iomanip>
 #include <stack>
-
-#endif
 
 namespace fast {
 
