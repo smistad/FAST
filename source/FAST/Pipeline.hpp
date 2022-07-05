@@ -13,6 +13,10 @@ namespace fast {
 class Renderer;
 class View;
 
+using StringMap = std::map<std::string, std::string>;
+using DataMap = std::map<std::string, std::shared_ptr<DataObject>>;
+using ProcessObjectMap = std::map<std::string, std::shared_ptr<ProcessObject>>;
+
 /**
  * @brief A class representing a text pipeline.
  */
@@ -23,7 +27,7 @@ class FAST_EXPORT  Pipeline {
          * @param filename path to text pipeline file
          * @param variables
          */
-        Pipeline(std::string filename, std::map<std::string, std::string> variables = {{}});
+        Pipeline(std::string filename, StringMap variables = StringMap());
         /**
          * @brief Create pipeline object from DataHub
          * This will download the pipeline item from the DataHub and any dependencies (models, data etc.).
@@ -33,7 +37,7 @@ class FAST_EXPORT  Pipeline {
          * @param hub
          * @return pipeline
          */
-        static Pipeline fromDataHub(std::string itemID, std::map<std::string, std::string> variables = {{}}, DataHub&& hub = DataHub());
+        static Pipeline fromDataHub(std::string itemID, StringMap variables = StringMap(), DataHub&& hub = DataHub());
         /**
          * @brief Get all views in this pipeline
          * @return list of views
@@ -77,8 +81,8 @@ class FAST_EXPORT  Pipeline {
          * @param visualization If false parse will ignore any renderers and views
          */
         void parse(
-                std::map<std::string, std::shared_ptr<DataObject>> inputData = {},
-                std::map<std::string, std::shared_ptr<ProcessObject>> processObjects = {},
+                DataMap inputData = DataMap(),
+                ProcessObjectMap processObjects = ProcessObjectMap(),
                 bool visualization = true
         );
 
@@ -97,8 +101,8 @@ class FAST_EXPORT  Pipeline {
          * @return pipeline output data
          */
         std::map<std::string, DataObject::pointer> run(
-                std::map<std::string, std::shared_ptr<DataObject>> inputData = {},
-                std::map<std::string, std::shared_ptr<ProcessObject>> processObjects = {},
+                DataMap inputData = DataMap(),
+                ProcessObjectMap processObjects = ProcessObjectMap(),
                 bool visualization = true
         );
 
