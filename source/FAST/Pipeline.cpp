@@ -463,6 +463,11 @@ bool Pipeline::isParsed() const {
     return m_parsed;
 }
 
+Pipeline Pipeline::fromDataHub(std::string itemID, std::map<std::string, std::string> variables, DataHub hub) {
+    auto result = hub.download(itemID);
+    return Pipeline(join(hub.getStorageDirectory(), itemID, "pipeline.fpl"), variables);
+}
+
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {
     auto processObjects = pipeline.getProcessObjects();
     for(auto object : processObjects) {

@@ -349,6 +349,14 @@ DataHub::Item DataHub::getItem(std::string itemID) {
     return DataHub::Item::fromJSON(json.object());
 }
 
+std::string DataHub::getStorageDirectory() const {
+    return m_storageDirectory;
+}
+
+std::string DataHub::getURL() const {
+    return m_URL;
+}
+
 DataHubBrowser::DataHubBrowser(DataHub&& hub, std::string tag, QWidget *parent) : QWidget(parent), m_hub(hub) {
     setWindowTitle("Data Hub Browser");
     auto items = hub.getItems(tag);

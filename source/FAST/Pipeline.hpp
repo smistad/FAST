@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <FAST/ProcessObject.hpp>
+#include <FAST/DataHub.hpp>
 
 namespace fast {
 
@@ -17,7 +18,20 @@ class View;
  */
 class FAST_EXPORT  Pipeline : public Object {
     public:
+        /**
+         * @brief Setup a text pipeline
+         * @param filename path to text pipeline file
+         * @param variables
+         */
         Pipeline(std::string filename, std::map<std::string, std::string> variables = {{}});
+        /**
+         * @brief Create pipeline object from DataHub
+         * This will download the pipeline item from the DataHub and any dependencies (models, data etc.).
+         *
+         * @param itemID
+         * @return pipeline
+         */
+        static Pipeline fromDataHub(std::string itemID, std::map<std::string, std::string> variables = {{}}, DataHub hub = DataHub());
         /**
          * @brief Get all views in this pipeline
          * @return list of views

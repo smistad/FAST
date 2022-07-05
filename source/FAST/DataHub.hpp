@@ -82,9 +82,9 @@ class FAST_EXPORT DataHub : public QObject {
         /**
          * @brief Setup DataHub object
          * @param URL Address to DataHub
-         * @param storageDirectory Where on disk to store downloaded items
+         * @param storageDirectory Where on disk to store downloaded items.
          */
-        explicit DataHub(std::string URL = "https://data.eriksmistad.no", std::string storageDirectory = "");
+        explicit DataHub(std::string URL = "https://datahub.eriksmistad.no", std::string storageDirectory = "");
         /**
          * @brief Get list of items for a given tag
          * @param tag
@@ -109,6 +109,16 @@ class FAST_EXPORT DataHub : public QObject {
          * @return
          */
         bool isDownloaded(std::string itemID);
+        /**
+         * @brief Get DataHub storage directory
+         * @return
+         */
+        std::string getStorageDirectory() const;
+        /**
+         * @brief Get DataHub URL
+         * @return
+         */
+        std::string getURL() const;
     Q_SIGNALS:
         void progress(int fileNr, int percent);
         void finished();
