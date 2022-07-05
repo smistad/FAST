@@ -24,6 +24,8 @@ namespace fast {
 
 DataHub::DataHub(std::string URL, std::string storageDirectory) {
     m_URL = URL;
+    if(m_URL[m_URL.size()-1] != '/')
+        m_URL += "/";
     if(storageDirectory.empty()) {
         m_storageDirectory = join(Config::getTestDataPath(), "..", "datahub");
     } else {

@@ -84,7 +84,7 @@ class FAST_EXPORT DataHub : public QObject {
          * @param URL Address to DataHub
          * @param storageDirectory Where on disk to store downloaded items.
          */
-        explicit DataHub(std::string URL = "https://datahub.eriksmistad.no", std::string storageDirectory = "");
+        explicit DataHub(std::string URL = "https://datahub.eriksmistad.no/", std::string storageDirectory = "");
         /**
          * @brief Get list of items for a given tag
          * @param tag
