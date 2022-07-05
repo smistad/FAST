@@ -135,6 +135,7 @@ class FAST_EXPORT DataHubBrowser : public QWidget {
         QListWidget* m_listWidget;
 };
 
+#ifndef SWIG
 /**
  * @brief A widget to display progress of downloading and item from DataHub
  */
@@ -245,5 +246,7 @@ class DataHubItemWidget : public QWidget {
     Q_SIGNALS:
         void download();
     };
+
+#endif
 
 }
