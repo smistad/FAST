@@ -119,7 +119,7 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
     std::cout << "";
     std::cout.flush();
     QObject::connect(reply, &QNetworkReply::downloadProgress, [=](quint64 current, quint64 max) {
-        const int totalWidth = std::max(getConsoleWidth(), 100);
+        const int totalWidth = getConsoleWidth();
         const float percent = ((float)current / max);
         const float speed = ((float)timer->elapsed() / 1000.0f)/percent;
         const float ETA = (speed * (1.0f - percent) / 60.0f);
