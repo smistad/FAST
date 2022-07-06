@@ -221,6 +221,17 @@ void GUI::loadPipeline() {
 }
 
 void GUI::setPipelineFile(std::string file, std::map<std::string, std::string> variables) {
+    // Need this to make sure View is initialized properly..
+    int screenHeight = getScreenHeight();
+    int screenWidth = getScreenWidth();
+    reportInfo() << "Resizing window to " << mWidth << " " << mHeight << reportEnd();
+    mWidget->resize(mWidth, mHeight);
+    // Move window to center
+    int x = (screenWidth - mWidth) / 2;
+    int y = (screenHeight - mHeight) / 2;
+    mWidget->move(x, y);
+    mWidget->show();
+
 	m_variables = variables;
 	Pipeline pipeline(file, m_variables);
 	auto filename = QString(pipeline.getFilename().c_str());
