@@ -15,6 +15,8 @@
 #include <QPushButton>
 #include <QProgressBar>
 #include <iostream>
+#include <QApplication>
+#include <QScreen>
 
 namespace fast {
 
@@ -81,10 +83,10 @@ class FAST_EXPORT DataHub : public QObject {
         };
         /**
          * @brief Setup DataHub object
-         * @param URL Address to DataHub
-         * @param storageDirectory Where on disk to store downloaded items.
+         * @param URL Address to DataHub. If empty use default.
+         * @param storageDirectory Where on disk to store downloaded items. If empty use default.
          */
-        explicit DataHub(std::string URL = "https://datahub.eriksmistad.no/", std::string storageDirectory = "");
+        explicit DataHub(std::string URL = "", std::string storageDirectory = "");
         /**
          * @brief Get list of items for a given tag
          * @param tag
@@ -136,12 +138,13 @@ class FAST_EXPORT DataHub : public QObject {
 class FAST_EXPORT DataHubBrowser : public QWidget {
     Q_OBJECT
     public:
-        explicit DataHubBrowser(DataHub&& hub, std::string tag = "", QWidget* parent = nullptr);
+        explicit DataHubBrowser(std::string tag = "", std::string URL = "", std::string storageDirectory = "", QWidget* parent = nullptr);
+        DataHub& getDataHub();
         QPixmap downloadThumbnail(const std::string& URL);
     public Q_SLOTS:
         void download(std::string itemID);
     private:
-        DataHub& m_hub;
+        DataHub m_hub;
         QListWidget* m_listWidget;
 };
 
@@ -177,7 +180,7 @@ class DownloadProgressWidget : public QWidget {
                 layout->addWidget(progressBar);
                 m_progressBars.push_back(progressBar);
             }
-
+            move(QGuiApplication::primaryScreen()->geometry().center() - rect().center());
         }
     public Q_SLOTS:
         void updateProgress(int fileNr, int percent) {

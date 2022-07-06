@@ -6,13 +6,13 @@ using namespace fast;
 
 /*
 TEST_CASE("Data hub", "[fast][DataHub]") {
-    auto hub = DataHub("http://localhost:8000/");
+    auto hub = DataHub();
     hub.getItems("wsi");
 
-    hub.download("nuclei-segmentation");
+    auto res = hub.getItem("breast-tumour-segmentation");
 
-    auto browser = new DataHubBrowser(std::move(hub), "fast-pathology");
+    auto browser = new DataHubBrowser("fast-pathology");
     browser->show();
     QApplication::instance()->exec();
 }
- */
+*/

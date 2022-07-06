@@ -23,7 +23,11 @@
 namespace fast {
 
 DataHub::DataHub(std::string URL, std::string storageDirectory) {
-    m_URL = URL;
+    if(URL.empty()) {
+        m_URL = "https://datahub.eriksmistad.no/";
+    } else {
+        m_URL = URL;
+    }
     if(m_URL[m_URL.size()-1] != '/')
         m_URL += "/";
     if(storageDirectory.empty()) {
@@ -359,9 +363,10 @@ std::string DataHub::getURL() const {
     return m_URL;
 }
 
-DataHubBrowser::DataHubBrowser(DataHub&& hub, std::string tag, QWidget *parent) : QWidget(parent), m_hub(hub) {
+DataHubBrowser::DataHubBrowser(std::string tag, std::string URL, std::string storageDirectory, QWidget *parent) :
+        QWidget(parent), m_hub(DataHub(URL, storageDirectory)) {
     setWindowTitle("Data Hub Browser");
-    auto items = hub.getItems(tag);
+    auto items = m_hub.getItems(tag);
 
     auto mainLayout = new QVBoxLayout();
     setLayout(mainLayout);
@@ -383,10 +388,15 @@ DataHubBrowser::DataHubBrowser(DataHub&& hub, std::string tag, QWidget *parent) 
         m_listWidget->setMinimumWidth(customWidget->width()*1.2);
         itemWidget->setSizeHint(customWidget->sizeHint());
         connect(customWidget, &DataHubItemWidget::download, [this, item]() {
+            std::cout << "Downloading.." << std::endl;
             download(item.id);
         });
     }
     mainLayout->addWidget(m_listWidget);
+}
+
+DataHub& DataHubBrowser::getDataHub() {
+    return m_hub;
 }
 
 QPixmap DataHubBrowser::downloadThumbnail(const std::string& URL) {
@@ -416,12 +426,19 @@ QPixmap DataHubBrowser::downloadThumbnail(const std::string& URL) {
 }
 
 void DataHubBrowser::download(std::string itemID) {
+    std::cout << "asd" << std::endl;
+    std::cout << m_hub.getStorageDirectory() << std::endl;
+    std::cout << "asd11" << std::endl;
     auto item = m_hub.getItem(itemID);
+    std::cout << "asd1" << std::endl;
     auto progressWidget = new DownloadProgressWidget(item);
+    std::cout << "asd2" << std::endl;
     connect(&m_hub, &DataHub::progress, progressWidget, &DownloadProgressWidget::updateProgress);
     progressWidget->show();
+    std::cout << "asd3" << std::endl;
     connect(&m_hub, &DataHub::finished, [=]() {
         for(int i = 0; i < m_listWidget->count(); ++i) {
+            std::cout << "asd5" << std::endl;
             DataHubItemWidget* widget = (DataHubItemWidget*)m_listWidget->itemWidget(m_listWidget->item(i));
             if(widget->id == itemID) {
                 widget->setDownloaded(true);
@@ -430,6 +447,7 @@ void DataHubBrowser::download(std::string itemID) {
         progressWidget->close();
     });
     m_hub.download(itemID);
+    std::cout << "asd6" << std::endl;
 }
 
 }
