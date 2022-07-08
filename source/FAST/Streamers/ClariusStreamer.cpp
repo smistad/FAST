@@ -56,7 +56,13 @@ ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale
     m_handle = LoadLibrary("cast.dll");
     if(!m_handle) {
         std::string msg = GetLastErrorAsString();
-        throw Exception("Failed to use load Clarius Cast library. Note that this only supports Ubuntu 20.04, see https://github.com/clariusdev/cast. Error message: " + msg);
+        throw Exception("Failed to use load Clarius Cast library. Error message: " + msg);
+    }
+#elif defined(__APPLE__)
+    m_handle = dlopen("libcast.dylib", RTLD_LAZY);
+    if(!m_handle) {
+        std::string msg = dlerror();
+        throw Exception("Failed to use load Clarius Cast library. Error message: " + msg);
     }
 #else
     m_handle = dlopen("libcast.so", RTLD_LAZY);
