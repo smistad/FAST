@@ -17,11 +17,13 @@ class FAST_EXPORT  LineRenderer : public Renderer {
         /**
          * @brief Create instance
          * @param color Color of lines to draw
+         * @param lineWidth Width of line
          * @param drawOnTop Whether to draw on top of everything else or not. This disables the depth check in OpenGL
          * @return instance
          */
         FAST_CONSTRUCTOR(LineRenderer,
                          Color, color, = Color::Green(),
+                         float, lineWidth, = 1.0f,
                          bool, drawOnTop, = false
         );
         uint addInputConnection(DataChannel::pointer port) override;
