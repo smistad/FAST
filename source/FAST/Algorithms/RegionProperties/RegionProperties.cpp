@@ -93,12 +93,13 @@ void RegionProperties::execute() {
         }
     }
 
-    visited.clear();
 
     // TODO do contour tracing for each region if enabled
     // TODO handle holes
     for(Region& region : regions) {
+        visited.clear();
         std::vector<MeshVertex> vertices;
+        std::vector<Vector2i> contourPixels;
         // Start moore neigbhorhood tracing
         int checkLocationNr = 1;  // The neighbor number of the location we want to check for a new border point
         Vector2i checkPosition;      // The corresponding absolute array address of checkLocationNr
@@ -120,6 +121,7 @@ void RegionProperties::execute() {
                 {-1, 1, 5},
         };
         Vector2i pos = startPos;
+        visited.insert(pos.x() + pos.y()*width);
         // Trace around the neighborhood
         float perimiter = 0.0f;
         float avgRadius = 0.0f;
@@ -128,7 +130,7 @@ void RegionProperties::execute() {
             checkPosition = pos + neighborhood[checkLocationNr-1].head(2);
             newCheckLocationNr = neighborhood[checkLocationNr-1].z();
 
-            if(pixels[checkPosition.x() + checkPosition.y()*width] > 0 && visited.count(checkPosition.x() + checkPosition.y()*width) == 0) // Next border point found
+            if(pixels[checkPosition.x() + checkPosition.y()*width] == region.label) // Next border point found
             {
                 if(checkPosition == startPos) { // Should we stop?
                     counter ++;
@@ -146,10 +148,13 @@ void RegionProperties::execute() {
                 pos = checkPosition;
                 counter2 = 0;             // Reset the counter that keeps track of how many neighbors we have visited
                 //borderImage[checkPosition] = BLACK; // Set the border pixel
-                visited.insert(pos.x() + pos.y()*width);
-                vertices.push_back(MeshVertex(Vector3f(pos.x()*spacing.x(), pos.y()*spacing.y(), 0.0f)));
-                perimiter += (vertices[vertices.size()-2].getPosition() - vertices[vertices.size() - 1].getPosition()).cast<float>().norm();
-                avgRadius += (vertices[vertices.size()-1].getPosition().head(2) - region.centroid).norm();
+                if(visited.count(pos.x() + pos.y()*width) == 0) {
+                    vertices.push_back(MeshVertex(Vector3f(pos.x()*spacing.x(), pos.y()*spacing.y(), 0.0f)));
+                    contourPixels.push_back(pos);
+                    perimiter += (vertices[vertices.size()-2].getPosition() - vertices[vertices.size() - 1].getPosition()).cast<float>().norm();
+                    avgRadius += (vertices[vertices.size()-1].getPosition().head(2) - region.centroid).norm();
+                    visited.insert(pos.x() + pos.y()*width);
+                }
             } else {
                 // No match
                 // Rotate clockwise in the neighborhood
@@ -157,14 +162,21 @@ void RegionProperties::execute() {
                 if(counter2 > 8) {
                     // If counter2 is above 8 we have traced around the neighborhood and
                     // therefor the border is a single black pixel and we can exit
-                    break;
+                    // Check if we are at start..
+                    if(pos == startPos) {
+                        break;
+                    } else {
+                        counter2 = 0;             // Reset the counter that keeps track of how many neighbors we have visited
+                        break;
+                    }
                 } else {
                     counter2 ++;
                 }
             }
         }
 
-        region.contour = Mesh::create(vertices);
+        region.contourMesh = Mesh::create(vertices);
+        region.contourPixels = contourPixels;
         region.perimiterLength = perimiter;
         region.averageRadius = avgRadius / vertices.size();
     }

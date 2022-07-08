@@ -15,7 +15,8 @@ struct FAST_EXPORT Region {
     float averageRadius;
     Vector2i maxPixelPosition;
     Vector2i minPixelPosition;
-    std::shared_ptr<Mesh> contour;
+    std::shared_ptr<Mesh> contourMesh;
+    std::vector<Vector2i> contourPixels;
     std::vector<Vector2i> pixels;
 };
 
