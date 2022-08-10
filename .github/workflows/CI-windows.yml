@@ -110,9 +110,9 @@ jobs:
       shell: powershell
       run: |
         Expand-Archive -Path ${{github.workspace}}/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive.zip -DestinationPath ${{github.workspace}}/cudnn/
-        cp ${{github.workspace}}/cudnn/cuda/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
-        cp ${{github.workspace}}/cudnn/cuda/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
-        cp ${{github.workspace}}/cudnn/cuda/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
+        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
+        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
+        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
         Expand-Archive -Path ${{github.workspace}}/TensorRT-8.4.2.4.Windows10.x86_64.cuda-11.6.cudnn8.4.zip -DestinationPath ${{github.workspace}}/trt/
     - name: Configure CMake (with TensorRT)
       if: ${{ github.event_name != 'pull_request' }}
