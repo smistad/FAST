@@ -3,7 +3,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment ve
 project(FAST)
 
 set(VERSION_MAJOR 4)
-set(VERSION_MINOR 4)
+set(VERSION_MINOR 5)
 set(VERSION_PATCH 0)
 set(VERSION_SO 4)   # SO version, should be incremented by 1 every time the existing API changes
 set(FAST_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
