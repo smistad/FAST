@@ -2,7 +2,7 @@
 
 name: CI Windows
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
@@ -86,12 +86,12 @@ jobs:
         # Check the return status of the CUDA installer.
         if (!$?) {
             Write-Output "Error: CUDA installer reported error. $($LASTEXITCODE)"
-            exit 1 
+            exit 1
         }
 
         # Store the CUDA_PATH in the environment for the current session, to be forwarded in the action.
         $CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v$($CUDA_MAJOR).$($CUDA_MINOR)"
-        $CUDA_PATH_VX_Y = "CUDA_PATH_V$($CUDA_MAJOR)_$($CUDA_MINOR)" 
+        $CUDA_PATH_VX_Y = "CUDA_PATH_V$($CUDA_MAJOR)_$($CUDA_MINOR)"
         # Set environmental variables in this session
         $env:CUDA_PATH = "$($CUDA_PATH)"
         $env:CUDA_PATH_VX_Y = "$($CUDA_PATH_VX_Y)"
@@ -109,11 +109,11 @@ jobs:
       if: ${{ github.event_name != 'pull_request' }}
       shell: powershell
       run: |
-        Expand-Archive -Path ${{github.workspace}}/cudnn-11.4-windows-x64-v8.2.4.15.zip -DestinationPath ${{github.workspace}}/cudnn/
-        cp ${{github.workspace}}/cudnn/cuda/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
-        cp ${{github.workspace}}/cudnn/cuda/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
-        cp ${{github.workspace}}/cudnn/cuda/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
-        Expand-Archive -Path ${{github.workspace}}/TensorRT-8.2.3.0.Windows10.x86_64.cuda-11.4.cudnn8.2.zip -DestinationPath ${{github.workspace}}/trt/
+        Expand-Archive -Path ${{github.workspace}}/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive.zip -DestinationPath ${{github.workspace}}/cudnn/
+        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
+        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
+        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
+        Expand-Archive -Path ${{github.workspace}}/TensorRT-8.4.2.4.Windows10.x86_64.cuda-11.6.cudnn8.4.zip -DestinationPath ${{github.workspace}}/trt/
     - name: Configure CMake (with TensorRT)
       if: ${{ github.event_name != 'pull_request' }}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -128,15 +128,15 @@ jobs:
             -DFAST_MODULE_Clarius=ON `
             -DFAST_MODULE_TensorFlow=ON `
             -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/" `
-            -DTensorRT_ROOT="${{github.workspace}}/trt/TensorRT-8.2.3.0/" `
-            -DTensorRT_parsers_LIBRARY="${{github.workspace}}/trt/TensorRT-8.2.3.0/lib/nvparsers.lib" `
-            -DTensorRT_onnx_parser_LIBRARY="${{github.workspace}}/trt/TensorRT-8.2.3.0/lib/nvonnxparser.lib" `
+            -DTensorRT_ROOT="${{github.workspace}}/trt/TensorRT-8.4.2.4/" `
+            -DTensorRT_parsers_LIBRARY="${{github.workspace}}/trt/TensorRT-8.4.2.4/lib/nvparsers.lib" `
+            -DTensorRT_onnx_parser_LIBRARY="${{github.workspace}}/trt/TensorRT-8.4.2.4/lib/nvonnxparser.lib" `
             -DFAST_MODULE_TensorRT=ON `
             -DFAST_MODULE_HDF5=ON `
             -DFAST_MODULE_Plotting=ON `
             -DFAST_MODULE_Python=ON `
             -DFAST_MODULE_RealSense=ON `
-            -DFAST_BUILD_EXAMPLES=ON 
+            -DFAST_BUILD_EXAMPLES=ON
     - name: Configure CMake (without TensorRT)
       if: ${{ github.event_name == 'pull_request' }}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -155,7 +155,7 @@ jobs:
             -DFAST_MODULE_Plotting=ON `
             -DFAST_MODULE_Python=ON `
             -DFAST_MODULE_RealSense=ON `
-            -DFAST_BUILD_EXAMPLES=ON             
+            -DFAST_BUILD_EXAMPLES=ON
 
     - name: Build
       # Build your program with the given configuration
@@ -163,7 +163,7 @@ jobs:
 
     - name: Build Python wheel
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
-      
+
     - name: Package
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
 

@@ -3,6 +3,7 @@
 #include "NvUffParser.h"
 #include "NvOnnxParser.h"
 #include "NvUtils.h"
+#include "NvInferRuntimeCommon.h"
 #include <cuda_runtime_api.h>
 #include <FAST/Utility.hpp>
 #include <fstream>
@@ -91,8 +92,8 @@ void TensorRTEngine::run() {
 
     // Get batch size
     const int batchSize = mInputNodes.begin()->second.data->getShape()[0];
-    if(batchSize > m_engine->getMaxBatchSize()) {
-        reportWarning() << "Batch is larger than the max batch size given to TensorRT" << reportEnd();
+    if(batchSize > m_maxBatchSize) {
+        reportWarning() << "Batch is larger than the max batch size" << reportEnd();
     }
 
     if(m_cudaBuffers.empty() || m_currentBatchSize != batchSize) {
@@ -134,8 +135,8 @@ void TensorRTEngine::run() {
     }
 
     // Execute network
-    //bool success = m_context->executeV2(buffers.data()); // IMPORTANT: Does not work with uff parser atm
-    bool success = m_context->execute(batchSize, &m_cudaBuffers[0]);
+    bool success = m_context->executeV2(m_cudaBuffers.data()); // IMPORTANT: Does not work with uff parser atm
+    //bool success = m_context->execute(batchSize, &m_cudaBuffers[0]);
     if(!success)
         throw Exception("TensorRT execute inference failed!");
     reportInfo() << "Finished execute TensorRT" << reportEnd();
@@ -184,10 +185,22 @@ void TensorRTEngine::load() {
         std::string modifiedDate = getModifiedDate(filename);
         trim(modifiedDate);
         if(line == modifiedDate) {
-            reportInfo() << "Serialized file " << serializedBinaryFilename << " is up to date." << reportEnd();
+            reportInfo() << "[TensorRT] Serialized file " << serializedBinaryFilename << " is up to date." << reportEnd();
             loadSerializedFile = true;
         } else {
-            reportInfo() << "Serialized file " << serializedBinaryFilename << " was not up to date." << reportEnd();
+            reportInfo() << "[TensorRT] Serialized file " << serializedBinaryFilename << " was not up to date." << reportEnd();
+        }
+
+        if(!file.eof()) { // If serialized file has tensorrt version stored in cache
+            std::getline(file, line);
+            trim(line);
+            std::string TensorRTVersion = std::to_string(getInferLibVersion());
+            if(line == TensorRTVersion) {
+				reportInfo() << "[TensorRT] Serialized file was created with same TensorRT version: " << TensorRTVersion << reportEnd();
+            } else {
+				loadSerializedFile = false;
+				reportWarning() << "[TensorRT] Serialized file was NOT created with same TensorRT version as running. Running version: " << TensorRTVersion << " Created with: " << line << reportEnd();
+            }
         }
     }
     if(!loadSerializedFile) {
@@ -283,8 +296,10 @@ void TensorRTEngine::load() {
         ofile.write((char *) serializedModel->data(), serializedModel->size());
         ofile.close();
         std::ofstream ofileCache(serializedCacheFilename.c_str());
-        std::string modifiedDate = getModifiedDate(filename);
+        std::string modifiedDate = getModifiedDate(filename) + "\n";
+        std::string TensorRTVersion = std::to_string(getInferLibVersion()) + "\n";
         ofileCache.write(modifiedDate.c_str(), modifiedDate.size());
+        ofileCache.write(TensorRTVersion.c_str(), TensorRTVersion.size());
         ofileCache.close();
     } else {
         std::unique_ptr<nvinfer1::IRuntime, decltype(Destroy())> runtime(nvinfer1::createInferRuntime(gLogger), Destroy());
@@ -294,6 +309,8 @@ void TensorRTEngine::load() {
         ifile.close();
         // Deserialize the model data
         m_engine = runtime->deserializeCudaEngine(buffer.data(), buffer.size(), nullptr);
+        if(m_engine == nullptr)
+            throw Exception("Unable to deserialize file. You should delete the serialization files " + serializedCacheFilename + " and " + serializedBinaryFilename + " and try again.");
     }
 
     const bool inputsDefined = !mInputNodes.empty();
