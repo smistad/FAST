@@ -57,8 +57,8 @@ if(FAST_MODULE_Visualization)
             )
       	elseif(APPLE)
             fast_download_dependency(qt5
-                    5.15.5
-                    72148381272a3a5e07c9ca04cc5fb8d882c066a9d19816093a451dba296baa7f
+                    5.15.2
+		    0f5ff6ea8a9299cda1f41922f310a1f8f5bb8bf8829c46e85eb68e2638e2a840
                     libQt5Core.dylib libQt5Gui.dylib libQt5Widgets.dylib libQt5OpenGL.dylib libQt5Multimedia.dylib libQt5MultimediaWidgets.dylib libQt5Network.dylib libQt5PrintSupport.dylib libQt5SerialPort.dylib
             )
         else()
