@@ -63,8 +63,8 @@ if(FAST_MODULE_Visualization)
             )
         else()
             fast_download_dependency(qt5
-                    5.15.5
-                    bd9dcfb8cd54f37946341195cbbc2d839e46e52c312560924deacbd151ab6fb4
+                    5.15.2
+		    71bf6dbae6aa24cc5e64379cb04899f6abf4fe512d87093f3f566c6b0fca4fa9
                     libQt5Core.so libQt5Gui.so libQt5Widgets.so libQt5OpenGL.so libQt5Multimedia.so libQt5MultimediaWidgets.so libQt5Network.so libQt5PrintSupport.so libQt5SerialPort.so
             )
             fast_download_dependency(openssl
