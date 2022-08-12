@@ -47,8 +47,8 @@ if(FAST_MODULE_Visualization)
         # Let FAST build Qt 5
         if(WIN32)
             fast_download_dependency(qt5
-                    5.15.5
-                    0e253ac91463f3d722f100402c24b8ec2363bb28954636068d0b5bd30e0476a0
+                    5.15.2
+		    3d025e412d4af7d4fe669677ac71614909eb44aac8eca6b8fb29459abf621dff
                     Qt5Core.lib Qt5Gui.lib Qt5Widgets.lib Qt5OpenGL.lib Qt5Multimedia.lib Qt5MultimediaWidgets.lib Qt5Network.lib Qt5PrintSupport.lib Qt5SerialPort.lib
             )
             fast_download_dependency(openssl
