@@ -15,17 +15,18 @@ namespace fast {
  * @param ordering
  * @return
  */
-inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering ordering) {
-    return ordering == ImageOrdering::ChannelLast ? x*nrOfClasses + j : x + j*size;
+inline int getPosition(int x, int nrOfClasses, int j) {
+    return x*nrOfClasses + j;
 }
 
-TensorToSegmentation::TensorToSegmentation(float threshold, bool hasBackgroundClass) {
+TensorToSegmentation::TensorToSegmentation(float threshold, bool hasBackgroundClass, std::vector<int> channelsToIgnore) {
     createInputPort<Tensor>(0);
     createOutputPort<Image>(0);
 
     createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", m_threshold);
     setThreshold(threshold);
     setBackgroundClass(hasBackgroundClass);
+    setChannelsToIgnore(channelsToIgnore);
 }
 
 void TensorToSegmentation::execute() {
@@ -46,21 +47,58 @@ void TensorToSegmentation::execute() {
     // TODO Move this to GPU
     auto data = make_uninitialized_unique<uchar[]>(size);
     const int nrOfClasses = tensor->getShape()[tensor->getShape().getDimensions()-1];
-    const auto ordering = ImageOrdering::ChannelLast;
-    const int firstClass = (m_hasBackgroundClass && nrOfClasses > 1) ? 1 : 0;
-    for(int x = 0; x < size; ++x) {
-        uchar maxClass = 0;
-        bool found = false;
-        for(uchar j = firstClass; j < nrOfClasses; j++) {
-            if(tensorData[getPosition(x, nrOfClasses, j, size, ordering)] > m_threshold &&
-                tensorData[getPosition(x, nrOfClasses, j, size, ordering)] >= tensorData[getPosition(x, nrOfClasses, maxClass, size, ordering)]) {
-                maxClass = j;
-                found = true;
+    int firstClass = (m_hasBackgroundClass && nrOfClasses > 1) ? 1 : 0;
+
+    if(m_channelsToIgnore.empty()) {
+        for(int x = 0; x < size; ++x) {
+            uchar maxClass = 0;
+            bool found = false;
+            for(uchar j = firstClass; j < nrOfClasses; j++) {
+                if(tensorData[getPosition(x, nrOfClasses, j)] > m_threshold &&
+                tensorData[getPosition(x, nrOfClasses, j)] >= tensorData[getPosition(x, nrOfClasses, maxClass)]) {
+                    maxClass = j;
+                    found = true;
+                }
+            }
+            // If no match found: class is background (0).
+            // If a match is found; add (1 - firstClass). Thus if there is no background class, we will add 1 when maxClass is actually 0
+            data[x] = found ? maxClass + (1 - firstClass) : 0;
+        }
+    } else {
+        // There are channels to ignore.. handle it.
+        std::map<int, int> remapChannels;
+        for(int i : m_channelsToIgnore) {
+            reportInfo() << "Ignoring channels: " << i << reportEnd();
+            if(firstClass == i) {
+                firstClass++;
             }
         }
-        // If no match found: class is background (0).
-        // If a match is found; add (1 - firstClass). Thus if there is no background class, we will add 1 when maxClass is actually 0
-        data[x] = found ? maxClass + (1 - firstClass) : 0;
+        int counter = 0;
+        for(int i = 0; i < nrOfClasses; ++i) {
+            if(m_channelsToIgnore.count(i) == 0) {
+                remapChannels[i] = counter;
+                ++counter;
+            }
+        }
+        for(int x = 0; x < size; ++x) {
+            uchar maxClass = 0;
+            bool found = false;
+            for(uchar j = firstClass; j < nrOfClasses; j++) {
+                if(m_channelsToIgnore.count(j) > 0)
+                    continue;
+                if(tensorData[getPosition(x, nrOfClasses, j)] > m_threshold &&
+                tensorData[getPosition(x, nrOfClasses, j)] >= tensorData[getPosition(x, nrOfClasses, maxClass)]) {
+                    maxClass = j;
+                    found = true;
+                }
+            }
+            // Remap values if channelsToIgnore
+            if(!m_channelsToIgnore.empty())
+                maxClass = remapChannels[maxClass];
+            // If no match found: class is background (0).
+            // If a match is found; add (1 - firstClass). Thus if there is no background class, we will add 1 when maxClass is actually 0
+            data[x] = found ? maxClass + (1 - firstClass) : 0;
+        }
     }
     Image::pointer output;
     if(outputDepth == 1) {
@@ -87,6 +125,12 @@ void TensorToSegmentation::loadAttributes() {
 
 void TensorToSegmentation::setBackgroundClass(bool hasBackgroundClass) {
     m_hasBackgroundClass = hasBackgroundClass;
+    setModified(true);
+}
+
+void TensorToSegmentation::setChannelsToIgnore(std::vector<int> channels) {
+    m_channelsToIgnore.insert(channels.begin(), channels.end());
+    setModified(true);
 }
 
 }
