@@ -417,7 +417,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
     int patchIdY = std::floor(((float)y / levelHeight) * tilesY);
     m_image->setDirtyPatch(level, patchIdX, patchIdY);
 
-    // TODO Propagate upwards
+    // Propagate upwards
     auto previousData = std::make_unique<uchar[]>(patch->getNrOfVoxels()*patch->getNrOfChannels());
     std::memcpy(previousData.get(), data, patch->getNrOfVoxels()*patch->getNrOfChannels());
     const auto channels = m_image->getNrOfChannels();
@@ -438,13 +438,45 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
         auto newData = getPatchData(level, x, y, tileWidth, tileHeight);
 
         // Downsample tile from previous level and add it to existing tile
-        for(int dy = 0; dy < tileHeight/2; ++dy) {
-            for(int dx = 0; dx < tileWidth/2; ++dx) {
-                newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] =
-                        (uchar)round((float)(previousData[dx*2 + dy*2*previousTileWidth] +
-                        previousData[dx*2 + 1 + dy*2*previousTileWidth] +
-                        previousData[dx*2 + 1 + (dy*2+1)*previousTileWidth] +
-                        previousData[dx*2 + (dy*2+1)*previousTileWidth])/4);
+        if(m_image->getNrOfChannels() >= 3) {
+            // Use average if RGB(A) image
+            for(int dy = 0; dy < tileHeight/2; ++dy) {
+                for(int dx = 0; dx < tileWidth/2; ++dx) {
+                    newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] =
+                            (uchar)round((float)(previousData[dx*2 + dy*2*previousTileWidth] +
+                            previousData[dx*2 + 1 + dy*2*previousTileWidth] +
+                            previousData[dx*2 + 1 + (dy*2+1)*previousTileWidth] +
+                            previousData[dx*2 + (dy*2+1)*previousTileWidth])/4);
+                }
+            }
+        } else {
+            // Use majority vote if single channel image.
+            for(int dy = 0; dy < tileHeight/2; ++dy) {
+                for(int dx = 0; dx < tileWidth/2; ++dx) {
+                    /*
+                    // This is more correct, but 100 times slower than just doing max.
+                    std::vector<uchar> list = {
+                            previousData[dx*2 + dy*2*previousTileWidth],
+                            previousData[dx*2 + 1 + dy*2*previousTileWidth],
+                            previousData[dx*2 + 1 + (dy*2+1)*previousTileWidth],
+                            previousData[dx*2 + (dy*2+1)*previousTileWidth]
+                    };
+                    std::sort(list.begin(), list.end());
+                    if(list[0] == list[1]) { // If there is more than of element 0, it should be placed as element 1
+                        newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] = list[0];
+                    } else { // If not, it means that there is more than 1 of element 1, OR all 4 values are different and its no matter which is picked.
+                        newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] = list[2];
+                    }*/
+
+                    // Just do max? 0.006 milliseconds
+                    uchar list[4] = {
+                            previousData[dx*2 + dy*2*previousTileWidth],
+                            previousData[dx*2 + 1 + dy*2*previousTileWidth],
+                            previousData[dx*2 + 1 + (dy*2+1)*previousTileWidth],
+                            previousData[dx*2 + (dy*2+1)*previousTileWidth]
+                    };
+                    newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] = std::max(std::max(std::max(list[0], list[1]), list[2]), list[3]);
+                }
             }
         }
         {
