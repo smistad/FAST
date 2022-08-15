@@ -12,7 +12,7 @@
 import platform
 if platform.system() != 'Windows':
     import PySide2.QtSvg # Must import this before fast due to conflicting symbols
-import fast # Important FAST before rest of pyside2
+import fast # Must import FAST before rest of pyside2
 from PySide2.QtWidgets import *
 from shiboken2 import wrapInstance
 from random import random
