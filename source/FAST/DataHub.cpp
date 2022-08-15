@@ -122,8 +122,11 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
     auto reply = manager.get(request);
     std::cout << "";
     std::cout.flush();
+	const int totalWidth = getConsoleWidth();
+    std::string blank;
+    for(int i = 0; i < totalWidth-1; ++i)
+        blank += " ";
     QObject::connect(reply, &QNetworkReply::downloadProgress, [=](quint64 current, quint64 max) {
-        const int totalWidth = getConsoleWidth();
         const float percent = ((float)current / max);
         const float speed = ((float)timer->elapsed() / 1000.0f)/percent;
         const float ETA = (speed * (1.0f - percent) / 60.0f);
@@ -133,7 +136,7 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
             << std::fixed;
         ss << "] " << (int)(percent * 100.0f) << "% | " << current/(1024*1024) << "MB / " << max/(1024*1024) << "MB | ETA " << ETA << " mins";
         std::string startString = "Downloading [";
-        const int progressbarWidth = totalWidth - ss.str().size() - startString.size();
+        const int progressbarWidth = totalWidth - ss.str().size() - startString.size() - 1; // have to leave last line open to avoid jumping to next line (windows)
         std::cout << startString;
         int pos = progressbarWidth * percent;
         for (int i = 0; i < progressbarWidth; ++i) {
@@ -158,9 +161,10 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
     QObject::connect(reply, &QNetworkReply::readyRead, [&reply, &file]() {
         file.write(reply->read(reply->bytesAvailable()));
     });
-    QObject::connect(&manager, &QNetworkAccessManager::finished, [reply, &file, destination]() {
+    QObject::connect(&manager, &QNetworkAccessManager::finished, [blank, reply, &file, destination]() {
         if(reply->error() != QNetworkReply::NoError) {
-            std::cout << "\33[2K\rERROR: Download failed!" << std::endl;
+            std::cout << "\r" << blank;
+            std::cout << "\rERROR: Download failed!" << std::endl;
             file.close();
             file.remove();
             return;
@@ -169,13 +173,15 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
         try {
             extractZipFile(file.fileName().toStdString(), destination);
         } catch(Exception& e) {
-            std::cout << "\33[2K\rERROR: Zip extraction failed!" << std::endl;
+            std::cout << "\r" << blank;
+            std::cout << "\rERROR: Zip extraction failed!" << std::endl;
             file.remove();
             return;
         }
 
         file.remove();
-        std::cout << "\33[2K\rComplete." << std::endl;
+		std::cout << "\r" << blank;
+        std::cout << "\rComplete." << std::endl;
     });
 
     auto eventLoop = new QEventLoop(&manager);
