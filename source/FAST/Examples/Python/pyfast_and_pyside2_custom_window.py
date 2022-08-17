@@ -12,13 +12,11 @@
 import platform
 if platform.system() != 'Windows':
     import PySide2.QtSvg # Must import this before fast due to conflicting symbols
-import fast # Important FAST before rest of pyside2
+import fast # Must import FAST before rest of pyside2
 from PySide2.QtWidgets import *
 from PySide2.QtOpenGL import QGLWidget
 from PySide2.QtCore import Slot
 from shiboken2 import wrapInstance
-import threading
-import sys
 
 #fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
 
