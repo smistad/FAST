@@ -30,19 +30,13 @@ void ImagePyramidPatchExporter::execute() {
     auto input = getInputData<DataObject>(0);
     if(auto imagePyramid = std::dynamic_pointer_cast<ImagePyramid>(input)) {
         // Start patch generator on image pyramid
-        auto generator = PatchGenerator::New();
-        generator->setInputData(imagePyramid);
-        generator->setPatchLevel(m_level);
-        generator->setPatchSize(m_patchWidth, m_patchHeight);
-        auto port = generator->getOutputPort();
-        while(true) {
-            generator->update();
-            auto patch = port->getNextFrame<Image>();
+        auto generator = PatchGenerator::create(m_patchWidth, m_patchHeight, 1, m_level)
+            ->connect(imagePyramid);
+        auto stream = DataStream(generator);
+        while(!stream.isDone()) {
+            auto patch = stream.getNextFrame<Image>();
 
             exportPatch(patch);
-
-            if(patch->isLastFrame())
-                break;
         };
     } else if(auto imagePatch = std::dynamic_pointer_cast<Image>(input)) {
         exportPatch(imagePatch);
