@@ -439,14 +439,19 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
 
         // Downsample tile from previous level and add it to existing tile
         if(m_image->getNrOfChannels() >= 3) {
+            const int channels = m_image->getNrOfChannels();
             // Use average if RGB(A) image
             for(int dy = 0; dy < tileHeight/2; ++dy) {
                 for(int dx = 0; dx < tileWidth/2; ++dx) {
-                    newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] =
-                            (uchar)round((float)(previousData[dx*2 + dy*2*previousTileWidth] +
-                            previousData[dx*2 + 1 + dy*2*previousTileWidth] +
-                            previousData[dx*2 + 1 + (dy*2+1)*previousTileWidth] +
-                            previousData[dx*2 + (dy*2+1)*previousTileWidth])/4);
+                    for(int c = 0; c < channels; ++c) {
+                        newData[c + channels*(dx + offsetX * tileWidth / 2 + (dy + offsetY * tileHeight / 2) * tileWidth)] =
+                            (uchar)round((float)(
+                                previousData[c + channels*(dx * 2 + dy * 2 * previousTileWidth)] +
+                                previousData[c + channels*(dx * 2 + 1 + dy * 2 * previousTileWidth)] +
+                                previousData[c + channels*(dx * 2 + 1 + (dy * 2 + 1) * previousTileWidth)] +
+                                previousData[c + channels*(dx * 2 + (dy * 2 + 1) * previousTileWidth)]
+                                ) / 4);
+                    }
                 }
             }
         } else {
