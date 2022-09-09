@@ -21,7 +21,7 @@ importer = fast.ImageFileImporter\
 
 # Load neural network from a file and connect it to the importer
 network = fast.NeuralNetwork\
-    .create(fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_segmentation.onnx')
+    .create(fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_vein_segmentation.onnx')
     .connect(importer)
 
 # Run the pipeline and get the resulting tensor
@@ -62,7 +62,7 @@ which supports that format. Currently the following formats are supported:
 You can also manually specify which inference engine you want to use:
 @code{.py}
 network = fast.NeuralNetwork.create(
-    fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_segmentation.onnx',
+    fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_vein_segmentation.onnx',
     inferenceEngine='OpenVINO'
 )
 @endcode
@@ -86,7 +86,7 @@ importer = fast.ImageFileImporter\
 
 # Load neural network from a file
 network = fast.NeuralNetwork\
-    .create(fast.Config.getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx")\
+    .create(fast.Config.getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.onnx")\
     .connect(importer)
 # Add a preprocessing step: multiply each pixel with 1/255, thus normalizing the intensity
 network.setScaleFactor(1.0/255.0)
@@ -116,7 +116,7 @@ on the output as shown here:
 importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + "/US/JugularVein/US-2D_100.mhd")
 
 # Use SegmentationNetwork instead of NeuralNetwork which applies TensorToSegmentation
-network = fast.SegmentationNetwork.create(fast.Config.getTestDataPath() + "NeuralNetworkModels/jugular_segmentation.onnx")\
+network = fast.SegmentationNetwork.create(fast.Config.getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.onnx")\
     .connect(importer)
 # Add a preprocessing step: multiply each pixel with 1/255, thus normalizing the intensity
 network.setScaleFactor(1.0/255.0)
