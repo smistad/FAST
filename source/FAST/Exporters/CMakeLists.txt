@@ -66,7 +66,7 @@ if(FAST_MODULE_WholeSlideImaging)
         TIFFImagePyramidExporter.cpp
         TIFFImagePyramidExporter.hpp
     )
-    fast_add_test_sources(Tests/TIFFImagePyramidExporterTests.cpp)
+    fast_add_test_sources(Tests/TIFFImagePyramidExporterTests.cpp Tests/ImagePyramidPatchExporterTests.cpp)
     fast_add_process_object(ImagePyramidPatchExporter ImagePyramidPatchExporter.hpp)
     fast_add_process_object(TIFFImagePyramidExporter TIFFImagePyramidExporter.hpp)
 endif()
