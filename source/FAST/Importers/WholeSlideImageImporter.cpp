@@ -57,10 +57,43 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
     for(auto folder : getDirectoryList(directoryName, false, true)) {
         if(fileExists(join(directoryName, folder, "frame_t.ets"))) {
             if(!etsFilename.empty()) {
-                // Select the biggest frame_t.ets file
-                if(fileSize(etsFilename) < fileSize(join(directoryName, folder, "frame_t.ets"))) {
+                // If multiple files: use the one which have correct compression.. (normal lossy JPEG)
+                auto stream = new std::ifstream(join(directoryName, folder, "frame_t.ets"), std::ifstream::binary | std::ifstream::in);
+                if(!stream->is_open())
+                    continue;
+                SIS_header sis_header;
+
+                READ(sis_header.magic)
+                READ(sis_header.headerSize)
+                READ(sis_header.version)
+                READ(sis_header.Ndim)
+                READ(sis_header.etsoffset)
+                READ(sis_header.etsnbytes)
+                READ(sis_header.dummy0)
+                READ(sis_header.offsettiles)
+                READ(sis_header.ntiles)
+                READ(sis_header.dummy1)
+                READ(sis_header.dummy2)
+                READ(sis_header.dummy3)
+                READ(sis_header.dummy4)
+                READ(sis_header.dummy5)
+
+                ETS_header ets_header;
+                READ(ets_header.magic)
+                READ(ets_header.version)
+                READ(ets_header.pixelType)
+                READ(ets_header.sizeC)
+                READ(ets_header.colorspace)
+                READ(ets_header.compression)
+                READ(ets_header.quality)
+                READ(ets_header.dimx)
+                READ(ets_header.dimy)
+                READ(ets_header.dimz)
+
+                if(ets_header.compression == 2)
                     etsFilename = join(directoryName, folder, "frame_t.ets");
-                }
+                stream->close();
+                delete stream;
             } else {
                 etsFilename = join(directoryName, folder, "frame_t.ets");
             }
