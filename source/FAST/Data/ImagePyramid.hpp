@@ -38,7 +38,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         FAST_CONSTRUCTOR(ImagePyramid, int, width,, int, height,, int, channels,, int, patchWidth, = 256, int, patchHeight, = 256);
         FAST_CONSTRUCTOR(ImagePyramid, openslide_t*, fileHandle,, std::vector<ImagePyramidLevel>, levels,);
         FAST_CONSTRUCTOR(ImagePyramid, std::ifstream*, stream,, std::vector<vsi_tile_header>, tileHeaders,, std::vector<ImagePyramidLevel>, levels,);
-        FAST_CONSTRUCTOR(ImagePyramid, TIFF*, fileHandle,, std::vector<ImagePyramidLevel>, levels,, int, channels,);
+        FAST_CONSTRUCTOR(ImagePyramid, TIFF*, fileHandle,, std::vector<ImagePyramidLevel>, levels,, int, channels,,bool, isOMETIFF, = false);
         int getNrOfLevels();
         int getLevelWidth(int level);
         int getLevelHeight(int level);
@@ -71,6 +71,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         ImagePyramidAccess::pointer getAccess(accessType type);
         std::unordered_set<std::string> getDirtyPatches();
         bool isDirtyPatch(const std::string& tileID);
+        bool isOMETIFF() const;
         void setDirtyPatch(int level, int patchIdX, int patchIdY);
         void clearDirtyPatches(std::set<std::string> patches);
         void free(ExecutionDevice::pointer device) override;
@@ -86,6 +87,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
 
         openslide_t* m_fileHandle = nullptr;
         TIFF* m_tiffHandle = nullptr;
+        bool m_isOMETIFF = false;
         std::string m_tiffPath;
 
         int m_channels;

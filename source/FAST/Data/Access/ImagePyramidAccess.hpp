@@ -42,6 +42,7 @@ public:
     int tilesY;
 	bool memoryMapped;
 	uint8_t* data;
+	uint64_t offset = 0; // subifd offset used by OME-TIFF
 #ifdef WIN32
 	void* fileHandle;
 #else

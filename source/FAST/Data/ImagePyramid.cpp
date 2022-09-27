@@ -332,7 +332,8 @@ Vector3f ImagePyramid::getSpacing() const {
 	return m_spacing;
 }
 
-ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> levels, int channels) {
+ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> levels, int channels, bool isOMETIFF) {
+    m_isOMETIFF = isOMETIFF;
     if(channels <= 0 || channels > 4)
         throw Exception("Nr of channels must be between 1 and 4 in ImagePyramid when importing from TIFF");
     m_tiffHandle = fileHandle;
@@ -352,7 +353,7 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
         // Convert from cm
         spacingX = 1.0f/(spacingX/10.0f);
         spacingY = 1.0f/(spacingY/10.0f);
-        reportInfo() << "Spacing from TIFF was" << spacingX << " " << spacingY << reportEnd();
+        reportInfo() << "Spacing from TIFF was " << spacingX << " " << spacingY << reportEnd();
         m_spacing = Vector3f(spacingX, spacingY, 1.0f);
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
@@ -441,6 +442,10 @@ int ImagePyramid::getLevelForMagnification(int magnification, float slackPercent
         throw Exception("No level close enough to magnification of " + std::to_string(magnification) + " was found in the image pyramid.");
 
     return levelResult;
+}
+
+bool ImagePyramid::isOMETIFF() const {
+    return m_isOMETIFF;
 }
 
 }

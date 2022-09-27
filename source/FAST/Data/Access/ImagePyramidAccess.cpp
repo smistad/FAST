@@ -113,13 +113,29 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
         }
         if(width == tileWidth && height == tileHeight) {
             std::lock_guard<std::mutex> lock(m_readMutex);
-            TIFFSetDirectory(m_tiffHandle, level);
+            if(m_image->isOMETIFF()) {
+                if(level == 0) {
+                    TIFFSetDirectory(m_tiffHandle, level);
+                } else {
+                    TIFFSetSubDirectory(m_tiffHandle, m_levels[level].offset);
+                }
+            } else {
+                TIFFSetDirectory(m_tiffHandle, level);
+            }
             int bytesRead = TIFFReadTile(m_tiffHandle, (void *) data.get(), x, y, 0, 0);
         } else if(width < tileWidth || height < tileHeight) {
             auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
             {
                 std::lock_guard<std::mutex> lock(m_readMutex);
-                TIFFSetDirectory(m_tiffHandle, level);
+                if(m_image->isOMETIFF()) {
+                    if(level == 0) {
+                        TIFFSetDirectory(m_tiffHandle, level);
+                    } else {
+                        TIFFSetSubDirectory(m_tiffHandle, m_levels[level].offset);
+                    }
+                } else {
+                    TIFFSetDirectory(m_tiffHandle, level);
+                }
                 // In TIFF all tiles have the same size, thus they are padded..
                 int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), x, y, 0, 0);
             }
