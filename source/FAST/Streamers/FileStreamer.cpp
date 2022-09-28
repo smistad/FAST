@@ -174,7 +174,7 @@ void FileStreamer::generateStream() {
             }
             // End timing
 
-            if(!fileExists(getFilename(i+1, currentSequence)) && !mLoop)
+            if(!fileExists(getFilename(i+mStepSize, currentSequence)) && !mLoop)
                 dataFrame->setLastFrame(getNameOfClass());
 
             addOutputData(0, dataFrame);
