@@ -3,6 +3,7 @@
 #include <FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp>
 #include <FAST/Visualization/Window.hpp>
 #include <FAST/Data/Image.hpp>
+#include <QGLContext>
 
 namespace fast {
 
@@ -15,6 +16,26 @@ RenderToImage::RenderToImage(Color bgcolor, int width, int height) {
     m_zoom = 1.0;
     mIsIn2DMode = true;
     createOutputPort(0);
+
+    if(QThread::currentThread() == QApplication::instance()->thread()) { // Is main thread?
+        // Main thread..
+        QGLWidget* widget = new QGLWidget;
+        QGLContext *context = new QGLContext(View::getGLFormat(), widget);
+        context->create(fast::Window::getSecondaryGLContext());
+        if(!context->isValid() || !context->isSharing()) {
+            throw Exception("The custom Qt GL context in fast::View is invalid!");
+        }
+        m_context = context;
+    } else {
+        // Computation thread
+        QGLWidget* widget = new QGLWidget;
+        QGLContext *context = new QGLContext(View::getGLFormat(), widget);
+        context->create(fast::Window::getMainGLContext());
+        if(!context->isValid() || !context->isSharing()) {
+            throw Exception("The custom Qt GL context in fast::View is invalid!");
+        }
+        m_context = context;
+    }
 }
 
 
@@ -56,8 +77,7 @@ std::vector<Renderer::pointer> RenderToImage::getRenderers() {
 }
 
 void RenderToImage::execute() {
-    auto context = Window::getMainGLContext();
-    context->makeCurrent();
+    m_context->makeCurrent();
     initializeOpenGLFunctions();
 
     for(auto renderer : getRenderers()) {
