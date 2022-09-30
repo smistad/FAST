@@ -143,8 +143,8 @@ void ClariusStreamer::execute() {
             throw Exception("Unable to initialize clarius cast");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
-        auto connect = (int (*)(const char* ipAddress, unsigned int port, CusReturnFn fn))getFunc("cusCastConnect");
-        success = connect(mIPAddress.c_str(), mPort, nullptr);
+        auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusReturnFn fn))getFunc("cusCastConnect");
+        success = connect(mIPAddress.c_str(), mPort, "research", nullptr);
         if(success < 0)
             throw Exception("Unable to connect to clarius scanner");
         reportInfo() << "Clarius streamer connected." << reportEnd();
