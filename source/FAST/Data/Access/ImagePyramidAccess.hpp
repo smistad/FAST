@@ -14,6 +14,20 @@ namespace fast {
 class Image;
 class ImagePyramid;
 
+
+/**
+ * @brief Image compression types for ImagePyramids
+ *
+ * @ingroup wsi
+ */
+enum class ImageCompression {
+    UNSPECIFIED,
+    RAW,
+    JPEG,
+    JPEG2000,
+    LZW, // Lossless compression
+};
+
 struct vsi_tile_header {
     uint32_t dummy1;
     uint32_t coord[3];
@@ -53,7 +67,7 @@ public:
 class FAST_EXPORT ImagePyramidAccess : Object {
 public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
-	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::ifstream* stream, std::vector<vsi_tile_header>& vsiTiles, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex);
+	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::ifstream* stream, std::vector<vsi_tile_header>& vsiTiles, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat);
 	void setPatch(int level, int x, int y, std::shared_ptr<Image> patch);
 	bool isPatchInitialized(uint level, uint x, uint y);
 	std::unique_ptr<uchar[]> getPatchData(int level, int x, int y, int width, int height);
@@ -73,6 +87,7 @@ private:
     std::unordered_set<std::string>& m_initializedPatchList; // Keep a list of initialized patches, for tiff backend
     std::mutex& m_readMutex;
     std::ifstream* m_vsiHandle;
+    ImageCompression m_compressionFormat;
     std::vector<vsi_tile_header> m_vsiTiles;
     void readVSITileToBuffer(vsi_tile_header tile, uchar* data);
 };

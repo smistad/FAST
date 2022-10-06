@@ -90,7 +90,7 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
                 READ(ets_header.dimy)
                 READ(ets_header.dimz)
 
-                if(ets_header.compression == 2)
+                if(ets_header.compression == 2 || ets_header.compression == 0)
                     etsFilename = join(directoryName, folder, "frame_t.ets");
                 stream->close();
                 delete stream;
@@ -134,8 +134,18 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
     READ(ets_header.dimy)
     READ(ets_header.dimz)
 
-    if(ets_header.compression != 2)
-        throw Exception("Importing Olympus VSI with another compression format than JPEG is not supported yet. Compress format: " + std::to_string(ets_header.compression));
+    if(ets_header.compression != 2 && ets_header.compression != 0)
+        throw Exception("Importing Olympus VSI with another compression format than RAW or JPEG is not supported yet. Compress format: " + std::to_string(ets_header.compression));
+    ImageCompression compressionFormat;
+    if(ets_header.compression == 2) {
+        compressionFormat = ImageCompression::JPEG;
+        reportInfo() << "VSI was compressed with JPEG" << reportEnd();
+    } else if(ets_header.compression == 0) {
+        compressionFormat = ImageCompression::RAW;
+        reportInfo() << "VSI was not compressed (RAW)" << reportEnd();
+    }
+    std::cout << etsFilename << std::endl;
+
 
     stream->seekg(sis_header.offsettiles);
     std::vector<vsi_tile_header> tiles;
@@ -184,7 +194,7 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
         levelList.push_back(levelData);
     }
 
-    auto image = ImagePyramid::create(stream, tiles, levelList);
+    auto image = ImagePyramid::create(stream, tiles, levelList, compressionFormat);
 
     addOutputData(0, image);
 }

@@ -157,7 +157,7 @@ ImagePyramid::ImagePyramid(openslide_t *fileHandle, std::vector<ImagePyramidLeve
     m_pyramidFullyInitialized = true;
 	m_counter += 1;
 }
-ImagePyramid::ImagePyramid(std::ifstream* stream, std::vector<vsi_tile_header> tileHeaders, std::vector<ImagePyramidLevel> levels) {
+ImagePyramid::ImagePyramid(std::ifstream* stream, std::vector<vsi_tile_header> tileHeaders, std::vector<ImagePyramidLevel> levels, ImageCompression compressionFormat) {
     m_vsiFileHandle = stream;
     m_levels = std::move(levels);
     m_vsiTiles = std::move(tileHeaders);
@@ -165,6 +165,7 @@ ImagePyramid::ImagePyramid(std::ifstream* stream, std::vector<vsi_tile_header> t
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
     m_pyramidFullyInitialized = true;
+    m_compressionFormat = compressionFormat;
 }
 
 ImagePyramid::ImagePyramid() {
@@ -281,7 +282,7 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, m_vsiFileHandle, m_vsiTiles, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex);
+    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, m_vsiFileHandle, m_vsiTiles, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat);
 }
 
 void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {

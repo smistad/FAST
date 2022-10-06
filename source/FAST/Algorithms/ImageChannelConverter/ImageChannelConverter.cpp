@@ -40,6 +40,7 @@ void ImageChannelConverter::execute() {
         kernel.setArg(1, *outputAccess->get2DImage());
         kernel.setArg(2, removeChannel);
         kernel.setArg(3, (char)(m_reverse ? 1 : 0));
+        kernel.setArg(4, (int)input->getNrOfChannels());
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
                 cl::NullRange,
@@ -57,6 +58,7 @@ void ImageChannelConverter::execute() {
         kernel.setArg(1, *outputAccess->get3DImage());
         kernel.setArg(2, removeChannel);
         kernel.setArg(3, (char)(m_reverse ? 1 : 0));
+        kernel.setArg(4, (int)input->getNrOfChannels());
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
                 cl::NullRange,

@@ -11,19 +11,6 @@ namespace fast {
 class Image;
 
 /**
- * @brief Image compression types for ImagePyramids (TIFF)
- *
- * @ingroup wsi
- */
-enum class ImageCompression {
-    UNSPECIFIED,
-    RAW,
-    JPEG,
-    JPEG2000,
-    LZW, // Lossless compression
-};
-
-/**
  * @brief Image pyramid data object
  *
  * Data object for storing large images as tiled image pyramids.
@@ -37,7 +24,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     public:
         FAST_CONSTRUCTOR(ImagePyramid, int, width,, int, height,, int, channels,, int, patchWidth, = 256, int, patchHeight, = 256);
         FAST_CONSTRUCTOR(ImagePyramid, openslide_t*, fileHandle,, std::vector<ImagePyramidLevel>, levels,);
-        FAST_CONSTRUCTOR(ImagePyramid, std::ifstream*, stream,, std::vector<vsi_tile_header>, tileHeaders,, std::vector<ImagePyramidLevel>, levels,);
+        FAST_CONSTRUCTOR(ImagePyramid, std::ifstream*, stream,, std::vector<vsi_tile_header>, tileHeaders,, std::vector<ImagePyramidLevel>, levels,, ImageCompression, compressionFormat,);
         FAST_CONSTRUCTOR(ImagePyramid, TIFF*, fileHandle,, std::vector<ImagePyramidLevel>, levels,, int, channels,,bool, isOMETIFF, = false);
         int getNrOfLevels();
         int getLevelWidth(int level);
@@ -106,6 +93,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         // VSI stuff
         std::ifstream* m_vsiFileHandle;
         std::vector<vsi_tile_header> m_vsiTiles;
+        ImageCompression m_compressionFormat;
 
         // A mutex needed to control multi-threaded reading of VSI and TIFF files
         std::mutex m_readMutex;

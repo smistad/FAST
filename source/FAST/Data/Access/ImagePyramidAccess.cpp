@@ -18,7 +18,9 @@ ImagePyramidAccess::ImagePyramidAccess(
         std::shared_ptr<ImagePyramid> imagePyramid,
         bool write,
         std::unordered_set<std::string>& initializedPatchList,
-        std::mutex& readMutex) : m_initializedPatchList(initializedPatchList), m_readMutex(readMutex) {
+        std::mutex& readMutex,
+        ImageCompression compressionFormat
+        ) : m_initializedPatchList(initializedPatchList), m_readMutex(readMutex) {
 	if(levels.size() == 0)
 		throw Exception("Image pyramid has no levels");
 	m_image = imagePyramid;
@@ -28,6 +30,7 @@ ImagePyramidAccess::ImagePyramidAccess(
     m_tiffHandle = tiffHandle;
     m_vsiHandle = vsiHandle;
     m_vsiTiles = vsiTiles;
+    m_compressionFormat = compressionFormat;
 }
 
 void ImagePyramidAccess::release() {
@@ -58,41 +61,58 @@ void jpegErrorExit(j_common_ptr cinfo) {
 }
 
 void ImagePyramidAccess::readVSITileToBuffer(vsi_tile_header tile, uchar* data) {
-    auto buffer = make_uninitialized_unique<char[]>(tile.numbytes);
+    if(m_compressionFormat == ImageCompression::JPEG) {
+        auto buffer = make_uninitialized_unique<char[]>(tile.numbytes);
 
-    // Reading VSI tiles is not thread safe
-    {
-        std::lock_guard<std::mutex> lock(m_readMutex);
-        m_vsiHandle->seekg(tile.offset);
-        m_vsiHandle->read(buffer.get(), tile.numbytes);
-    }
-
-    // TODO assuming JPEG here
-    jpeg_decompress_struct cinfo;
-    jpeg_error_mgr jerr; //error handling
-    jpeg_source_mgr src_mem;
-    jerr.error_exit = jpegErrorExit;
-    cinfo.err = jpeg_std_error(&jerr);
-    try {
-        jpeg_create_decompress(&cinfo);
-        jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
-        int ret = jpeg_read_header(&cinfo, false);
-        if(ret != 1) {
-            throw Exception("Jpeg error..");
+        // Reading VSI tiles is not thread safe
+        {
+            std::lock_guard<std::mutex> lock(m_readMutex);
+            m_vsiHandle->seekg(tile.offset);
+            m_vsiHandle->read(buffer.get(), tile.numbytes);
         }
-        //cinfo.jpeg_color_space = JCS_YCbCr;
-        //cinfo.jpeg_color_space = JCS_RGB;
-        jpeg_start_decompress(&cinfo);
-        unsigned char* line = data;
-        while (cinfo.output_scanline < cinfo.output_height) {
-            jpeg_read_scanlines (&cinfo, &line, 1);
-            line += 3*cinfo.output_width;
+        jpeg_decompress_struct cinfo;
+        jpeg_error_mgr jerr; //error handling
+        jpeg_source_mgr src_mem;
+        jerr.error_exit = jpegErrorExit;
+        cinfo.err = jpeg_std_error(&jerr);
+        try {
+            jpeg_create_decompress(&cinfo);
+            jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
+            int ret = jpeg_read_header(&cinfo, false);
+            if(ret != 1) {
+                throw Exception("Jpeg error..");
+            }
+            //cinfo.jpeg_color_space = JCS_YCbCr;
+            //cinfo.jpeg_color_space = JCS_RGB;
+            jpeg_start_decompress(&cinfo);
+            unsigned char* line = data;
+            while (cinfo.output_scanline < cinfo.output_height) {
+                jpeg_read_scanlines (&cinfo, &line, 1);
+                line += 3*cinfo.output_width;
+            }
+            jpeg_finish_decompress(&cinfo);
+            jpeg_destroy_decompress(&cinfo);
+        } catch(std::exception &e) {
+            jpeg_destroy_decompress( &cinfo );
+            throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
         }
-        jpeg_finish_decompress(&cinfo);
-        jpeg_destroy_decompress(&cinfo);
-    } catch(std::exception &e) {
-        jpeg_destroy_decompress( &cinfo );
-        throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
+    } else if(m_compressionFormat == ImageCompression::RAW) { // Uncompressed
+        // Reading VSI tiles is not thread safe
+        {
+            auto buffer = make_uninitialized_unique<char[]>(tile.numbytes);
+            std::lock_guard<std::mutex> lock(m_readMutex);
+            m_vsiHandle->seekg(tile.offset);
+            m_vsiHandle->read(buffer.get(), tile.numbytes);
+            // Data is stored as BGR, convert it to RGB
+            // TODO could optimize this by doing it on the GPU instead..
+            for(int i = 0; i < tile.numbytes/3; ++i) {
+                data[i*3 + 0] = buffer[i*3+2];
+                data[i*3 + 1] = buffer[i*3+1];
+                data[i*3 + 2] = buffer[i*3+0];
+            }
+        }
+    } else {
+        throw Exception("Unknown image compression format in ImagePyramidAccess::readVSITileToBuffer: " + std::to_string((int)m_compressionFormat));
     }
 }
 
