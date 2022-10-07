@@ -289,6 +289,8 @@ void TensorRTEngine::load() {
             throw Exception("Failed to build CUDA engine for TensorRT");
         reportInfo() << "Finished building CUDA engine for TensorRT" << reportEnd();
 
+        // Make sure serialization folder exists
+        createDirectories(Config::getKernelBinaryPath());
         // Serialize the model
         std::unique_ptr<nvinfer1::IHostMemory, decltype(Destroy())> serializedModel(m_engine->serialize(), Destroy());
         // Store model to disk
