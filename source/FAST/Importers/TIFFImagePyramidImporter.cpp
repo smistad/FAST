@@ -31,8 +31,8 @@ void TIFFImagePyramidImporter::execute() {
     TIFFSetDirectory(tiff, 0);
     // Read description to check if image is OME-TIFF
     char * description;
-    TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &description);
-    if(description != nullptr) {
+    int result = TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &description);
+    if(result == 1) { // Must check if tag exists
         std::string str = description;
         if(str.find("xml") != std::string::npos && str.find("OME") != std::string::npos) {
             reportInfo() << "TIFF file seems to be an OME-TIFF, reading it as such.." << reportEnd();
