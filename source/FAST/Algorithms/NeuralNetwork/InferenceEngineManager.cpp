@@ -252,9 +252,10 @@ void InferenceEngineManager::loadAll() {
 #endif
     Reporter::info() << "Loading inference engines in folder " << Config::getLibraryPath() << Reporter::end();
     for(auto&& item : getDirectoryList(Config::getLibraryPath(), true, false)) {
+        auto path = join(Config::getLibraryPath(), item);
         if(item.substr(0, prefix.size()) == prefix) {
             std::string name = item.substr(prefix.size(), item.rfind('.') - prefix.size());
-            Reporter::info() << "Loading inference engine " << name << " from shared library " << item << Reporter::end();
+            Reporter::info() << "Loading inference engine " << name << " from shared library " << path << Reporter::end();
 #ifdef WIN32
             if(name == "TensorFlow") {
                 if(!InstructionSet::AVX2()) {
@@ -263,7 +264,7 @@ void InferenceEngineManager::loadAll() {
                 }
             }
             SetErrorMode(SEM_FAILCRITICALERRORS); // TODO To avoid diaglog box, when not able to load a DLL
-            auto handle = LoadLibrary(item.c_str());
+            auto handle = LoadLibrary(path.c_str());
             if(!handle) {
                 Reporter::warning() << "Failed to load plugin because " << GetLastErrorAsString() << Reporter::end();
                 continue;
@@ -281,7 +282,7 @@ void InferenceEngineManager::loadAll() {
                     continue;
                 }
             }
-            auto handle = dlopen(item.c_str(), RTLD_LAZY);
+            auto handle = dlopen(path.c_str(), RTLD_LAZY);
             if(!handle) {
                 Reporter::warning() << "Failed to load plugin because " << dlerror() << Reporter::end();
                 continue;
