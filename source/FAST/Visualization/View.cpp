@@ -688,8 +688,7 @@ void View::mousePressEvent(QMouseEvent *event) {
 
 void View::wheelEvent(QWheelEvent *event) {
     if(mIsIn2DMode) {
-        // TODO Should instead increase the size of the orhtograpic projection here
-        // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
+        // the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
         aspect = (float) width() / height();
         float orthoAspect = (mRight - mLeft) / (mTop - mBottom);
         float scalingWidth = 1;
@@ -699,9 +698,11 @@ void View::wheelEvent(QWheelEvent *event) {
         } else {
             scalingHeight = orthoAspect / aspect;
         }
-        // Zoom towards center
 		float targetSizeX = (mRight - mLeft) * 0.33f; // should end up with a fraction of the size
 		float targetSizeY = (mTop - mBottom) * 0.33f; // should end up with fraction of the size
+		float currentPosX = (event->position().x()/width())*(mRight - mLeft) + mLeft;
+        float currentPosY = (event->position().y()/height())*(mTop - mBottom) + mBottom;
+        // First: Zoom towards center
         if(event->delta() > 0) {
             mLeft = mLeft + targetSizeX*0.5f;
             mRight = mRight - targetSizeX*0.5f;
@@ -713,6 +714,15 @@ void View::wheelEvent(QWheelEvent *event) {
             mBottom = mBottom - targetSizeY*0.5f;
             mTop = mTop + targetSizeY*0.5f;
         }
+        // Now: Keep pointer at same position while zooming in and out:
+        float newPosX = (event->position().x()/width())*(mRight - mLeft) + mLeft;
+        float newPosY = (event->position().y()/height())*(mTop - mBottom) + mBottom;
+        float diffX = newPosX - currentPosX;
+        float diffY = newPosY - currentPosY;
+        mLeft -= diffX;
+        mRight -= diffX;
+        mBottom += diffY;
+        mTop += diffY;
         mPerspectiveMatrix = loadOrthographicMatrix(mLeft * scalingWidth, mRight * scalingWidth,
                                                     mBottom * scalingHeight, mTop * scalingHeight, zNear, zFar);
     } else {
