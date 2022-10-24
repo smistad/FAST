@@ -623,6 +623,38 @@ void View::keyPressEvent(QKeyEvent *event) {
         case Qt::Key_R:
             recalculateCamera();
             break;
+        case Qt::Key_Left:
+            if(mIsIn2DMode) {
+                // Move 10% of width
+                float actualMovementX = width()*0.1 * ((mRight - mLeft) / width());
+                mCameraPosition[0] += actualMovementX;
+                m3DViewingTransformation.pretranslate(Vector3f(actualMovementX, 0, 0));
+            }
+            break;
+        case Qt::Key_Right:
+            if(mIsIn2DMode) {
+                // Move 10% of width
+                float actualMovementX = width()*0.1 * ((mRight - mLeft) / width());
+                mCameraPosition[0] -= actualMovementX;
+                m3DViewingTransformation.pretranslate(Vector3f(-actualMovementX, 0, 0));
+            }
+            break;
+        case Qt::Key_Down:
+            if(mIsIn2DMode) {
+                // Move 10% of height
+                float actualMovementY = height()*0.1 * ((mRight - mLeft) / height());
+                mCameraPosition[1] = actualMovementY;
+                m3DViewingTransformation.pretranslate(Vector3f(0, actualMovementY, 0));
+            }
+            break;
+        case Qt::Key_Up:
+            if(mIsIn2DMode) {
+                // Move 10% of height
+                float actualMovementY = height()*0.1 * ((mRight - mLeft) / height());
+                mCameraPosition[1] = -actualMovementY;
+                m3DViewingTransformation.pretranslate(Vector3f(0, -actualMovementY, 0));
+            }
+            break;
     }
 }
 
