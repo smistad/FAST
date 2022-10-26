@@ -17,7 +17,7 @@ using namespace fast;
 int main(int argc, char** argv) {
     CommandLineParser parser("Neural network CT volume segmentation example");
     parser.addChoice("inference-engine",
-            {"default", "TensorFlow", "OpenVINO", "TensorRT"},
+            {"default", "TensorFlow", "OpenVINO", "TensorRT", "ONNXRuntime"},
             "default",
             "Which neural network inference engine to use");
     parser.addPositionVariable(1,

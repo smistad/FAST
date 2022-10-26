@@ -34,7 +34,7 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
          *
          * @return vector with info on each device
          */
-        std::vector<InferenceDeviceInfo> getDeviceList();
+        std::vector<InferenceDeviceInfo> getDeviceList() override;
 
         /**
          * Load a custom operator (op). You have to do this BEFORE calling load() to load the model/graph.

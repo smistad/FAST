@@ -16,7 +16,7 @@ using namespace fast;
 int main(int argc, char** argv) {
     CommandLineParser parser("Neural network ultrasound segmentation example");
     parser.addChoice("inference-engine",
-            {"default", "OpenVINO", "TensorFlow", "TensorRT"},
+            {"default", "OpenVINO", "TensorFlow", "TensorRT", "ONNXRuntime"},
             "default",
             "Which neural network inference engine to use");
     parser.addVariable("filename", Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd", "Path to files to stream from disk");

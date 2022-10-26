@@ -1,5 +1,6 @@
 #include <FAST/Config.hpp>
 #include <FAST/Utility.hpp>
+#include <FAST/DeviceManager.hpp>
 #ifdef WIN32
 // For TensorFlow AVX2 check - Taken from https://docs.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=msvc-160
 #include <vector>
@@ -319,6 +320,14 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
     if(isEngineAvailable("TensorRT"))
         return loadEngine("TensorRT");
 
+#ifdef WIN32
+    // If on windows, and main device is not an intel device, use ONNXRuntime.
+    if(std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultDevice())->getPlatformVendor() != PLATFORM_VENDOR_INTEL) {
+        if(isEngineAvailable("ONNXRuntime"))
+            return loadEngine("ONNXRuntime");
+    }
+#endif
+
     return loadEngine(getEngineList().front());
 }
 
@@ -339,6 +348,14 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
 
     if(isEngineAvailable("TensorRT") && loadEngine("TensorRT")->isModelFormatSupported(modelFormat))
         return loadEngine("TensorRT");
+
+#ifdef WIN32
+    // If on windows, and main device is not an intel device, use ONNXRuntime.
+    if(std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultDevice())->getPlatformVendor() != PLATFORM_VENDOR_INTEL) {
+        if(isEngineAvailable("ONNXRuntime") && loadEngine("ONNXRuntime")->isModelFormatSupported(modelFormat))
+            return loadEngine("ONNXRuntime");
+    }
+#endif
 
     for(auto name : getEngineList()) {
         auto engine = loadEngine(name);
