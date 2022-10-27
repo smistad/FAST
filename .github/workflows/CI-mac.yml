@@ -30,7 +30,8 @@ jobs:
         
     - name: Install dependencies
       run: |
-        brew install openslide libomp
+        brew install openslide
+        brew install https://github.com/Homebrew/homebrew-core/blob/c87d6a0c8360c4684e3375ce6c4576214acdd71b/Formula/libomp.rb
         pip3 install --upgrade pip
         pip3 install numpy==1.19.5 twine
 
