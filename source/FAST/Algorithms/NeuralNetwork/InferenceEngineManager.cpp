@@ -265,7 +265,7 @@ void InferenceEngineManager::loadAll() {
                 }
             }
             SetErrorMode(SEM_FAILCRITICALERRORS); // TODO To avoid diaglog box, when not able to load a DLL
-            auto handle = LoadLibrary(path.c_str());
+            auto handle = LoadLibraryExA(path.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
             if(!handle) {
                 Reporter::warning() << "Failed to load plugin because " << GetLastErrorAsString() << Reporter::end();
                 continue;
