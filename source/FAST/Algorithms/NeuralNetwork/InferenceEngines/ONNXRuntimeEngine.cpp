@@ -1,6 +1,7 @@
 #include "ONNXRuntimeEngine.hpp"
 #include <onnxruntime_cxx_api.h>
 #include <dml_provider_factory.h>
+#include <FAST/Config.hpp>
 
 namespace fast {
 
@@ -72,9 +73,11 @@ void ONNXRuntimeEngine::load() {
     } else {
         try {
             Ort::SessionOptions session_options;
+            SetDllDirectory(Config::getLibraryPath().c_str()); // Make sure delay-load dlls are found (directml.dll) etc.
             Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_DML(session_options, 0));
             session_options.DisableMemPattern();
             m_session = std::make_unique<Ort::Session>(*m_env.get(), wideStr.c_str(), session_options);
+            SetDllDirectory("");
         }
         catch (Ort::Exception& e) {
             reportWarning() << "Exception occured while trying to load DirectML for ONNXRuntime with message: (" << e.GetOrtErrorCode() << ") " << e.what() << reportEnd();
