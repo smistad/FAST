@@ -46,7 +46,7 @@ class FAST_EXPORT DataHub : public QObject {
          * @brief Object representing and item on the DataHub
          * @ingroup datahub
          */
-        class Item {
+        class FAST_EXPORT Item {
             public:
                 std::string id;
                 std::string name;
@@ -85,7 +85,7 @@ class FAST_EXPORT DataHub : public QObject {
          * @brief Download results from DataHub
          * @ingroup datahub
          */
-        class Download {
+        class FAST_EXPORT Download {
             public:
                 std::vector<std::string> items;
                 std::vector<std::string> paths;
