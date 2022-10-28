@@ -18,6 +18,11 @@
 #include <QApplication>
 #include <QScreen>
 
+#ifdef SWIG
+// Swig and python doesn't understand nested classes, this fixes this:
+%feature("flatnested");
+%ignore fast::DataHub::Item::fromJSON;
+#endif
 namespace fast {
 
 /**
@@ -25,6 +30,10 @@ namespace fast {
  * Objects and functions used for the FAST DataHub
  */
 
+#ifdef SWIG
+%rename(DataHubDownload) DataHub::Download;
+%rename(DataHubItem) DataHub::Item;
+#endif
 /**
  * @brief Object uses to browse and download data, models and pipelines from the FAST DataHub
  *
@@ -130,6 +139,7 @@ class FAST_EXPORT DataHub : public QObject {
         void downloadTextFile(const std::string& url, const std::string& destination, const std::string& name, int fileNr);
         void downloadAndExtractZipFile(const std::string& URL, const std::string& destination, const std::string& name, int fileNr);
 };
+
 
 /**
  * @brief A widget to browse the DataHub
@@ -263,3 +273,7 @@ class DataHubItemWidget : public QWidget {
 #endif
 
 }
+#ifdef SWIG
+// Swig and python doesn't understand nested classes, this fixes this:
+%feature("flatnested", "");
+#endif
