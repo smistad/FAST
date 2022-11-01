@@ -144,8 +144,6 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
         compressionFormat = ImageCompression::RAW;
         reportInfo() << "VSI was not compressed (RAW)" << reportEnd();
     }
-    std::cout << etsFilename << std::endl;
-
 
     stream->seekg(sis_header.offsettiles);
     std::vector<vsi_tile_header> tiles;
