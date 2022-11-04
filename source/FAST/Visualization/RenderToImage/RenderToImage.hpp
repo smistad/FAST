@@ -79,6 +79,7 @@ class FAST_EXPORT RenderToImage : public ProcessObject, protected QOpenGLFunctio
 
         std::mutex m_mutex;
         std::atomic_bool m_initialized = false;
+        int m_executeToken = 0;
 
 };
 

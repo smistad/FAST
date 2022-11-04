@@ -44,7 +44,7 @@ TEST_CASE("RenderToImage on stream", "[fast][RenderToImage]") {
         auto image = stream.getNextFrame<Image>();
         ImageExporter::create("test_" + std::to_string(timestep) + ".png")->connect(image)->run();
         ++timestep;
-        if(timestep == 4)
-            break;
+        //if(timestep == 4)
+          //  break;
     }
 }

@@ -171,6 +171,12 @@ class FAST_EXPORT  ProcessObject : public Object {
          * @return
          */
         virtual std::string attributesToString() { return ""; };
+
+        /**
+         * @brief Whether this PO has received input data with last frame flag set
+         * @return
+         */
+        bool hasReceivedLastFrameFlag() const;
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified

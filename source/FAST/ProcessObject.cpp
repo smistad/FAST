@@ -623,4 +623,13 @@ std::shared_ptr<DataObject> ProcessObject::runAndGetOutputData(uint portID, int6
     return port->getNextFrame();
 }
 
+bool ProcessObject::hasReceivedLastFrameFlag() const {
+    bool lastFrame = false;
+    for(auto input : mInputConnections) {
+        if(input.second->getFrame()->isLastFrame())
+            lastFrame = true;
+    }
+    return lastFrame;
+}
+
 } // namespace fast

@@ -80,10 +80,15 @@ void RenderToImage::execute() {
     m_context->makeCurrent();
     initializeOpenGLFunctions();
 
+    bool doContinue = true;
     for(auto renderer : getRenderers()) {
-        renderer->update();
+        renderer->update(m_executeToken);
+        if(renderer->hasReceivedLastFrameFlag())
+            doContinue = false;
     }
-    setModified(true); // TODO hack in order to keep running
+    ++m_executeToken;
+    if(doContinue)
+        setModified(true); // TODO hack in order to keep running
 
     // If first run: Initialize..
     if(!m_initialized) {
@@ -117,6 +122,8 @@ void RenderToImage::execute() {
                  GL_UNSIGNED_BYTE,
                  data.get());
     auto image = Image::create(m_width, m_height, TYPE_UINT8, 3, std::move(data));
+    if(!doContinue)
+        image->setLastFrame("RenderToImage");
     //std::chrono::duration<float, std::milli> duration = std::chrono::high_resolution_clock::now() - start;
     //std::cout << "Runtime grab frame: " << duration.count() << std::endl;
     addOutputData(0, image);

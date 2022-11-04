@@ -1,15 +1,18 @@
-## @example neural_network_image_segmentation.py
+## @example export_visualization_to_video.py
 # This example process a stream of ultrasound images with a neural network
-# for image segmentation and displays the results on screen.
+# for image segmentation and stores it to a video file using imageio.
+# This example requires you to install imageio (pip install imageio imageio-ffmpeg)
 # @image html images/examples/python/neural_network_segmentation.jpg width=350px;
 import fast
+import imageio
 
 #fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT) # Uncomment to show debug info
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
+# Set up processing pipeline
 streamer = fast.ImageFileStreamer.create(
     fast.Config.getTestDataPath() + 'US/JugularVein/US-2D_#.mhd',
-    loop=True
+    loop=False
 )
 
 segmentationNetwork = fast.SegmentationNetwork.create(
@@ -18,6 +21,7 @@ segmentationNetwork = fast.SegmentationNetwork.create(
     inferenceEngine='OpenVINO'
 ).connect(streamer)
 
+# Set up rendering
 imageRenderer = fast.ImageRenderer.create().connect(streamer)
 
 segmentationRenderer = fast.SegmentationRenderer.create(
@@ -30,6 +34,15 @@ labelRenderer = fast.SegmentationLabelRenderer.create(
         labelColors={1: fast.Color.Red(), 2: fast.Color.Blue()},
 ).connect(segmentationNetwork)
 
-window = fast.SimpleWindow2D.create(bgcolor=fast.Color.Black())\
-    .connect([imageRenderer, segmentationRenderer, labelRenderer])\
-    .run()
+# Render to image
+renderToImage = fast.RenderToImage.create(bgcolor=fast.Color.Black())\
+        .connect([imageRenderer, segmentationRenderer, labelRenderer])
+
+# Collect all image frames
+frames = []
+for image in fast.DataStream(renderToImage):
+    frames.append(image)
+    print(len(frames))
+
+# Save frames as video
+imageio.mimsave('segmentation_video.mp4', frames, fps=20)
