@@ -28,7 +28,11 @@ __kernel void cast2D(
         __private float scaleFactor
     ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
-    const int dataType = get_image_channel_data_type(input);
+    const int dataType = get_image_channel_data_type(output);
 
-    writeImageAsFloat2D(output, pos, round(readImageAsFloat2D(input, sampler, pos)*scaleFactor));
+    if(dataType == CLK_FLOAT || dataType == CLK_SNORM_INT16 || dataType == CLK_UNORM_INT16) {
+        writeImageAsFloat2D(output, pos, readImageAsFloat2D(input, sampler, pos)*scaleFactor);
+    } else {
+        writeImageAsFloat2D(output, pos, round(readImageAsFloat2D(input, sampler, pos)*scaleFactor));
+    }
 }
