@@ -441,7 +441,7 @@ void UFFStreamer::generateStream() {
             if(m_stop) break;
         }
 
-        int frameNr = getCurrentFrameIndexAndUpdate();
+        int frameNr = getCurrentFrameIndex();
 
         // DO SCAN CONVERSION ETC.
         float startRadius = m_uffData->depth_axis.front();
@@ -508,6 +508,7 @@ void UFFStreamer::generateStream() {
             if(sleepFor.count() > 0)
                 std::this_thread::sleep_for(sleepFor);
             previousTime = std::chrono::high_resolution_clock::now();
+            getCurrentFrameIndexAndUpdate(); // Update
         }
         try {
             addOutputData(0, resultImage);

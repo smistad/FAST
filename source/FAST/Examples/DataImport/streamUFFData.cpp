@@ -7,6 +7,7 @@
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Tools/CommandLineParser.hpp>
+#include <FAST/Visualization/Widgets/PlaybackWidget.hpp>
 
 using namespace fast;
 
@@ -23,9 +24,12 @@ int main(int argc, char** argv) {
 	        parser.get<int>("framerate")
     );
 
+	auto widget = new PlaybackWidget(streamer);
+
 	auto renderer = ImageRenderer::create()->connect(streamer);
 
 	auto window = SimpleWindow2D::create(Color::Black())
-	        ->connect(renderer);
+	        ->connect(renderer)
+	        ->connect(widget);
     window->run();
 }

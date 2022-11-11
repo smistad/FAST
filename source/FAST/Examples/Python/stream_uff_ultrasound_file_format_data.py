@@ -21,10 +21,12 @@ renderer = fast.ImageRenderer.create()\
 renderer2 = fast.ImageRenderer.create()\
     .connect(filter)
 
+widget = fast.PlaybackWidget(streamer)
 fast.DualViewWindow2D.create(
     bgcolor=fast.Color.Black(),
     width=1024,
     height=512
     ).connectLeft(renderer)\
     .connectRight(renderer2)\
+    .connect(widget)\
     .run()

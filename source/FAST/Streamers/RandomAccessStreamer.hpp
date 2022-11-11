@@ -21,6 +21,7 @@ class FAST_EXPORT RandomAccessStreamer : public Streamer {
 		virtual int getNrOfFrames() = 0;
 		virtual void stop() override;
 		void setLooping(bool loop);
+		bool getLooping() const;
 		void frameAdded() override;
 	protected:
 		virtual void waitForUnpause();

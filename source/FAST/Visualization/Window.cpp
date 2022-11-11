@@ -227,6 +227,7 @@ void Window::stop() {
 View* Window::createView() {
     std::lock_guard<std::mutex> lock(m_mutex);
     View *view = new View();
+    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mWidget->installEventFilter(view); // Forward key presses and changeEvents
     mThread->addView(view);
 

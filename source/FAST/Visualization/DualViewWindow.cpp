@@ -70,12 +70,16 @@ void DualViewWindow::createLayout() {
         mainLayout->addWidget(getView(1));
         mWidget->setLayout(mainLayout);
         mainLayout->setContentsMargins(0, 0, 0, 0);
+        m_widgetLayout = mainLayout;
     } else {
-        QHBoxLayout* mainLayout = new QHBoxLayout;
-        mainLayout->addWidget(getView(0));
-        mainLayout->addWidget(getView(1));
+        auto mainLayout = new QVBoxLayout;
+        auto viewLayout = new QHBoxLayout;
+        viewLayout->addWidget(getView(0));
+        viewLayout->addWidget(getView(1));
+        mainLayout->addLayout(viewLayout);
         mWidget->setLayout(mainLayout);
         mainLayout->setContentsMargins(0, 0, 0, 0);
+        m_widgetLayout = mainLayout;
     }
 }
 
@@ -136,7 +140,16 @@ std::shared_ptr<DualViewWindow> DualViewWindow::connectBottom(std::vector<std::s
     return connectRight(renderers);
 }
 
-DualViewWindow2D::DualViewWindow2D(Color bgcolor, int width, int height, bool verticalMode) : DualViewWindow(bgcolor, width, height, verticalMode) {
+void DualViewWindow::addWidget(QWidget *widget) {
+    m_widgetLayout->addWidget(widget);
+}
+
+std::shared_ptr<DualViewWindow> DualViewWindow::connect(QWidget *widget) {
+    addWidget(widget);
+    return std::dynamic_pointer_cast<DualViewWindow>(mPtr.lock());
+}
+
+    DualViewWindow2D::DualViewWindow2D(Color bgcolor, int width, int height, bool verticalMode) : DualViewWindow(bgcolor, width, height, verticalMode) {
     set2DMode();
 }
 
