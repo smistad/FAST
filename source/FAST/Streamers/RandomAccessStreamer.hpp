@@ -25,7 +25,7 @@ class FAST_EXPORT RandomAccessStreamer : public Streamer {
 		void frameAdded() override;
 	protected:
 		virtual void waitForUnpause();
-		int m_framerate;
+		int m_framerate = -1;
 		bool m_pause = false;
 		bool m_pauseAfterOneFrame = false;
 		std::mutex m_playbackMutex;

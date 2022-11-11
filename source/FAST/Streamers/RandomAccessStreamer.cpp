@@ -49,9 +49,8 @@ int RandomAccessStreamer::getFramerate() const {
 }
 
 void RandomAccessStreamer::setFramerate(int framerate) {
-	if(framerate <= 0)
-		throw Exception("Framerate must be larger than 0");
 	m_framerate = framerate;
+    setModified(true);
 }
 
 void RandomAccessStreamer::stop() {
