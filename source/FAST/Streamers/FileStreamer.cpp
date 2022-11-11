@@ -153,40 +153,42 @@ void FileStreamer::generateStream() {
             DataObject::pointer dataFrame = getDataFrame(filename);
 
             // Timing
-            if(m_framerate > 0) {
-                std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
-                std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
-                if(sleepFor.count() > 0)
-                    std::this_thread::sleep_for(sleepFor);
-                previousTime = std::chrono::high_resolution_clock::now();
-            } else if(!mTimestampFilename.empty() && mUseTimestamp) {
-                // Set and use timestamp if available
-                std::string line;
-                std::getline(timestampFile, line);
-                if(!line.empty()) {
-					uint64_t timestamp = std::stoull(line);
-                    dataFrame->setCreationTimestamp(timestamp);
-                }
-            } else if(dataFrame->getCreationTimestamp() != 0 && mUseTimestamp) {
-                uint64_t timestamp = dataFrame->getCreationTimestamp();
-                // Wait as long as necessary before adding image
-                // Time passed since last frame
-                auto timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::high_resolution_clock::now() - previousTimestampTime);
-                while (timestamp > previousTimestamp + timePassed.count()) {
-                    // Wait
-                    int64_t left = (timestamp - previousTimestamp) - timePassed.count();
-                    reportInfo() << "Sleeping for " << left << " ms" << reportEnd();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(left));
-                    timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
+            if(!pause) {
+                if(m_framerate > 0) {
+                    std::chrono::duration<float, std::milli> passedTime = std::chrono::high_resolution_clock::now() - previousTime;
+                    std::chrono::duration<int, std::milli> sleepFor(1000 / m_framerate - (int)passedTime.count());
+                    if(sleepFor.count() > 0)
+                        std::this_thread::sleep_for(sleepFor);
+                    previousTime = std::chrono::high_resolution_clock::now();
+                } else if(!mTimestampFilename.empty() && mUseTimestamp) {
+                    // Set and use timestamp if available
+                    std::string line;
+                    std::getline(timestampFile, line);
+                    if(!line.empty()) {
+                        uint64_t timestamp = std::stoull(line);
+                        dataFrame->setCreationTimestamp(timestamp);
+                    }
+                } else if(dataFrame->getCreationTimestamp() != 0 && mUseTimestamp) {
+                    uint64_t timestamp = dataFrame->getCreationTimestamp();
+                    // Wait as long as necessary before adding image
+                    // Time passed since last frame
+                    auto timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::high_resolution_clock::now() - previousTimestampTime);
+                    while (timestamp > previousTimestamp + timePassed.count()) {
+                        // Wait
+                        int64_t left = (timestamp - previousTimestamp) - timePassed.count();
+                        reportInfo() << "Sleeping for " << left << " ms" << reportEnd();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(left));
+                        timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                std::chrono::high_resolution_clock::now() - previousTimestampTime);
+                    }
+                    previousTimestamp = timestamp;
+                    previousTimestampTime = std::chrono::high_resolution_clock::now();
                 }
-                previousTimestamp = timestamp;
-                previousTimestampTime = std::chrono::high_resolution_clock::now();
-            }
-            // End timing
+                // End timing
 
-            getCurrentFrameIndexAndUpdate(); // Update index
+                getCurrentFrameIndexAndUpdate(); // Update index
+            }
 
             if(!fileExists(getFilename(i+mStepSize, currentSequence)) && !m_loop)
                 dataFrame->setLastFrame(getNameOfClass());

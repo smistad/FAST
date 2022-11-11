@@ -10,6 +10,7 @@
 #include <FAST/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.hpp>
 #include <FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp>
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngineManager.hpp>
+#include <FAST/Visualization/Widgets/PlaybackWidget.hpp>
 
 using namespace fast;
 
@@ -53,7 +54,8 @@ int main(int argc, char** argv) {
             ->connect(streamer);
 
     auto window = SimpleWindow2D::create(Color::Black())
-            ->connect({imageRenderer, segmentationRenderer, labelRenderer});
+            ->connect({imageRenderer, segmentationRenderer, labelRenderer})
+            ->connect(new PlaybackWidget(streamer));
     window->run();
     segmentation->getAllRuntimes()->printAll();
 }

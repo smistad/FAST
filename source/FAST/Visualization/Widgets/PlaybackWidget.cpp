@@ -74,13 +74,18 @@ PlaybackWidget::PlaybackWidget(std::shared_ptr<RandomAccessStreamer> streamer, Q
     playbackLayout->addWidget(label);
 
     auto m_framerateInput = new QComboBox;
+    m_framerateInput->addItem("Native");
     for(int i = 1; i < 80; ++i)
         m_framerateInput->addItem(QString(std::to_string(i).c_str()));
-    m_framerateInput->setCurrentIndex(m_streamer->getFramerate() - 1);
+    if(m_streamer->getFramerate() <= 0) {
+        m_framerateInput->setCurrentIndex(0);
+    } else {
+        m_framerateInput->setCurrentIndex(m_streamer->getFramerate());
+    }
     playbackLayout->addWidget(m_framerateInput);
     QObject::connect(m_framerateInput, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
         if(m_streamer)
-            m_streamer->setFramerate(index+1);
+            m_streamer->setFramerate(index);
     });
 
     // Playback slider update
