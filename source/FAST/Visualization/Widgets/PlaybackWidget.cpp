@@ -94,6 +94,7 @@ PlaybackWidget::PlaybackWidget(std::shared_ptr<RandomAccessStreamer> streamer, Q
     timer->setSingleShot(false);
     QObject::connect(timer, &QTimer::timeout, [this]() {
         if(m_streamer) {
+            m_slider->setRange(0, m_streamer->getNrOfFrames()-1);
             m_slider->setSliderPosition(m_streamer->getCurrentFrameIndex()); // This is not entirely correct as the streamer may have sent out more frames than has been visualized.. can be fixed by setting maximumNrOfFrames to 1
             if(m_streamer->getPause()) {
                 m_playButton->setText("Play");
