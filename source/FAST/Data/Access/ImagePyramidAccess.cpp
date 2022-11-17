@@ -154,7 +154,9 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             // Remove extra
             for(int dy = 0; dy < height; ++dy) {
                 for(int dx = 0; dx < width; ++dx) {
-                    data[dx + dy*width] = tileData[dx + dy*tileWidth];
+		    for(int channel = 0; channel < channels; ++channel) {
+                        data[(dx + dy*width)*channels + channel] = tileData[(dx + dy*tileWidth)*channels + channel];
+		    }
                 }
             }
         } else {
