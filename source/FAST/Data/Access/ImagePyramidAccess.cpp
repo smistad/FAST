@@ -161,7 +161,11 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             }
         } else {
             // Create buffer to contain all tiles
-            int targetNumberOfTiles = std::ceil((float)width / tileWidth)*std::ceil((float)height / tileHeight);
+            int totalTilesX = std::ceil((float)width / tileWidth);
+            int totalTilesY = std::ceil((float)height / tileHeight);
+            if(x % tileWidth != 0) totalTilesX += 1;
+            if(y % tileHeight != 0) totalTilesY += 1;
+            const int targetNumberOfTiles = totalTilesX*totalTilesY;
             auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*targetNumberOfTiles*channels);
             // Does the buffer need to be initialized/padded?
             if(x+width >= levelWidth || x+height >= levelHeight) { // Some tiles are outside, fill it
@@ -172,13 +176,15 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
                 }
             }
             // Fill the full tile buffer
-            int fullTileBufferWidth = std::ceil((float)width/tileWidth)*tileWidth;
-            for(int i = 0; i < std::ceil((float)width/tileWidth); ++i) {
-                for(int j = 0; j < std::ceil((float)height/tileHeight); ++j) {
+            const int firstTileX = x / tileWidth;
+            const int firstTileY = y / tileHeight;
+            const int fullTileBufferWidth = totalTilesX*tileWidth;
+            for(int i = 0; i < totalTilesX; ++i) {
+                for(int j = 0; j < totalTilesY; ++j) {
                     auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
                     int tileX = i*tileWidth;
                     int tileY = j*tileHeight;
-                    int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), x+tileX, y+tileY, 0, 0);
+                    int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), firstTileX+tileX, firstTileY+tileY, 0, 0);
                     // Stitch tile into full buffer
                     for(int cy = 0; cy < tileHeight; ++cy) {
                         for(int cx = 0; cx < tileWidth; ++cx) {
@@ -190,8 +196,6 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
                 }
             }
             // Crop the full buffer to data[]
-            int firstTileX = x / levelWidth;
-            int firstTileY = y / levelHeight;
             const int offsetX = x - firstTileX*tileWidth;
             const int offsetY = y - firstTileY*tileHeight;
             for(int cy = offsetY; cy < offsetY + height; ++cy) {
