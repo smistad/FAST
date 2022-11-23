@@ -32,7 +32,7 @@ class FAST_EXPORT RandomAccessStreamer : public Streamer {
 		std::mutex m_pauseMutex;
 		std::condition_variable m_pauseCV;
 		int m_currentFrameIndex = 0;
-		bool m_loop;
+		bool m_loop = false;
 };
 
 }

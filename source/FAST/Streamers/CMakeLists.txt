@@ -16,11 +16,11 @@ fast_add_sources(
 )
 fast_add_python_interfaces(
     Streamer.hpp
+    RandomAccessStreamer.hpp
     FileStreamer.hpp
     MeshFileStreamer.hpp
-    RandomAccessStreamer.hpp
 )
-fast_add_python_shared_pointers(Streamer FileStreamer MeshFileStreamer RandomAccessStreamer)
+fast_add_python_shared_pointers(Streamer RandomAccessStreamer FileStreamer MeshFileStreamer)
 fast_add_process_object(ImageFileStreamer ImageFileStreamer.hpp)
 if(FAST_MODULE_OpenIGTLink)
     fast_add_sources(
