@@ -184,7 +184,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
                     auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
                     int tileX = i*tileWidth;
                     int tileY = j*tileHeight;
-                    int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), firstTileX+tileX, firstTileY+tileY, 0, 0);
+                    int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), firstTileX*tileWidth+tileX, firstTileY*tileHeight+tileY, 0, 0);
                     // Stitch tile into full buffer
                     for(int cy = 0; cy < tileHeight; ++cy) {
                         for(int cx = 0; cx < tileWidth; ++cx) {
