@@ -455,6 +455,7 @@ void UFFStreamer::generateStream() {
         } else {
             image = m_uffData->iqData[frameNr];
         }
+        image->updateModifiedTimestamp();
 
         float startX, startY, stopX, stopY, notUsed;
         if(m_uffData->polarCoordinates) {
@@ -494,7 +495,10 @@ void UFFStreamer::generateStream() {
         } else {
             // Skip scan conversion
             if(m_uffData->hasGrayscaleData()) {
-                resultImage = image;
+                //resultImage = image;
+                // This is a hack to make UFFStreamer work with InterleavePlayback
+                resultImage = image->copy(getMainDevice());
+                resultImage->setFrameData(image->getFrameData());
             } else {
                 // We must perform envelope and log compression
                 m_envelopeAndLogCompressor->connect(image);
