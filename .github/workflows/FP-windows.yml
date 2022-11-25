@@ -130,7 +130,10 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
 
     - name: Package
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+      shell: powershell
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+        Get-ChildItem fast_windows_*.zip | Rename-Item -NewName fast_windows.zip
 
     - name: Upload archive package
       uses: actions/upload-artifact@v2
