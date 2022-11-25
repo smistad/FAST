@@ -13,6 +13,7 @@ ExternalProject_Add(tiff
           -Djpeg=ON
           -Dold-jpeg=ON
           -Dzlib=ON
+          -DHAVE_OPENGL=OFF
           -DJPEG_INCLUDE_DIR=${FAST_EXTERNAL_BUILD_DIR}/libjpeg/src/libjpeg/LibJPEG/9d/include/
           -DJPEG_LIBRARY_RELEASE=${FAST_EXTERNAL_BUILD_DIR}/libjpeg/src/libjpeg/LibJPEG/9d/lib/libjpeg.lib
           -DZLIB_INCLUDE_DIR=${FAST_EXTERNAL_INSTALL_DIR}/include/zlib/
