@@ -15,7 +15,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        brew install openslide libomp
+        brew install openslide
+        # Install a specific version of libomp (14.0.6) since newer versions fail with cmake
+        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/c87d6a0c8360c4684e3375ce6c4576214acdd71b/Formula/libomp.rb > $(find $(brew --repository) -name libomp.rb) && brew reinstall libomp
     - name: Configure CMake
       run: |
         cmake -B ${{github.workspace}}/build \
