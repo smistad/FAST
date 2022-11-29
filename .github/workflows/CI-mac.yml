@@ -23,6 +23,7 @@ jobs:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         MACOSX_DEPLOYMENT_TARGET: 10.13
         PYTHON_CONFIGURE_OPTS: "--enable-framework"
+        CFLAGS: "-Wno-implicit-function-declaration" 
       uses: "gabrielfalcao/pyenv-action@v5"
       with:
           default: 3.6.9
