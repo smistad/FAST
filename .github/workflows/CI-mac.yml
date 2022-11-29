@@ -1,4 +1,4 @@
-name: CI macOS 10.15
+name: CI macOS 11
 
 on:
   push:
@@ -14,7 +14,7 @@ env:
 
 jobs:
   build:
-    runs-on: macos-10.15
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v2
