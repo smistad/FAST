@@ -7,6 +7,7 @@ on:
     branches: [ master ]
   release:
     types: [ published ]
+  workflow_dispatch:
 
 env:
   BUILD_TYPE: Release
@@ -18,6 +19,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2   
     
+    - name: Install dependencies
+      run: |
+        brew install openslide zlib
+        # Install a specific version of libomp (14.0.6) since newer versions fail with cmake
+        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/c87d6a0c8360c4684e3375ce6c4576214acdd71b/Formula/libomp.rb > $(find $(brew --repository) -name libomp.rb) && brew reinstall libomp
+    
     - name: Setup pyenv
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -28,11 +35,8 @@ jobs:
       with:
           default: 3.6.9
         
-    - name: Install dependencies
+    - name: Install pip dependencies
       run: |
-        brew install openslide
-        # Install a specific version of libomp (14.0.6) since newer versions fail with cmake
-        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/c87d6a0c8360c4684e3375ce6c4576214acdd71b/Formula/libomp.rb > $(find $(brew --repository) -name libomp.rb) && brew reinstall libomp
         pip3 install --upgrade pip
         pip3 install numpy==1.19.5 twine wheel==0.37.1
 
