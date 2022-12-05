@@ -16,7 +16,7 @@ class FAST_EXPORT  SpatialDataObject : public DataObject {
         typedef std::shared_ptr<SpatialDataObject> pointer;
         SpatialDataObject();
         void setTransform(Transform::pointer transform, bool disconnectParentSceneGraphNode = false);
-        Transform::pointer getTransform(bool getFullTransform = false);
+        Transform::pointer getTransform(bool getFullTransform = true);
         virtual DataBoundingBox getBoundingBox() const;
         virtual DataBoundingBox getTransformedBoundingBox() const;
         SceneGraphNode::pointer getSceneGraphNode() const;

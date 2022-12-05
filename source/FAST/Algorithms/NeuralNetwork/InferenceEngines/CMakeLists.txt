@@ -45,3 +45,12 @@ if(FAST_MODULE_OpenVINO)
 
     fast_add_inference_engine(OpenVINO)
 endif()
+if(FAST_MODULE_ONNXRuntime)
+    include(${PROJECT_SOURCE_DIR}/cmake/ModuleONNXRuntime.cmake)
+    add_library(InferenceEngineONNXRuntime SHARED ONNXRuntimeEngine.hpp ONNXRuntimeEngine.cpp)
+    target_include_directories(InferenceEngineONNXRuntime PRIVATE ${FAST_INCLUDE_DIRS})
+    target_link_libraries(InferenceEngineONNXRuntime FAST onnxruntime.lib)
+    generate_export_header(InferenceEngineONNXRuntime EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/ONNXRuntimeExport.hpp)
+
+    fast_add_inference_engine(ONNXRuntime)
+endif()

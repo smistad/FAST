@@ -55,4 +55,8 @@ void LabelColorRenderer::setColors(std::map<uint, Color> colors) {
     setModified(true);
 }
 
+Color LabelColorRenderer::getColor(int label) const {
+    return m_labelColors.at(label);
+}
+
 }

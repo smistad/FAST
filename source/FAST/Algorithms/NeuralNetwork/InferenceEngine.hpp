@@ -3,6 +3,7 @@
 #include "FAST/Data/DataTypes.hpp"
 #include <FAST/Data/Tensor.hpp>
 #include <FAST/Data/TensorShape.hpp>
+#include <map>
 
 // This is a macro for creating a load function for a given inference engine
 // Need C linkage here (extern "C" to avoid mangled names of the load function on windows, see https://stackoverflow.com/questions/19422550/why-getprocaddress-is-not-working
@@ -93,8 +94,8 @@ class FAST_EXPORT InferenceEngine : public Object {
         virtual void setOutputNodeShape(std::string name, TensorShape shape);
         virtual NetworkNode getInputNode(std::string name) const;
         virtual NetworkNode getOutputNode(std::string name) const;
-        virtual std::unordered_map<std::string, NetworkNode> getOutputNodes() const;
-        virtual std::unordered_map<std::string, NetworkNode> getInputNodes() const;
+        virtual std::map<std::string, NetworkNode> getOutputNodes() const;
+        virtual std::map<std::string, NetworkNode> getInputNodes() const;
         virtual void setInputData(std::string inputNodeName, std::shared_ptr<Tensor> tensor);
         virtual std::shared_ptr<Tensor> getOutputData(std::string inputNodeName);
         virtual void load() = 0;
@@ -131,11 +132,18 @@ class FAST_EXPORT InferenceEngine : public Object {
          * @param filename path to library (.so/.dll) or in the case of GPU/VPU OpenVINO .xml files.
          */
         virtual void loadCustomPlugins(std::vector<std::string> filenames);
+        /**
+         * @brief Set dimension image ordering manually.
+         * E.g. channel last or channel-first.
+         *
+         * @param ordering
+         */
+        virtual void setImageOrdering(ImageOrdering ordering);
     protected:
         virtual void setIsLoaded(bool loaded);
 
-        std::unordered_map<std::string, NetworkNode> mInputNodes;
-        std::unordered_map<std::string, NetworkNode> mOutputNodes;
+        std::map<std::string, NetworkNode> mInputNodes;
+        std::map<std::string, NetworkNode> mOutputNodes;
 
         int m_deviceIndex = -1;
         InferenceDeviceType m_deviceType = InferenceDeviceType::ANY;
@@ -143,6 +151,7 @@ class FAST_EXPORT InferenceEngine : public Object {
 
         std::vector<uint8_t> m_model;
         std::vector<uint8_t> m_weights;
+        ImageOrdering m_imageOrdering;
     private:
         std::string m_filename = "";
         bool m_isLoaded = false;

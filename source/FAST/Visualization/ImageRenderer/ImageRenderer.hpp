@@ -36,7 +36,9 @@ class FAST_EXPORT  ImageRenderer : public virtual Renderer {
         float getIntensityWindow();
         ~ImageRenderer();
     protected:
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
+        void
+        draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D, int viewWidth,
+             int viewHeight);
         virtual void deleteAllTextures();
 
 
@@ -58,7 +60,7 @@ class FAST_EXPORT  ImageRenderer : public virtual Renderer {
         float m_opacity = -1;
         bool m_applyTransformationsIn2D = false;
 
-        void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation = false, bool useWindowLevel = true);
+        void drawTextures(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> copy, Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D, bool useInterpolation = false, bool useWindowLevel = true);
 };
 
 }

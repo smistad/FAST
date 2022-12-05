@@ -72,44 +72,45 @@ TEST_CASE("Patch generator and stitcher for volumes", "[fast][volume][patchgener
 TEST_CASE("Patch generator and stitcher for WSI", "[fast][wsi][PatchStitcher][visual]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto pyramid = importer->runAndGetOutputData<ImagePyramid>();
+    auto level2Image = pyramid->getAccess(ACCESS_READ)->getLevelAsImage(2);
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
     generator->setPatchLevel(2);
-    generator->setInputConnection(importer->getOutputPort());
+    generator->setOverlap(0.1);
+    generator->setInputData(pyramid);
 
     auto stitcher = PatchStitcher::New();
     stitcher->setInputConnection(generator->getOutputPort());
 
-    auto renderer = ImageRenderer::New();
+    auto renderer = ImageRenderer::create(-1,-1, 0.5);
     renderer->addInputConnection(stitcher->getOutputPort());
+    auto renderer2 = ImageRenderer::create(-1,-1, 0.5);
+    renderer2->addInputData(level2Image);
     auto window = SimpleWindow::New();
+    window->addRenderer(renderer2);
     window->addRenderer(renderer);
+    window->getView()->setBackgroundColor(Color::Black());
     window->setTimeout(3000);
     window->set2DMode();
     window->start();
 }
 
 TEST_CASE("Patch generator, sticher and image to batch generator for WSI", "[fast][wsi][ImageToBatchGenerator]") {
-    auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
 
-    auto generator = PatchGenerator::New();
-    generator->setPatchSize(512, 512);
-    generator->setPatchLevel(2);
-    generator->setInputConnection(importer->getOutputPort());
+    auto generator = PatchGenerator::create(512, 512, 1, 2)
+            ->connect(importer);
 
-    auto batchGenerator = ImageToBatchGenerator::New();
-    batchGenerator->setInputConnection(generator->getOutputPort());
-    batchGenerator->setMaxBatchSize(4);
-    auto port = batchGenerator->getOutputPort();
+    auto batchGenerator = ImageToBatchGenerator::create(4)
+            ->connect(generator);
 
     Batch::pointer batch;
-    int i = 0;
-    do {
-        batchGenerator->update(); // This will only call execute once
-        batch = port->getNextFrame<Batch>(); // This will block if batch does not exist atm
+    auto stream = DataStream(batchGenerator);
+    while(!stream.isDone()) {
+        batch = stream.getNextFrame<Batch>();
         std::cout << "Got a batch" << std::endl;
-    } while(!batch->isLastFrame());
+    }
     std::cout << "Done" << std::endl;
 }

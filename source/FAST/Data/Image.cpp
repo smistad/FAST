@@ -878,8 +878,8 @@ float Image::calculateSumIntensity() {
     // Calculate sum if image has changed or it is the first time
     if(!mSumInitialized || mSumIntensityTimestamp != getTimestamp()) {
         unsigned int nrOfElements = mWidth*mHeight*mDepth;
-        if(mHostHasData && mHostDataIsUpToDate) {
-            // Host data is up to date, calculate min and max on host
+        if((mHostHasData && mHostDataIsUpToDate) || getNrOfVoxels() < 256) {
+            // Host data is up to date, or image is very small, calculate min and max on host
             ImageAccess::pointer access = getImageAccess(ACCESS_READ);
             void* data = access->get();
             switch(mType) {
@@ -1157,8 +1157,7 @@ void Image::fill(float value) {
     }
 }
 
-Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBoundsCropping) {
-
+Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBoundsCropping, int croppingValue) {
     bool needInitialization = false;
     VectorXi newImageSize = size;
     VectorXi copySourceOffset = offset;
@@ -1207,7 +1206,7 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
             throw Exception("offset and size vectors given to Image::crop must have at least 2 channels");
         newImage = Image::create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
         if(needInitialization)
-            newImage->fill(0);
+            newImage->fill(croppingValue);
         OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
         OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
         cl::Image2D* input = readAccess->get2DImage();
@@ -1235,7 +1234,7 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
             throw Exception("offset and size vectors given to Image::crop must have at least 3 channels");
         newImage = Image::create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
         if(needInitialization)
-            newImage->fill(0);
+            newImage->fill(croppingValue);
         OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
         OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
         cl::Image3D* input = readAccess->get3DImage();

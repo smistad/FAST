@@ -4,14 +4,14 @@
 namespace fast {
 
 ImageCaster::ImageCaster() {
-}
-
-ImageCaster::ImageCaster(DataType outputType, float scaleFactor) {
     createInputPort(0, "Image");
     createOutputPort(0, "Image");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImageCaster/ImageCaster.cl");
+}
+
+ImageCaster::ImageCaster(DataType outputType, float scaleFactor) : ImageCaster() {
     m_outputType = outputType;
     m_scaleFactor = scaleFactor;
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImageCaster/ImageCaster.cl");
 }
 
 void ImageCaster::execute() {

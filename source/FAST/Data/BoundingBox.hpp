@@ -64,6 +64,7 @@ class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
         FAST_CONSTRUCTOR(BoundingBoxSet)
         int getNrOfLines();
         int getNrOfVertices();
+        float getMinimumSize() const;
         BoundingBoxSetAccess::pointer getAccess(accessType type);
         BoundingBoxSetOpenGLAccess::pointer getOpenGLAccess(accessType type);
         void freeAll() override;
@@ -92,6 +93,8 @@ class FAST_EXPORT BoundingBoxSet : public SpatialDataObject {
         uint mNrOfLines;
 
         bool mIsInitialized;
+
+        float m_minimumSize;
 };
 
 /**

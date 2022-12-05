@@ -8,7 +8,7 @@
 
 using namespace fast;
 
-TEST_CASE("Alternating output", "[fast][Interleave]") {
+TEST_CASE("Alternating output", "[fast][Interleave][visual]") {
     auto streamer = ImageFileStreamer::create(
             Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd"
             );
@@ -34,7 +34,7 @@ TEST_CASE("Alternating output", "[fast][Interleave]") {
     window->run();
 }
 
-TEST_CASE("Alternating output data stream", "[fast][Interleave]") {
+TEST_CASE("Alternating output data stream", "[fast][Interleave][visual]") {
     auto streamer = ImageFileStreamer::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd");
 
     auto smoothing = GaussianSmoothing::create(2.0f)

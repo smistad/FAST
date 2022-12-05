@@ -29,7 +29,7 @@ TEST_CASE("IterativeClosestPoint", "[fast][IterativeClosestPoint][icp]") {
 
 TEST_CASE("ICP on two point sets translation only", "[fast][IterativeClosestPoint][icp]") {
 
-    Vector3f translation(0.01, 0, 0.01);
+    Vector3f translation(0.01, 0.0, 0.01);
 
     VTKMeshFileImporter::pointer importerA = VTKMeshFileImporter::New();
     importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
@@ -58,11 +58,11 @@ TEST_CASE("ICP on two point sets translation only", "[fast][IterativeClosestPoin
     Vector3f detectedTranslation = icp->getOutputTransformation()->get().translation();
 
     CHECK(detectedTranslation.x() == Approx(translation.x()));
-    CHECK(detectedTranslation.y() == Approx(translation.y()));
+    CHECK(detectedTranslation.y() == Approx(translation.y()).scale(1.0));
     CHECK(detectedTranslation.z() == Approx(translation.z()));
-    CHECK(detectedRotation.x() == Approx(0));
-    CHECK(detectedRotation.y() == Approx(0));
-    CHECK(detectedRotation.z() == Approx(0));
+    CHECK(detectedRotation.x() == Approx(0).scale(1.0));
+    CHECK(detectedRotation.y() == Approx(0).scale(1.0));
+    CHECK(detectedRotation.z() == Approx(0).scale(1.0));
 }
 
 TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
@@ -103,11 +103,11 @@ TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
     Vector3f detectedTranslation = icp->getOutputTransformation()->get().translation();
 
     CHECK(detectedTranslation.x() == Approx(translation.x()));
-    CHECK(detectedTranslation.y() == Approx(translation.y()));
+    CHECK(detectedTranslation.y() == Approx(translation.y()).scale(1.0));
     CHECK(detectedTranslation.z() == Approx(translation.z()));
     CHECK(detectedRotation.x() == Approx(rotation.x()));
     CHECK(detectedRotation.y() == Approx(rotation.y()));
-    CHECK(detectedRotation.z() == Approx(rotation.z()));
+    CHECK(detectedRotation.z() == Approx(rotation.z()).scale(1.0));
 }
 
 TEST_CASE("ICP on two point sets which are already transformed by scene graph", "[fast][IterativeClosestPoint][icp]") {
@@ -153,11 +153,11 @@ TEST_CASE("ICP on two point sets which are already transformed by scene graph", 
     Vector3f detectedTranslation = icp->getOutputTransformation()->get().translation();
 
     CHECK(detectedTranslation.x() == Approx(translation.x()));
-    CHECK(detectedTranslation.y() == Approx(translation.y()));
+    CHECK(detectedTranslation.y() == Approx(translation.y()).scale(1.0));
     CHECK(detectedTranslation.z() == Approx(translation.z()));
     CHECK(detectedRotation.x() == Approx(rotation.x()));
     CHECK(detectedRotation.y() == Approx(rotation.y()));
-    CHECK(detectedRotation.z() == Approx(rotation.z()));
+    CHECK(detectedRotation.z() == Approx(rotation.z()).scale(1.0));
 }
 
 

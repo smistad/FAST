@@ -27,7 +27,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
         void wheelEvent(QWheelEvent* event);
         void changeEvent(QEvent* event);
         bool eventFilter(QObject* object, QEvent* event);
-        void setSynchronizedRendering(bool sync);
         void setMaximumFramerate(unsigned int framerate);
         void setCameraInputConnection(DataChannel::pointer port);
         void set2DMode();
@@ -104,13 +103,12 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
         void paintGL();
         void resizeGL(int width, int height);
 		void updateRenderersInput(int executeToken);
-		void updateRenderers();
-		void lockRenderers();
-		void unlockRenderers();
+		void updateRenderers(int executeToken);
 		void stopRenderers();
 		void resetRenderers();
 
 		std::mutex m_mutex;
+		std::atomic_bool m_initialized = false;
 
     friend class ComputationThread;
 

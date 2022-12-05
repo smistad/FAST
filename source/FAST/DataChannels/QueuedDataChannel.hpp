@@ -33,9 +33,10 @@ class FAST_EXPORT QueuedDataChannel : public DataChannel {
         int getMaximumNumberOfFrames() const override;
 
         /**
-         * This will unblock if this DataChannel is currently blocking. Used to stop a pipeline.
+         * @brief This will unblock if this DataChannel is currently blocking. Used to stop a pipeline.
+         * @param Error message to supply.
          */
-        void stop() override;
+        void stop(std::string errorMessage) override;
 
         // TODO consider removing, it is equal to getSize() > 0 atm
         bool hasCurrentData() override;

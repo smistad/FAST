@@ -1,4 +1,4 @@
-name: CI Mac OS X 10.15
+name: CI macOS 11
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     branches: [ master ]
   release:
     types: [ published ]
+  workflow_dispatch:
 
 env:
   BUILD_TYPE: Release
@@ -14,24 +15,34 @@ env:
 
 jobs:
   build:
-    runs-on: macos-10.15
-
+    runs-on: macos-11
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2   
+    
+    - name: Install dependencies
+      run: |
+        brew reinstall zlib
+        brew install openslide pcre
+        # Install a specific version of libomp (14.0.6) since newer versions fail with cmake
+        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/c87d6a0c8360c4684e3375ce6c4576214acdd71b/Formula/libomp.rb > $(find $(brew --repository) -name libomp.rb) && brew reinstall libomp
+    
     - name: Setup pyenv
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         MACOSX_DEPLOYMENT_TARGET: 10.13
         PYTHON_CONFIGURE_OPTS: "--enable-framework"
+        CFLAGS: "-Wno-implicit-function-declaration"
+        LDFLAGS: "-L/usr/local/opt/zlib/lib"
+        CPPFLAGS: "-I/usr/local/opt/zlib/include"
+        PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
       uses: "gabrielfalcao/pyenv-action@v5"
       with:
           default: 3.6.9
         
-    - name: Install dependencies
+    - name: Install pip dependencies
       run: |
-        brew install openslide libomp
         pip3 install --upgrade pip
-        pip3 install numpy==1.19.5 twine
+        pip3 install numpy==1.19.5 twine wheel==0.37.1
 
     - name: Configure CMake
       run: |
@@ -108,3 +119,68 @@ jobs:
         sleep 30
         pip3 install pyfast==${GITHUB_REF#refs/tags/v}
       shell: bash
+
+  test-cpp:
+    name: Run C++ Tests
+    needs: [build]
+    runs-on: [self-hosted, macos]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: 'Archive package (tar.xz)'
+          path: ${{github.workspace}}/download/
+      - name: Extract artifact
+        run: |
+          mkdir -p ${{github.workspace}}/download/
+          cd ${{github.workspace}}/download/
+          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+      - name: Download test data
+        run: |
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
+          ./downloadTestData
+      - name: Run tests
+        run: |
+          cd ${{github.workspace}}
+          cd fast_*
+          cd fast/bin/
+          ./testFAST ~[visual]~[unstablemac]
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -Rf ${{github.workspace}}
+          rm -Rf $HOME/FAST/kernel_binaries/*
+          
+  test-python:
+    name: Run Python Tests
+    needs: [build]
+    runs-on: [self-hosted, macos]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: 'Python wheel'
+          path: ${{github.workspace}}/download/
+      - name: Create environment and install python packages
+        run: |
+          cd ${{github.workspace}}
+          mkdir tmp
+          cd tmp
+          virtualenv -p python3 venv
+          source venv/bin/activate
+          pip3 install pytest
+          pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+      - name: Run tests
+        run: |
+          cd ${{github.workspace}}/tmp/
+          source venv/bin/activate
+          pytest ../source/FAST/
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -Rf ${{github.workspace}}/download/
+          rm -Rf ${{github.workspace}}/tmp/
+          rm -Rf $HOME/FAST/kernel_binaries/*

@@ -61,7 +61,25 @@ GUI::GUI() {
 	auto stopButton = new QPushButton;
 	stopButton->setText("Stop");
 	connect(stopButton, &QPushButton::clicked, [this]() {
-		stopComputationThread();
+        auto thread = getComputationThread();
+        thread->clearViews();
+        thread->clearProcessObjects();
+
+        // Remove and delete old views
+        auto views = getViews();
+        clearViews();
+        for(auto view : views) {
+            view->stopPipeline();
+            delete view;
+	    }
+        delete m_viewLayout;
+        m_viewLayout = new QHBoxLayout;
+        // Add an empty dummy view
+        auto view = createView();
+        view->setBackgroundColor(Color::Black());
+        view->set2DMode();
+        m_viewLayout->addWidget(view);
+        m_mainLayout->insertLayout(1, m_viewLayout);
 	});
 	menuLayout->addWidget(stopButton);
 
@@ -136,13 +154,15 @@ GUI::GUI() {
 void GUI::loadPipeline() {
 	// Set up pipeline and view
 	try {
-
-		stopComputationThread();
+	    auto thread = getComputationThread();
+	    thread->clearViews();
+        thread->clearProcessObjects();
 
 		// Remove and delete old views
 		auto views = getViews();
 		clearViews();
 		for(auto view : views) {
+		    view->stopPipeline();
 			delete view;
 		}
 
@@ -186,9 +206,9 @@ void GUI::loadPipeline() {
 		    }
 		}
 
-		// Restart computation thread
-		startComputationThread();
-
+        for(auto view : pipeline.getViews()) {
+            view->reinitialize();
+        }
 	} catch(Exception &e) {
 		std::string errorMessage = e.what();
 		int ret = QMessageBox::critical(mWidget, "Pipeline",
@@ -201,6 +221,17 @@ void GUI::loadPipeline() {
 }
 
 void GUI::setPipelineFile(std::string file, std::map<std::string, std::string> variables) {
+    // Need this to make sure View is initialized properly..
+    int screenHeight = getScreenHeight();
+    int screenWidth = getScreenWidth();
+    reportInfo() << "Resizing window to " << mWidth << " " << mHeight << reportEnd();
+    mWidget->resize(mWidth, mHeight);
+    // Move window to center
+    int x = (screenWidth - mWidth) / 2;
+    int y = (screenHeight - mHeight) / 2;
+    mWidget->move(x, y);
+    mWidget->show();
+
 	m_variables = variables;
 	Pipeline pipeline(file, m_variables);
 	auto filename = QString(pipeline.getFilename().c_str());

@@ -1,6 +1,11 @@
 # Setup all dependencies for FAST, both internal (have to be installed on the system)
 # and external (downloaded and built automatically)
 
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/lib/)
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include/)
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/licenses/)
+
 ## OpenCL
 if(WIN32)
     fast_download_dependency(opencl
@@ -42,28 +47,36 @@ if(FAST_MODULE_Visualization)
         # Let FAST build Qt 5
         if(WIN32)
             fast_download_dependency(qt5
-                    5.14.0
-                    280fbfac2e2c1ad918d5c4efc043b7cc0ec13a149e37f29492215d69968bec7e
+                    5.15.2
+		    3d025e412d4af7d4fe669677ac71614909eb44aac8eca6b8fb29459abf621dff
                     Qt5Core.lib Qt5Gui.lib Qt5Widgets.lib Qt5OpenGL.lib Qt5Multimedia.lib Qt5MultimediaWidgets.lib Qt5Network.lib Qt5PrintSupport.lib Qt5SerialPort.lib
             )
-	elseif(APPLE)
+            fast_download_dependency(openssl
+                    1.1.1
+                    e0f9b5d26627c70abbfa9e3b0d731a81995bdd2af2177eebf1c4b32691643c9e
+            )
+      	elseif(APPLE)
             fast_download_dependency(qt5
-                    5.14.0
-                    9751aa43880c0193c59836410cbb6b343796b1b4cd5f86861300370014eac162
+                    5.15.2
+		    0f5ff6ea8a9299cda1f41922f310a1f8f5bb8bf8829c46e85eb68e2638e2a840
                     libQt5Core.dylib libQt5Gui.dylib libQt5Widgets.dylib libQt5OpenGL.dylib libQt5Multimedia.dylib libQt5MultimediaWidgets.dylib libQt5Network.dylib libQt5PrintSupport.dylib libQt5SerialPort.dylib
             )
         else()
             fast_download_dependency(qt5
-                    5.14.0
-                    3281e50a545c1a7275cf7626b348468049ac41c05944bcc9fd08708831c2d28f
+                    5.15.2
+		    71bf6dbae6aa24cc5e64379cb04899f6abf4fe512d87093f3f566c6b0fca4fa9
                     libQt5Core.so libQt5Gui.so libQt5Widgets.so libQt5OpenGL.so libQt5Multimedia.so libQt5MultimediaWidgets.so libQt5Network.so libQt5PrintSupport.so libQt5SerialPort.so
+            )
+            fast_download_dependency(openssl
+                    1.1.1
+                    813d09d0e4fb8c03b4470692659d8600e5d56c77708aa27c0290e9be03cc7352
             )
         endif()
         # MOC setup
         set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                 PROPERTY Qt5Core_VERSION_MAJOR "5")
         set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                PROPERTY Qt5Core_VERSION_MINOR "14")
+                PROPERTY Qt5Core_VERSION_MINOR "15")
         add_executable(Qt5::moc IMPORTED)
         add_dependencies(Qt5::moc qt5)
         set(MOC_FILENAME "${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX}" )
@@ -79,7 +92,7 @@ if(FAST_MODULE_Visualization)
         endif()
         set(Qt5_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5/)
         find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport Network PATHS ${PROJECT_SOURCE_DIR}/cmake/)
-        set(Qt5Core_VERSION "5.14.0")
+        set(Qt5Core_VERSION "5.15.2")
         set(Qt5Core_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtCore)
         set(Qt5Gui_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtGui)
         set(Qt5Widgets_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtWidgets)

@@ -11,13 +11,16 @@ VectorFieldColorRenderer::VectorFieldColorRenderer(float maxOpacity, float maxLe
     setMaxLength(maxLength);
 }
 
-void VectorFieldColorRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-        std::lock_guard<std::mutex> lock(mMutex);
+void
+VectorFieldColorRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                               int viewWidth,
+                               int viewHeight) {
+    auto dataToRender = getDataToRender();
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
 
     cl::Kernel kernel(getOpenCLProgram(device), "renderToTexture");
-    for(auto it : mDataToRender) {
+    for(auto it : dataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
         float maxComponent;
@@ -123,7 +126,7 @@ void VectorFieldColorRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewing
     glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC1_ALPHA);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
+    drawTextures(dataToRender, perspectiveMatrix, viewingMatrix, mode2D);
     glDisable(GL_BLEND);
 }
 

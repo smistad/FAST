@@ -34,7 +34,7 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
          *
          * @return vector with info on each device
          */
-        std::vector<InferenceDeviceInfo> getDeviceList();
+        std::vector<InferenceDeviceInfo> getDeviceList() override;
 
         /**
          * Load a custom operator (op). You have to do this BEFORE calling load() to load the model/graph.
@@ -53,8 +53,6 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
 
         // This mutex is used to ensure only one thread is using this OpenVINO instance at the same time
         std::mutex m_mutex;
-
-        ImageOrdering m_imageOrdering;
 };
 
 DEFINE_INFERENCE_ENGINE(OpenVINOEngine, INFERENCEENGINEOPENVINO_EXPORT)

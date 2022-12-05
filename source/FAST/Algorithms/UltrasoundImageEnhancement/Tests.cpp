@@ -6,7 +6,7 @@
 
 namespace fast {
 
-TEST_CASE("Ultrasound image enhancement", "[fast][ultrasoundimageenhancement]") {
+TEST_CASE("Ultrasound image enhancement", "[fast][ultrasoundimageenhancement][visual]") {
     auto streamer = ImageFileStreamer::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd");
 
     auto enhancement = UltrasoundImageEnhancement::create()->connect(streamer);
@@ -17,7 +17,7 @@ TEST_CASE("Ultrasound image enhancement", "[fast][ultrasoundimageenhancement]") 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
-    //window->setTimeout(500),
+    window->setTimeout(500),
     window->start();
 
 }

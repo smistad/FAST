@@ -1,13 +1,16 @@
 if(FAST_MODULE_WholeSlideImaging)
     message("-- Whole slide imaging module enabled")
-    include(cmake/ExternalOpenSlide.cmake)
     add_definitions(-DFAST_MODULE_WSI)
     if(WIN32)
-        # Build TIFF
-        include(cmake/ExternalTIFF.cmake)
-        list(APPEND LIBRARIES libopenslide.lib tiff.lib)
-        list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openslide/ ${TIFF_INCLUDE_DIRS})
-        message(STATUS "TIFF FOUND: ${TIFF_LIBRARY} ${TIFF_LIBRARIES} ${TIFF_INCLUDE_DIRS}")
+        include(cmake/ExternalLibJPEG.cmake)
+        include(cmake/ExternalOpenSlide.cmake)
+        list(APPEND LIBRARIES libopenslide.lib)
+        list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openslide/)
+        fast_download_dependency(tiff
+                4.3.0
+                376683157c343367db432a110698c7cf3806770d727d98e40e9794e21cec87b0
+                tiff.lib
+        )
     elseif(APPLE)
         # Get OpenSlide and TIFF from OS
         find_package(OpenSlide REQUIRED)

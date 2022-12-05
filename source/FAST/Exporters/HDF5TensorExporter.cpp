@@ -46,6 +46,13 @@ void HDF5TensorExporter::execute() {
 	auto tensorAccess = tensor->getAccess(ACCESS_READ);
 	auto dataset = file.createDataSet(m_datasetName.c_str(), H5::PredType::NATIVE_FLOAT, memspace);
 	dataset.write(tensorAccess->getRawData(), H5::PredType::NATIVE_FLOAT, memspace, memspace);
+	{
+        // Write spacing information
+        std::vector<hsize_t> h5shape = {(hsize_t)shape.getDimensions()};
+        H5::DataSpace memspace(1, h5shape.data());
+	    auto dataset = file.createDataSet("spacing", H5::PredType::NATIVE_FLOAT, memspace);
+	    dataset.write(tensor->getSpacing().data(), H5::PredType::NATIVE_FLOAT, memspace, memspace);
+	}
 	file.close();
 }
 

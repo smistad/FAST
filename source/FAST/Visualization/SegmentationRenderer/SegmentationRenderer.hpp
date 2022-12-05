@@ -28,19 +28,26 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer, public LabelColo
                          LabelColors, colors, = LabelColors(),
                          float, opacity, = 0.5f,
                          float, borderOpacity, = -1.0f,
-                         int, borderRadius, = 2
+                         int, borderRadius, = 1
         )
         void setBorderRadius(int radius);
         void setOpacity(float opacity, float borderOpacity = -1);
+        void setBorderOpacity(float borderOpacity);
+        float getOpacity() const;
+        float getBorderOpacity() const;
+        int getBorderRadius() const;
+        std::string attributesToString() override;
         void loadAttributes() override;
         virtual ~SegmentationRenderer();
     protected:
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
-        void drawPyramid(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar);
-        void drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) ;
+        void
+        draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D, int viewWidth,
+             int viewHeight) override;
+        void drawPyramid(std::shared_ptr<SpatialDataObject> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar);
+        void drawNormal(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) ;
         virtual void deleteAllTextures() override;
 
-        int mBorderRadius = 2;
+        int mBorderRadius = 1;
         float mBorderOpacity = 0.5;
 
         // Queue of tiles to be loaded

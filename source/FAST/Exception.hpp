@@ -110,8 +110,23 @@ class FAST_EXPORT BadCastException : public Exception {
 class FAST_EXPORT ThreadStopped : public Exception {
     public:
         ThreadStopped() {
+            m_error = false;
             setMessage("Thread stopped!");
         }
+        ThreadStopped(std::string message) : Exception() {
+            if(!message.empty()) {
+                m_error = true;
+                setMessage("Thread stopped because: " + message);
+            } else {
+                m_error = false;
+                setMessage("Thread stopped!");
+            }
+        };
+        bool wasDueToError() const {
+            return m_error;
+        }
+    protected:
+        bool m_error = false; // Whether thread was stopped due to an error or not.
 };
 
 } // end namespace fast

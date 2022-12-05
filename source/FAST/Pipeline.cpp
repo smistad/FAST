@@ -9,6 +9,7 @@
 #include <QCheckBox>
 #include "ProcessObjectList.hpp"
 #include <FAST/Visualization/View.hpp>
+#include <FAST/Visualization/MultiViewWindow.hpp>
 
 namespace fast {
 
@@ -25,6 +26,7 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
         std::string line;
         std::getline(file, line);
         line = replace(line, "$TEST_DATA_PATH$", Config::getTestDataPath());
+        line = replace(line, "$CURRENT_PATH$", getDirName(filename));
 
         trim(line);
         if(line.empty() || line[0] == '#')
@@ -79,7 +81,7 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
                 hasDefaultValue = true;
             }
 
-            reportInfo() << "Found variable " << variableName << " in pipeline file" << reportEnd();
+            Reporter::info() << "Found variable " << variableName << " in pipeline file" << Reporter::end();
             // Replace variable
             if (arguments.count(variableName) == 0) {
                 if (!hasDefaultValue)
@@ -128,7 +130,7 @@ void Pipeline::parseView(
         std::string attributeValues = line.substr(line.find(name) + name.size());
         trim(attributeValues);
         attribute->parseInput(attributeValues);
-        reportInfo() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << reportEnd();
+        Reporter::info() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << Reporter::end();
         ++lineNr;
     }
 
@@ -166,13 +168,13 @@ void Pipeline::parseProcessObject(
 
         if(name == "execute-on-last-frame-only") {
             object->setExecuteOnLastFrameOnly(true);
-            reportInfo() << "Set attribute " << name << " to true for object " << objectID << reportEnd();
+            Reporter::info() << "Set attribute " << name << " to true for object " << objectID << Reporter::end();
         } else {
             std::shared_ptr<Attribute> attribute = object->getAttribute(name);
             std::string attributeValues = line.substr(line.find(name) + name.size());
             trim(attributeValues);
             attribute->parseInput(attributeValues);
-            reportInfo() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << reportEnd();
+            Reporter::info() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << Reporter::end();
         }
         ++lineNr;
     }
@@ -182,7 +184,7 @@ void Pipeline::parseProcessObject(
     object->setModified(true);
 
     mProcessObjects[objectID] = object;
-    reportInfo() << "Added process object " << objectName  << " with id " << objectID << reportEnd();
+    Reporter::info() << "Added process object " << objectName  << " with id " << objectID << Reporter::end();
 
     // Get inputs and connect the POs and renderers
     ++lineNr;
@@ -206,11 +208,11 @@ void Pipeline::parseProcessObject(
                 if(!m_pipelineInputData[inputID].second)
                     throw Exception("This pipeline requires input data named " + inputID + ", but no such data was given to Pipeline::parse()");
                 if(isRenderer) {
-                    reportInfo() << "Connected data object " << inputID << " to renderer " << objectID << reportEnd();
+                    Reporter::info() << "Connected data object " << inputID << " to renderer " << objectID << Reporter::end();
                     std::shared_ptr<Renderer> renderer = std::static_pointer_cast<Renderer>(object);
                     renderer->addInputData(m_pipelineInputData[inputID].second);
                 } else {
-                    reportInfo() << "Connected data object " << inputID << " to " << objectID << reportEnd();
+                    Reporter::info() << "Connected data object " << inputID << " to " << objectID << Reporter::end();
                     object->connect(inputPortID, m_pipelineInputData[inputID].second);
                 }
                 ++lineNr;
@@ -225,11 +227,11 @@ void Pipeline::parseProcessObject(
             throw Exception("Input with id " + inputID + " was not found before " + objectID);
 
         if(isRenderer) {
-            reportInfo() << "Connected process object " << inputID << " to renderer " << objectID << reportEnd();
+            Reporter::info() << "Connected process object " << inputID << " to renderer " << objectID << Reporter::end();
             std::shared_ptr<Renderer> renderer = std::static_pointer_cast<Renderer>(object);
             renderer->addInputConnection(mProcessObjects.at(inputID)->getOutputPort(outputPortID));
         } else {
-            reportInfo() << "Connected process object " << inputID << " to " << objectID << reportEnd();
+            Reporter::info() << "Connected process object " << inputID << " to " << objectID << Reporter::end();
             object->setInputConnection(inputPortID, mProcessObjects.at(inputID)->getOutputPort(outputPortID));
         }
         ++lineNr;
@@ -245,7 +247,7 @@ void Pipeline::parse(std::map<std::string, std::shared_ptr<DataObject>> inputDat
 
     for(auto item : inputData) {
         if(m_pipelineInputData.count(item.first) == 0) {
-            reportWarning() << "Pipeline did not declaring needing any input data named " << item.first << ". Should be declared using PipelineInputData <name> <description>" << reportEnd();
+            Reporter::warning() << "Pipeline did not declaring needing any input data named " << item.first << ". Should be declared using PipelineInputData <name> <description>" << Reporter::end();
             m_pipelineInputData[item.first] = std::make_pair("", item.second);
         } else {
             m_pipelineInputData[item.first].second = item.second;
@@ -284,17 +286,20 @@ void Pipeline::parse(std::map<std::string, std::shared_ptr<DataObject>> inputDat
             std::string object = tokens[2];
             parseProcessObject(object, id, lineNr, true);
             lineNr--;
-            reportInfo() << "Added renderer " << object  << " with id " << id << reportEnd();
+            Reporter::info() << "Added renderer " << object  << " with id " << id << Reporter::end();
         } else if(key == "View" && visualization) {
             // Create a view
             View *view = new View();
             std::string id = tokens[1];
-            reportInfo() << "Added view with id " << id << reportEnd();
+            Reporter::info() << "Added view with id " << id << Reporter::end();
             m_views[id] = view;
             if(tokens.size() > 2) {
                 for(int i = 2; i < tokens.size(); ++i) {
+                    if(mProcessObjects.count(tokens[i]) == 0)
+                        throw Exception("Renderer with name " + tokens[i] + " not found in pipeline file.");
+
                     view->addRenderer(std::dynamic_pointer_cast<Renderer>(mProcessObjects[tokens[i]]));
-                    reportInfo() << "Added renderer " << tokens[i] << " to the view" << reportEnd();
+                    Reporter::info() << "Added renderer " << tokens[i] << " to the view" << Reporter::end();
                 }
             } else {
                 // View has no renderers.. throw error message?
@@ -306,15 +311,16 @@ void Pipeline::parse(std::map<std::string, std::shared_ptr<DataObject>> inputDat
             std::string value = line.substr(line.find(tokens[1]) + tokens[1].size());
             trim(value);
             value = replace(value, "\"", "");
-            reportInfo() << "Found pipeline attribute " << tokens[1] << " in pipeline file with value " << value << reportEnd();
+            Reporter::info() << "Found pipeline attribute " << tokens[1] << " in pipeline file with value " << value << Reporter::end();
             m_attributes[tokens[1]] = value;
         }
     }
+    m_parsed = true;
 }
 
-std::vector<View*> Pipeline::getViews() {
+std::vector<View*> Pipeline::getViews() const {
     Reporter::info() << "Setting up pipeline.." << Reporter::end();
-    if(mProcessObjects.size() == 0)
+    if(mProcessObjects.empty())
         throw Exception("You have to parse the pipeline file before calling getViews on the pipeline");
 
     // Get renderers
@@ -370,9 +376,9 @@ std::vector<Pipeline> getAvailablePipelines(std::string path) {
     return pipelines;
 }
 
-std::map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() {
-    if(mProcessObjects.size() == 0)
-        parse();
+std::map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() const {
+    if(mProcessObjects.empty())
+        throw Exception("You have to parse the pipeline before getting process objects");
 
     return mProcessObjects;
 }
@@ -448,6 +454,34 @@ std::map<std::string, std::string> Pipeline::getRequiredPipelineInputData() cons
     for(auto item : m_pipelineInputData)
         inputs[item.first] = item.second.first;
     return inputs;
+}
+
+std::map<std::string, std::string> Pipeline::getPipelineAttributes() const {
+    return m_attributes;
+}
+
+bool Pipeline::isParsed() const {
+    return m_parsed;
+}
+
+Pipeline Pipeline::fromDataHub(std::string itemID, std::map<std::string, std::string> variables, DataHub&& hub) {
+    auto result = hub.download(itemID);
+    return Pipeline(join(hub.getStorageDirectory(), itemID, "pipeline.fpl"), variables);
+}
+
+std::map<std::string, DataObject::pointer> Pipeline::run(std::map<std::string, std::shared_ptr<DataObject>> inputData, std::map<std::string, std::shared_ptr<ProcessObject>> processObjects, bool visualization) {
+    if(!isParsed())
+        parse(inputData, processObjects, visualization);
+
+    if(!m_views.empty()) {
+        auto window = MultiViewWindow::create(0);
+        for(auto&& view : getViews())
+            window->addView(view);
+        window->run(); // Visualize and block here
+        return getAllPipelineOutputData();
+    } else {
+        return getAllPipelineOutputData();
+    }
 }
 
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {

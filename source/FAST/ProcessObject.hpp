@@ -165,6 +165,18 @@ class FAST_EXPORT  ProcessObject : public Object {
          */
         void setExecuteOnLastFrameOnly(bool executeOnLastFrameOnly);
         bool getExecuteOnLastFrameOnly() const;
+
+        /**
+         * @brief Convert attributes to string
+         * @return
+         */
+        virtual std::string attributesToString() { return ""; };
+
+        /**
+         * @brief Whether this PO has received input data with last frame flag set
+         * @return
+         */
+        bool hasReceivedLastFrameFlag() const;
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
@@ -260,6 +272,8 @@ class FAST_EXPORT  ProcessObject : public Object {
 
         int m_maximumNrOfFrames = -1;
         bool m_executeOnLastFrameOnly = false;
+
+        std::mutex m_mutex;
 
 };
 

@@ -157,7 +157,7 @@ ImagePyramid::ImagePyramid(openslide_t *fileHandle, std::vector<ImagePyramidLeve
     m_pyramidFullyInitialized = true;
 	m_counter += 1;
 }
-ImagePyramid::ImagePyramid(std::ifstream* stream, std::vector<vsi_tile_header> tileHeaders, std::vector<ImagePyramidLevel> levels) {
+ImagePyramid::ImagePyramid(std::ifstream* stream, std::vector<vsi_tile_header> tileHeaders, std::vector<ImagePyramidLevel> levels, ImageCompression compressionFormat) {
     m_vsiFileHandle = stream;
     m_levels = std::move(levels);
     m_vsiTiles = std::move(tileHeaders);
@@ -165,6 +165,7 @@ ImagePyramid::ImagePyramid(std::ifstream* stream, std::vector<vsi_tile_header> t
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
     m_pyramidFullyInitialized = true;
+    m_compressionFormat = compressionFormat;
 }
 
 ImagePyramid::ImagePyramid() {
@@ -281,7 +282,7 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, m_vsiFileHandle, m_vsiTiles, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList);
+    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, m_vsiFileHandle, m_vsiTiles, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat);
 }
 
 void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {
@@ -332,7 +333,8 @@ Vector3f ImagePyramid::getSpacing() const {
 	return m_spacing;
 }
 
-ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> levels, int channels) {
+ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> levels, int channels, bool isOMETIFF) {
+    m_isOMETIFF = isOMETIFF;
     if(channels <= 0 || channels > 4)
         throw Exception("Nr of channels must be between 1 and 4 in ImagePyramid when importing from TIFF");
     m_tiffHandle = fileHandle;
@@ -352,7 +354,7 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
         // Convert from cm
         spacingX = 1.0f/(spacingX/10.0f);
         spacingY = 1.0f/(spacingY/10.0f);
-        reportInfo() << "Spacing from TIFF was" << spacingX << " " << spacingY << reportEnd();
+        reportInfo() << "Spacing from TIFF was " << spacingX << " " << spacingY << reportEnd();
         m_spacing = Vector3f(spacingX, spacingY, 1.0f);
     }
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
@@ -382,12 +384,69 @@ bool ImagePyramid::isPyramidFullyInitialized() const {
 }
 
 float ImagePyramid::getLevelScale(int level) {
-    if(m_vsiTiles.empty()) {
-        return (float)getFullWidth()/getLevelWidth(level);
-    } else {
-        // Special treatment for VSI data
-        return getLevelTilesX(getNrOfLevels()-1)*std::pow(2, getNrOfLevels()-1)/(getLevelTilesX(getNrOfLevels()-1)*std::pow(2, getNrOfLevels() - level - 1));
+    return (float)getFullWidth()/getLevelWidth(level);
+}
+
+
+DataBoundingBox ImagePyramid::getTransformedBoundingBox() const {
+    auto T = SceneGraph::getEigenTransformFromNode(getSceneGraphNode());
+
+    // Add image spacing
+    T.scale(getSpacing());
+
+    return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
+}
+
+DataBoundingBox ImagePyramid::getBoundingBox() const {
+    // Add image spacing
+    auto T = Affine3f::Identity();
+    T.scale(getSpacing());
+
+    return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
+}
+
+int ImagePyramid::getLevelForMagnification(int magnification, float slackPercentage) {
+    if(magnification <= 0)
+        throw Exception("Magnification must be larger than 0 in getLevleForMagnification");
+    const Vector3f spacing = getSpacing();
+    // For this calculation we assume the following:
+    /*
+    * 1 micron = 0.001 millimeters
+    * 40X -> 0.00025 mm
+    * 20X -> 0.0005 mm
+    * 10X -> 0.001 mm
+    * 5X -> 0.002 mm
+    * 1X -> 0.01 mm
+     */
+    float level0spacing = spacing.x();
+    if(!m_vsiTiles.empty()) {
+        // For VSI format we assume that level 0 is 40X for now.
+        // Because we have now spacing information for this format.
+        level0spacing = 0.00025;
+        reportWarning() << "Assuming the image pyramid is 40X since not able to extract pixel spacing information from the Olympus CellSense format atm." << reportEnd();
     }
+    float targetSpacing = 0.00025f * (40.0f / (float)magnification);
+    float minDistance = std::numeric_limits<float>::max();
+    int levelResult = 0;
+    for(int i = 0; i < m_levels.size(); ++i) {
+        auto scale = getLevelScale(i);
+        float levelSpacing = scale*level0spacing;
+        float distance = std::fabs(levelSpacing - targetSpacing);
+        if(distance < minDistance) {
+            minDistance = distance;
+            levelResult = i;
+        }
+    }
+
+    // How much slack to allow?
+    if(minDistance > targetSpacing*slackPercentage)
+        throw Exception("No level close enough to magnification of " + std::to_string(magnification) + " was found in the image pyramid.");
+
+    return levelResult;
+}
+
+bool ImagePyramid::isOMETIFF() const {
+    return m_isOMETIFF;
 }
 
 }

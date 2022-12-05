@@ -20,18 +20,19 @@ class FAST_EXPORT RandomAccessStreamer : public Streamer {
 		virtual void setFramerate(int framerate);
 		virtual int getNrOfFrames() = 0;
 		virtual void stop() override;
-		void setLooping(bool loop);
+		virtual void setLooping(bool loop);
+		virtual bool getLooping() const;
 		void frameAdded() override;
+        virtual void waitForUnpause();
 	protected:
-		virtual void waitForUnpause();
-		int m_framerate;
+		int m_framerate = -1;
 		bool m_pause = false;
 		bool m_pauseAfterOneFrame = false;
 		std::mutex m_playbackMutex;
 		std::mutex m_pauseMutex;
 		std::condition_variable m_pauseCV;
-		int m_currentFrameIndex;
-		bool m_loop;
+		int m_currentFrameIndex = 0;
+		bool m_loop = false;
 };
 
 }

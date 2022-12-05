@@ -32,11 +32,12 @@ int RandomAccessStreamer::getCurrentFrameIndexAndUpdate() {
 	auto index = m_currentFrameIndex;
 	m_currentFrameIndex += 1;
 	if(m_currentFrameIndex >= getNrOfFrames()) {
-		if(m_loop) {
-			m_currentFrameIndex = 0;
-		} else {
-			std::lock_guard<std::mutex> lock(m_stopMutex);
-			m_stop = true;
+        m_currentFrameIndex = 0;
+		if(!m_loop) {
+			{
+			    std::lock_guard<std::mutex> lock(m_pauseMutex);
+			    m_pause = true;
+			}
 		}
 	}
 
@@ -48,9 +49,8 @@ int RandomAccessStreamer::getFramerate() const {
 }
 
 void RandomAccessStreamer::setFramerate(int framerate) {
-	if(framerate <= 0)
-		throw Exception("Framerate must be larger than 0");
 	m_framerate = framerate;
+    setModified(true);
 }
 
 void RandomAccessStreamer::stop() {
@@ -94,6 +94,10 @@ void RandomAccessStreamer::frameAdded() {
 			m_pause = true;
 		}
 	}
+}
+
+bool RandomAccessStreamer::getLooping() const {
+    return m_loop;
 }
 
 }

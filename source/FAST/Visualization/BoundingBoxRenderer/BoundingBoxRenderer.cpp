@@ -25,30 +25,32 @@ BoundingBoxRenderer::~BoundingBoxRenderer() {
 }
 
 void BoundingBoxRenderer::setBorderSize(float borderSize) {
-    if(borderSize <= 0.0f)
-        throw Exception("Border size to bounding box renderer must be > 0");
     m_borderSize = borderSize;
 }
 
-void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
-
+void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                               int viewWidth,
+                               int viewHeight) {
     if(!mode2D)
         throw Exception("BoundingBoxRenderer has only been implemented for 2D so far");
 
+    auto dataToRender = getDataToRender();
     createColorUniformBufferObject();
 
 	glDisable(GL_DEPTH_TEST);
     activateShader();
-    setShaderUniform("borderSize", m_borderSize);
     setShaderUniform("perspectiveTransform", perspectiveMatrix);
     setShaderUniform("viewTransform", viewingMatrix);
     auto colorsIndex = glGetUniformBlockIndex(getShaderProgram(), "Colors");   
 	glUniformBlockBinding(getShaderProgram(), colorsIndex, 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_colorsUBO); 
     // For all input data
-    for(auto it : mDataToRender) {
+    for(auto it : dataToRender) {
         auto boxes = std::static_pointer_cast<BoundingBoxSet>(it.second);
+        float borderSize = m_borderSize;
+        if(borderSize <= 0)
+            borderSize = boxes->getMinimumSize()*0.1f;
+        setShaderUniform("borderSize", borderSize);
         if(boxes->getNrOfLines() == 0)
             continue;
 
@@ -104,6 +106,16 @@ void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatri
 
 float BoundingBoxRenderer::getBorderSize() const {
     return m_borderSize;
+}
+
+std::string BoundingBoxRenderer::attributesToString() {
+    std::stringstream ss;
+    ss << "Attribute disabled " << (isDisabled() ? "true" : "false") << "\n";
+    return ss.str();
+}
+
+void BoundingBoxRenderer::loadAttributes() {
+    Renderer::loadAttributes();
 }
 
 }

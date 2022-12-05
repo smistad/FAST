@@ -2,16 +2,23 @@
 #include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Data/Tensor.hpp>
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
+#include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include "PatchStitcher.hpp"
 
 namespace fast {
 
-PatchStitcher::PatchStitcher() {
+PatchStitcher::PatchStitcher(bool patchesAreCropped) {
     createInputPort<DataObject>(0); // Can be Image, Batch or Tensor
     createOutputPort<DataObject>(0); // Can be Image or Tensor
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImagePatch/PatchStitcher2D.cl", "2D");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImagePatch/PatchStitcher3D.cl", "3D");
+    createBooleanAttribute("patches-are-cropped", "Patches are cropped", "Indicate whether incomming patches are already cropped or not.", false);
+    setPatchesAreCropped(patchesAreCropped);
+}
+
+void PatchStitcher::loadAttributes() {
+    setPatchesAreCropped(getBooleanAttribute("patches-are-cropped"));
 }
 
 void PatchStitcher::execute() {
@@ -55,8 +62,8 @@ void PatchStitcher::processTensor(std::shared_ptr<Tensor> patch) {
     const int fullWidth = std::stoi(patch->getFrameData("original-width"));
     const int fullHeight = std::stoi(patch->getFrameData("original-height"));
 
-    const int patchWidth = std::stoi(patch->getFrameData("patch-width"));
-    const int patchHeight = std::stoi(patch->getFrameData("patch-height"));
+    const int patchWidth = std::stoi(patch->getFrameData("patch-width"))- 2*std::stoi(patch->getFrameData("patch-overlap-x"));;
+    const int patchHeight = std::stoi(patch->getFrameData("patch-height")) - 2*std::stoi(patch->getFrameData("patch-overlap-y"));;
 
     const float patchSpacingX = std::stof(patch->getFrameData("patch-spacing-x"));
     const float patchSpacingY = std::stof(patch->getFrameData("patch-spacing-y"));
@@ -72,10 +79,11 @@ void PatchStitcher::processTensor(std::shared_ptr<Tensor> patch) {
         TensorShape fullShape({(int)std::ceil((float)fullHeight / patchHeight), (int)std::ceil((float)fullWidth / patchWidth), channels});
         auto initializedData = std::make_unique<float[]>(fullShape.getTotalSize());
         m_outputTensor = Tensor::create(std::move(initializedData), fullShape);
+        // TODO Use Y-X or X-Y ordering on spacing here? Changes will influence other objects
         m_outputTensor->setSpacing(Vector3f(patchHeight*patchSpacingY, patchWidth*patchSpacingX, 1.0f));
     }
     reportInfo() << "Stitching " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y") << reportEnd();
-    reportInfo() << "Stitching data" << patch->getFrameData("patch-spacing-x") << " " << patch->getFrameData("patch-spacing-y") << reportEnd();
+    reportInfo() << "Stitching data with spacing " << patch->getFrameData("patch-spacing-x") << " " << patch->getFrameData("patch-spacing-y") << reportEnd();
 
     const int startX = std::stoi(patch->getFrameData("patchid-x"));
     const int startY = std::stoi(patch->getFrameData("patchid-y"));
@@ -86,9 +94,8 @@ void PatchStitcher::processTensor(std::shared_ptr<Tensor> patch) {
     auto outputTensorData = outputAccess->getData<3>();
 
     for(int i = 0; i < channels; ++i) {
-        outputTensorData(startY, startX, i) = tensorData(i); // TODO fix
+        outputTensorData(startY, startX, i) = tensorData(i);
     }
-    //outputTensorData(startY, startX, 1) = 1.0f; // TODO remove
 }
 
 void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
@@ -161,6 +168,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         const int patchOverlapX = std::stoi(patch->getFrameData("patch-overlap-x"));
         const int patchOverlapY = std::stoi(patch->getFrameData("patch-overlap-y"));
         // Calculate offset. If this calculation is incorrect. Update in ImagePyramidPatchExporter as well.
+        // Position of where to insert the (cropped) patch
         const int startX = std::stoi(patch->getFrameData("patchid-x")) * (std::stoi(patch->getFrameData("patch-width")) - patchOverlapX*2); // TODO + overlap to compensate for start offset
         const int startY = std::stoi(patch->getFrameData("patchid-y")) * (std::stoi(patch->getFrameData("patch-height")) - patchOverlapY*2);
         if(m_outputImage) {
@@ -192,11 +200,19 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 return;
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
             mRuntimeManager->startRegularTimer("copy patch");
-            if(patchOverlapX > 0 || patchOverlapY > 0) {
-                patch = patch->crop(
-                        Vector2i(patchOverlapX, patchOverlapY),
-                        Vector2i(patch->getWidth() - patchOverlapX * 2, patch->getHeight() - patchOverlapY * 2)
-                );
+            if(!m_patchesAreCropped) {
+                if(patchOverlapX > 0 || patchOverlapY > 0) {
+                    patch = patch->crop(
+                            Vector2i(patchOverlapX, patchOverlapY),
+                            Vector2i(patch->getWidth() - patchOverlapX * 2, patch->getHeight() - patchOverlapY * 2)
+                            );
+                }
+            }
+            if(patch->getWidth() != m_outputImagePyramid->getLevelTileWidth(0) || patch->getHeight() != m_outputImagePyramid->getLevelTileHeight(0)) {
+                // The patch size has been modified due to TIFF limitation of multiplum of 16
+                int diffX = patch->getWidth() - m_outputImagePyramid->getLevelTileWidth(0);
+                int diffY = patch->getHeight() - m_outputImagePyramid->getLevelTileHeight(0);
+                patch = patch->crop(Vector2i(diffX/2, diffY/2), Vector2i(patch->getWidth()-diffX, patch->getHeight()-diffY));
             }
             outputAccess->setPatch(0, startX, startY, patch);
             mRuntimeManager->stopRegularTimer("copy patch");
@@ -270,6 +286,15 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
 
 
     }
+}
+
+void PatchStitcher::setPatchesAreCropped(bool cropped) {
+    m_patchesAreCropped = cropped;
+    setModified(true);
+}
+
+bool PatchStitcher::getPatchesAreCropped() const {
+    return m_patchesAreCropped;
 }
 
 

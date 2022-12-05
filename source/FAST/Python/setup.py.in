@@ -97,6 +97,7 @@ if is_windows:
             'bin/runPipeline.exe',
             'bin/systemCheck.exe',
             'bin/plugins.xml',
+            'bin/cache.json',
             'bin/fast_configuration.txt',
             'README.md',
             'pipelines/**/*',
@@ -111,6 +112,7 @@ elif is_apple:
     link_args = ['-bundle', '-Wl,-rpath,@loader_path/../lib', '-framework', 'OpenCL', '-framework', 'OpenGL']
     package_data = {'': [
             'lib/plugins.xml',
+            'lib/cache.json',
             'bin/UFFviewer',
             'bin/runPipeline',
             'bin/systemCheck',
@@ -130,11 +132,15 @@ elif is_apple:
                 # OpenVINO
                 'libInferenceEngineTensorFlow.dylib',
                 'libInferenceEngineOpenVINO.dylib',
-                'libinference_engine_ir_reader.dylib',
-                'libinference_engine_ir__v7_reader.dylib',
-                'libinference_engine_onnx_reader.dylib',
-                'libMKLDNNPlugin.dylib',
-                'libmyriadPlugin.dylib',
+                'libinference_engine_ir_reader.so',
+                'libinference_engine_ir_v7_reader.so',
+                'libinference_engine_onnx_reader.so',
+                'libonnx_importer.dylib',
+                'libonnx_proto.dylib',
+                'libprotobuf.3.7.1.0.dylib',
+                'libngraph.dylib',
+                'libMKLDNNPlugin.so',
+                'libmyriadPlugin.so',
             ])
           }
     additional_libraries = []
@@ -146,6 +152,7 @@ else:
     link_args = ['-Wl,-rpath=$ORIGIN/../lib']
     package_data = {'': [
             'lib/plugins.xml',
+            'lib/cache.json',
             'bin/UFFviewer',
             'bin/runPipeline',
             'bin/systemCheck',

@@ -240,6 +240,28 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
         className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6, TYPE7 NAME7 VAL7, TYPE8 NAME8 VAL8, TYPE9 NAME9 VAL9, TYPE10 NAME10 VAL10, TYPE11 NAME11 VAL11);                 \
     public:
 
+
+#define FAST_CONSTRUCTOR37(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3, TYPE4, NAME4, VAL4, TYPE5, NAME5, VAL5, TYPE6, NAME6, VAL6, TYPE7, NAME7, VAL7, TYPE8, NAME8, VAL8, TYPE9, NAME9, VAL9, TYPE10, NAME10, VAL10, TYPE11, NAME11, VAL11, TYPE12, NAME12, VAL12) \
+    static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6, TYPE7 NAME7 VAL7, TYPE8 NAME8 VAL8, TYPE9 NAME9 VAL9, TYPE10 NAME10 VAL10, TYPE11 NAME11 VAL11, TYPE12 NAME12 VAL12) {\
+        std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3), std::move(NAME4), std::move(NAME5), std::move(NAME6), std::move(NAME7), std::move(NAME8), std::move(NAME9), std::move(NAME10), std::move(NAME11), std::move(NAME12)));   \
+        ptr->setPtr(ptr);\
+        return ptr;\
+    };                                             \
+    protected:\
+        className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6, TYPE7 NAME7 VAL7, TYPE8 NAME8 VAL8, TYPE9 NAME9 VAL9, TYPE10 NAME10 VAL10, TYPE11 NAME11 VAL11, TYPE12 NAME12 VAL12);                 \
+    public:
+
+
+#define FAST_CONSTRUCTOR40(className, TYPE1, NAME1, VAL1, TYPE2, NAME2, VAL2, TYPE3, NAME3, VAL3, TYPE4, NAME4, VAL4, TYPE5, NAME5, VAL5, TYPE6, NAME6, VAL6, TYPE7, NAME7, VAL7, TYPE8, NAME8, VAL8, TYPE9, NAME9, VAL9, TYPE10, NAME10, VAL10, TYPE11, NAME11, VAL11, TYPE12, NAME12, VAL12, TYPE13, NAME13, VAL13) \
+    static std::shared_ptr<className> create(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6, TYPE7 NAME7 VAL7, TYPE8 NAME8 VAL8, TYPE9 NAME9 VAL9, TYPE10 NAME10 VAL10, TYPE11 NAME11 VAL11, TYPE12 NAME12 VAL12, TYPE13 NAME13 VAL13) {\
+        std::shared_ptr<className> ptr(new className(std::move(NAME1), std::move(NAME2), std::move(NAME3), std::move(NAME4), std::move(NAME5), std::move(NAME6), std::move(NAME7), std::move(NAME8), std::move(NAME9), std::move(NAME10), std::move(NAME11), std::move(NAME12), std::move(NAME13)));   \
+        ptr->setPtr(ptr);\
+        return ptr;\
+    };                                             \
+    protected:\
+        className(TYPE1 NAME1 VAL1, TYPE2 NAME2 VAL2, TYPE3 NAME3 VAL3, TYPE4 NAME4 VAL4, TYPE5 NAME5 VAL5, TYPE6 NAME6 VAL6, TYPE7 NAME7 VAL7, TYPE8 NAME8 VAL8, TYPE9 NAME9 VAL9, TYPE10 NAME10 VAL10, TYPE11 NAME11 VAL11, TYPE12 NAME12 VAL12, TYPE13 NAME13 VAL13);                 \
+    public:
+
 /** @namespace fast
  *  @brief FAST namespace - All FAST code lives in this namespace.
  */

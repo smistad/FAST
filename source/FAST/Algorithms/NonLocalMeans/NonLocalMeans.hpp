@@ -27,8 +27,9 @@ class FAST_EXPORT NonLocalMeans : public ProcessObject {
                          int, filterSize, = 3,
                          int, searchSize, = 11,
                          float, smoothingAmount, = 0.15f,
-                         int, multiScaleIterations, = 3,
-                         float, inputMultiplicationWeight, = 0.5f)
+                         float, inputMultiplicationWeight, = 0.8f,
+                         int, multiScaleIterations, = 3
+        );
         void setSmoothingAmount(float parameterH);
         void setPreProcess(bool preProcess);
         void setMultiscaleIterations(int iterations);

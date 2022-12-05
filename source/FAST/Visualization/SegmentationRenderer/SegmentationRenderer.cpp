@@ -4,19 +4,24 @@
 #include "SegmentationRenderer.hpp"
 #include <QGLContext>
 #include <FAST/Visualization/View.hpp>
-#if defined(__APPLE__) || defined(__MACOSX)
+#ifdef WIN32
+#elif defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
+#else
+#include <GL/glx.h>
 #endif
 
 namespace fast {
 
 void SegmentationRenderer::loadAttributes() {
+    Renderer::loadAttributes();
     auto borderOpacity = getFloatAttribute("border-opacity");
     if(borderOpacity >= 0.0) {
         setOpacity(getFloatAttribute("opacity"), borderOpacity);
     } else {
         setOpacity(getFloatAttribute("opacity"));
     }
+    setBorderRadius(getIntegerAttribute("border-radius"));
     auto colors = getStringListAttribute("label-colors");
     for(int i = 0; i < colors.size(); i += 2) {
         int label = std::stoi(colors[i]);
@@ -33,6 +38,7 @@ SegmentationRenderer::SegmentationRenderer(std::map<uint, Color> labelColors, fl
 
     createFloatAttribute("opacity", "Segmentation Opacity", "", m_opacity);
     createFloatAttribute("border-opacity", "Segmentation border opacity", "", -1);
+    createIntegerAttribute("border-radius", "Segmentation border radius", "", mBorderRadius);
     createStringAttribute("label-colors", "Label color", "Label color set as <label1> <color1> <label2> <color2>", "");
 
     createShaderProgram({
@@ -46,31 +52,33 @@ SegmentationRenderer::SegmentationRenderer(std::map<uint, Color> labelColors, fl
     mIsModified = false;
 }
 
-void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
-    if(mDataToRender.empty())
+void
+SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                           int viewWidth,
+                           int viewHeight) {
+    auto dataToRender = getDataToRender();
+    if(dataToRender.empty())
         return;
     createColorUniformBufferObject();
 #ifdef FAST_MODULE_WSI
-    if(std::dynamic_pointer_cast<ImagePyramid>(mDataToRender.begin()->second)) {
-        drawPyramid(perspectiveMatrix, viewingMatrix, zNear, zFar);
+    if(std::dynamic_pointer_cast<ImagePyramid>(dataToRender.begin()->second)) {
+        drawPyramid(dataToRender.begin()->second, perspectiveMatrix, viewingMatrix, zNear, zFar);
     } else {
-        drawNormal(perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
+        drawNormal(dataToRender, perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
     }
 #else
-    drawNormal(perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
+    drawNormal(dataToRender, perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
 #endif
 }
-void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void SegmentationRenderer::drawNormal(std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-
 
     // TODO move to func?
     auto colorsIndex = glGetUniformBlockIndex(getShaderProgram("unsigned-integer"), "Colors");
     glUniformBlockBinding(getShaderProgram("unsigned-integer"), colorsIndex, 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_colorsUBO);
 
-    for(auto it : mDataToRender) {
+    for(auto it : dataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
 
@@ -111,12 +119,12 @@ void SegmentationRenderer::drawNormal(Matrix4f perspectiveMatrix, Matrix4f viewi
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawTextures(perspectiveMatrix, viewingMatrix, mode2D, false, false);
+    drawTextures(dataToRender, perspectiveMatrix, viewingMatrix, mode2D, false, false);
     glDisable(GL_BLEND);
 }
 
 
-void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar) {
+void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar) {
 #ifdef FAST_MODULE_WSI
         GLuint filterMethod = GL_NEAREST;
 
@@ -127,7 +135,6 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
 
         if(!m_bufferThread) {
             // Create thread to load patches
-#ifdef WIN32
             // Create a GL context for the thread which is sharing with the context of the view
             auto context = new QGLContext(View::getGLFormat(), m_view);
             context->create(m_view->context());
@@ -139,26 +146,15 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                 throw Exception("The custom Qt GL context is not sharing!");
 
             context->makeCurrent();
+#ifdef WIN32
             auto nativeContextHandle = wglGetCurrentContext();
             context->doneCurrent();
             m_view->context()->makeCurrent();
             auto dc = wglGetCurrentDC();
 
             m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle]() {
-            wglMakeCurrent(dc, nativeContextHandle);
-
+                wglMakeCurrent(dc, nativeContextHandle);
 #elif defined(__APPLE__)
-            // Create a GL context for the thread which is sharing with the context of the view
-            auto context = new QGLContext(View::getGLFormat(), m_view);
-            context->create(m_view->context());
-
-            if(!context->isValid())
-                throw Exception("The custom Qt GL context is invalid!");
-
-            if(!context->isSharing())
-                throw Exception("The custom Qt GL context is not sharing!");
-
-            context->makeCurrent();
             auto nativeContextHandle = CGLGetCurrentContext();
             context->doneCurrent();
             m_view->context()->makeCurrent();
@@ -166,16 +162,14 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
             m_bufferThread = std::make_unique<std::thread>([this, nativeContextHandle]() {
                 CGLSetCurrentContext(nativeContextHandle);
 #else
-            m_bufferThread = std::make_unique<std::thread>([this]() {
-                // Create a GL context for the thread which is sharing with the context of the view
-                auto context = new QGLContext(View::getGLFormat(), m_view);
-                context->create(m_view->context());
-                if(!context->isValid())
-                    throw Exception("The custom Qt GL context is invalid!");
+            auto nativeContextHandle = glXGetCurrentContext();
+            auto drawable = glXGetCurrentDrawable();
+            auto display = glXGetCurrentDisplay();
+            context->doneCurrent();
+            m_view->context()->makeCurrent();
 
-                if(!context->isSharing())
-                    throw Exception("The custom Qt GL context is not sharing!");
-                context->makeCurrent();
+            m_bufferThread = std::make_unique<std::thread>([this, display, drawable, nativeContextHandle]() {
+                glXMakeCurrent(display, drawable, nativeContextHandle);
 #endif
                 OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
@@ -196,15 +190,6 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                         m_tileQueue.pop_back();
                     }
 
-                    // Check if tile has been processed before
-                    bool dirtyPatch = false;
-                    if(mPyramidTexturesToRender.count(tileID) > 0) {
-                        if(m_input->getDirtyPatches().count(tileID) == 0) {
-                            //continue; // This would mean only dirty patches are created..
-                        } else {
-                            dirtyPatch = true;
-                        }
-                    }
                     // Create texture
                     auto parts = split(tileID, "_");
                     if(parts.size() != 3)
@@ -218,9 +203,9 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                     Image::pointer patch;
                     {
                         auto access = m_input->getAccess(ACCESS_READ);
-                        // TODO This is causing issues, why?
                         //if(!access->isPatchInitialized(level, tile_x*m_input->getLevelTileWidth(level), tile_y*m_input->getLevelTileHeight(level)))
                         //    continue;
+                        m_input->clearDirtyPatches({tileID}); // Have to clear this here to avoid clearing a dirty patch prematurely
                         patch = access->getPatchAsImage(level, tile_x, tile_y);
                     }
                     auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, true);
@@ -250,10 +235,6 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                         mPyramidTexturesToRender[tileID] = textureID;
                     }
 
-                    if(dirtyPatch) {
-                        m_input->clearDirtyPatches({tileID});
-                    }
-
                     m_memoryUsage += compressedImageSize;
                     //std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
                 }
@@ -266,14 +247,17 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
         float height = std::fabs(top_right.y() - bottom_left.y());
         //std::cout << "Viewing coordinates:" << bottom_left.transpose() << " " <<  top_right.transpose() << std::endl;
         //std::cout << "Current Size:" << width << " " <<  height << std::endl;
-        int offset_x = bottom_left.x();
-        int offset_y = top_right.y();
-        //std::cout << "Offset x:" << offset_x << std::endl;
-        //std::cout << "Offset y:" << offset_y << std::endl;
-
-        m_input = std::dynamic_pointer_cast<ImagePyramid>(mDataToRender[0]);
+        float offset_x = bottom_left.x();
+        float offset_y = top_right.y();
+        m_input = std::dynamic_pointer_cast<ImagePyramid>(dataToRender);
         if(m_input == nullptr)
             throw Exception("The SegmentationPyramidRenderer requires an ImagePyramid data object");
+
+        Vector3f spacing = m_input->getSpacing();
+        offset_x *= 1.0f/spacing.x();
+        offset_y *= 1.0f/spacing.y();
+        width *= 1.0f/spacing.x();
+        height *= 1.0f/spacing.y();
         int fullWidth = m_input->getFullWidth();
         int fullHeight = m_input->getFullHeight();
         //std::cout << "scaling: " << fullWidth/width << std::endl;
@@ -307,7 +291,6 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
             m_tileQueue.clear();
         }
         m_currentLevel = levelToUse;
-
         /*
         bool queueChanged = false;
         {
@@ -324,7 +307,6 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
             m_queueEmptyCondition.notify_one();
             */
 
-        Vector3f spacing = m_input->getSpacing();
         activateShader();
         setShaderUniform("opacity", m_opacity);
         setShaderUniform("borderOpacity", mBorderOpacity);
@@ -334,7 +316,7 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
         // If rendering is in 2D mode we skip any transformations
         Affine3f transform = Affine3f::Identity();
 
-        //transform->getTransform().scale(m_input->getSpacing());
+        transform.scale(spacing);
 
         uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
@@ -373,10 +355,10 @@ void SegmentationRenderer::drawPyramid(Matrix4f perspectiveMatrix, Matrix4f view
                 if(tile_y == mTilesY - 1)
                     tile_height = levelHeight - tile_offset_y;
 
-                tile_width *= spacing.x();
-                tile_height *= spacing.y();
-                tile_offset_x *= spacing.x();
-                tile_offset_y *= spacing.y();
+                //tile_width *= spacing.x();
+                //tile_height *= spacing.y();
+                //tile_offset_x *= spacing.x();
+                //tile_offset_y *= spacing.y();
 
                 // Only process visible patches
                 // Fully contained and partly
@@ -496,7 +478,6 @@ void SegmentationRenderer::setBorderRadius(int radius) {
         throw Exception("Border radius must be >= 0");
 
     mBorderRadius = radius;
-    deleteAllTextures();
 }
 
 void SegmentationRenderer::setOpacity(float opacity, float borderOpacity) {
@@ -534,13 +515,50 @@ void SegmentationRenderer::deleteAllTextures() {
 }
 
 SegmentationRenderer::~SegmentationRenderer() {
-    m_stop = true;
+    reportInfo() << "Destroying SegmentationRenderer in THREAD: " << std::this_thread::get_id() << reportEnd();
+    {
+        std::unique_lock<std::mutex> lock(m_tileQueueMutex);
+        m_stop = true;
+    }
     m_queueEmptyCondition.notify_one();
     if(m_bufferThread) {
         m_bufferThread->join();
         reportInfo() << "Buffer thread in SegmentationRenderer stopped" << reportEnd();
     }
     deleteAllTextures();
+    reportInfo() << "Textures cleared" << reportEnd();
+}
+
+std::string SegmentationRenderer::attributesToString() {
+    std::stringstream ss;
+    ss << "Attribute disabled " << (isDisabled() ? "true" : "false") << "\n";
+    ss << "Attribute opacity " << m_opacity << "\n";
+    ss << "Attribute border-opacity " << mBorderOpacity << "\n";
+    ss << "Attribute border-radius " << mBorderRadius << "\n";
+    ss << "Attribute label-colors";
+    for(auto color : m_labelColors) {
+        ss << " \"" << color.first << "\" \"" << color.second.getName() << "\"";
+    }
+    ss << "\n";
+    return ss.str();
+}
+
+void SegmentationRenderer::setBorderOpacity(float opacity) {
+    if(opacity < 0 || opacity > 1)
+        throw Exception("SegmentationRenderer opacity has to be >= 0 and <= 1");
+    mBorderOpacity = opacity;
+}
+
+float SegmentationRenderer::getOpacity() const {
+    return m_opacity;
+}
+
+float SegmentationRenderer::getBorderOpacity() const {
+    return mBorderOpacity;
+}
+
+int SegmentationRenderer::getBorderRadius() const {
+    return mBorderRadius;
 }
 
 }

@@ -3,7 +3,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment ve
 project(FAST)
 
 set(VERSION_MAJOR 4)
-set(VERSION_MINOR 3)
+set(VERSION_MINOR 5)
 set(VERSION_PATCH 0)
 set(VERSION_SO 4)   # SO version, should be incremented by 1 every time the existing API changes
 set(FAST_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
@@ -28,6 +28,11 @@ option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_MODULE_TensorFlow "Build TensorFlow inference engine" OFF)
 option(FAST_MODULE_TensorRT "Build NVIDIA TensorRT inference engine" OFF)
 option(FAST_MODULE_OpenVINO "Build Intel OpenVINO inference engine" ON)
+if(WIN32)
+    option(FAST_MODULE_ONNXRuntime "Build Microsoft ONNX runtime inference engine" ON)
+else()
+    set(FAST_MODULE_ONNXRuntime OFF)
+endif()
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_MODULE_RealSense "Build real sense module" ON)
@@ -39,6 +44,7 @@ option(FAST_MODULE_Plotting "Build plotting module (JKQTPlotter)" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 option(FAST_BUILD_QT5 "Download and build Qt 5. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 option(FAST_BUILD_ALL_DEPENDENCIES "Download and build all dependencies" OFF)
+option(FAST_SIGN_CODE "Whether to sign binaries" OFF)
 set(FAST_Python_Version "" CACHE STRING "Python version to use for building pyFAST")
 
 # Base URL for downloading prebuilt dependencies

@@ -52,7 +52,56 @@ struct ETS_header {
 
 void WholeSlideImageImporter::readVSI(std::string filename) {
     std::string originalFilename = getFileName(filename);
-    std::string etsFilename = getDirName(filename) + "_" + originalFilename.substr(0, originalFilename.size()-4) + "_/stack1/frame_t.ets";
+    std::string directoryName = getDirName(filename) + "_" + originalFilename.substr(0, originalFilename.size()-4) + "_/";
+    std::string etsFilename = "";
+    for(auto folder : getDirectoryList(directoryName, false, true)) {
+        if(fileExists(join(directoryName, folder, "frame_t.ets"))) {
+            if(!etsFilename.empty()) {
+                // If multiple files: use the one which have correct compression.. (normal lossy JPEG)
+                auto stream = new std::ifstream(join(directoryName, folder, "frame_t.ets"), std::ifstream::binary | std::ifstream::in);
+                if(!stream->is_open())
+                    continue;
+                SIS_header sis_header;
+
+                READ(sis_header.magic)
+                READ(sis_header.headerSize)
+                READ(sis_header.version)
+                READ(sis_header.Ndim)
+                READ(sis_header.etsoffset)
+                READ(sis_header.etsnbytes)
+                READ(sis_header.dummy0)
+                READ(sis_header.offsettiles)
+                READ(sis_header.ntiles)
+                READ(sis_header.dummy1)
+                READ(sis_header.dummy2)
+                READ(sis_header.dummy3)
+                READ(sis_header.dummy4)
+                READ(sis_header.dummy5)
+
+                ETS_header ets_header;
+                READ(ets_header.magic)
+                READ(ets_header.version)
+                READ(ets_header.pixelType)
+                READ(ets_header.sizeC)
+                READ(ets_header.colorspace)
+                READ(ets_header.compression)
+                READ(ets_header.quality)
+                READ(ets_header.dimx)
+                READ(ets_header.dimy)
+                READ(ets_header.dimz)
+
+                if(ets_header.compression == 2 || ets_header.compression == 0)
+                    etsFilename = join(directoryName, folder, "frame_t.ets");
+                stream->close();
+                delete stream;
+            } else {
+                etsFilename = join(directoryName, folder, "frame_t.ets");
+            }
+        }
+    }
+    if(etsFilename.empty())
+        throw Exception("Could not find frame_t.ets file under " + directoryName + " while importing " + filename);
+
     std::ifstream* stream = new std::ifstream(etsFilename.c_str(), std::ifstream::binary | std::ifstream::in);
     if(!stream->is_open())
         throw Exception("Unable to open file!");
@@ -85,8 +134,16 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
     READ(ets_header.dimy)
     READ(ets_header.dimz)
 
-    if(ets_header.compression != 2)
-        throw Exception("Importing Olympus VSI with another compression format than JPEG is not supported yet. Compress format: " + std::to_string(ets_header.compression));
+    if(ets_header.compression != 2 && ets_header.compression != 0)
+        throw Exception("Importing Olympus VSI with another compression format than RAW or JPEG is not supported yet. Compress format: " + std::to_string(ets_header.compression));
+    ImageCompression compressionFormat;
+    if(ets_header.compression == 2) {
+        compressionFormat = ImageCompression::JPEG;
+        reportInfo() << "VSI was compressed with JPEG" << reportEnd();
+    } else if(ets_header.compression == 0) {
+        compressionFormat = ImageCompression::RAW;
+        reportInfo() << "VSI was not compressed (RAW)" << reportEnd();
+    }
 
     stream->seekg(sis_header.offsettiles);
     std::vector<vsi_tile_header> tiles;
@@ -111,26 +168,31 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
         maxLevel = std::max(maxLevel, (int)tile_header.level);
     }
 
+    // This format does necessarily have the same aspect ratio for each level. And downsampling factor varies from level to level
+    // Thus we create a fake pyramid which is half downsampled for each level from level 0. Any tiles or data requested outside should be blank.
+    // The format does not seem to store tiles which are just glass at a high-resolution.
     std::vector<ImagePyramidLevel> levelList;
-    int fullWidth = (maxTiles[maxLevel].first+1)*ets_header.dimx*std::pow(2, maxLevel);
-    int fullHeight = (maxTiles[maxLevel].second+1)*ets_header.dimy*std::pow(2, maxLevel);
+    int fullWidth = (maxTiles[0].first+1)*ets_header.dimx;
+    int fullHeight = (maxTiles[0].second+1)*ets_header.dimy;
     for(int level = 0; level <= maxLevel; ++level) {
         ImagePyramidLevel levelData;
         levelData.tileWidth = ets_header.dimx;
         levelData.tileHeight = ets_header.dimy;
-        levelData.width = (maxTiles[level].first+1)*ets_header.dimx;
-        levelData.height = (maxTiles[level].second+1)*ets_header.dimy;
+        //levelData.width = (maxTiles[level].first+1)*ets_header.dimx;
+        //levelData.height = (maxTiles[level].second+1)*ets_header.dimy;
+        levelData.width = fullWidth;
+        levelData.height = fullHeight;
+        reportInfo() << "VSI level: " << level << ": " << levelData.width << " " << levelData.height << reportEnd();
+        levelData.tilesX = std::ceil((float)fullWidth / ets_header.dimx);
+        levelData.tilesY = std::ceil((float)fullHeight / ets_header.dimy);
         fullWidth /= 2;
         fullHeight /= 2;
-        reportInfo() << "VSI level: " << level << ": " << levelData.width << " " << levelData.height << reportEnd();
-        levelData.tilesX = maxTiles[level].first+1;
-        levelData.tilesY = maxTiles[level].second+1;
-        if(levelData.width < 2048 || levelData.height < 2048) // Skip very small levels
+        if(levelData.width < 1024 || levelData.height < 1024) // Skip very small levels
             break;
         levelList.push_back(levelData);
     }
 
-    auto image = ImagePyramid::create(stream, tiles, levelList);
+    auto image = ImagePyramid::create(stream, tiles, levelList, compressionFormat);
 
     addOutputData(0, image);
 }
@@ -145,7 +207,7 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
     // Read metainformation
     auto names = openslide_get_property_names(file);
     int i = 0;
-    std::unordered_map<std::string, std::string> metadata;
+    std::map<std::string, std::string> metadata;
     while(names[i] != nullptr) {
         std::string name = names[i];
         std::string value = openslide_get_property_value(file, names[i]);
@@ -188,26 +250,31 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
 
     try {
         // Try to get spacing in microns from openslide, and convert to millimeters.
+        reportInfo() << "Trying to get spacing as openslide.mpp: " << reportEnd();
         float spacingX = std::stof(image->getMetadata("openslide.mpp-x")) / 1000.0f;
         float spacingY = std::stof(image->getMetadata("openslide.mpp-y")) / 1000.0f;
         image->setSpacing(Vector3f(spacingX, spacingY, 1.0f));
     } catch(Exception &e) {
         // Try TIFF resolution instead
+        // Definition of TIFF resolution is: The number of pixels per ResolutionUnit (https://www.awaresystems.be/imaging/tiff/tifftags/xresolution.html)
+        reportInfo() << "Trying to get spacing from tiff.X/YResolution: " << reportEnd();
         float resX = std::stof(image->getMetadata("tiff.XResolution")); // Nr of pixels per unit
         float resY = std::stof(image->getMetadata("tiff.YResolution"));
         std::string unit = image->getMetadata("tiff.ResolutionUnit");
-        // Convert to millimeters
+        // Convert to # pixels per millimeters
         if(unit == "centimeter") {
-            resX *= 10.0f;
-            resY *= 10.0f;
+            resX /= 10.0f;
+            resY /= 10.0f;
         } else if(unit == "inch") {
-            resX *= 25.5f;
-            resY *= 25.5f;
+            resX /= 25.5f;
+            resY /= 25.5f;
         } else {
             // No unit specified, use as is..
         }
+        // Convert #pixels per millimeters to spacing of each pixel
         image->setSpacing(Vector3f(1.0f / resX, 1.0f / resY, 1.0f));
     }
+    reportInfo() << "Spacing set to " << image->getSpacing().transpose() << " millimeters" << reportEnd();
 
     addOutputData(0, image);
 }

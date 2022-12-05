@@ -5,24 +5,21 @@
 namespace fast {
 
 void VectorFieldRenderer::execute() {
-    std::unique_lock<std::mutex> lock(mMutex);
-    if(m_disabled)
-        return;
-    if(mStop) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        if(m_disabled)
+            return;
+        if(mStop) {
+            return;
+        }
     }
 
-    // Check if current images has not been rendered, if not wait
-    while(!mHasRendered && m_synchedRendering) {
-        mRenderedCV.wait(lock);
-    }
     std::unordered_map<uint, SpatialDataObject::pointer> vectorImages;
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         if(hasNewInputData(inputNr)) {
             SpatialDataObject::pointer input = getInputData<SpatialDataObject>(inputNr);
 
-            mHasRendered = false;
             vectorImages[inputNr] = input;
         }
     }
@@ -53,7 +50,13 @@ void VectorFieldRenderer::execute() {
             }
         }
         auto mesh = Mesh::create(vertices, lines);
-        mDataToRender[inputNr] = mesh;
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            if(mHasRendered) {
+                mHasRendered = false;
+                mDataToRender[inputNr] = mesh;
+            }
+        }
     }
 }
 

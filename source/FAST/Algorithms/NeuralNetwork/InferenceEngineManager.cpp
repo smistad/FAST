@@ -1,5 +1,6 @@
 #include <FAST/Config.hpp>
 #include <FAST/Utility.hpp>
+#include <FAST/DeviceManager.hpp>
 #ifdef WIN32
 // For TensorFlow AVX2 check - Taken from https://docs.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=msvc-160
 #include <vector>
@@ -252,9 +253,10 @@ void InferenceEngineManager::loadAll() {
 #endif
     Reporter::info() << "Loading inference engines in folder " << Config::getLibraryPath() << Reporter::end();
     for(auto&& item : getDirectoryList(Config::getLibraryPath(), true, false)) {
+        auto path = join(Config::getLibraryPath(), item);
         if(item.substr(0, prefix.size()) == prefix) {
             std::string name = item.substr(prefix.size(), item.rfind('.') - prefix.size());
-            Reporter::info() << "Loading inference engine " << name << " from shared library " << item << Reporter::end();
+            Reporter::info() << "Loading inference engine " << name << " from shared library " << path << Reporter::end();
 #ifdef WIN32
             if(name == "TensorFlow") {
                 if(!InstructionSet::AVX2()) {
@@ -263,7 +265,9 @@ void InferenceEngineManager::loadAll() {
                 }
             }
             SetErrorMode(SEM_FAILCRITICALERRORS); // TODO To avoid diaglog box, when not able to load a DLL
-            auto handle = LoadLibrary(item.c_str());
+            SetDllDirectory(Config::getLibraryPath().c_str());
+            auto handle = LoadLibrary(path.c_str());
+            SetDllDirectory("");
             if(!handle) {
                 Reporter::warning() << "Failed to load plugin because " << GetLastErrorAsString() << Reporter::end();
                 continue;
@@ -281,7 +285,7 @@ void InferenceEngineManager::loadAll() {
                     continue;
                 }
             }
-            auto handle = dlopen(item.c_str(), RTLD_LAZY);
+            auto handle = dlopen(path.c_str(), RTLD_LAZY);
             if(!handle) {
                 Reporter::warning() << "Failed to load plugin because " << dlerror() << Reporter::end();
                 continue;
@@ -318,6 +322,14 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
     if(isEngineAvailable("TensorRT"))
         return loadEngine("TensorRT");
 
+#ifdef WIN32
+    // If on windows, and main device is not an intel device, use ONNXRuntime.
+    if(std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultDevice())->getPlatformVendor() != PLATFORM_VENDOR_INTEL) {
+        if(isEngineAvailable("ONNXRuntime"))
+            return loadEngine("ONNXRuntime");
+    }
+#endif
+
     return loadEngine(getEngineList().front());
 }
 
@@ -338,6 +350,14 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
 
     if(isEngineAvailable("TensorRT") && loadEngine("TensorRT")->isModelFormatSupported(modelFormat))
         return loadEngine("TensorRT");
+
+#ifdef WIN32
+    // If on windows, and main device is not an intel device, use ONNXRuntime.
+    if(std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultDevice())->getPlatformVendor() != PLATFORM_VENDOR_INTEL) {
+        if(isEngineAvailable("ONNXRuntime") && loadEngine("ONNXRuntime")->isModelFormatSupported(modelFormat))
+            return loadEngine("ONNXRuntime");
+    }
+#endif
 
     for(auto name : getEngineList()) {
         auto engine = loadEngine(name);

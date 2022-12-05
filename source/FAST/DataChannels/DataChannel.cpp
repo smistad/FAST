@@ -1,10 +1,11 @@
 #include "DataChannel.hpp"
 
 namespace fast {
-void DataChannel::stop() {
+void DataChannel::stop(std::string errorMessage) {
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_stop = true;
+        m_errorMessage = errorMessage;
     }
 }
 

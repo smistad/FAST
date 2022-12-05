@@ -34,7 +34,8 @@ class FAST_EXPORT TissueSegmentation : public ProcessObject {
         FAST_CONSTRUCTOR(TissueSegmentation,
                          int, threshold, = 85,
                          int, dilationSize, = 9,
-                         int, erosionSize, = 9
+                         int, erosionSize, = 9,
+                         bool, filterZeros, = true
          )
         /**
          * Set single threshold for pixel filtering based on the distance a RGB-triplet is from the color white. Default is 85
@@ -63,6 +64,14 @@ class FAST_EXPORT TissueSegmentation : public ProcessObject {
          * Get current erosion value
          */
         int getErode() const;
+        /**
+         * Set status for filtering zero uints.
+         */
+        void setFilterZeros(bool value);
+        /**
+         * Get current status whether to include zero uints into background class or not. Default is true
+         */
+        bool getFilterZeros() const;
         void loadAttributes() override;
     protected:
         void execute() override;
@@ -70,6 +79,7 @@ class FAST_EXPORT TissueSegmentation : public ProcessObject {
         int m_dilate = 9;
         int m_erode = 9;
         int m_thresh = 85;
+        bool m_filterZeros = true;
 };
 
 }

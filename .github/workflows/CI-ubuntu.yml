@@ -14,6 +14,7 @@ env:
 
 jobs:
   build:
+    name: Build
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
@@ -32,12 +33,13 @@ jobs:
         sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
         sudo apt install python3 libpython3-dev python3-pip python3-setuptools
         sudo pip3 install --upgrade pip
-        pip3 install numpy==1.19.5 pylddwrap==1.2.0 twine
+        pip3 install numpy==1.19.5 pylddwrap==1.2.0 twine wheel==0.37.1
         
     - name: Install CUDA and TensorRT
       run: |
         wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
         sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
         sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
         sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
         sudo apt-get update
@@ -136,9 +138,72 @@ jobs:
         pip3 install pyfast==${GITHUB_REF#refs/tags/v}
       shell: bash
 
+  test-cpp:
+    name: Run C++ Tests
+    needs: [build]
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: 'Archive package (tar.xz)'
+          path: ${{github.workspace}}/download/
+      - name: Extract artifact
+        run: |
+          mkdir -p ${{github.workspace}}/download/
+          cd ${{github.workspace}}/download/
+          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+      - name: Download test data
+        run: |
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
+          ./downloadTestData
+      - name: Run tests
+        env:
+          DISPLAY: ':1'
+        run: |
+          cd ${{github.workspace}}
+          cd fast_*
+          cd fast/bin/
+          ./testFAST ~[visual]
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -Rf ${{github.workspace}}
+          rm -Rf $HOME/FAST/kernel_binaries/*
 
-#    - name: System Check
-#      run: ${{github.workspace}}/build/systemCheck
+  test-python:
+    name: Run Python Tests
+    needs: [build]
+    runs-on: [self-hosted, linux]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: 'Python wheel'
+          path: ${{github.workspace}}/download/
+      - name: Create environment and install python packages
+        run: |
+          cd ${{github.workspace}}
+          mkdir tmp
+          cd tmp
+          virtualenv -p python3 venv
+          source venv/bin/activate
+          pip3 install pytest
+          pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+      - name: Run tests
+        env:
+          DISPLAY: ':1'
+        run: |
+          cd ${{github.workspace}}/tmp/
+          source venv/bin/activate
+          pytest ../source/FAST/
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -Rf ${{github.workspace}}/download/
+          rm -Rf ${{github.workspace}}/tmp/
+          rm -Rf $HOME/FAST/kernel_binaries/*
 
-#    - name: Test
-#      run: ${{github.workspace}}/build/bin/testFAST [processobject]

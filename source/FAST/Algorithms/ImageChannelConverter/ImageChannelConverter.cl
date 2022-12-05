@@ -6,13 +6,14 @@ __kernel void channelConvert2D(
             __read_only image2d_t input,
             __write_only image2d_t output,
             __private uchar4 removeChannelV,
-            __private char reverse
+            __private char reverse,
+            __private int nrOfChannels
     ) {
 
     int offset = 0;
     int sign = 1;
     if(reverse == 1) {
-        offset = 3 - (removeChannelV.x + removeChannelV.y + removeChannelV.z + removeChannelV.w);
+        offset = (nrOfChannels-1) - (removeChannelV.x + removeChannelV.y + removeChannelV.z + removeChannelV.w);
         sign = -1;
     }
     uchar* removeChannel = (uchar*)&removeChannelV;
@@ -63,13 +64,14 @@ __kernel void channelConvert3D(
             __read_only image3d_t input,
             __write_only image3d_t output,
             __private uchar4 removeChannelV,
-            __private char reverse
+            __private char reverse,
+            __private int nrOfChannels
     ) {
 
     int offset = 0;
     int sign = 1;
     if(reverse == 1) {
-        offset = 3 - (removeChannelV.x + removeChannelV.y + removeChannelV.z + removeChannelV.w);
+        offset = (nrOfChannels-1) - (removeChannelV.x + removeChannelV.y + removeChannelV.z + removeChannelV.w);
         sign = -1;
     }
 

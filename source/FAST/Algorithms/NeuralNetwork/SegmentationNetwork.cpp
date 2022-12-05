@@ -12,6 +12,7 @@ void SegmentationNetwork::loadAttributes() {
 		setSegmentationOutput();
 	}
 	setThreshold(getFloatAttribute("threshold"));
+	setChannelsToIgnore(getIntegerListAttribute("ignore-channels"));
 	NeuralNetwork::loadAttributes();
 }
 
@@ -51,6 +52,7 @@ SegmentationNetwork::SegmentationNetwork() {
     mHeatmapOutput = false;
     createBooleanAttribute("heatmap-output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
     createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", 0.5f);
+    createIntegerAttribute("ignore-channels", "Ignore Channels", "List of channels to ignore", -1);
 }
 
 void SegmentationNetwork::setHeatmapOutput() {
@@ -68,7 +70,7 @@ void SegmentationNetwork::setResizeBackToOriginalSize(bool resize) {
 }
 
 void SegmentationNetwork::execute() {
-    run();
+    runNeuralNetwork();
 
     auto data = m_processedOutputData[0];
     if(mHeatmapOutput) {
@@ -99,6 +101,10 @@ float SegmentationNetwork::getThreshold() const {
 
 void SegmentationNetwork::setBackgroundClass(bool hasBackgroundClass) {
     m_tensorToSegmentation->setBackgroundClass(hasBackgroundClass);
+}
+
+void SegmentationNetwork::setChannelsToIgnore(std::vector<int> channels) {
+    m_tensorToSegmentation->setChannelsToIgnore(channels);
 }
 
 }

@@ -42,3 +42,35 @@ __kernel void scanConvert(
         write_imageui(output, pos, img_gray_scale);
     }
 }
+
+__kernel void scanConvertGrayscale(
+        __read_only image2d_t input,
+        __write_only image2d_t output,
+        __private float newXSpacing,
+        __private float newYSpacing,
+        __private float startX,
+        __private float startY,
+        __private float startDepth,
+        __private float startAzimuth,
+        __private float depthSpacing,
+        __private float azimuthSpacing,
+        __private int isPolar
+    ) {
+    int2 pos = {get_global_id(0), get_global_id(1)};
+    float x = pos.x*newXSpacing + startX;
+    float y = pos.y*newYSpacing + startY;
+    // Cart 2 polar
+    float r = isPolar == 1 ? sqrt(x*x + y*y) : y;
+    float th = isPolar == 1 ? atan2(x, y) : x;
+
+    // Normalize
+    r = ((r - startDepth)/depthSpacing)/get_image_height(input);
+    th = ((th - startAzimuth)/azimuthSpacing)/get_image_width(input);
+
+    if(r < 0.0f || r > 1.0f || th < 0.0f || th > 1.0f) {
+        // Out of bounds
+        write_imageui(output, pos, 0);
+    } else {
+        write_imageui(output, pos, read_imageui(input, sampler, (float2)(th, r)));
+    }
+}

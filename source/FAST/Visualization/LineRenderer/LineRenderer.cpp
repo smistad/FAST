@@ -2,6 +2,7 @@
 #include "FAST/Data/Access/MeshAccess.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/SceneGraph.hpp"
+#include <FAST/Visualization/View.hpp>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #else
@@ -10,14 +11,17 @@
 
 namespace fast {
 
-void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
+void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                        int viewWidth,
+                        int viewHeight) {
 
-    activateShader();
-    setShaderUniform("perspectiveTransform", perspectiveMatrix);
-    setShaderUniform("viewTransform", viewingMatrix);
+    std::string shaderName = mode2D ? "2D" : "3D";
+    activateShader(shaderName);
+    setShaderUniform("perspectiveTransform", perspectiveMatrix, shaderName);
+    setShaderUniform("viewTransform", viewingMatrix, shaderName);
     // For all input data
-    for(auto it : mDataToRender) {
+    auto dataToRender = getDataToRender();
+    for(auto it : dataToRender) {
         Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
 
         // Delete old VAO
@@ -35,13 +39,12 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         if(!mode2D) {
             transform = SceneGraph::getEigenTransformFromData(it.second);
         }
-        setShaderUniform("transform", transform);
+        setShaderUniform("transform", transform, shaderName);
 
-        // TODO glLineWidth does not work with GL 3.3 CORE. Have to implemented in shader instead
-        if(mInputWidths.count(it.first) > 0) {
-            glLineWidth(mInputWidths[it.first]);
-        } else {
-            glLineWidth(mDefaultLineWidth);
+        if(mode2D) {
+            setShaderUniform("thickness", mDefaultLineWidth, shaderName);
+            //setShaderUniform("viewportWidth", viewWidth, shaderName);
+            //setShaderUniform("viewportHeight", viewHeight, shaderName);
         }
         bool useGlobalColor = false;
         Color color = Color::Green();
@@ -79,8 +82,8 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         } else {
             useGlobalColor = true;
         }
-        setShaderUniform("useGlobalColor", useGlobalColor);
-        setShaderUniform("globalColor", color.asVector());
+        setShaderUniform("useGlobalColor", useGlobalColor, shaderName);
+        setShaderUniform("globalColor", color.asVector(), shaderName);
 
         if(access->hasEBO()) {
             GLuint* EBO = access->getLineEBO();
@@ -96,19 +99,98 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
             glEnable(GL_DEPTH_TEST);
     }
     deactivateShader();
+    if(mode2D) {
+        glEnable(GL_POINT_SPRITE); // Circles created in fragment shader will not work without this
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        // Draw joints as points
+        shaderName = "2Djoints";
+        activateShader(shaderName);
+        setShaderUniform("perspectiveTransform", perspectiveMatrix, shaderName);
+        setShaderUniform("viewTransform", viewingMatrix, shaderName);
+        setShaderUniform("viewportWidth", viewWidth, shaderName);
+        auto dataToRender = getDataToRender();
+        for(auto it : dataToRender) {
+            // Delete old VAO
+            if(mVAO.count(it.first) > 0)
+                glDeleteVertexArrays(1, &mVAO[it.first]);
+            // Create VAO
+            uint VAO_ID;
+            glGenVertexArrays(1, &VAO_ID);
+            mVAO[it.first] = VAO_ID;
+            glBindVertexArray(VAO_ID);
+
+            Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
+            float pointSize = mDefaultLineWidth;
+            auto access = points->getVertexBufferObjectAccess(ACCESS_READ);
+            bool useGlobalColor = false;
+            Color color = Color::Green();
+            if(mInputColors.count(it.first) > 0) {
+                color = mInputColors[it.first];
+                useGlobalColor = true;
+            } else if(!mDefaultColor.isNull()) {
+                color = mDefaultColor;
+                useGlobalColor = true;
+            } else if(!access->hasColorVBO()) {
+                color = Color::Green();
+                useGlobalColor = true;
+            }
+            Affine3f transform = Affine3f::Identity();
+            // If rendering is in 2D mode we skip any transformations
+            if(!mode2D) {
+                transform = SceneGraph::getEigenTransformFromData(it.second);
+            }
+            setShaderUniform("transform", transform, shaderName);
+            setShaderUniform("pointSize", pointSize, shaderName);
+
+            GLuint* coordinateVBO = access->getCoordinateVBO();
+
+            // Coordinates buffer
+            glBindBuffer(GL_ARRAY_BUFFER, *coordinateVBO);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+
+            // Color buffer
+            if(access->hasColorVBO() && !useGlobalColor) {
+                GLuint *colorVBO = access->getColorVBO();
+                glBindBuffer(GL_ARRAY_BUFFER, *colorVBO);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+                glEnableVertexAttribArray(1);
+            } else {
+                useGlobalColor = true;
+            }
+            setShaderUniform("useGlobalColor", useGlobalColor, shaderName);
+            setShaderUniform("globalColor", color.asVector(), shaderName);
+
+            glDrawArrays(GL_POINTS, 0, points->getNrOfVertices());
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+        }
+        deactivateShader();
+    }
     glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the text renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
-LineRenderer::LineRenderer(Color color, bool drawOnTop) {
+LineRenderer::LineRenderer(Color color, float lineWidth, bool drawOnTop) {
     createInputPort<Mesh>(0, false);
-    mDefaultLineWidth = 2;
+    mDefaultLineWidth = lineWidth;
     mDefaultColor = color;
     mDefaultDrawOnTop = drawOnTop;
     mDefaultColorSet = true;
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.vert",
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.frag",
-    });
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.geom",
+    }, "2D");
+    createShaderProgram({
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRendererJoints.vert",
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRendererJoints.frag",
+        }, "2Djoints");
+    // Drop geom shader for 3D, not supporting thick lines here yet.
+    createShaderProgram({
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer3D.vert",
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer3D.frag",
+        }, "3D");
 }
 
 uint LineRenderer::addInputConnection(DataChannel::pointer port) {

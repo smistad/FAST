@@ -8,8 +8,11 @@
 #include <FAST/Visualization/Window.hpp>
 #include <FAST/Visualization/View.hpp>
 #include <FAST/Algorithms/ImageSharpening/ImageSharpening.hpp>
-#if defined(__APPLE__) || defined(__MACOSX)
+#ifdef WIN32
+#elif defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
+#else
+#include <GL/glx.h>
 #endif
 
 namespace fast {
@@ -33,15 +36,22 @@ void ImagePyramidRenderer::clearPyramid() {
         glDeleteTextures(1, &texture.second);
     }
     mTexturesToRender.clear();
-    mDataToRender.clear();
+    clearDataToRender();
 }
 
 ImagePyramidRenderer::~ImagePyramidRenderer() {
-    m_stop = true;
+    reportInfo() << "Destroying ImagePyramidRenderer in THREAD: " << std::this_thread::get_id() << reportEnd();
+    {
+        std::unique_lock<std::mutex> lock(m_tileQueueMutex);
+        m_stop = true;
+    }
     m_queueEmptyCondition.notify_one();
-    m_bufferThread->join();
-    reportInfo() << "Buffer thread in ImagePyramidRenderer stopped" << reportEnd();
-    clearPyramid();
+    if(m_bufferThread) {
+        m_bufferThread->join();
+        reportInfo() << "Buffer thread in ImagePyramidRenderer stopped" << reportEnd();
+    }
+    clearPyramid(); // Free memory
+    reportInfo() << "Pyramid cleared" << reportEnd();
 }
 
 ImagePyramidRenderer::ImagePyramidRenderer(bool sharpening) : Renderer() {
@@ -66,13 +76,16 @@ void ImagePyramidRenderer::loadAttributes() {
     setSharpening(getBooleanAttribute("sharpening"));
 }
 
-void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    if(mDataToRender.empty())
+void
+ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                           int viewWidth,
+                           int viewHeight) {
+    auto dataToRender = getDataToRender();
+    if(dataToRender.empty())
         return;
 
     if(!m_bufferThread) {
         // Create thread to load patches
-#ifdef WIN32
         // Create a GL context for the thread which is sharing with the context of the view
         auto context = new QGLContext(View::getGLFormat(), m_view);
         context->create(m_view->context());
@@ -84,6 +97,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
             throw Exception("The custom Qt GL context is not sharing!");
 
         context->makeCurrent();
+#ifdef WIN32
         auto nativeContextHandle = wglGetCurrentContext();
         context->doneCurrent();
         m_view->context()->makeCurrent();
@@ -92,17 +106,6 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle]() {
             wglMakeCurrent(dc, nativeContextHandle);
 #elif defined(__APPLE__)
-        // Create a GL context for the thread which is sharing with the context of the view
-        auto context = new QGLContext(View::getGLFormat(), m_view);
-        context->create(m_view->context());
-
-        if(!context->isValid())
-            throw Exception("The custom Qt GL context is invalid!");
-
-        if(!context->isSharing())
-            throw Exception("The custom Qt GL context is not sharing!");
-
-        context->makeCurrent();
         auto nativeContextHandle = CGLGetCurrentContext();
         context->doneCurrent();
         m_view->context()->makeCurrent();
@@ -110,16 +113,14 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         m_bufferThread = std::make_unique<std::thread>([this, nativeContextHandle]() {
             CGLSetCurrentContext(nativeContextHandle);
 #else
-        m_bufferThread = std::make_unique<std::thread>([this]() {
-            // Create a GL context for the thread which is sharing with the context of the view
-            auto context = new QGLContext(View::getGLFormat(), m_view);
-            context->create(m_view->context());
-            if(!context->isValid())
-                throw Exception("The custom Qt GL context is invalid!");
+        auto nativeContextHandle = glXGetCurrentContext();
+        auto drawable = glXGetCurrentDrawable();
+        auto display = glXGetCurrentDisplay();
+        context->doneCurrent();
+        m_view->context()->makeCurrent();
 
-            if(!context->isSharing())
-                throw Exception("The custom Qt GL context is not sharing!");
-            context->makeCurrent();
+        m_bufferThread = std::make_unique<std::thread>([this, display, drawable, nativeContextHandle]() {
+            glXMakeCurrent(display, drawable, nativeContextHandle);
 #endif
             uint64_t memoryUsage = 0;
             while(true) {
@@ -156,7 +157,15 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 Image::pointer tile;
                 {
                     auto access = m_input->getAccess(ACCESS_READ);
-                    tile = access->getPatchAsImage(level, tile_x, tile_y, false);
+                    try {
+                        tile = access->getPatchAsImage(level, tile_x, tile_y, false);
+                    } catch(Exception &e) {
+                        //reportWarning() << "Error occured while trying to open patch " << tile_x << " " << tile_y << reportEnd();
+                        // Tile was missing, just skip it..
+                        std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+                        mTexturesToRender[tileID] = 0;
+                        continue;
+                    }
                     if(m_postProcessingSharpening) {
                         m_sharpening->setInputData(tile);
                         tile = m_sharpening->updateAndGetOutputData<Image>();
@@ -205,7 +214,6 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
             }
         });
     }
-    std::lock_guard<std::mutex> lock(mMutex);
 
     Vector4f bottom_left = (perspectiveMatrix*viewingMatrix).inverse()*Vector4f(-1,-1,0,1);
     Vector4f top_right = (perspectiveMatrix*viewingMatrix).inverse()*Vector4f(1,1,0,1);
@@ -213,12 +221,21 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     float height = std::fabs(top_right.y() - bottom_left.y());
     //std::cout << "Viewing coordinates:" << bottom_left.transpose() << " " <<  top_right.transpose() << std::endl;
     //std::cout << "Current Size:" << width << " " <<  height << std::endl;
-    int offset_x = bottom_left.x();
-    int offset_y = top_right.y();
+    float offset_x = bottom_left.x();
+    float offset_y = top_right.y();
     //std::cout << "Offset x:" << offset_x << std::endl;
     //std::cout << "Offset y:" << offset_y << std::endl;
 
-    m_input = std::static_pointer_cast<ImagePyramid>(mDataToRender[0]);
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        m_input = std::static_pointer_cast<ImagePyramid>(dataToRender[0]);
+    }
+
+    Vector3f spacing = m_input->getSpacing();
+    offset_x *= 1.0f/spacing.x();
+    offset_y *= 1.0f/spacing.y();
+    width *= 1.0f/spacing.x();
+    height *= 1.0f/spacing.y();
     // Determine which level to use
     // If nr of pixels in viewport is larger than the current width and height of view, than increase the magnification
     int fullWidth = m_input->getFullWidth();
@@ -251,13 +268,13 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     }
     m_currentLevel = levelToUse;
 
-    const Vector3f spacing = m_input->getSpacing();
     activateShader();
 
     // This is the actual rendering
     Affine3f transform = Affine3f::Identity();
 
-    //transform.scale(it.second->getSpacing());
+    transform.scale(spacing);
+
 
     uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
@@ -342,6 +359,9 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 } else {
                     textureID = mTexturesToRender[tileString];
                 }
+
+                if(textureID == 0) // This tile was missing or something, just skip it
+                    continue;
 
                 if(mVAO.count(tileString) == 0) {
                     // Create VAO

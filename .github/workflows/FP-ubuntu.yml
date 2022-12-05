@@ -1,0 +1,120 @@
+name: FastPathology Ubuntu 18.04
+
+on:
+  workflow_dispatch:
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    name: Build
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        sudo snap install cmake --classic # Use snap to get more recent version of cmake on Ubuntu 18.04
+        sudo apt install g++ patchelf
+        sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+        sudo apt install libopenslide-dev # Needed for WSI module
+
+    - name: Install CUDA and TensorRT
+      run: |
+        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+        sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
+        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+        sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
+        sudo apt-get update
+        sudo apt-get install -y cuda-toolkit-11-0 libcudnn8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+        cmake -B ${{github.workspace}}/build \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
+            -DFAST_MODULE_OpenVINO=ON \
+            -DFAST_MODULE_Dicom=OFF \
+            -DFAST_MODULE_WholeSlideImaging=ON \
+            -DFAST_MODULE_OpenIGTLink=OFF \
+            -DFAST_MODULE_Clarius=OFF \
+            -DFAST_MODULE_TensorFlow=ON \
+            -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda/" \
+            -DFAST_MODULE_TensorRT=ON \
+            -DFAST_MODULE_HDF5=ON \
+            -DFAST_MODULE_Plotting=ON \
+            -DFAST_MODULE_Python=OFF \
+            -DFAST_MODULE_RealSense=OFF \
+            -DFAST_BUILD_TESTS=ON \
+            -DFAST_BUILD_EXAMPLES=OFF
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
+
+    - name: Package
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+        mv ${{github.workspace}}/build/fast_*.tar.xz ${{github.workspace}}/build/fast_ubuntu18.04.tar.xz
+
+    - name: Upload archive package
+      uses: actions/upload-artifact@v2
+      with:
+        name: Archive package (tar.xz)
+        path: ${{github.workspace}}/build/fast_ubuntu18.04.tar.xz
+        if-no-files-found: error
+
+    - name: Upload package to external repo release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_name: AICAN-Research/FAST-Pathology-dependencies
+        repo_token: ${{ secrets.FAST_PATHOLOGY_PUSH_TOKEN }}
+        file: ${{github.workspace}}/build/fast_ubuntu18.04.tar.xz
+        asset_name: fast_ubuntu18.04.tar.xz
+        file_glob: true
+        tag: v1.0.0
+        overwrite: true
+
+  test-cpp:
+    name: Run C++ Tests
+    needs: [build]
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: 'Archive package (tar.xz)'
+          path: ${{github.workspace}}/download/
+      - name: Extract artifact
+        run: |
+          mkdir -p ${{github.workspace}}/download/
+          cd ${{github.workspace}}/download/
+          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+      - name: Download test data
+        run: |
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
+          ./downloadTestData
+      - name: Run tests
+        env:
+          DISPLAY: ':1'
+        run: |
+          cd ${{github.workspace}}
+          cd fast_*
+          cd fast/bin/
+          ./testFAST ~[visual]
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -Rf ${{github.workspace}}
+          rm -Rf $HOME/FAST/kernel_binaries/*

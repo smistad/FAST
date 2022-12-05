@@ -93,6 +93,11 @@ class FAST_EXPORT SegmentationNetwork : public NeuralNetwork {
         void setBackgroundClass(bool hasBackgroundClass);
         void loadAttributes();
         void setResizeBackToOriginalSize(bool resize);
+        /**
+         * @brief Specify list of output channels to ignore
+         * @param channels
+         */
+        void setChannelsToIgnore(std::vector<int> channels);
     private:
         SegmentationNetwork();
         void execute();

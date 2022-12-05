@@ -56,7 +56,13 @@ ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale
     m_handle = LoadLibrary("cast.dll");
     if(!m_handle) {
         std::string msg = GetLastErrorAsString();
-        throw Exception("Failed to use load Clarius Cast library. Note that this only supports Ubuntu 20.04, see https://github.com/clariusdev/cast. Error message: " + msg);
+        throw Exception("Failed to use load Clarius Cast library. Error message: " + msg);
+    }
+#elif defined(__APPLE__)
+    m_handle = dlopen("libcast.dylib", RTLD_LAZY);
+    if(!m_handle) {
+        std::string msg = dlerror();
+        throw Exception("Failed to use load Clarius Cast library. Error message: " + msg);
     }
 #else
     m_handle = dlopen("libcast.so", RTLD_LAZY);
@@ -105,19 +111,19 @@ void ClariusStreamer::execute() {
         auto init = (int (*)(int argc,
                 char** argv,
                 const char* dir,
-                ClariusNewProcessedImageFn newProcessedImage,
-                ClariusNewRawImageFn newRawImage,
-                ClariusNewSpectralImageFn newSpectralImage,
-                ClariusFreezeFn freeze,
-                ClariusButtonFn btn,
-                ClariusProgressFn progress,
-                ClariusErrorFn err,
+                CusNewProcessedImageFn newProcessedImage,
+                CusNewRawImageFn newRawImage,
+                CusNewSpectralImageFn newSpectralImage,
+                CusFreezeFn freeze,
+                CusButtonFn btn,
+                CusProgressFn progress,
+                CusErrorFn err,
                 int width,
                 int height
                 ))getFunc("cusCastInit");
         int success = init(argc, nullptr, keydir.c_str(),
             // new image callback
-            [](const void* img, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+            [](const void* img, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos)
             {
                 self->newImageFn(img, nfo, npos, pos);
             },
@@ -137,8 +143,8 @@ void ClariusStreamer::execute() {
             throw Exception("Unable to initialize clarius cast");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
-        auto connect = (int (*)(const char* ipAddress, unsigned int port, ClariusReturnFn fn))getFunc("cusCastConnect");
-        success = connect(mIPAddress.c_str(), mPort, nullptr);
+        auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusReturnFn fn))getFunc("cusCastConnect");
+        success = connect(mIPAddress.c_str(), mPort, "research", nullptr);
         if(success < 0)
             throw Exception("Unable to connect to clarius scanner");
         reportInfo() << "Clarius streamer connected." << reportEnd();
@@ -152,8 +158,8 @@ void ClariusStreamer::execute() {
     }
 }
 
-void ClariusStreamer::newImageFn(const void *img, const _ClariusProcessedImageInfo *nfo, int npos,
-                                 const _ClariusPosInfo *pos) {
+void ClariusStreamer::newImageFn(const void *img, const _CusProcessedImageInfo *nfo, int npos,
+                                 const _CusPosInfo *pos) {
     if(nfo->bitsPerPixel != 32)
         throw Exception("Expected 32 bits per pixel (4 channels with 8 bits) each in ClariusStreamer, but got " + std::to_string(nfo->bitsPerPixel));
 
@@ -195,7 +201,7 @@ ClariusStreamer::~ClariusStreamer() {
 }
 
 void ClariusStreamer::stop() {
-    auto disconnect = (int (*)(ClariusReturnFn))getFunc("cusCastDisconnect");
+    auto disconnect = (int (*)(CusReturnFn))getFunc("cusCastDisconnect");
     int success = disconnect(nullptr);
     if(success < 0)
         throw Exception("Unable to disconnect from clarius scanner");
@@ -218,32 +224,32 @@ void ClariusStreamer::setConnectionPort(int port) {
 }
 
 void ClariusStreamer::toggleFreeze() {
-    auto userFunc = (int (*)(int cmd, double val, ClariusReturnFn fn))getFunc("cusCastUserFunction");
-    if(userFunc(USER_FN_TOGGLE_FREEZE, 0.0, nullptr) < 0)
+    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    if(userFunc(Freeze, 0.0, nullptr) < 0)
         reportError() << "Error toggling freeze" << reportEnd();
 }
 
 void ClariusStreamer::increaseDepth() {
-    auto userFunc = (int (*)(int cmd, double val, ClariusReturnFn fn))getFunc("cusCastUserFunction");
-	if(userFunc(USER_FN_DEPTH_INC, 0.0, nullptr) < 0)
+    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+	if(userFunc(DepthInc, 0.0, nullptr) < 0)
         reportError() << "Error increasing depth" << reportEnd();
 }
 
 void ClariusStreamer::decreaseDepth() {
-    auto userFunc = (int (*)(int cmd, double val, ClariusReturnFn fn))getFunc("cusCastUserFunction");
-	if(userFunc(USER_FN_DEPTH_DEC, 0.0, nullptr) < 0)
+    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+	if(userFunc(DepthDec, 0.0, nullptr) < 0)
         reportError() << "Error decreasing depth" << reportEnd();
 }
 
 void ClariusStreamer::setDepth(float depth) {
-    auto userFunc = (int (*)(int cmd, double val, ClariusReturnFn fn))getFunc("cusCastUserFunction");
-	if(userFunc(USER_FN_SET_DEPTH, depth, nullptr) < 0)
+    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+	if(userFunc(SetDepth, depth, nullptr) < 0)
         reportError() << "Error setting depth to " << depth << reportEnd();
 }
 
 void ClariusStreamer::setGain(float gain) {
-    auto userFunc = (int (*)(int cmd, double val, ClariusReturnFn fn))getFunc("cusCastUserFunction");
-	if(userFunc(USER_FN_SET_GAIN, gain, nullptr) < 0)
+    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+	if(userFunc(SetGain, gain, nullptr) < 0)
         reportError() << "Error setting gain to " << gain << reportEnd();
 }
 

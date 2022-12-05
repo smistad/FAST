@@ -48,11 +48,11 @@ InferenceEngine::NetworkNode InferenceEngine::getOutputNode(std::string name) co
     return mOutputNodes.at(name);
 }
 
-std::unordered_map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getOutputNodes() const {
+std::map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getOutputNodes() const {
     return mOutputNodes;
 }
 
-std::unordered_map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getInputNodes() const {
+std::map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getInputNodes() const {
     return mInputNodes;
 }
 
@@ -136,6 +136,9 @@ bool InferenceEngine::isModelFormatSupported(ModelFormat format) {
     return pos != formats.end();
 }
 
+void InferenceEngine::setImageOrdering(ImageOrdering ordering) {
+    m_imageOrdering = ordering;
+}
 
 std::string getModelFormatName(ModelFormat format) {
     std::map<ModelFormat, std::string> map = {

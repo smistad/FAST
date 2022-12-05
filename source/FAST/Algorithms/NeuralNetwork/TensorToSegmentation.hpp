@@ -16,11 +16,13 @@ class FAST_EXPORT TensorToSegmentation : public ProcessObject {
          * @brief Create instance
          * @param threshold The minimum value of the class confidence value to be accepted. Default: 0.5
          * @param hasBackgroundClass Whether the neural network has a channel 0 which represents the "background". Default: true
+         * @param channelsToIgnore List of output channels to ignore
          * @return instance
          */
         FAST_CONSTRUCTOR(TensorToSegmentation,
                          float, threshold, = 0.5f,
-                         bool, hasBackgroundClass, = true
+                         bool, hasBackgroundClass, = true,
+                         std::vector<int>, channelsToIgnore, = std::vector<int>()
         )
         /**
          * Threshold to accept a channel X as being class X.
@@ -36,11 +38,17 @@ class FAST_EXPORT TensorToSegmentation : public ProcessObject {
          * @param hasBackgroundClass
          */
         void setBackgroundClass(bool hasBackgroundClass);
+        /**
+         * @brief Specify list of output channels to ignore
+         * @param channels
+         */
+        void setChannelsToIgnore(std::vector<int> channels);
         void loadAttributes();
     protected:
         void execute() override;
         float m_threshold = 0.5f;
         bool m_hasBackgroundClass = true;
+        std::set<int> m_channelsToIgnore;
 };
 
 }

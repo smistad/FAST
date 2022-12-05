@@ -3,6 +3,7 @@
 #include "NvUffParser.h"
 #include "NvOnnxParser.h"
 #include "NvUtils.h"
+#include "NvInferRuntimeCommon.h"
 #include <cuda_runtime_api.h>
 #include <FAST/Utility.hpp>
 #include <fstream>
@@ -91,8 +92,8 @@ void TensorRTEngine::run() {
 
     // Get batch size
     const int batchSize = mInputNodes.begin()->second.data->getShape()[0];
-    if(batchSize > m_engine->getMaxBatchSize()) {
-        reportWarning() << "Batch is larger than the max batch size given to TensorRT" << reportEnd();
+    if(batchSize > m_maxBatchSize) {
+        reportWarning() << "Batch is larger than the max batch size" << reportEnd();
     }
 
     if(m_cudaBuffers.empty() || m_currentBatchSize != batchSize) {
@@ -134,8 +135,8 @@ void TensorRTEngine::run() {
     }
 
     // Execute network
-    //bool success = m_context->executeV2(buffers.data()); // IMPORTANT: Does not work with uff parser atm
-    bool success = m_context->execute(batchSize, &m_cudaBuffers[0]);
+    bool success = m_context->executeV2(m_cudaBuffers.data()); // IMPORTANT: Does not work with uff parser atm
+    //bool success = m_context->execute(batchSize, &m_cudaBuffers[0]);
     if(!success)
         throw Exception("TensorRT execute inference failed!");
     reportInfo() << "Finished execute TensorRT" << reportEnd();
@@ -184,13 +185,26 @@ void TensorRTEngine::load() {
         std::string modifiedDate = getModifiedDate(filename);
         trim(modifiedDate);
         if(line == modifiedDate) {
-            reportInfo() << "Serialized file " << serializedBinaryFilename << " is up to date." << reportEnd();
+            reportInfo() << "[TensorRT] Serialized file " << serializedBinaryFilename << " is up to date." << reportEnd();
             loadSerializedFile = true;
         } else {
-            reportInfo() << "Serialized file " << serializedBinaryFilename << " was not up to date." << reportEnd();
+            reportInfo() << "[TensorRT] Serialized file " << serializedBinaryFilename << " was not up to date." << reportEnd();
+        }
+
+        if(!file.eof()) { // If serialized file has tensorrt version stored in cache
+            std::getline(file, line);
+            trim(line);
+            std::string TensorRTVersion = std::to_string(getInferLibVersion());
+            if(line == TensorRTVersion) {
+				reportInfo() << "[TensorRT] Serialized file was created with same TensorRT version: " << TensorRTVersion << reportEnd();
+            } else {
+				loadSerializedFile = false;
+				reportWarning() << "[TensorRT] Serialized file was NOT created with same TensorRT version as running. Running version: " << TensorRTVersion << " Created with: " << line << reportEnd();
+            }
         }
     }
     if(!loadSerializedFile) {
+        reportWarning() << "TensorRT will now perform auto-tuning for your model. This may take a while! But this is only done the first time loading a new model." << reportEnd();
         // File is not serialized: Create it
         if(!fileExists(filename))
             throw FileNotFoundException(filename);
@@ -245,7 +259,7 @@ void TensorRTEngine::load() {
             if(!uffparser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
                 throw Exception("Error parsing UFF file " + filename);
 
-            m_dimensionOrdering = ImageOrdering::ChannelFirst;
+            m_imageOrdering = ImageOrdering::ChannelFirst;
             reportInfo() << "Finished parsing UFF file" << reportEnd();
         } else {
             // Assuming file is ONNX format
@@ -275,6 +289,8 @@ void TensorRTEngine::load() {
             throw Exception("Failed to build CUDA engine for TensorRT");
         reportInfo() << "Finished building CUDA engine for TensorRT" << reportEnd();
 
+        // Make sure serialization folder exists
+        createDirectories(Config::getKernelBinaryPath());
         // Serialize the model
         std::unique_ptr<nvinfer1::IHostMemory, decltype(Destroy())> serializedModel(m_engine->serialize(), Destroy());
         // Store model to disk
@@ -282,8 +298,10 @@ void TensorRTEngine::load() {
         ofile.write((char *) serializedModel->data(), serializedModel->size());
         ofile.close();
         std::ofstream ofileCache(serializedCacheFilename.c_str());
-        std::string modifiedDate = getModifiedDate(filename);
+        std::string modifiedDate = getModifiedDate(filename) + "\n";
+        std::string TensorRTVersion = std::to_string(getInferLibVersion()) + "\n";
         ofileCache.write(modifiedDate.c_str(), modifiedDate.size());
+        ofileCache.write(TensorRTVersion.c_str(), TensorRTVersion.size());
         ofileCache.close();
     } else {
         std::unique_ptr<nvinfer1::IRuntime, decltype(Destroy())> runtime(nvinfer1::createInferRuntime(gLogger), Destroy());
@@ -293,6 +311,8 @@ void TensorRTEngine::load() {
         ifile.close();
         // Deserialize the model data
         m_engine = runtime->deserializeCudaEngine(buffer.data(), buffer.size(), nullptr);
+        if(m_engine == nullptr)
+            throw Exception("Unable to deserialize file. You should delete the serialization files " + serializedCacheFilename + " and " + serializedBinaryFilename + " and try again.");
     }
 
     const bool inputsDefined = !mInputNodes.empty();
@@ -308,14 +328,16 @@ void TensorRTEngine::load() {
             if(shape.getDimensions() >= 4) { // If image; 2D or 3D
                 type = NodeType::IMAGE;
                 // Try to determine channel ordering since TensorRT API doesn't seem to have a good way to do this..
-                if (shape[shape.getDimensions() - 1] <= 4) {
-                    m_dimensionOrdering = ImageOrdering::ChannelLast;
-                    reportInfo() << "Guessed image ordering to be channel last as shape was " << shape.toString()
-                                 << reportEnd();
-                } else {
-                    m_dimensionOrdering = ImageOrdering::ChannelFirst;
-                    reportInfo() << "Guessed image ordering to be channel first as shape was " << shape.toString()
-                                 << reportEnd();
+                if(m_engine->bindingIsInput(i)) {
+                    if (shape[shape.getDimensions() - 1] <= 4) {
+                        m_imageOrdering = ImageOrdering::ChannelLast;
+                        reportInfo() << "Guessed image ordering to be channel last as shape was " << shape.toString()
+                        << reportEnd();
+                    } else {
+                        m_imageOrdering = ImageOrdering::ChannelFirst;
+                        reportInfo() << "Guessed image ordering to be channel first as shape was " << shape.toString()
+                        << reportEnd();
+                    }
                 }
             } else {
                 type = NodeType::TENSOR;
@@ -361,7 +383,7 @@ void TensorRTEngine::load() {
 ImageOrdering TensorRTEngine::getPreferredImageOrdering() const {
     if(!isLoaded())
         throw Exception("Network must be loaded before calling getPreferredImageOrdering on TensorRTEngine");
-    return m_dimensionOrdering;
+    return m_imageOrdering;
 }
 
 TensorRTEngine::~TensorRTEngine() {

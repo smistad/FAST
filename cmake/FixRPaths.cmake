@@ -1,5 +1,7 @@
 if(APPLE)
-    file(GLOB installedSOs "$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/lib/*.dylib*")
+    file(GLOB installedSOs
+            "$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/lib/*.dylib*"
+            "$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/lib/*.so*")
     foreach(SO ${installedSOs})
         if(NOT IS_SYMLINK ${SO})
             message("-- Setting runtime path of ${SO}")

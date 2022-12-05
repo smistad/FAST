@@ -3,20 +3,20 @@
 #
 # @m_class{m-block m-warning} @par PySide2 Qt Version
 # @parblock
-#     For this example you <b>must</b> use the same Qt version of PySide2 as used in FAST (5.14.0)
-#     Do this with: <b>pip install pyside2==5.14.0</b>
+#     For this example you <b>must</b> use the same Qt version of PySide2 as used in FAST (5.15.2)
+#     Do this with: <b>pip install pyside2==5.15.2.1</b>
 # @endparblock
 #
 # @image html images/examples/python/pyfast_and_pyside_custom_window.jpg width=350px;
 
+import platform
+if platform.system() != 'Windows':
+    import PySide2.QtSvg # Must import this before fast due to conflicting symbols
+import fast # Must import FAST before rest of pyside2
 from PySide2.QtWidgets import *
 from PySide2.QtOpenGL import QGLWidget
 from PySide2.QtCore import Slot
-import PySide2.QtSvg # Must import this before fast due to conflicting symbols
 from shiboken2 import wrapInstance
-import fast
-import threading
-import sys
 
 #fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
 
@@ -55,7 +55,7 @@ class Window(QWidget):
 
         # Setup a FAST pipeline
         streamer = fast.ImageFileStreamer \
-            .create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
+            .create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd', framerate=25)
 
         renderer = fast.ImageRenderer.create() \
             .connect(streamer)
@@ -67,12 +67,12 @@ class Window(QWidget):
 
 
 if __name__ == '__main__':
-    # Create the Qt Application
-    app = QApplication(sys.argv)
+    # Get the Qt Application
+    app = QApplication.instance()
 
     # Create and show the window
     window = Window()
     window.show()
 
     # Run the main Qt loop
-    sys.exit(app.exec_())
+    app.exec_()

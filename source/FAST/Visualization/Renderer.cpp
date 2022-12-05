@@ -6,6 +6,7 @@
 namespace fast {
 
 Renderer::Renderer() {
+    createBooleanAttribute("disabled", "Disabled", "", false);
 }
 
 
@@ -25,49 +26,42 @@ uint Renderer::addInputConnection(DataChannel::pointer port) {
     return nr;
 }
 
-void Renderer::lock() {
-    mMutex.lock();
-}
-
 void Renderer::setView(View* view) {
     m_view = view;
-}
-
-void Renderer::unlock() {
-    mMutex.unlock();
 }
 
 void Renderer::stopPipeline() {
     mStop = true;
     mHasRendered = true;
-    mRenderedCV.notify_one();
     ProcessObject::stopPipeline();
 }
 
 void Renderer::postDraw() {
+    std::lock_guard<std::mutex> lock(mMutex);
     mHasRendered = true;
-    mRenderedCV.notify_one();
 }
 
 void Renderer::execute() {
-    std::unique_lock<std::mutex> lock(mMutex);
-    if(m_disabled)
-        return;
-    if(mStop) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        if(m_disabled)
+            return;
+        if(mStop) {
+            return;
+        }
     }
 
-    // Check if current images has not been rendered, if not wait
-    while(!mHasRendered && m_synchedRendering) {
-        mRenderedCV.wait(lock);
-    }
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         if(hasNewInputData(inputNr)) {
             SpatialDataObject::pointer input = getInputData<SpatialDataObject>(inputNr);
-
-            mHasRendered = false;
-            mDataToRender[inputNr] = input;
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                if(mHasRendered) {
+                    mHasRendered = false;
+                    mDataToRender[inputNr] = input;
+                }
+            }
         }
     }
 }
@@ -251,20 +245,27 @@ bool Renderer::isDisabled() const {
     return m_disabled;
 }
 
-void Renderer::setSynchronizedRendering(bool synched) {
-    m_synchedRendering = synched;
-}
-
-bool Renderer::getSynchronizedRendering() const {
-    return m_synchedRendering;
-}
-
 bool Renderer::is2DOnly() const {
     return m_2Donly;
 }
 
 bool Renderer::is3DOnly() const {
     return m_3Donly;
+}
+
+std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> Renderer::getDataToRender() {
+    std::lock_guard<std::mutex> lock(mMutex);
+    auto copy = mDataToRender;
+    mHasRendered = true;
+    return copy;
+}
+
+void Renderer::clearDataToRender() {
+    mDataToRender.clear();
+}
+
+void Renderer::loadAttributes() {
+    setDisabled(getBooleanAttribute("disabled"));
 }
 
 }

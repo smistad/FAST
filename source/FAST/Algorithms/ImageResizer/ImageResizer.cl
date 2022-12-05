@@ -1,5 +1,5 @@
-__constant sampler_t samplerLinear = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_NONE | CLK_FILTER_LINEAR;
-__constant sampler_t samplerNearest = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
+__constant sampler_t samplerLinear = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
+__constant sampler_t samplerNearest = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
 void writeToImage(__write_only image2d_t input, int2 position, float4 value) {
     int dataType = get_image_channel_data_type(input);

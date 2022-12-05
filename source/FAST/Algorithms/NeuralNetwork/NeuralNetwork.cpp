@@ -96,6 +96,16 @@ NeuralNetwork::NeuralNetwork(std::string modelFilename, std::vector<NeuralNetwor
         setOutputNode(i, node.name, node.type, node.shape);
     }
     load(modelFilename, customPlugins);
+    auto dimOrder = getStringAttribute("dimension-ordering");
+    if(!dimOrder.empty()) {
+        if(dimOrder == "channel-last") {
+            m_engine->setImageOrdering(ImageOrdering::ChannelLast);
+        } else if(dimOrder == "channel-first") {
+            m_engine->setImageOrdering(ImageOrdering::ChannelFirst);
+        } else {
+            throw Exception("Incorrect dimension-ordering: " + dimOrder + ". Should be channel-last or channel-first");
+        }
+    }
 }
 
 NeuralNetwork::NeuralNetwork(std::string modelFilename, float scaleFactor, float meanIntensity,
@@ -122,6 +132,7 @@ NeuralNetwork::NeuralNetwork() {
 	createStringAttribute("output-nodes", "Output node names, and shapes", "Example: input_node_1:256,256,1  input_node2:1", "");
 	createBooleanAttribute("signed-input-normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
     createBooleanAttribute("preserve-aspect", "Preserve aspect ratio of input images", "", mPreserveAspectRatio);
+    createStringAttribute("dimension-ordering", "Dimension ordering", "Dimension ordering (channel-last or channel-first), will override auto detecting if set.", "");
 
 	m_engine = InferenceEngineManager::loadBestAvailableEngine();
 	reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
@@ -328,7 +339,7 @@ Tensor::pointer NeuralNetwork::standardizeOutputTensorData(Tensor::pointer tenso
     return tensor;
 }
 
-void NeuralNetwork::run() {
+void NeuralNetwork::runNeuralNetwork() {
     // TODO move load and input processing to execute? or a separate function?
     // Check if network is loaded, if not do it
     if(!m_engine->isLoaded())
@@ -346,6 +357,10 @@ void NeuralNetwork::run() {
 	m_engine->run();
     mRuntimeManager->stopRegularTimer("inference");
 
+    processOutputTensors();
+}
+
+void NeuralNetwork::processOutputTensors() {
     mRuntimeManager->startRegularTimer("output_processing");
     // Collect output data of network and add to output ports
     for(const auto &node : m_engine->getOutputNodes()) {
@@ -397,7 +412,7 @@ void NeuralNetwork::run() {
 
 void NeuralNetwork::execute() {
     // Load, prepare input and run network
-    run();
+    runNeuralNetwork();
 
     // Add output data to output ports
     for(const auto &node : m_processedOutputData) {

@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     parser.addOption("disable-compression", "Disable compression when saving as mhd (.zraw)");
     parser.parse(argc, argv);
 
-    auto streamer = ImageFileStreamer::create(parser.get("path"));
+    auto streamer = ImageFileStreamer::create(parser.get("path"), true, true, 40);
 
     auto blockMatching = BlockMatching::create(
             parser.get<int>("block-size"),

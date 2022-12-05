@@ -9,7 +9,18 @@
 
 namespace fast {
 
-ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::ifstream* vsiHandle, std::vector<vsi_tile_header>& vsiTiles, std::shared_ptr<ImagePyramid> imagePyramid, bool write, std::unordered_set<std::string>& initializedPatchList) : m_initializedPatchList(initializedPatchList) {
+ImagePyramidAccess::ImagePyramidAccess(
+        std::vector<ImagePyramidLevel> levels,
+        openslide_t* fileHandle,
+        TIFF* tiffHandle,
+        std::ifstream* vsiHandle,
+        std::vector<vsi_tile_header>& vsiTiles,
+        std::shared_ptr<ImagePyramid> imagePyramid,
+        bool write,
+        std::unordered_set<std::string>& initializedPatchList,
+        std::mutex& readMutex,
+        ImageCompression compressionFormat
+        ) : m_initializedPatchList(initializedPatchList), m_readMutex(readMutex) {
 	if(levels.size() == 0)
 		throw Exception("Image pyramid has no levels");
 	m_image = imagePyramid;
@@ -19,6 +30,7 @@ ImagePyramidAccess::ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, op
     m_tiffHandle = tiffHandle;
     m_vsiHandle = vsiHandle;
     m_vsiTiles = vsiTiles;
+    m_compressionFormat = compressionFormat;
 }
 
 void ImagePyramidAccess::release() {
@@ -48,36 +60,59 @@ void jpegErrorExit(j_common_ptr cinfo) {
     throw std::runtime_error( jpegLastErrorMsg );
 }
 
+void ImagePyramidAccess::readVSITileToBuffer(vsi_tile_header tile, uchar* data) {
+    if(m_compressionFormat == ImageCompression::JPEG) {
+        auto buffer = make_uninitialized_unique<char[]>(tile.numbytes);
 
-void readVSITileToBuffer(std::ifstream* vsiHandle, vsi_tile_header tile, uchar* data) {
-    auto buffer = make_uninitialized_unique<char>(tile.numbytes);
-    vsiHandle->seekg(tile.offset);
-    vsiHandle->read(buffer.get(), tile.numbytes);
-
-    // TODO assuming JPEG here
-    jpeg_decompress_struct cinfo;
-    jpeg_error_mgr jerr; //error handling
-    jpeg_source_mgr src_mem;
-    jerr.error_exit = jpegErrorExit;
-    cinfo.err = jpeg_std_error(&jerr);
-    try {
-        jpeg_create_decompress(&cinfo);
-        jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
-        jpeg_read_header(&cinfo, true);
-        //cinfo.jpeg_color_space = JCS_YCbCr;
-        //cinfo.jpeg_color_space = JCS_RGB;
-        jpeg_start_decompress(&cinfo);
-        unsigned char* line = data;
-        while (cinfo.output_scanline < cinfo.output_height) {
-            jpeg_read_scanlines (&cinfo, &line, 1);
-            line += 3*cinfo.output_width;
+        // Reading VSI tiles is not thread safe
+        {
+            std::lock_guard<std::mutex> lock(m_readMutex);
+            m_vsiHandle->seekg(tile.offset);
+            m_vsiHandle->read(buffer.get(), tile.numbytes);
         }
-        jpeg_finish_decompress(&cinfo);
-        jpeg_destroy_decompress(&cinfo);
-    } catch(std::exception &e) {
-        std::cout << e.what() << std::endl;
-        jpeg_destroy_decompress( &cinfo );
-        throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
+        jpeg_decompress_struct cinfo;
+        jpeg_error_mgr jerr; //error handling
+        jpeg_source_mgr src_mem;
+        jerr.error_exit = jpegErrorExit;
+        cinfo.err = jpeg_std_error(&jerr);
+        try {
+            jpeg_create_decompress(&cinfo);
+            jpeg_mem_src(&cinfo, (uchar*)buffer.get(), tile.numbytes);
+            int ret = jpeg_read_header(&cinfo, false);
+            if(ret != 1) {
+                throw Exception("Jpeg error..");
+            }
+            //cinfo.jpeg_color_space = JCS_YCbCr;
+            //cinfo.jpeg_color_space = JCS_RGB;
+            jpeg_start_decompress(&cinfo);
+            unsigned char* line = data;
+            while (cinfo.output_scanline < cinfo.output_height) {
+                jpeg_read_scanlines (&cinfo, &line, 1);
+                line += 3*cinfo.output_width;
+            }
+            jpeg_finish_decompress(&cinfo);
+            jpeg_destroy_decompress(&cinfo);
+        } catch(std::exception &e) {
+            jpeg_destroy_decompress( &cinfo );
+            throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
+        }
+    } else if(m_compressionFormat == ImageCompression::RAW) { // Uncompressed
+        // Reading VSI tiles is not thread safe
+        {
+            auto buffer = make_uninitialized_unique<char[]>(tile.numbytes);
+            std::lock_guard<std::mutex> lock(m_readMutex);
+            m_vsiHandle->seekg(tile.offset);
+            m_vsiHandle->read(buffer.get(), tile.numbytes);
+            // Data is stored as BGR, convert it to RGB
+            // TODO could optimize this by doing it on the GPU instead..
+            for(int i = 0; i < tile.numbytes/3; ++i) {
+                data[i*3 + 0] = buffer[i*3+2];
+                data[i*3 + 1] = buffer[i*3+1];
+                data[i*3 + 2] = buffer[i*3+0];
+            }
+        }
+    } else {
+        throw Exception("Unknown image compression format in ImagePyramidAccess::readVSITileToBuffer: " + std::to_string((int)m_compressionFormat));
     }
 }
 
@@ -96,49 +131,81 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             std::memset(data.get(), 0, width*height*channels);
             return data;
         }
-        if(width == tileWidth && height == tileHeight) {
-            std::lock_guard<std::mutex> lock(m_tiffMutex);
+        std::lock_guard<std::mutex> lock(m_readMutex);
+        if(m_image->isOMETIFF()) {
+            if(level == 0) {
+                TIFFSetDirectory(m_tiffHandle, level);
+            } else {
+                TIFFSetSubDirectory(m_tiffHandle, m_levels[level].offset);
+            }
+        } else {
             TIFFSetDirectory(m_tiffHandle, level);
+        }
+        if(width == tileWidth && height == tileHeight && x % tileWidth == 0 && y % tileHeight == 0) {
+            // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
             int bytesRead = TIFFReadTile(m_tiffHandle, (void *) data.get(), x, y, 0, 0);
-        } else if(width < tileWidth || height < tileHeight) {
+        } else if((width < tileWidth || height < tileHeight) && x % tileWidth == 0 && y % tileHeight == 0) {
             auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
             {
-                std::lock_guard<std::mutex> lock(m_tiffMutex);
-                TIFFSetDirectory(m_tiffHandle, level);
+                // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
                 // In TIFF all tiles have the same size, thus they are padded..
                 int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), x, y, 0, 0);
             }
-            // Remove padding
+            // Remove extra
             for(int dy = 0; dy < height; ++dy) {
                 for(int dx = 0; dx < width; ++dx) {
-                    data[dx + dy*width] = tileData[dx + dy*tileWidth];
+		    for(int channel = 0; channel < channels; ++channel) {
+                        data[(dx + dy*width)*channels + channel] = tileData[(dx + dy*tileWidth)*channels + channel];
+		    }
                 }
             }
-        } else if(width > tileWidth || height > tileHeight) {
-            // TODO implement
-            throw Exception("Encountered unqueal tile and request size. Not implemented. "
-            + std::to_string(width) + " " + std::to_string(tileWidth) + " "
-            + std::to_string(height) + " " + std::to_string(tileHeight)
-            );
-            throw NotImplementedException();
-            // TODO how to do this fast?
-            /*
-            int startTileX =;
-            int startTileY =;
-            int endTileX =;
-            int endTileY =;
-            auto dataBuffer = std::make_unique<char[]>(tileWidth * tileHeight * channels);
-            int offsetX =;
-            int offsetY =;
-            for (int x = startTileX; x <= endTileX; ++x) {
-                for (int y = startTileY; y <= endTileY; ++y) {
-                    TIFFReadTile(m_tiffHandle, (void *) dataBuffer.get(), x, y, 0, 0);
-                    for (int)
+        } else {
+            // Create buffer to contain all tiles
+            int totalTilesX = std::ceil((float)width / tileWidth);
+            int totalTilesY = std::ceil((float)height / tileHeight);
+            if(x % tileWidth != 0) totalTilesX += 1;
+            if(y % tileHeight != 0) totalTilesY += 1;
+            const int targetNumberOfTiles = totalTilesX*totalTilesY;
+            auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*targetNumberOfTiles*channels);
+            // Does the buffer need to be initialized/padded?
+            if(x+width >= levelWidth || x+height >= levelHeight) { // Some tiles are outside, fill it
+                if(channels > 1) {
+                    std::memset(fullTileBuffer.get(), 255, tileWidth*tileHeight*targetNumberOfTiles*channels);
+                } else {
+                    std::memset(fullTileBuffer.get(), 0, tileWidth*tileHeight*targetNumberOfTiles*channels);
                 }
             }
-             */
+            // Fill the full tile buffer
+            const int firstTileX = x / tileWidth;
+            const int firstTileY = y / tileHeight;
+            const int fullTileBufferWidth = totalTilesX*tileWidth;
+            for(int i = 0; i < totalTilesX; ++i) {
+                for(int j = 0; j < totalTilesY; ++j) {
+                    auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
+                    int tileX = i*tileWidth;
+                    int tileY = j*tileHeight;
+                    int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), firstTileX*tileWidth+tileX, firstTileY*tileHeight+tileY, 0, 0);
+                    // Stitch tile into full buffer
+                    for(int cy = 0; cy < tileHeight; ++cy) {
+                        for(int cx = 0; cx < tileWidth; ++cx) {
+                            for(int channel = 0; channel < channels; ++channel) {
+                                fullTileBuffer[(tileX + cx + (tileY + cy)*fullTileBufferWidth)*channels + channel] = tileData[(cx + cy*tileWidth)*channels + channel];
+                            }
+                        }
+                    }
+                }
+            }
+            // Crop the full buffer to data[]
+            const int offsetX = x - firstTileX*tileWidth;
+            const int offsetY = y - firstTileY*tileHeight;
+            for(int cy = offsetY; cy < offsetY + height; ++cy) {
+                for(int cx = offsetX; cx < offsetX + width; ++cx) {
+                    for(int channel = 0; channel < channels; ++channel) {
+                        data[(cx - offsetX + (cy - offsetY) * width)*channels + channel] = fullTileBuffer[(cx + cy * fullTileBufferWidth)*channels + channel];
+                    }
+                }
+            }
         }
-
     } else if(m_fileHandle != nullptr) {
         int scale = (float)m_image->getFullWidth()/levelWidth;
 #ifndef WIN32
@@ -151,7 +218,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
 #endif
         openslide_read_region(m_fileHandle, (uint32_t*)data.get(), x * scale, y * scale, level, width, height);
     } else if(!m_vsiTiles.empty()) {
-        if(width == tileWidth && height == tileHeight) {
+        if(width == tileWidth && height == tileHeight && x % tileWidth == 0 && y % tileHeight == 0) {
             vsi_tile_header tile;
             bool found = false;
             for(int i = 0; i < m_vsiTiles.size(); ++i) {
@@ -167,13 +234,15 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             if(!found)
                 throw Exception("Could not find tile for getPathcData in VSI");
 
-            readVSITileToBuffer(m_vsiHandle, tile, data.get());
+            readVSITileToBuffer(tile, data.get());
         } else {
             std::vector<vsi_tile_header> tilesToRead;
             int firstTileX = x / m_image->getLevelTileWidth(level);
             int firstTileY = y / m_image->getLevelTileHeight(level);
             int lastTileX = std::ceil((float)(x + width) / m_image->getLevelTileWidth(level));
-            int lastTileY = std::ceil((float)(y + height) / m_image->getLevelTileWidth(level));
+            int lastTileY = std::ceil((float)(y + height) / m_image->getLevelTileHeight(level));
+            // How many tiles we are supposed to have
+            const int targetNumberOfTiles = (lastTileX-firstTileX)*(lastTileY-firstTileY);
             for(int i = 0; i < m_vsiTiles.size(); ++i) {
                 vsi_tile_header currentTile = m_vsiTiles[i];
                 if(currentTile.level != level)
@@ -187,14 +256,21 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             if(tilesToRead.empty())
                 throw Exception("Tiles to ready empty");
 
-            auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*tilesToRead.size()*channels);
+            auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*targetNumberOfTiles*channels);
+            if(tilesToRead.size() != targetNumberOfTiles) { // Some tiles are missing.. (edge case) fill with some blank value
+                if(channels > 1) {
+                    std::memset(fullTileBuffer.get(), 255, tileWidth*tileHeight*targetNumberOfTiles*channels);
+                } else {
+                    std::memset(fullTileBuffer.get(), 0, tileWidth*tileHeight*targetNumberOfTiles*channels);
+                }
+            }
             const auto fullTileBufferWidth = (lastTileX-firstTileX)*tileWidth;
             // Read tile to buffer
             auto tileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*channels); // assume full tiles of same size for all
             for(auto tile : tilesToRead) {
                 const int tileX = (tile.coord[0]-firstTileX)*tileWidth;
                 const int tileY = (tile.coord[1]-firstTileY)*tileHeight;
-                readVSITileToBuffer(m_vsiHandle, tile, tileBuffer.get());
+                readVSITileToBuffer(tile, tileBuffer.get());
                 // Stitch tile into full buffer
                 for(int cy = 0; cy < tileHeight; ++cy) {
                     for(int cx = 0; cx < tileWidth; ++cx) {
@@ -281,14 +357,13 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     float scale = m_image->getLevelScale(level);
     auto spacing = m_image->getSpacing();
     auto image = Image::create(width, height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
-    // TODO, we should have added spacing here to scale, but then rendering doesn't work
     image->setSpacing(Vector3f(
-            scale,
-            scale,
+            spacing.x()*scale,
+            spacing.y()*scale,
             1.0f
     ));
     // Set transformation
-    auto T = Transform::create(Vector3f(scale*offsetX, scale*offsetY, 0.0f));
+    auto T = Transform::create(Vector3f(offsetX*scale, offsetY*scale, 0.0f));
     image->setTransform(T);
     SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
 
@@ -298,7 +373,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
         channelConverter->setChannelsToRemove(false, false, false, true);
         channelConverter->setReverseChannels(true);
         channelConverter->setInputData(image);
-        return channelConverter->updateAndGetOutputData<Image>();
+        image = channelConverter->updateAndGetOutputData<Image>();
     }
     return image;
 }
@@ -325,10 +400,11 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     auto data = getPatchData(level, tile.offsetX, tile.offsetY, tile.width, tile.height);
 
     float scale = m_image->getLevelScale(level);
+    Vector3f spacing = m_image->getSpacing();
     auto image = Image::create(tile.width, tile.height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
     image->setSpacing(Vector3f(
-            scale,
-            scale,
+            scale*spacing.x(),
+            scale*spacing.y(),
             1.0f
     ));
     // TODO Set transformation
@@ -370,11 +446,13 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
         }
         patch = paddedImage;
     }
+
+    // Write tile to this level
     auto patchAccess = patch->getImageAccess(ACCESS_READ);
     auto data = (uchar*)patchAccess->get();
     uint32_t tile_id;
     {
-        std::lock_guard<std::mutex> lock(m_tiffMutex);
+        std::lock_guard<std::mutex> lock(m_readMutex);
         TIFFSetDirectory(m_tiffHandle, level);
         TIFFWriteTile(m_tiffHandle, (void *) data, x, y, 0, 0);
         TIFFCheckpointDirectory(m_tiffHandle);
@@ -391,7 +469,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
     int patchIdY = std::floor(((float)y / levelHeight) * tilesY);
     m_image->setDirtyPatch(level, patchIdX, patchIdY);
 
-    // TODO Propagate upwards
+    // Propagate upwards
     auto previousData = std::make_unique<uchar[]>(patch->getNrOfVoxels()*patch->getNrOfChannels());
     std::memcpy(previousData.get(), data, patch->getNrOfVoxels()*patch->getNrOfChannels());
     const auto channels = m_image->getNrOfChannels();
@@ -412,17 +490,54 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
         auto newData = getPatchData(level, x, y, tileWidth, tileHeight);
 
         // Downsample tile from previous level and add it to existing tile
-        for(int dy = 0; dy < tileHeight/2; ++dy) {
-            for(int dx = 0; dx < tileWidth/2; ++dx) {
-                newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] =
-                        (uchar)round((float)(previousData[dx*2 + dy*2*previousTileWidth] +
-                        previousData[dx*2 + 1 + dy*2*previousTileWidth] +
-                        previousData[dx*2 + 1 + (dy*2+1)*previousTileWidth] +
-                        previousData[dx*2 + (dy*2+1)*previousTileWidth])/4);
+        if(m_image->getNrOfChannels() >= 3) {
+            const int channels = m_image->getNrOfChannels();
+            // Use average if RGB(A) image
+            for(int dy = 0; dy < tileHeight/2; ++dy) {
+                for(int dx = 0; dx < tileWidth/2; ++dx) {
+                    for(int c = 0; c < channels; ++c) {
+                        newData[c + channels*(dx + offsetX * tileWidth / 2 + (dy + offsetY * tileHeight / 2) * tileWidth)] =
+                            (uchar)round((float)(
+                                previousData[c + channels*(dx * 2 + dy * 2 * previousTileWidth)] +
+                                previousData[c + channels*(dx * 2 + 1 + dy * 2 * previousTileWidth)] +
+                                previousData[c + channels*(dx * 2 + 1 + (dy * 2 + 1) * previousTileWidth)] +
+                                previousData[c + channels*(dx * 2 + (dy * 2 + 1) * previousTileWidth)]
+                                ) / 4);
+                    }
+                }
+            }
+        } else {
+            // Use majority vote if single channel image.
+            for(int dy = 0; dy < tileHeight/2; ++dy) {
+                for(int dx = 0; dx < tileWidth/2; ++dx) {
+                    /*
+                    // This is more correct, but 100 times slower than just doing max.
+                    std::vector<uchar> list = {
+                            previousData[dx*2 + dy*2*previousTileWidth],
+                            previousData[dx*2 + 1 + dy*2*previousTileWidth],
+                            previousData[dx*2 + 1 + (dy*2+1)*previousTileWidth],
+                            previousData[dx*2 + (dy*2+1)*previousTileWidth]
+                    };
+                    std::sort(list.begin(), list.end());
+                    if(list[0] == list[1]) { // If there is more than of element 0, it should be placed as element 1
+                        newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] = list[0];
+                    } else { // If not, it means that there is more than 1 of element 1, OR all 4 values are different and its no matter which is picked.
+                        newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] = list[2];
+                    }*/
+
+                    // Just do max? 0.006 milliseconds
+                    uchar list[4] = {
+                            previousData[dx*2 + dy*2*previousTileWidth],
+                            previousData[dx*2 + 1 + dy*2*previousTileWidth],
+                            previousData[dx*2 + 1 + (dy*2+1)*previousTileWidth],
+                            previousData[dx*2 + (dy*2+1)*previousTileWidth]
+                    };
+                    newData[dx + offsetX*tileWidth/2 + (dy+offsetY*tileHeight/2)*tileWidth] = std::max(std::max(std::max(list[0], list[1]), list[2]), list[3]);
+                }
             }
         }
         {
-            std::lock_guard<std::mutex> lock(m_tiffMutex);
+            std::lock_guard<std::mutex> lock(m_readMutex);
             TIFFSetDirectory(m_tiffHandle, level);
             TIFFWriteTile(m_tiffHandle, (void *) newData.get(), x, y, 0, 0);
             TIFFCheckpointDirectory(m_tiffHandle);
@@ -444,7 +559,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
 bool ImagePyramidAccess::isPatchInitialized(uint level, uint x, uint y) {
     if(m_image->isPyramidFullyInitialized())
         return true;
-    std::lock_guard<std::mutex> lock(m_tiffMutex);
+    std::lock_guard<std::mutex> lock(m_readMutex);
     TIFFSetDirectory(m_tiffHandle, level);
     auto tile = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
     return m_initializedPatchList.count(std::to_string(level) + "-" + std::to_string(tile)) > 0;

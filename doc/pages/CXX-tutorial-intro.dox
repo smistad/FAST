@@ -253,8 +253,8 @@ auto dataStream = DataStream(filter);
 
 // Iterate through all frames in data stream
 int frameNr = 0;
-while(!dataStream->isDone()) {
-    auto image = dataStream->getNextFrame<Image>(); // Get next frame in data stream of type Image
+while(!dataStream.isDone()) {
+    auto image = dataStream.getNextFrame<Image>(); // Get next frame in data stream of type Image
     std::cout << "Received image frame " << frameNr << " with size " << image->getSize() << std::endl;
     ++frameNr;
 }

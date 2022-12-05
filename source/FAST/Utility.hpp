@@ -170,6 +170,13 @@ FAST_EXPORT void createDirectories(std::string path);
 FAST_EXPORT bool fileExists(std::string filename);
 
 /**
+ * @brief Returns size in bytes of file
+ * @param filename
+ * @return size in bytes
+ */
+FAST_EXPORT uint64_t fileSize(std::string filename);
+
+/**
  * Returns a list of all files in a directory
  * @param path
  * @param getFiles Set to true to find files in directory

@@ -9,6 +9,7 @@
 namespace fast {
 
 class View;
+class RenderToImage;
 class DataBoundingBox;
 
 /**
@@ -26,7 +27,9 @@ class DataBoundingBox;
 class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     public:
         typedef std::shared_ptr<Renderer> pointer;
-        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) = 0;
+        virtual void
+        draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D, int viewWidth,
+             int viewHeight) = 0;
         virtual void postDraw();
         /**
          * Adds a new input connection
@@ -54,13 +57,14 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          */
         virtual bool isDisabled() const;
         void setView(View* view);
-        void setSynchronizedRendering(bool synched);
-        bool getSynchronizedRendering() const;
         bool is2DOnly() const;
         bool is3DOnly() const;
+        void loadAttributes() override;
     protected:
         Renderer();
         virtual void execute() override;
+        std::unordered_map<uint, std::shared_ptr<SpatialDataObject>> getDataToRender();
+        void clearDataToRender();
 
         /**
          * Creates an OpenGL shader program. Should be used in the renderer constructor.
@@ -84,8 +88,6 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         // Locking mechanisms to ensure thread safe synchronized rendering
         bool mHasRendered = true;
         bool mStop = false;
-        bool m_synchedRendering = true;
-        std::condition_variable_any mRenderedCV;
         std::mutex mMutex;
 
         /**
@@ -107,23 +109,17 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          */
         std::unordered_map<uint, SpatialDataObject::pointer> mDataToRender;
 
-        /**
-         * This will lock the renderer mutex. Used by the compute thread.
-         */
-        void lock();
-        /**
-         * This will unlock the renderer mutex. Used by the compute thread.
-         */
-        void unlock();
         friend class View;
+        friend class RenderToImage;
 
-        View* m_view;
+        View* m_view = nullptr;
     private:
 
         /**
          * OpenGL shader IDs. Program name -> OpenGL ID
          */
         std::unordered_map<std::string, uint> mShaderProgramIDs;
+
 };
 
 }

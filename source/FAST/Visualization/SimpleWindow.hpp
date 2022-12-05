@@ -28,14 +28,17 @@ class FAST_EXPORT SimpleWindow : public Window {
                          uint, width, = 0,
                          uint, height, = 0);
         void addRenderer(std::shared_ptr<Renderer> renderer);
+        void addWidget(QWidget* widget);
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);
         View* getView();
         ~SimpleWindow();
         std::shared_ptr<SimpleWindow> connect(std::shared_ptr<Renderer> renderer);
         std::shared_ptr<SimpleWindow> connect(std::vector<std::shared_ptr<Renderer>> renderers);
+        std::shared_ptr<SimpleWindow> connect(QWidget* widget);
     protected:
         void init();
+        QVBoxLayout* m_widgetLayout;
 
 };
 

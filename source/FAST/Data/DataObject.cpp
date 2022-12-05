@@ -21,7 +21,7 @@ void DataObject::blockIfBeingWrittenTo() {
 void DataObject::blockIfBeingAccessed() {
     std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
     while(mDataIsBeingAccessed) {
-        mDataIsBeingWrittenToCondition.wait(lock);
+        mDataIsBeingAccessedCondition.wait(lock);
     }
 }
 
@@ -29,14 +29,14 @@ void DataObject::accessFinished() {
 	{
         std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
         mDataIsBeingWrittenTo = false;
+        mDataIsBeingWrittenToCondition.notify_all();
 	}
-	mDataIsBeingWrittenToCondition.notify_one();
 
 	{
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = false;
+        mDataIsBeingAccessedCondition.notify_all();
 	}
-	mDataIsBeingAccessedCondition.notify_one();
 }
 
 uint64_t DataObject::getTimestamp() const {
@@ -66,11 +66,11 @@ std::string DataObject::getMetadata(std::string name) const {
     return mMetadata.at(name);
 }
 
-std::unordered_map<std::string, std::string> DataObject::getMetadata() const {
+std::map<std::string, std::string> DataObject::getMetadata() const {
     return mMetadata;
 }
 
-void DataObject::setMetadata(std::unordered_map<std::string, std::string> metadata) {
+void DataObject::setMetadata(std::map<std::string, std::string> metadata) {
     mMetadata = metadata;
 }
 
@@ -89,7 +89,7 @@ bool DataObject::isLastFrame(std::string streamer) {
     return m_lastFrame.count(streamer) > 0;
 }
 
-std::unordered_set<std::string> DataObject::getLastFrame() {
+std::set<std::string> DataObject::getLastFrame() {
     return m_lastFrame;
 }
 
@@ -104,7 +104,7 @@ std::string DataObject::getFrameData(std::string name) {
     return m_frameData[name];
 }
 
-std::unordered_map<std::string, std::string> DataObject::getFrameData() {
+std::map<std::string, std::string> DataObject::getFrameData() {
     return m_frameData;
 }
 
@@ -118,6 +118,10 @@ void DataObject::clearLastFrame() {
 
 bool DataObject::hasFrameData(std::string name) const {
     return m_frameData.count(name) > 0;
+}
+
+void DataObject::setFrameData(std::map<std::string, std::string> frameData) {
+    m_frameData = frameData;
 }
 
 } // end namespace fast

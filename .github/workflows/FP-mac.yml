@@ -1,0 +1,95 @@
+name: FastPathology macOS 11
+
+on:
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  MACOSX_DEPLOYMENT_TARGET: 10.13
+
+jobs:
+  build:
+    runs-on: macos-11
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        brew install openslide
+        # Install a specific version of libomp (14.0.6) since newer versions fail with cmake
+        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/c87d6a0c8360c4684e3375ce6c4576214acdd71b/Formula/libomp.rb > $(find $(brew --repository) -name libomp.rb) && brew reinstall libomp
+    - name: Configure CMake
+      run: |
+        cmake -B ${{github.workspace}}/build \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
+            -DFAST_MODULE_OpenVINO=ON \
+            -DFAST_MODULE_Dicom=OFF \
+            -DFAST_MODULE_WholeSlideImaging=ON \
+            -DFAST_MODULE_OpenIGTLink=OFF \
+            -DFAST_MODULE_Clarius=OFF \
+            -DFAST_MODULE_TensorFlow=ON \
+            -DFAST_MODULE_HDF5=ON \
+            -DFAST_MODULE_Plotting=ON \
+            -DFAST_MODULE_Python=OFF \
+            -DFAST_MODULE_RealSense=OFF \
+            -DFAST_BUILD_EXAMPLES=OFF \
+            -DFAST_BUILD_TESTS=ON \
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
+
+    - name: Package
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+        mv ${{github.workspace}}/build/fast_*.tar.xz ${{github.workspace}}/build/fast_macos10.13.tar.xz
+
+    - name: Upload archive package
+      uses: actions/upload-artifact@v2
+      with:
+        name: Archive package (tar.xz)
+        path: ${{github.workspace}}/build/fast_*.tar.xz
+        if-no-files-found: error
+
+    - name: Upload package to external repo release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_name: AICAN-Research/FAST-Pathology-dependencies
+        repo_token: ${{ secrets.FAST_PATHOLOGY_PUSH_TOKEN  }}
+        file: ${{github.workspace}}/build/fast_*.tar.xz
+        asset_name: fast_macos10.13.tar.xz
+        file_glob: true
+        tag: v1.0.0
+        overwrite: true
+
+  test-cpp:
+    name: Run C++ Tests
+    needs: [build]
+    runs-on: [self-hosted, macos]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: 'Archive package (tar.xz)'
+          path: ${{github.workspace}}/download/
+      - name: Extract artifact
+        run: |
+          mkdir -p ${{github.workspace}}/download/
+          cd ${{github.workspace}}/download/
+          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+      - name: Download test data
+        run: |
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
+          ./downloadTestData
+      - name: Run tests
+        run: |
+          cd ${{github.workspace}}
+          cd fast_*
+          cd fast/bin/
+          ./testFAST ~[visual]~[unstablemac]
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -Rf ${{github.workspace}}
+          rm -Rf $HOME/FAST/kernel_binaries/*

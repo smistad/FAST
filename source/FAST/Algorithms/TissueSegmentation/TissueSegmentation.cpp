@@ -6,7 +6,7 @@
 
 namespace fast {
 
-TissueSegmentation::TissueSegmentation(int threshold, int dilationSize, int erosionSize) {
+TissueSegmentation::TissueSegmentation(int threshold, int dilationSize, int erosionSize, bool filterZeros) {
     createInputPort<ImagePyramid>(0);
     createOutputPort<Image>(0);
 
@@ -14,15 +14,19 @@ TissueSegmentation::TissueSegmentation(int threshold, int dilationSize, int eros
     createIntegerAttribute("threshold", "Intensity threshold", "", m_thresh);
     createIntegerAttribute("dilate-kernel-size", "Kernel size for dilation", "", m_dilate);
     createIntegerAttribute("erode-kernel-size", "Kernel size for erosion", "", m_erode);
+    createBooleanAttribute("filter-zeros", "Include zero values to background/glass class", "", m_filterZeros);
     setThreshold(threshold);
     setDilate(dilationSize);
     setErode(erosionSize);
+    setFilterZeros(filterZeros);
 }
 
 void TissueSegmentation::loadAttributes() {
-    setThreshold(getIntegerAttribute("threshold"));
+    setThreshold(getIntegerAttribute("threshold")); 
     setDilate(getIntegerAttribute("dilate-kernel-size"));
     setErode(getIntegerAttribute("erode-kernel-size"));
+    setFilterZeros(getBooleanAttribute("filter-zeros"));
+
 }
 
 void TissueSegmentation::setThreshold(int thresh) {
@@ -37,6 +41,10 @@ void TissueSegmentation::setErode(int radius) {
     m_erode = radius;
 }
 
+void TissueSegmentation::setFilterZeros(bool value) {
+    m_filterZeros = value;
+}
+
 int TissueSegmentation::getThreshold() const {
     return m_thresh;
 }
@@ -47,6 +55,10 @@ int TissueSegmentation::getErode() const {
 
 int TissueSegmentation::getDilate() const {
     return m_dilate;
+}
+
+bool TissueSegmentation::getFilterZeros() const {
+    return m_filterZeros;
 }
 
 void TissueSegmentation::execute() {
@@ -66,6 +78,7 @@ void TissueSegmentation::execute() {
         kernel.setArg(0, *inputAccess->get2DImage());
         kernel.setArg(1, *outputAccess->get2DImage());
         kernel.setArg(2, m_thresh);
+        kernel.setArg(3, (int) m_filterZeros);
 
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,

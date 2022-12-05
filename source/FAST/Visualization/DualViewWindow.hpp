@@ -39,6 +39,7 @@ class FAST_EXPORT DualViewWindow : public Window {
         void setHorizontalMode();
         void setVerticalMode();
         void setBackgroundColor(Color color);
+        void addWidget(QWidget* widget);
         ~DualViewWindow();
         std::shared_ptr<DualViewWindow> connectLeft(std::shared_ptr<Renderer> renderer);
         std::shared_ptr<DualViewWindow> connectLeft(std::vector<std::shared_ptr<Renderer>> renderers);
@@ -48,10 +49,11 @@ class FAST_EXPORT DualViewWindow : public Window {
         std::shared_ptr<DualViewWindow> connectTop(std::vector<std::shared_ptr<Renderer>> renderers);
         std::shared_ptr<DualViewWindow> connectBottom(std::shared_ptr<Renderer> renderer);
         std::shared_ptr<DualViewWindow> connectBottom(std::vector<std::shared_ptr<Renderer>> renderers);
+        std::shared_ptr<DualViewWindow> connect(QWidget* widget);
     protected:
         void createLayout();
-
         bool mVerticalMode;
+        QVBoxLayout* m_widgetLayout;
 };
 
 /**

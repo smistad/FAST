@@ -3,18 +3,19 @@
 #
 # @m_class{m-block m-warning} @par PySide2 Qt Version
 # @parblock
-#     For this example you <b>must</b> use the same Qt version of PySide2 as used in FAST (5.14.0)
-#     Do this with: <b>pip install pyside2==5.14.0</b>
+#     For this example you <b>must</b> use the same Qt version of PySide2 as used in FAST (5.15.2)
+#     Do this with: <b>pip install pyside2==5.15.2.1</b>
 # @endparblock
 #
 # @image html images/examples/python/pyfast_and_pyside.jpg width=400px;
 
+import platform
+if platform.system() != 'Windows':
+    import PySide2.QtSvg # Must import this before fast due to conflicting symbols
+import fast # Must import FAST before rest of pyside2
 from PySide2.QtWidgets import *
-from PySide2.QtCore import Slot
-import PySide2.QtSvg # Must import this before fast due to conflicting symbols
 from shiboken2 import wrapInstance
 from random import random
-import fast
 
 # Setup a FAST pipeline
 importer = fast.ImageFileImporter\

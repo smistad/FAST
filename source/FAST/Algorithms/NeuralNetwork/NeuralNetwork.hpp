@@ -268,7 +268,7 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         std::unordered_map<std::string, std::vector<int>> mInputSizes;
         std::unordered_map<int, DataObject::pointer> m_processedOutputData;
 
-        virtual void run();
+        virtual void runNeuralNetwork();
 
         std::shared_ptr<InferenceEngine> m_engine;
 
@@ -289,8 +289,10 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          */
         Tensor::pointer standardizeOutputTensorData(Tensor::pointer tensor, int sample = 0);
 
+        void processOutputTensors();
     private:
         void execute();
-};
+
+    };
 
 }

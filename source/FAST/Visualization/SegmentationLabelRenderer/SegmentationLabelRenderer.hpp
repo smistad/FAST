@@ -38,7 +38,9 @@ class FAST_EXPORT SegmentationLabelRenderer : public LabelColorRenderer {
         void setLabelNames(std::map<uint, std::string> labelNames);
         void setLabelName(uint label, std::string name);
         void setAreaThreshold(float threshold);
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
+        void
+        draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D, int viewWidth,
+             int viewHeight) override;
         void loadAttributes() override;
     protected:
         void execute() override;

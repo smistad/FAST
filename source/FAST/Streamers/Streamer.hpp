@@ -50,6 +50,8 @@ class FAST_EXPORT Streamer : public ProcessObject {
 
         void setStreamingMode(StreamingMode mode);
         StreamingMode getStreamingMode() const;
+
+        virtual DataChannel::pointer getOutputPort(uint portID = 0) override;
     protected:
         /**
          * Block until the first data frame has been sent using a condition variable
@@ -80,6 +82,8 @@ class FAST_EXPORT Streamer : public ProcessObject {
         std::mutex m_stopMutex;
         std::unique_ptr<std::thread> m_thread;
         std::condition_variable m_firstFrameCondition;
+
+        std::shared_ptr<ProcessObject> m_outputPO;
 
 
 };

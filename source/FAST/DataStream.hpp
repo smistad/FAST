@@ -46,7 +46,7 @@ class FAST_EXPORT DataStream : public Object {
         std::vector<std::shared_ptr<DataChannel>> m_outputPorts;
         std::map<uint, std::shared_ptr<DataObject>> m_nextDataObjects;
         bool m_done = false;
-        int m_executeToken = 0;
+        uint m_executeToken = 0;
         std::shared_ptr<DataObject> getNextDataObject(uint portID);
 };
 

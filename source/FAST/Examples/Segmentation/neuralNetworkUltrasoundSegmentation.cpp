@@ -10,13 +10,14 @@
 #include <FAST/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.hpp>
 #include <FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp>
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngineManager.hpp>
+#include <FAST/Visualization/Widgets/PlaybackWidget.hpp>
 
 using namespace fast;
 
 int main(int argc, char** argv) {
     CommandLineParser parser("Neural network ultrasound segmentation example");
     parser.addChoice("inference-engine",
-            {"default", "OpenVINO", "TensorFlow", "TensorRT"},
+            {"default", "OpenVINO", "TensorFlow", "TensorRT", "ONNXRuntime"},
             "default",
             "Which neural network inference engine to use");
     parser.addVariable("filename", Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd", "Path to files to stream from disk");
@@ -53,7 +54,8 @@ int main(int argc, char** argv) {
             ->connect(streamer);
 
     auto window = SimpleWindow2D::create(Color::Black())
-            ->connect({imageRenderer, segmentationRenderer, labelRenderer});
+            ->connect({imageRenderer, segmentationRenderer, labelRenderer})
+            ->connect(new PlaybackWidget(streamer));
     window->run();
     segmentation->getAllRuntimes()->printAll();
 }

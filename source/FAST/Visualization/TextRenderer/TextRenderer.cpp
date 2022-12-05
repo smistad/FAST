@@ -28,12 +28,14 @@ TextRenderer::TextRenderer(uint fontSize, Color color, TextStyleType style, Text
     });
 }
 
-void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
-    std::lock_guard<std::mutex> lock(mMutex);
+void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                        int viewWidth,
+                        int viewHeight) {
     if(!mode2D)
         throw Exception("TextRender is only implemented for 2D at the moment");
 
-    for(auto it : mDataToRender) {
+    auto dataToRender = getDataToRender();
+    for(auto it : dataToRender) {
         auto input = std::static_pointer_cast<Text>(it.second);
         uint inputNr = it.first;
 
@@ -152,8 +154,8 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         int width, height;
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-        const float scale = 1.0f / m_view->width();
-        const float scale2 = 1.0f / m_view->height();
+        const float scale = 1.0f / viewWidth;
+        const float scale2 = 1.0f / viewHeight;
         const int padding = 15;
         Vector3f position;
         if(m_positionType == PositionType::STANDARD) {

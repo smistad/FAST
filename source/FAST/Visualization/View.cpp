@@ -9,6 +9,7 @@
 #include <QGLFunctions>
 #include <algorithm>
 #include <QCursor>
+#include <QApplication>
 #include <FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp>
 
 namespace fast {
@@ -81,12 +82,14 @@ View::View() {
     timer->setSingleShot(false);
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 
+    if(QThread::currentThread() != QApplication::instance()->thread()) {
+        throw Exception("FAST View must be created in the main thread");
+    }
     QGLContext *context = new QGLContext(getGLFormat(), this);
-    context->create(fast::Window::getMainGLContext());
+    context->create(fast::Window::getSecondaryGLContext());
     this->setContext(context);
     if(!context->isValid() || !context->isSharing()) {
-        reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end();
-        exit(-1);
+        throw Exception("The custom Qt GL context in fast::View is invalid!");
     }
 }
 
@@ -176,65 +179,27 @@ void View::execute() {
 }
 
 void View::updateRenderersInput(int executeToken) {
-    for(auto&& renderer : mNonVolumeRenderers) {
+    for(auto renderer : getRenderers()) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
             renderer->getInputPort(i)->getProcessObject()->update(executeToken);
         }
     }
-    for(auto&& renderer : mVolumeRenderers) {
-        for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            renderer->getInputPort(i)->getProcessObject()->update(executeToken);
-        }
-    }
-
 }
 
-void View::updateRenderers() {
-    // Copy list of renderers while locked
-    std::unique_lock<std::mutex> lock(m_mutex);
-    auto nonVolumeRenderers = mNonVolumeRenderers;
-    auto volumeRenderers = mVolumeRenderers;
-    lock.unlock();
-
-    // Then execute
-    for(auto renderer : nonVolumeRenderers) {
-        renderer->execute();
-    }
-    for(auto renderer : volumeRenderers) {
-        renderer->execute();
-    }
-}
-
-void View::lockRenderers() {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
-        renderer->lock();
-    }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
-        renderer->lock();
+void View::updateRenderers(int executeToken) {
+    for(auto renderer : getRenderers()) {
+        renderer->update(executeToken);
     }
 }
 
 void View::stopRenderers() {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+    for(auto renderer : getRenderers()) {
         renderer->stopPipeline();
-    }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
-        renderer->stopPipeline();
-    }
-}
-
-void View::unlockRenderers() {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
-        renderer->unlock();
-    }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
-        renderer->unlock();
     }
 }
 
 void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f &min, Vector3f &max) {
-    std::vector<Renderer::pointer> renderers = mNonVolumeRenderers;
-    renderers.insert(renderers.end(), mVolumeRenderers.begin(), mVolumeRenderers.end());
+    std::vector<Renderer::pointer> renderers = getRenderers();
     // Get bounding boxes of all objects
     bool initialized = false;
     for(int i = 0; i < renderers.size(); i++) {
@@ -490,10 +455,14 @@ void View::recalculateCamera() {
 }
 
 void View::reinitialize() {
+    m_initialized = false;
     initializeGL();
 }
 
 void View::initializeGL() {
+    if(m_initialized)
+        return;
+    m_initialized = true;
     for(auto renderer : getRenderers())
         renderer->initializeOpenGLFunctions();
     //QGLFunctions *fun = Window::getMainGLContext()->functions();
@@ -503,15 +472,10 @@ void View::initializeGL() {
     // Enable transparency
     glEnable(GL_BLEND);
     // Update all renderes, so that getBoundingBox works
-    std::vector<Renderer::pointer> renderers = mNonVolumeRenderers;
-    renderers.insert(renderers.end(), mVolumeRenderers.begin(), mVolumeRenderers.end());
-    // Disable synchronized rendering here to avoid blocking in renderer
+    std::vector<Renderer::pointer> renderers = getRenderers();
     for(int i = 0; i < renderers.size(); i++) {
-        bool synchedRendering = renderers[i]->getSynchronizedRendering();
-        renderers[i]->setSynchronizedRendering(false);
         if(!renderers[i]->isDisabled())
             renderers[i]->update();
-        renderers[i]->setSynchronizedRendering(synchedRendering);
     }
     if(renderers.empty())
         return;
@@ -577,16 +541,14 @@ void View::paintGL() {
     }
 
     if(mIsIn2DMode) {
-
         mRuntimeManager->startRegularTimer("draw2D");
-        for(auto& renderer : mNonVolumeRenderers) {
+        for(auto renderer : mNonVolumeRenderers) {
             if(!renderer->isDisabled()) {
-                renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true);
+                renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true, width(), height());
                 renderer->postDraw();
             }
         }
         mRuntimeManager->stopRegularTimer("draw2D");
-
     } else {
         if(getNrOfInputConnections() > 0) {
             // Has camera input connection, get camera
@@ -596,18 +558,18 @@ void View::paintGL() {
         }
 
         mRuntimeManager->startRegularTimer("draw");
-        for(auto& renderer : mNonVolumeRenderers) {
+        for(auto renderer : mNonVolumeRenderers) {
             if(!renderer->isDisabled()) {
-                renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
+                renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false, width(), height());
                 renderer->postDraw();
             }
         }
 
         if(!mVolumeRenderers.empty()) {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
-            for(auto& renderer : mVolumeRenderers) {
+            for(auto renderer : mVolumeRenderers) {
                 if(!renderer->isDisabled()) {
-                    renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
+                    renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false, width(), height());
                     renderer->postDraw();
                 }
             }
@@ -660,6 +622,38 @@ void View::keyPressEvent(QKeyEvent *event) {
     switch(event->key()) {
         case Qt::Key_R:
             recalculateCamera();
+            break;
+        case Qt::Key_Left:
+            if(mIsIn2DMode) {
+                // Move 10% of width
+                float actualMovementX = width()*0.1 * ((mRight - mLeft) / width());
+                mCameraPosition[0] += actualMovementX;
+                m3DViewingTransformation.pretranslate(Vector3f(actualMovementX, 0, 0));
+            }
+            break;
+        case Qt::Key_Right:
+            if(mIsIn2DMode) {
+                // Move 10% of width
+                float actualMovementX = width()*0.1 * ((mRight - mLeft) / width());
+                mCameraPosition[0] -= actualMovementX;
+                m3DViewingTransformation.pretranslate(Vector3f(-actualMovementX, 0, 0));
+            }
+            break;
+        case Qt::Key_Down:
+            if(mIsIn2DMode) {
+                // Move 10% of height
+                float actualMovementY = height()*0.1 * ((mRight - mLeft) / height());
+                mCameraPosition[1] = actualMovementY;
+                m3DViewingTransformation.pretranslate(Vector3f(0, actualMovementY, 0));
+            }
+            break;
+        case Qt::Key_Up:
+            if(mIsIn2DMode) {
+                // Move 10% of height
+                float actualMovementY = height()*0.1 * ((mRight - mLeft) / height());
+                mCameraPosition[1] = -actualMovementY;
+                m3DViewingTransformation.pretranslate(Vector3f(0, -actualMovementY, 0));
+            }
             break;
     }
 }
@@ -726,8 +720,7 @@ void View::mousePressEvent(QMouseEvent *event) {
 
 void View::wheelEvent(QWheelEvent *event) {
     if(mIsIn2DMode) {
-        // TODO Should instead increase the size of the orhtograpic projection here
-        // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
+        // the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
         aspect = (float) width() / height();
         float orthoAspect = (mRight - mLeft) / (mTop - mBottom);
         float scalingWidth = 1;
@@ -737,9 +730,11 @@ void View::wheelEvent(QWheelEvent *event) {
         } else {
             scalingHeight = orthoAspect / aspect;
         }
-        // Zoom towards center
 		float targetSizeX = (mRight - mLeft) * 0.33f; // should end up with a fraction of the size
 		float targetSizeY = (mTop - mBottom) * 0.33f; // should end up with fraction of the size
+		float currentPosX = (event->position().x()/width())*(mRight - mLeft) + mLeft;
+        float currentPosY = (event->position().y()/height())*(mTop - mBottom) + mBottom;
+        // First: Zoom towards center
         if(event->delta() > 0) {
             mLeft = mLeft + targetSizeX*0.5f;
             mRight = mRight - targetSizeX*0.5f;
@@ -751,6 +746,15 @@ void View::wheelEvent(QWheelEvent *event) {
             mBottom = mBottom - targetSizeY*0.5f;
             mTop = mTop + targetSizeY*0.5f;
         }
+        // Now: Keep pointer at same position while zooming in and out:
+        float newPosX = (event->position().x()/width())*(mRight - mLeft) + mLeft;
+        float newPosY = (event->position().y()/height())*(mTop - mBottom) + mBottom;
+        float diffX = newPosX - currentPosX;
+        float diffY = newPosY - currentPosY;
+        mLeft -= diffX;
+        mRight -= diffX;
+        mBottom += diffY;
+        mTop += diffY;
         mPerspectiveMatrix = loadOrthographicMatrix(mLeft * scalingWidth, mRight * scalingWidth,
                                                     mBottom * scalingHeight, mTop * scalingHeight, zNear, zFar);
     } else {
@@ -772,24 +776,6 @@ void View::mouseReleaseEvent(QMouseEvent *event) {
     }
 }
 
-void View::setSynchronizedRendering(bool sync) {
-	// Copy list of renderers while locked
-	std::unique_lock<std::mutex> lock(m_mutex);
-	auto nonVolumeRenderers = mNonVolumeRenderers;
-	auto volumeRenderers = mVolumeRenderers;
-	lock.unlock();
-
-	for(auto renderer : nonVolumeRenderers) {
-		renderer->setSynchronizedRendering(sync);
-        renderer->postDraw(); // TODO HACK
-	}
-	for(auto renderer : volumeRenderers) {
-		renderer->setSynchronizedRendering(sync);
-        renderer->postDraw(); // TODO HACK
-	}
-
-}
-
 void View::set2DMode() {
     mIsIn2DMode = true;
 }
@@ -799,16 +785,14 @@ void View::set3DMode() {
 }
 
 std::vector<Renderer::pointer> View::getRenderers() {
+    std::lock_guard<std::mutex> lock(m_mutex);
     std::vector<Renderer::pointer> newList = mNonVolumeRenderers;
     newList.insert(newList.cend(), mVolumeRenderers.begin(), mVolumeRenderers.end());
     return newList;
 }
 
 void View::resetRenderers() {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
-        renderer->reset();
-    }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
+    for(auto renderer : getRenderers()) {
         renderer->reset();
     }
 }
@@ -858,15 +842,6 @@ bool View::eventFilter(QObject *object, QEvent *event) {
 }
 
 void View::changeEvent(QEvent *event) {
-    if(event->type() == QEvent::WindowStateChange) {
-        if(isMinimized()) {
-            Reporter::info() << "Window minimized; turning OFF synchronized rendering" << Reporter::end();
-            setSynchronizedRendering(false);
-        } else {
-            Reporter::info() << "Window not minimized; turning ON synchronized rendering" << Reporter::end();
-            setSynchronizedRendering(true);
-        }
-    }
 }
 
 

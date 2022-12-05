@@ -8,7 +8,10 @@ void ThresholdVolumeRenderer::setThreshold(float threshold) {
     m_threshold = threshold;
 }
 
-void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void
+ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                              int viewWidth,
+                              int viewHeight) {
     // Get window/viewport size
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -81,7 +84,7 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
     );
     mKernel.setArg(1, image);
 
-    auto input = std::dynamic_pointer_cast<Image>(mDataToRender[0]);
+    auto input = std::dynamic_pointer_cast<Image>(getDataToRender()[0]);
     auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
     cl::Image3D *clImage = access->get3DImage();
 

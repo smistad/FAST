@@ -81,18 +81,22 @@ void ProcessObject::update(int executeToken) {
 
     // Set streaming mode for output connections
     // Also remove dead output ports if any
-    for(auto&& outputPorts : mOutputConnections) {
-        std::vector<int> deadOutputPorts;
-        for(int i = 0; i < outputPorts.second.size(); ++i) {
-            auto output = outputPorts.second[i];
-            if(!output.expired()) {
-                DataChannel::pointer port = output.lock();
-            } else {
-                deadOutputPorts.push_back(i);
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        for (auto&& outputPorts : mOutputConnections) {
+            std::vector<int> deadOutputPorts;
+            for (int i = 0; i < outputPorts.second.size(); ++i) {
+                auto output = outputPorts.second[i];
+                if (!output.expired()) {
+                    DataChannel::pointer port = output.lock();
+                }
+                else {
+                    deadOutputPorts.push_back(i);
+                }
             }
+            for (auto deadLink : deadOutputPorts)
+                outputPorts.second.erase(outputPorts.second.begin() + deadLink);
         }
-        for(auto deadLink : deadOutputPorts)
-            outputPorts.second.erase(outputPorts.second.begin() + deadLink);
     }
 
     // If execute token is enabled (its positive), check if current token is equal to last; if so don't reexecute.
@@ -148,6 +152,7 @@ DataChannel::pointer ProcessObject::getOutputPort(uint portID) {
     if(mOutputPorts[portID].currentData)
         dataChannel->addFrame(mOutputPorts[portID].currentData);
 
+	std::lock_guard<std::mutex> lock(m_mutex);
     if(mOutputConnections.count(portID) == 0)
         mOutputConnections[portID] = std::vector<std::weak_ptr<DataChannel>>();
 
@@ -616,6 +621,15 @@ std::shared_ptr<DataObject> ProcessObject::runAndGetOutputData(uint portID, int6
     auto port = getOutputPort(portID);
     run(executeToken);
     return port->getNextFrame();
+}
+
+bool ProcessObject::hasReceivedLastFrameFlag() const {
+    bool lastFrame = false;
+    for(auto input : mInputConnections) {
+        if(input.second->getFrame()->isLastFrame())
+            lastFrame = true;
+    }
+    return lastFrame;
 }
 
 } // namespace fast

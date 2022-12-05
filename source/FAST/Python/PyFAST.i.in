@@ -47,6 +47,7 @@ using namespace fast;
 }
 
 // Third party stuff
+%include <std_pair.i>
 %include <std_string.i>
 %include <std_shared_ptr.i>
 %include <std_vector.i>
@@ -95,6 +96,9 @@ public
 %template(NeuralNetworkNodeMap) std::map<std::string, fast::NeuralNetworkNode>;
 %template(ColorMap) std::map<uint, fast::Color>;
 %template(LabelNames) std::map<uint, std::string>;
+%template(StringMap) std::map<std::string, std::string>;
+%template(StringFloatMap) std::map<std::string, float>;
+%template(StringFloatPair) std::pair<std::string, float>;
 // This avoids the no default constructor available problem for this vector types:
 %ignore std::vector<fast::MeshVertex>::vector(size_type);
 %ignore std::vector<fast::MeshVertex>::resize;
@@ -162,6 +166,8 @@ public
 %template(vectorpo) std::vector<std::shared_ptr<fast::ProcessObject>>;
 %template(vectorimage) std::vector<std::shared_ptr<fast::Image>>;
 %template(vectortensor) std::vector<std::shared_ptr<fast::Tensor>>;
+%template(DataMap) std::map<std::string, std::shared_ptr<fast::DataObject>>;
+%template(ProcessObjectMap) std::map<std::string, std::shared_ptr<fast::ProcessObject>>;
 
 // Since python is dynamically typed, lets convert DataObjects to the right type before returning
 %pythonappend fast::ProcessObject::runAndGetOutputData(uint, int64_t) %{
@@ -206,6 +212,7 @@ public
 %shared_ptr(fast::SimpleDataObject<fast::InferenceDataList>)
 %shared_ptr(fast::SimpleDataObject<float>)
 %shared_ptr(fast::SimpleDataObject<Vector2f>)
+%shared_ptr(fast::SimpleDataObject<std::map<std::string, float>>)
 %shared_ptr(fast::Batch)
 %shared_ptr(fast::Sequence)
 %shared_ptr(fast::FloatScalar)
@@ -214,6 +221,7 @@ public
 %template(SequenceT) fast::SimpleDataObject<fast::InferenceDataList>;
 %template(FloatScalarT) fast::SimpleDataObject<float>;
 %template(FloatPointT) fast::SimpleDataObject<Vector2f>;
+%template(ClassificationSimpleDataType) fast::SimpleDataObject<std::map<std::string, float>>;
 
 @PYFAST_INTERFACE_INCLUDES@
 
@@ -268,9 +276,13 @@ static void* _intToVoidPointer(std::size_t intPointer) {
         has_channels = True
     elif len(shape) == 3 and shape[-1] > 4:
         is_2d = False
+    elif len(shape) >= 5:
+        raise ValueError('Input to image cannot have shape with more than 4 dimensions')
     elif len(shape) > 3:
         is_2d = False
         has_channels = True
+    elif len(shape) < 2:
+        raise ValueError('Input to image must have a shape with at least 2 dimensions')
     if is_2d:
         return Image.create(
             shape[1],
@@ -319,7 +331,7 @@ static float* _intToFloatPointer(std::size_t intPointer) {
         raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
 
     # Check data type if it is correct
-    if ndarray.__array_interface__['typestr'] != 'f4': # Is Float 32 bit?
+    if ndarray.__array_interface__['typestr'][1:] != 'f4': # Is Float 32 bit?
         print('WARNING: ndarray given to fast::Tensor::createFromArray was not 32 bit float and will now be converted.')
     # Make sure it is C contiguous first
     ndarray = np.ascontiguousarray(ndarray, dtype=np.float32)
@@ -354,7 +366,7 @@ namespace fast {
         virtual ~PythonProcessObject() { };
         std::shared_ptr<PythonProcessObject> m_hack;
         PythonProcessObject() {
-            // A hack to make this work as PythonProcessObject does not return a smart pointer thread New as other POs.
+            // A hack to make this work as PythonProcessObject does not return a smart pointer in create as other POs.
             // Use a custom deleter which doesn't delete to avoid double delete
             m_hack.reset(this, [](PythonProcessObject* obj) {});
             mPtr = m_hack;
@@ -444,7 +456,14 @@ namespace fast {
 @classmethod
 def create(cls, *args, **kwargs):
     instance = cls(*args, **kwargs)
-    return instance
+    # This is hack for solving the problem with PythonProcessObjects being deleted too early
+    # For instance in this case:
+    # a = SomePythonPO.create()
+    # b = SomeOtherPO.create().connect(a)
+    # a = SomeOtherPO.create().connect(b) # Variable is overwritten, and gets deleted here, even though b has a reference to it..
+    # This hack will however result in the PO never being deleted..
+    # See section 32.5.3 here: https://swig.org/Doc4.0/Python.html
+    return instance.__disown__() # Returns a weak reference
 
 def getInputData(self, portID:int=0):
     val = self._getInputData(portID)

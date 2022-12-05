@@ -15,7 +15,7 @@ void QueuedDataChannel::addFrame(DataObject::pointer data) {
 
         // If stop is signaled, throw an exception to stop the entire computation thread
         if(m_stop)
-            throw ThreadStopped();
+            throw ThreadStopped(m_errorMessage);
 
         m_queue.push(data);
     }
@@ -34,7 +34,7 @@ DataObject::pointer QueuedDataChannel::getNextDataFrame() {
 
         // If stop is signaled, throw an exception to stop the entire computation thread
         if(m_stop)
-            throw ThreadStopped();
+            throw ThreadStopped(m_errorMessage);
 
         // Get frame next in queue and remove it from the queue
         data = m_queue.front();
@@ -63,8 +63,8 @@ int QueuedDataChannel::getMaximumNumberOfFrames() const {
     return mMaximumNumberOfFrames;
 }
 
-void QueuedDataChannel::stop() {
-    DataChannel::stop();
+void QueuedDataChannel::stop(std::string errorMessage) {
+    DataChannel::stop(errorMessage);
     Reporter::info() << "SIGNALING SEMAPHORES in QueuedDataChannel" << Reporter::end();
 
     // Since getNextFrame or addFrame might be waiting for data, we need to signal the semaphore to stop them blocking

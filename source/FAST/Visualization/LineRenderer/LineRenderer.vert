@@ -11,7 +11,7 @@ uniform bool useGlobalColor;
 uniform vec3 globalColor;
 
 void main() {
-    gl_Position = perspectiveTransform * viewTransform * transform * vec4(in_position, 1.0);
+    gl_Position = vec4(in_position, 1.0);
     if(useGlobalColor) {
         vertexColor = vec4(globalColor, 1.0);
     } else {

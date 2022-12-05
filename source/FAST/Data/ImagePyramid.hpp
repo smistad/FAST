@@ -11,19 +11,6 @@ namespace fast {
 class Image;
 
 /**
- * @brief Image compression types for ImagePyramids (TIFF)
- *
- * @ingroup wsi
- */
-enum class ImageCompression {
-    UNSPECIFIED,
-    RAW,
-    JPEG,
-    JPEG2000,
-    LZW, // Lossless compression
-};
-
-/**
  * @brief Image pyramid data object
  *
  * Data object for storing large images as tiled image pyramids.
@@ -37,8 +24,8 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     public:
         FAST_CONSTRUCTOR(ImagePyramid, int, width,, int, height,, int, channels,, int, patchWidth, = 256, int, patchHeight, = 256);
         FAST_CONSTRUCTOR(ImagePyramid, openslide_t*, fileHandle,, std::vector<ImagePyramidLevel>, levels,);
-        FAST_CONSTRUCTOR(ImagePyramid, std::ifstream*, stream,, std::vector<vsi_tile_header>, tileHeaders,, std::vector<ImagePyramidLevel>, levels,);
-        FAST_CONSTRUCTOR(ImagePyramid, TIFF*, fileHandle,, std::vector<ImagePyramidLevel>, levels,, int, channels,);
+        FAST_CONSTRUCTOR(ImagePyramid, std::ifstream*, stream,, std::vector<vsi_tile_header>, tileHeaders,, std::vector<ImagePyramidLevel>, levels,, ImageCompression, compressionFormat,);
+        FAST_CONSTRUCTOR(ImagePyramid, TIFF*, fileHandle,, std::vector<ImagePyramidLevel>, levels,, int, channels,,bool, isOMETIFF, = false);
         int getNrOfLevels();
         int getLevelWidth(int level);
         int getLevelHeight(int level);
@@ -47,6 +34,14 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getLevelTilesX(int level);
         int getLevelTilesY(int level);
         float getLevelScale(int level);
+        /**
+         * @brief Get level for a given magnification
+         * @param magnification Magnification amount (e.g. 40, 20, 10 etc.)
+         * @param slackPercentage Slack to allow from target magnification, given in percentage of target spacing/magnification.
+         *      If distance between closest level and target magnification is larger than this, an exception is thrown.
+         * @return level
+         */
+        int getLevelForMagnification(int magnification, float slackPercentage = 0.5f);
         int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;
@@ -63,11 +58,15 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         ImagePyramidAccess::pointer getAccess(accessType type);
         std::unordered_set<std::string> getDirtyPatches();
         bool isDirtyPatch(const std::string& tileID);
+        bool isOMETIFF() const;
         void setDirtyPatch(int level, int patchIdX, int patchIdY);
         void clearDirtyPatches(std::set<std::string> patches);
         void free(ExecutionDevice::pointer device) override;
         void freeAll() override;
         ~ImagePyramid();
+        // Override
+        DataBoundingBox getTransformedBoundingBox() const override;
+        DataBoundingBox getBoundingBox() const override;
     private:
         ImagePyramid();
         std::vector<ImagePyramidLevel> m_levels;
@@ -75,6 +74,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
 
         openslide_t* m_fileHandle = nullptr;
         TIFF* m_tiffHandle = nullptr;
+        bool m_isOMETIFF = false;
         std::string m_tiffPath;
 
         int m_channels;
@@ -93,6 +93,10 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         // VSI stuff
         std::ifstream* m_vsiFileHandle;
         std::vector<vsi_tile_header> m_vsiTiles;
+        ImageCompression m_compressionFormat;
+
+        // A mutex needed to control multi-threaded reading of VSI and TIFF files
+        std::mutex m_readMutex;
 };
 
 }

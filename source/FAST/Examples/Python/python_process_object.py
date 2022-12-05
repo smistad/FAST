@@ -40,6 +40,7 @@ class Inverter(fast.PythonProcessObject):
 importer = fast.ImageFileStreamer.create(
     fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd',
     loop=True,
+    framerate=40,
 )
 
 inverter = Inverter.create().connect(importer)

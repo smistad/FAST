@@ -21,7 +21,7 @@ DataObject::pointer NewestFrameDataChannel::getNextDataFrame() {
 
     // If stop is signaled, throw an exception to stop the entire computation thread
     if(m_stop)
-        throw ThreadStopped();
+        throw ThreadStopped(m_errorMessage);
 
     DataObject::pointer data = m_frame;
 
@@ -43,8 +43,8 @@ int NewestFrameDataChannel::getMaximumNumberOfFrames() const {
     return 1;
 }
 
-void NewestFrameDataChannel::stop() {
-    DataChannel::stop();
+void NewestFrameDataChannel::stop(std::string errorMessage) {
+    DataChannel::stop(errorMessage);
 
     // Since getNextFrame might be waiting for data, we need to notify it to stop blocking
     Reporter::info() << "Notifying condition variable" << Reporter::end();

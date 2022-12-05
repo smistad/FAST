@@ -6,6 +6,8 @@
 #include <windows.h>
 #include <direct.h> // Needed for _mkdir
 #include <io.h> // needed for _access_s
+#include <sys/types.h>
+#include <sys/stat.h> // _stat
 #else
 // Needed for making directory
 #include <sys/types.h>
@@ -680,7 +682,10 @@ bool fileExists(std::string filename) {
 
 bool isFile(const std::string& path) {
 #ifdef _WIN32
-    throw Exception("Not implemented");
+    auto dwAttrib = GetFileAttributesA(path.c_str());
+
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES && 
+           !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 #else
     struct stat buf;
     stat(path.c_str(), &buf);
@@ -700,8 +705,8 @@ bool isDir(const std::string& path) {
 	return false; 
 #else
     struct stat buf;
-    stat(path.c_str(), &buf);
-    return S_ISDIR(buf.st_mode);
+    auto res = stat(path.c_str(), &buf);
+    return res == 0 && S_ISDIR(buf.st_mode); // Exists and is directory
 #endif
 }
 
@@ -738,8 +743,9 @@ std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool 
 			const std::string name = data.cFileName;
             if (name == "." || name == "..")
                 continue;
-            if(getDirectories && (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-                list.push_back(name);
+            if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                if(getDirectories)
+					list.push_back(name);
 			} else if(getFiles) {
                 list.push_back(name);
 			}
@@ -839,4 +845,18 @@ std::string stringToUpper(std::string s) {
 	);
     return s;
 }
+
+uint64_t fileSize(std::string filename) {
+#ifdef WIN32
+    struct __stat64 stat_buf;
+    int rc = _stat64(filename.c_str(), &stat_buf);
+#else
+    struct stat stat_buf;
+    int rc = stat(filename.c_str(), &stat_buf);
+#endif
+    if(rc != 0)
+        throw Exception("Unable to get file size of " + filename);
+    return stat_buf.st_size;
+}
+
 } // end namespace fast

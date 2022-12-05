@@ -1,10 +1,11 @@
 #include "Window.hpp"
 #include <QApplication>
-#include <QOffscreenSurface>
+#include <QGLPixelBuffer>
 #include <QEventLoop>
 #include <QScreen>
 #include <QIcon>
 #include <QFontDatabase>
+#include <QMessageBox>
 #ifndef WIN32
 #ifndef __APPLE__
 #include <X11/Xlib.h>
@@ -13,7 +14,8 @@
 
 namespace fast {
 
-QGLContext* Window::mMainGLContext = NULL;
+QGLContext* Window::mMainGLContext = nullptr; // Lives in main thread or computation thread if it exists.
+QGLContext* Window::mSecondaryGLContext = nullptr; // Lives in main thread always
 
 class FAST_EXPORT FASTApplication : public QApplication {
 public:
@@ -26,18 +28,27 @@ public:
 
     // reimplemented from QApplication so we can throw exceptions in slots
     virtual bool notify(QObject *receiver, QEvent *event) {
+        QString msg;
         try {
             return QApplication::notify(receiver, event);
         } catch(Exception &e) {
-            Reporter::error() << "FAST exception caught in Qt event handler " << e.what() << Reporter::end();
-            throw e;
+            msg = "FAST exception caught in Qt event handler " + QString(e.what());
+            Reporter::error() << msg.toStdString() << Reporter::end();
+			if(!Config::getVisualization())
+				throw e;
         } catch(cl::Error &e) {
-            Reporter::error() << "OpenCL exception caught in Qt event handler " << e.what() << "(" << getCLErrorString(e.err()) << ")" << Reporter::end();
-            throw e;
+			msg = "OpenCL exception caught in Qt event handler " + QString(e.what()) + "(" + QString(getCLErrorString(e.err()).c_str()) + ")";
+            Reporter::error() << msg.toStdString() << Reporter::end();
+			if(!Config::getVisualization())
+				throw e;
         } catch(std::exception &e) {
-            Reporter::error() << "Std exception caught in Qt event handler " << e.what() << Reporter::end();
-            throw e;
+            msg = "Standard (std) exception caught in Qt event handler " + QString(e.what());
+            Reporter::error() << msg.toStdString() << Reporter::end();
+			if(!Config::getVisualization())
+				throw e;
         }
+		int ret = QMessageBox::critical(nullptr, "Error", msg);
+
         return false;
     }
 };
@@ -80,6 +91,11 @@ Window::Window() {
     mHeight = 512*windowScaling;
     mFullscreen = false;
     mMaximized = false;
+
+    QObject::connect(mThread.get(), &ComputationThread::criticalError, mWidget, [this](QString msg) {
+        //std::cout << "Got critical error signal. Thread: " << std::this_thread::get_id() << std::endl;
+        int ret = QMessageBox::critical(mWidget, "Error", msg);
+    }, Qt::QueuedConnection); // Queued connection ensures this runs in main thread
 }
 
 void Window::enableFullscreen() {
@@ -118,7 +134,7 @@ void Window::initializeQtApp() {
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
-#if defined(WIN32) || defined(__APPLE__) 
+#if defined(WIN32) || defined(__APPLE__)
         QApplication* app = new FASTApplication(*argc,NULL);
 #else
         if(XOpenDisplay(nullptr) == nullptr) {
@@ -160,8 +176,20 @@ void Window::initializeQtApp() {
         QGLWidget* widget = new QGLWidget;
         mMainGLContext = new QGLContext(View::getGLFormat(), widget); // by including widget here the context becomes valid
         mMainGLContext->create();
+        mSecondaryGLContext = new QGLContext(View::getGLFormat(), widget); // by including widget here the context becomes valid
+        mSecondaryGLContext->create(mMainGLContext);
+        /*
+        // Do this by creating an offscreen GL context using a dummy QGLPixelBuffer
+        // TODO this is not working for some.. why?
+        auto buffer = new QGLPixelBuffer(8,8, View::getGLFormat());
+        buffer->makeCurrent();
+        mMainGLContext = buffer->context();
+         */
         if(!mMainGLContext->isValid()) {
             throw Exception("Qt GL context is invalid!");
+        }
+        if(!mSecondaryGLContext->isValid()) {
+            throw Exception("Secondary Qt GL context is invalid!");
         }
     }
 
@@ -199,6 +227,7 @@ void Window::stop() {
 View* Window::createView() {
     std::lock_guard<std::mutex> lock(m_mutex);
     View *view = new View();
+    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mWidget->installEventFilter(view); // Forward key presses and changeEvents
     mThread->addView(view);
 
@@ -239,6 +268,10 @@ void Window::start() {
         mWidget->connect(timer,SIGNAL(timeout()),mWidget,SLOT(close()));
     }
 
+    for(auto view : getViews()) {
+        view->reinitialize();
+    }
+
     startComputationThread();
 
     mEventLoop->exec(); // This call blocks and starts rendering
@@ -266,7 +299,7 @@ void Window::setTimeout(unsigned int milliseconds) {
 }
 
 QGLContext* Window::getMainGLContext() {
-    if(mMainGLContext == NULL) {
+    if(mMainGLContext == nullptr) {
         if(!Config::getVisualization())
             throw Exception("Visualization in FAST was disabled, unable to continue.\nIf you want to run FAST with visualization on a remote server, see the wiki page\nhttps://github.com/smistad/FAST/wiki/Running-FAST-on-a-remote-server");
         initializeQtApp();
@@ -274,6 +307,18 @@ QGLContext* Window::getMainGLContext() {
 
     return mMainGLContext;
 }
+
+QGLContext* Window::getSecondaryGLContext() {
+    if(mSecondaryGLContext == nullptr) {
+        if(!Config::getVisualization())
+            throw Exception("Visualization in FAST was disabled, unable to continue.\nIf you want to run FAST with visualization on a remote server, see the wiki page\nhttps://github.com/smistad/FAST/wiki/Running-FAST-on-a-remote-server");
+        initializeQtApp();
+    }
+
+    return mSecondaryGLContext;
+}
+
+
 
 void Window::setMainGLContext(QGLContext* context) {
     mMainGLContext = context;
@@ -361,6 +406,10 @@ void Window::run() {
 
 void Window::clearViews() {
     mThread->clearViews();
+}
+
+std::shared_ptr<ComputationThread> Window::getComputationThread() {
+    return mThread;
 }
 
 } // end namespace fast
