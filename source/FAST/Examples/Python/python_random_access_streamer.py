@@ -6,14 +6,24 @@ from time import sleep
 #fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
 fast.downloadTestDataIfNotExists()
 
-class MyStreamer(fast.PythonStreamer):
-    """
-    A simple FAST streamer which runs in its own thread.
-    """
 
+class MyStreamer(fast.PythonRandomAccessStreamer):
+    """
+    A simple FAST random access streamer which runs in its own thread.
+    By random access it is meant that it can move to any given frame index, thus
+    facilitating playback with for instance PlaybackWidget.
+    """
     def __init__(self):
         super().__init__()
         self.createOutputPort(0)
+        self.setFramerate(30)
+
+    def getNrOfFrames(self):
+        """
+        This function must return how many frames the streamer has.
+        :return: nr of frames
+        """
+        return 100
 
     def generateStream(self):
         """
@@ -21,33 +31,38 @@ class MyStreamer(fast.PythonStreamer):
         Run you streaming loop here.
         Remember to call self.addOutputData and self.frameAdded for each frame.
         If these calls return and exception, it means the streaming should stop, thus you need to exit
-        your streaming loop
+        your streaming loop.
         """
         path = fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd'
-        frame = 0
         while True:
+            # First, we need to check this streaming is paused
+            if self.getPause():
+                print('Paused, waiting')
+                self.waitForUnpause() # Wait for streamer to be unpaused
+                print('Done waiting')
+            pause = self.getPause() # Check whether to pause or not
+            print('Pause status', pause)
+            frame = self.getCurrentFrameIndex()
+
             print('Streaming', frame)
             filepath = path.replace('#', str(frame))
-            if not os.path.exists(filepath):
-                # No more frames on disk, restart streaming loop
-                frame = 0
-                continue
 
             # Read frame from disk
             importer = fast.ImageFileImporter.create(filepath)
             image = importer.runAndGetOutputData()
 
+            if not pause:
+                if self.getFramerate() > 0:
+                    sleep(1.0/self.getFramerate())
+                self.getCurrentFrameIndexAndUpdate() # Update the frame index to the next frame
             try:
                 self.addOutputData(0, image)
                 self.frameAdded() # Important to notify any listeners
-                sleep(0.02)
             except:
-                # Streaming has been requested to stop. Thus we break the while loop
                 break
-            frame += 1
 
 
-""" A python process object which simply inverts an image with numpy """
+""" Make a python process object which simply inverts image with numpy """
 class Inverter(fast.PythonProcessObject):
     def __init__(self):
         super().__init__()
@@ -68,9 +83,15 @@ class Inverter(fast.PythonProcessObject):
 
 # Setup processing chain and run
 streamer = MyStreamer.create()
+streamer.setLooping(True)
 
 inverter = Inverter.create().connect(streamer)
 
+widget = fast.PlaybackWidget(streamer)
+
 renderer = fast.ImageRenderer.create().connect(inverter)
 
-fast.SimpleWindow2D.create().connect(renderer).run()
+window = fast.SimpleWindow2D.create()\
+    .connect(renderer)
+window.addWidget(widget)
+window.run()

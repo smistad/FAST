@@ -128,8 +128,12 @@ public
 %ignore fast::Tensor::create(std::unique_ptr<float[]> data, TensorShape shape);
 // Disable GIL on PythonStreamer execute to avoid deadlock between execute and generateStream
 %ignore fast::PythonStreamer::execute;
+%ignore fast::PythonRandomAccessStreamer::execute;
+%ignore fast::PythonRandomAccessStreamer::getPause;
+%ignore fast::PythonRandomAccessStreamer::waitForUnpause;
 %ignore fast::Streamer::waitForFirstFrame;
 %ignore fast::Streamer::startStream;
+%ignore fast::Streamer::setMaximumNrOfFrames;
 
 %nodefaultdtor Config;
 
@@ -352,6 +356,8 @@ static float* _intToFloatPointer(std::size_t intPointer) {
 %shared_ptr(fast::PythonProcessObject)
 %feature("director") PythonStreamer;
 %shared_ptr(fast::PythonStreamer)
+%feature("director") PythonRandomAccessStreamer;
+%shared_ptr(fast::PythonRandomAccessStreamer)
 
 
 %inline %{
@@ -409,11 +415,8 @@ namespace fast {
              return "PythonStreamer";
          }
          void execute() {
-             std::cout << "Starting stream.." << std::endl;
              startStream();
-             std::cout << "Done." << std::endl;
              waitForFirstFrame();
-             std::cout << "Got first frame" << std::endl;
          }
          virtual ~PythonStreamer() { };
          std::shared_ptr<PythonStreamer> m_hack;
@@ -422,6 +425,7 @@ namespace fast {
              // Use a custom deleter which doesn't delete to avoid double delete
              m_hack.reset(this, [](PythonStreamer* obj) {});
              mPtr = m_hack;
+             setModified(true);
          }
 
          void addOutputData(int port, std::shared_ptr<DataObject> image) {
@@ -447,89 +451,97 @@ namespace fast {
              Streamer::frameAdded();
          }
      }; // end class python process object
+
+
+     class PythonRandomAccessStreamer : public RandomAccessStreamer {
+     public:
+         virtual void generateStream() = 0;
+         virtual int getNrOfFrames() = 0;
+         std::string getNameOfClass() const {
+             return "PythonRandomAccessStreamer";
+         }
+         void execute() {
+             startStream();
+             waitForFirstFrame();
+         }
+         virtual ~PythonRandomAccessStreamer() { };
+         std::shared_ptr<PythonRandomAccessStreamer> m_hack;
+         PythonRandomAccessStreamer() {
+             // A hack to make this work as PythonRandomAccessStreamer does not return a smart pointer thread New as other POs.
+             // Use a custom deleter which doesn't delete to avoid double delete
+             m_hack.reset(this, [](PythonRandomAccessStreamer* obj) {});
+             mPtr = m_hack;
+             setModified(true);
+         }
+
+         void addOutputData(int port, std::shared_ptr<DataObject> image) {
+             ProcessObject::addOutputData(port, image);
+         }
+
+         DataObject::pointer _getInputData(int port = 0) {
+             auto data = ProcessObject::getInputData<DataObject>(port);
+             return data;
+         }
+
+         DataChannel::pointer getOutputPort(uint portID = 0) {
+             return ProcessObject::getOutputPort(portID);
+         }
+
+         void createInputPort(int port) {
+             ProcessObject::createInputPort<DataObject>(port);
+         }
+         void createOutputPort(int port) {
+             ProcessObject::createOutputPort<DataObject>(port);
+         }
+         void frameAdded() {
+             Streamer::frameAdded();
+         }
+         int getCurrentFrameIndex() {
+             return RandomAccessStreamer::getCurrentFrameIndex();
+         }
+         int getCurrentFrameIndexAndUpdate() {
+             return RandomAccessStreamer::getCurrentFrameIndexAndUpdate();
+         }
+         bool getPause() {
+             return RandomAccessStreamer::getPause();
+         }
+         void setPause(bool pause) {
+             RandomAccessStreamer::setPause(pause);
+         }
+         void waitForUnpause() {
+             return RandomAccessStreamer::waitForUnpause();
+         }
+         bool getLooping() {
+             return RandomAccessStreamer::getLooping();
+         }
+         void setLooping(bool loop) {
+             RandomAccessStreamer::setLooping(loop);
+         }
+         void setCurrentFrameIndex(int i) {
+             RandomAccessStreamer::setCurrentFrameIndex(i);
+         }
+         int getFramerate() {
+             return RandomAccessStreamer::getFramerate();
+         }
+         void setFramerate(int framerate) {
+             RandomAccessStreamer::setFramerate(framerate);
+         }
+     }; // end class python process object
 } // end namespace
 %}
 
 // Extend PythonProcessObject with some Python code
 %extend fast::PythonProcessObject {
-%pythoncode %{
-@classmethod
-def create(cls, *args, **kwargs):
-    instance = cls(*args, **kwargs)
-    # This is hack for solving the problem with PythonProcessObjects being deleted too early
-    # For instance in this case:
-    # a = SomePythonPO.create()
-    # b = SomeOtherPO.create().connect(a)
-    # a = SomeOtherPO.create().connect(b) # Variable is overwritten, and gets deleted here, even though b has a reference to it..
-    # This hack will however result in the PO never being deleted..
-    # See section 32.5.3 here: https://swig.org/Doc4.0/Python.html
-    return instance.__disown__() # Returns a weak reference
-
-def getInputData(self, portID:int=0):
-    val = self._getInputData(portID)
-    className = val.getNameOfClass()
-    val = eval(className + '.fromDataObject')(val)
-    return val
-
-def connect(self, *args):
-    inputPortID = 0
-    outputPortID = 0
-    if len(args) == 1:
-        parentProcessObject = args[0]
-    elif len(args) == 2:
-        if isinstance(args[0], int):
-            inputPortID = int(args[0])
-            parentProcessObject = args[1]
-        else:
-            parentProcessObject = args[0]
-            outputPortID = int(args[1])
-    elif len(args) == 3:
-        inputPortID = int(args[0])
-        parentProcessObject = args[1]
-        outputPortID = int(args[2])
-    else:
-        raise TypeError("Incorrect arguemnts to connect()")
-
-    super().connect(inputPortID, parentProcessObject, outputPortID)
-    return self
-%}
+%pythoncode "@PROJECT_SOURCE_DIR@/source/FAST/Python/ProcessObjectExtensions.py"
 }
-// Extend PythonStreamer with some Python code TODO code duplication from above
+// Extend PythonStreamer with some Python code
 %extend fast::PythonStreamer {
-%pythoncode %{
-@classmethod
-def create(cls, *args, **kwargs):
-    instance = cls(*args, **kwargs)
-    return instance
+%pythoncode "@PROJECT_SOURCE_DIR@/source/FAST/Python/ProcessObjectExtensions.py"
+}
 
-def getInputData(self, portID:int=0):
-    val = self._getInputData(portID)
-    className = val.getNameOfClass()
-    val = eval(className + '.fromDataObject')(val)
-    return val
-
-def connect(self, *args):
-    inputPortID = 0
-    outputPortID = 0
-    if len(args) == 1:
-        parentProcessObject = args[0]
-    elif len(args) == 2:
-        if isinstance(args[0], int):
-            inputPortID = int(args[0])
-            parentProcessObject = args[1]
-        else:
-            parentProcessObject = args[0]
-            outputPortID = int(args[1])
-    elif len(args) == 3:
-        inputPortID = int(args[0])
-        parentProcessObject = args[1]
-        outputPortID = int(args[2])
-    else:
-        raise TypeError("Incorrect arguemnts to connect()")
-
-    super().connect(inputPortID, parentProcessObject, outputPortID)
-    return self
-%}
+// Extend PythonRandomAccessStreamer with some Python code
+%extend fast::PythonRandomAccessStreamer {
+%pythoncode "@PROJECT_SOURCE_DIR@/source/FAST/Python/ProcessObjectExtensions.py"
 }
 
 // Get proper error messages if python error occurs in PythonProcessObject director
