@@ -21,7 +21,7 @@ void main()
 
     // Border check
     bool isBorder = false;
-    if(borderOpacity != opacity) {
+    if(borderRadius > 1 || borderOpacity != opacity) {
         // Check neighbors
         // If any neighbors have a different label, we are at the border
         for(int a = -borderRadius; a <= borderRadius; ++a) {
