@@ -1,3 +1,10 @@
+## @example python_random_access_streamer.py
+# An example showing how to make a FAST random access streamer in python.
+# A FAST streamer is a special process object which generates data asynchronously.
+# This can for instance be streaming data from an ultrasound scanner in real-time or from disk.
+# A random access streamer can move to any given frame index at any time, thus enabling
+# controlable playback with for instance the PlaybackWidget as shown in this example.
+# @image html images/examples/python/python_process_object.jpg width=400px;
 import fast
 import os
 import numpy as np
@@ -12,8 +19,13 @@ class MyStreamer(fast.PythonRandomAccessStreamer):
     A simple FAST random access streamer which runs in its own thread.
     By random access it is meant that it can move to any given frame index, thus
     facilitating playback with for instance PlaybackWidget.
+    This streamer reads a series of MHD images on disk.
+    This can be done easily with the ImageFileStreamer, but this is just an example.
     """
     def __init__(self):
+        """
+        Constructor, remember to create the output port here 
+        """
         super().__init__()
         self.createOutputPort(0)
         self.setFramerate(30)
@@ -62,36 +74,15 @@ class MyStreamer(fast.PythonRandomAccessStreamer):
                 break
 
 
-""" Make a python process object which simply inverts image with numpy """
-class Inverter(fast.PythonProcessObject):
-    def __init__(self):
-        super().__init__()
-        self.createInputPort(0)
-        self.createOutputPort(0)
-
-    def execute(self):
-        # Get image and invert it with numpy
-        image = self.getInputData()
-        np_image = np.asarray(image)
-        np_image = 255 - np_image # invert
-
-        # Create new fast image and add as output
-        new_output_image = fast.Image.createFromArray(np_image)
-        new_output_image.setSpacing(image.getSpacing())
-        self.addOutputData(0, new_output_image)
-
-
 # Setup processing chain and run
 streamer = MyStreamer.create()
 streamer.setLooping(True)
 
-inverter = Inverter.create().connect(streamer)
 
-widget = fast.PlaybackWidget(streamer)
-
-renderer = fast.ImageRenderer.create().connect(inverter)
+renderer = fast.ImageRenderer.create().connect(streamer)
 
 window = fast.SimpleWindow2D.create()\
     .connect(renderer)
+widget = fast.PlaybackWidget(streamer) # GUI widget for controlling playback
 window.addWidget(widget)
 window.run()

@@ -1,5 +1,7 @@
 ## @example python_process_object.py
-# An example showing how to make FAST process object in python.
+# An example showing how to make a FAST process object in python.
+# A process object (PO) is a pipeline object which performs processing on zero or more input data
+# and generates zero or more output data.
 # @image html images/examples/python/python_process_object.jpg width=400px;
 import fast
 import numpy as np

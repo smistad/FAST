@@ -1,3 +1,9 @@
+## @example python_streamer.py
+# An example showing how to make a FAST streamer in python.
+# A FAST streamer is a special process object which inherits from
+# Streamer, and generates data asynchronously.
+# This can for instance be streaming data from an ultrasound scanner in real-time or from disk.
+# @image html images/examples/python/left_ventricle.jpg width=400px;
 import fast
 import os
 import numpy as np
@@ -9,9 +15,14 @@ fast.downloadTestDataIfNotExists()
 class MyStreamer(fast.PythonStreamer):
     """
     A simple FAST streamer which runs in its own thread.
+    This streamer reads a series of MHD images on disk.
+    This can be done easily with the ImageFileStreamer, but this is just an example.
     """
 
     def __init__(self):
+        """
+        Constructor, remember to create the output port here
+        """
         super().__init__()
         self.createOutputPort(0)
 
@@ -47,30 +58,9 @@ class MyStreamer(fast.PythonStreamer):
             frame += 1
 
 
-""" A python process object which simply inverts an image with numpy """
-class Inverter(fast.PythonProcessObject):
-    def __init__(self):
-        super().__init__()
-        self.createInputPort(0)
-        self.createOutputPort(0)
-
-    def execute(self):
-        # Get image and invert it with numpy
-        image = self.getInputData()
-        np_image = np.asarray(image)
-        np_image = 255 - np_image # invert
-
-        # Create new fast image and add as output
-        new_output_image = fast.Image.createFromArray(np_image)
-        new_output_image.setSpacing(image.getSpacing())
-        self.addOutputData(0, new_output_image)
-
-
 # Setup processing chain and run
 streamer = MyStreamer.create()
 
-inverter = Inverter.create().connect(streamer)
-
-renderer = fast.ImageRenderer.create().connect(inverter)
+renderer = fast.ImageRenderer.create().connect(streamer)
 
 fast.SimpleWindow2D.create().connect(renderer).run()
