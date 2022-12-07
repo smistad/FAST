@@ -35,11 +35,13 @@ class FAST_EXPORT Streamer : public ProcessObject {
     public:
         typedef std::shared_ptr<Streamer> pointer;
         Streamer();
-        virtual ~Streamer() {};
+        virtual ~Streamer() { stop(); };
         static std::string getStaticNameOfClass() {
             return "Streamer";
         }
-        virtual std::string getNameOfClass() const = 0;
+        virtual std::string getNameOfClass() {
+            return "Streamer";
+        }
 
         /**
          * Stop the stream

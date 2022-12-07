@@ -34,6 +34,7 @@ Streamer::Streamer() {
 }
 
 void Streamer::stop() {
+    reportInfo() << "Stopping in streamer.." << reportEnd();
     {
         std::unique_lock<std::mutex> lock(m_stopMutex);
         m_stop = true;
