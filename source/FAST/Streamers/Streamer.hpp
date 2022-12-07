@@ -39,7 +39,7 @@ class FAST_EXPORT Streamer : public ProcessObject {
         static std::string getStaticNameOfClass() {
             return "Streamer";
         }
-        virtual std::string getNameOfClass() {
+        virtual std::string getNameOfClass() const override {
             return "Streamer";
         }
 
@@ -47,6 +47,8 @@ class FAST_EXPORT Streamer : public ProcessObject {
          * Stop the stream
          */
         virtual void stop();
+
+        virtual bool isStopped();
 
         virtual void setMaximumNrOfFrames(int maximumNrOfFrames);
 

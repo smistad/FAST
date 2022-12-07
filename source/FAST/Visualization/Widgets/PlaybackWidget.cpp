@@ -23,11 +23,13 @@ PlaybackWidget::PlaybackWidget(std::shared_ptr<RandomAccessStreamer> streamer, Q
     playbackLayout->addWidget(m_playButton);
     QObject::connect(m_playButton, &QPushButton::clicked, [this] {
         if(m_streamer) {
+            m_streamer->setPause(!m_streamer->getPause());
+            /*
             if(!m_streamer->getPause()) {
                 m_streamer->setCurrentFrameIndex(m_slider->sliderPosition()); // This will pause as well
             } else {
                 m_streamer->setPause(false);
-            }
+            }*/
         }
     });
 

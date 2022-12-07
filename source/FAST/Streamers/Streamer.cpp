@@ -38,6 +38,8 @@ void Streamer::stop() {
     {
         std::unique_lock<std::mutex> lock(m_stopMutex);
         m_stop = true;
+        m_streamIsStarted = false;
+        m_firstFrameIsInserted = false;
     }
     if(m_thread) {
         m_thread->join();
@@ -68,6 +70,11 @@ DataChannel::pointer Streamer::getOutputPort(uint portID) {
     }
 
     return m_outputPO->getOutputPort();
+}
+
+bool Streamer::isStopped() {
+    std::lock_guard<std::mutex> lock(m_stopMutex);
+    return m_stop;
 }
 
 }

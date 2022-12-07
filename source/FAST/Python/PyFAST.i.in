@@ -411,7 +411,7 @@ namespace fast {
      class PythonStreamer : public Streamer {
      public:
          virtual void generateStream() = 0;
-         std::string getNameOfClass() const {
+         std::string getNameOfClass() const override {
              return "PythonStreamer";
          }
          void execute() {
@@ -426,6 +426,14 @@ namespace fast {
              m_hack.reset(this, [](PythonStreamer* obj) {});
              mPtr = m_hack;
              setModified(true);
+         }
+
+         bool isStopped() {
+             return Streamer::isStopped();
+         }
+
+         void stop() {
+             Streamer::stop();
          }
 
          void addOutputData(int port, std::shared_ptr<DataObject> image) {
@@ -474,6 +482,14 @@ namespace fast {
              setModified(true);
          }
 
+         bool isStopped() {
+             return RandomAccessStreamer::isStopped();
+         }
+
+         void stop() {
+             RandomAccessStreamer::stop();
+         }
+
          void addOutputData(int port, std::shared_ptr<DataObject> image) {
              ProcessObject::addOutputData(port, image);
          }
@@ -494,7 +510,7 @@ namespace fast {
              ProcessObject::createOutputPort<DataObject>(port);
          }
          void frameAdded() {
-             Streamer::frameAdded();
+             RandomAccessStreamer::frameAdded();
          }
          int getCurrentFrameIndex() {
              return RandomAccessStreamer::getCurrentFrameIndex();
@@ -538,7 +554,6 @@ namespace fast {
 %extend fast::PythonStreamer {
 %pythoncode "@PROJECT_SOURCE_DIR@/source/FAST/Python/ProcessObjectExtensions.py"
 }
-
 // Extend PythonRandomAccessStreamer with some Python code
 %extend fast::PythonRandomAccessStreamer {
 %pythoncode "@PROJECT_SOURCE_DIR@/source/FAST/Python/ProcessObjectExtensions.py"

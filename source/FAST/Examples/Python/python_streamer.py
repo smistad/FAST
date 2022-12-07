@@ -9,8 +9,9 @@ import os
 import numpy as np
 from time import sleep
 
-#fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
+fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
 fast.downloadTestDataIfNotExists()
+
 
 class MyStreamer(fast.PythonStreamer):
     """
@@ -36,24 +37,25 @@ class MyStreamer(fast.PythonStreamer):
         """
         path = fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd'
         frame = 0
-        while True:
+        stop = False
+        while not self.isStopped() and not stop: # Run until stopped
             print('Streaming', frame)
-            filepath = path.replace('#', str(frame))
-            if not os.path.exists(filepath):
-                # No more frames on disk, restart streaming loop
-                frame = 0
-                continue
-
-            # Read frame from disk
-            importer = fast.ImageFileImporter.create(filepath)
-            image = importer.runAndGetOutputData()
 
             try:
+                # Read frame from disk
+                importer = fast.ImageFileImporter.create(path.replace('#', str(frame)))
+                image = importer.runAndGetOutputData()
+                # Check if this was the last frame
+                if not os.path.exists(path.replace('#', str(frame+1))):
+                    # If last frame, we need to mark it as 'last frame'
+                    image.setLastFrame('MyStreamer')
+
                 self.addOutputData(0, image)
                 self.frameAdded() # Important to notify any listeners
-                sleep(0.02)
+                sleep(0.02) # Sleep a little bit to mimick a framerate of 50
             except:
-                # Streaming has been requested to stop. Thus we break the while loop
+                # Streaming has been requested to stop OR there are no more frames OR some other error occured.
+                # Thus we break the while loop
                 break
             frame += 1
 

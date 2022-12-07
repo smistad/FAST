@@ -3,7 +3,7 @@
 # A FAST streamer is a special process object which generates data asynchronously.
 # This can for instance be streaming data from an ultrasound scanner in real-time or from disk.
 # A random access streamer can move to any given frame index at any time, thus enabling
-# controlable playback with for instance the PlaybackWidget as shown in this example.
+# controllable playback with for instance the PlaybackWidget as shown in this example.
 # @image html images/examples/python/python_process_object.jpg width=400px;
 import fast
 import os
@@ -14,7 +14,7 @@ from time import sleep
 fast.downloadTestDataIfNotExists()
 
 
-class MyStreamer(fast.PythonRandomAccessStreamer):
+class MyRandomAccessStreamer(fast.PythonRandomAccessStreamer):
     """
     A simple FAST random access streamer which runs in its own thread.
     By random access it is meant that it can move to any given frame index, thus
@@ -46,26 +46,24 @@ class MyStreamer(fast.PythonRandomAccessStreamer):
         your streaming loop.
         """
         path = fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd'
-        while True:
-            # First, we need to check this streaming is paused
+        while not self.isStopped():
+            # First, we need to check if this streaming is paused
             if self.getPause():
-                print('Paused, waiting')
                 self.waitForUnpause() # Wait for streamer to be unpaused
-                print('Done waiting')
             pause = self.getPause() # Check whether to pause or not
-            print('Pause status', pause)
             frame = self.getCurrentFrameIndex()
 
             print('Streaming', frame)
-            filepath = path.replace('#', str(frame))
 
             # Read frame from disk
-            importer = fast.ImageFileImporter.create(filepath)
+            importer = fast.ImageFileImporter.create(path.replace('#', str(frame)))
             image = importer.runAndGetOutputData()
+            if frame == self.getNrOfFrames()-1: # If this is last frame, mark it as such
+                image.setLastFrame('MyStreamer')
 
             if not pause:
                 if self.getFramerate() > 0:
-                    sleep(1.0/self.getFramerate())
+                    sleep(1.0/self.getFramerate()) # Sleep to give the requested framerate
                 self.getCurrentFrameIndexAndUpdate() # Update the frame index to the next frame
             try:
                 self.addOutputData(0, image)
@@ -75,9 +73,8 @@ class MyStreamer(fast.PythonRandomAccessStreamer):
 
 
 # Setup processing chain and run
-streamer = MyStreamer.create()
+streamer = MyRandomAccessStreamer.create()
 streamer.setLooping(True)
-
 
 renderer = fast.ImageRenderer.create().connect(streamer)
 
