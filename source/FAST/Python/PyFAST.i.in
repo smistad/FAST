@@ -458,7 +458,7 @@ namespace fast {
          void frameAdded() {
              Streamer::frameAdded();
          }
-     }; // end class python process object
+     }; // end class python streamer
 
 
      class PythonRandomAccessStreamer : public RandomAccessStreamer {
@@ -542,7 +542,7 @@ namespace fast {
          void setFramerate(int framerate) {
              RandomAccessStreamer::setFramerate(framerate);
          }
-     }; // end class python process object
+     }; // end class python random access streamer
 } // end namespace
 %}
 

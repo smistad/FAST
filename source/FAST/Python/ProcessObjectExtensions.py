@@ -1,13 +1,22 @@
 @classmethod
 def create(cls, *args, **kwargs):
     instance = cls(*args, **kwargs)
-    return instance
+    # This is hack for solving the problem with PythonProcessObjects being deleted too early
+    # For instance in this case:
+    # a = SomePythonPO.create()
+    # b = SomeOtherPO.create().connect(a)
+    # a = SomeOtherPO.create().connect(b) # Variable is overwritten, and gets deleted here, even though b has a reference to it..
+    # This hack will however result in the PO never being deleted..
+    # See section 32.5.3 here: https://swig.org/Doc4.0/Python.html
+    return instance.__disown__() # Returns a weak reference
+
 
 def getInputData(self, portID:int=0):
     val = self._getInputData(portID)
     className = val.getNameOfClass()
     val = eval(className + '.fromDataObject')(val)
     return val
+
 
 def connect(self, *args):
     inputPortID = 0
