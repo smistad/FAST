@@ -4,7 +4,7 @@
 # This can for instance be streaming data from an ultrasound scanner in real-time or from disk.
 # A random access streamer can move to any given frame index at any time, thus enabling
 # controllable playback with for instance the PlaybackWidget as shown in this example.
-# @image html images/examples/python/python_process_object.jpg width=400px;
+# @image html images/examples/python/python_random_access_streamer.jpg width=400px;
 import fast
 import os
 import numpy as np

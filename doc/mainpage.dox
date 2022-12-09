@@ -9,7 +9,7 @@
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](download-stats.html)
 [![](https://img.shields.io/github/license/smistad/FAST)](https://github.com/smistad/FAST/blob/master/LICENSE)
 
-FAST is an open-source cross-platform framework with the main goal of making it easier to do high-performance processing and visualization of medical images on heterogeneous systems utilizing both multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL.
+FAST is an open-source framework with the main goal of making it easier to do high-performance processing, neural network inference, and visualization of medical images utilizing multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL, and neural network inference libraries such as TensorRT, OpenVINO, TensorFlow and ONNX Runtime.
 
 @section get-started Get started
 See installation instructions for [Windows](@ref install-windows), [Ubuntu Linux](@ref install-ubuntu-linux) and [macOS](@ref install-mac).
@@ -23,7 +23,7 @@ Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.
 @section features Main features
 
 - **Data streaming** – Processing pipelines in FAST can handle both static and dynamic/temporal data without any change to the code. FAST can stream data from movie files, your webcamera, an Intel RealSense camera, a sequence of images and even directly from ultrasound scanners such as Clarius.
-- **Deep learning** – FAST provides a common interface for neural networks supporting different model formats (ONNX, protobuf, SavedModel, OpenVINO, UFF) and backends (Google TensorFlow, NVIDIA TensorRT, Intel OpenVINO), making it possible to create real-time neural network pipelines.
+- **Deep learning** – FAST provides a common interface for neural networks supporting different model formats (ONNX, protobuf, SavedModel, OpenVINO, UFF) and backends (Google TensorFlow, NVIDIA TensorRT, Intel OpenVINO, Microsoft ONNX Runtime), making it possible to create real-time neural network pipelines.
 - **High-level data management** – Data objects in FAST represent data, such as an image, on all processors. FAST keeps data coherent across the different storage areas thereby removing the burden of explicit memory handling from the developer.
 - **Wide data format support** - FAST supports several data formats (DICOM, metaimage (MHD), regular jpg/png/bmp images, videos, HDF5, VTK polydata, whole slide images, ultrasound file format) and data types (images 2D and 3D, grayscale and color, image pyramids, surface mesh, vertices, lines, text ++).
 - **High performance algorithms** – FAST has several high performance parallel OpenCL implementations of common algorithms, such as marching cubes surface extraction, Gaussian smoothing, non-local means, block matching tracking and seeded region growing.

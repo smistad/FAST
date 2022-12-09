@@ -30,6 +30,9 @@ labelRenderer = fast.SegmentationLabelRenderer.create(
         labelColors={1: fast.Color.Red(), 2: fast.Color.Blue()},
 ).connect(segmentationNetwork)
 
+widget = fast.PlaybackWidget(streamer)
+
 window = fast.SimpleWindow2D.create(bgcolor=fast.Color.Black())\
     .connect([imageRenderer, segmentationRenderer, labelRenderer])\
+    .connect(widget)\
     .run()

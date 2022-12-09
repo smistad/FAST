@@ -18,6 +18,8 @@ All the Python examples can be found in the [repository](https://github.com/smis
 |[Stream images from Clarius ultrasound scanner and apply a non-local means (NLM) filter](@ref stream_from_clarius_ultrasound_scanner.py)| @image html images/examples/python/clarius_streaming.jpg width=350px; |
 |[Extract surface mesh from CT volume and render using GPU-based Marching Cubes algorithm](@ref extract_surface_mesh.py)| @image html images/examples/python/extract_surface_and_render.jpg width=350px; |
 |[Inject Python code into a FAST pipeline by creating a custom Python process object](@ref python_process_object.py)| @image html images/examples/python/python_process_object.jpg width=350px; |
+|[Create a custom data streamer in Python](@ref python_streamer.py)| @image html images/examples/python/left_ventricle.jpg width=350px; |
+|[Create a custom random access streamer with playback GUI in Python](@ref python_random_access_streamer.py)| @image html images/examples/python/python_random_access_streamer.jpg width=350px; |
 |[Creating a Qt GUI with PySide2 along FAST](@ref pyfast_and_pyside2.py)| @image html images/examples/python/pyfast_and_pyside.jpg width=350px; |
 |[Using FAST in an existing PySide2 application](@ref pyfast_and_pyside2_custom_window.py)| @image html images/examples/python/pyfast_and_pyside_custom_window.jpg width=350px; |
 |[Real-time line plotting](@ref real_time_line_plotter.py)|  @image html images/examples/python/real_time_line_plotter.jpg width=350px; |
