@@ -3,7 +3,7 @@ include(cmake/Externals.cmake)
 
 ExternalProject_Add(clarius_headers
     PREFIX ${FAST_EXTERNAL_BUILD_DIR}/clarius
-    URL https://github.com/clariusdev/cast/archive/05c61026e281bce9d7ecaa8b331d6593066c1d58.zip 
+    URL https://github.com/clariusdev/cast/archive/33628ea38abe47cc65528e8a992d460acd9ca631.zip 
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -11,11 +11,11 @@ ExternalProject_Add(clarius_headers
 )
 
 if(WIN32)
-    set(URL "https://github.com/clariusdev/cast/releases/download/v10.0.0/cast-10.0.0-windows.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/v10.1.1/cast-10.1.1-windows.zip")
 elseif(APPLE)
-    set(URL "https://github.com/clariusdev/cast/releases/download/v10.0.0/cast-10.0.0-macos.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/v10.1.1/cast-10.1.1-macos.zip")
 else()
-    set(URL "https://github.com/clariusdev/cast/releases/download/v10.0.0/cast-10.0.0-linux.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/v10.1.1/cast-10.1.1-linux.zip")
 endif()
 
 if(WIN32)
@@ -30,7 +30,7 @@ ExternalProject_Add(clarius
         DEPENDS clarius_headers
 
 )
-else()
+elseif(APPLE)
 ExternalProject_Add(clarius
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/clarius # The folder in which the package will downloaded to
         URL ${URL}
@@ -38,6 +38,16 @@ ExternalProject_Add(clarius
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/
+        DEPENDS clarius_headers
+)
+else()
+ExternalProject_Add(clarius
+        PREFIX ${FAST_EXTERNAL_BUILD_DIR}/clarius # The folder in which the package will downloaded to
+        URL ${URL}
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/20.04/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/
         DEPENDS clarius_headers
 )
 endif()
