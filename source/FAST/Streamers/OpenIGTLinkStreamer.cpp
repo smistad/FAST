@@ -1,5 +1,6 @@
 #include "OpenIGTLinkStreamer.hpp"
 #include "FAST/Data/Image.hpp"
+#include "FAST/Data/SimpleDataObject.hpp"
 #include <igtl/igtlOSUtil.h>
 #include <igtl/igtlMessageHeader.h>
 #include <igtl/igtlTransformMessage.h>
@@ -9,14 +10,15 @@
 #include <igtl/igtlStringMessage.h>
 #include <igtl/igtlClientSocket.h>
 #include <chrono>
+#include <string>
 
 namespace fast {
 
-	class IGTLSocketWrapper {
-	public:
-		IGTLSocketWrapper(igtl::ClientSocket::Pointer socket) : socket(socket) {};
-		igtl::ClientSocket::Pointer socket;
-	};
+class IGTLSocketWrapper {
+public:
+    IGTLSocketWrapper(igtl::ClientSocket::Pointer socket) : socket(socket) {};
+    igtl::ClientSocket::Pointer socket;
+};
 
 void OpenIGTLinkStreamer::setConnectionAddress(std::string address) {
     mAddress = address;
@@ -343,14 +345,14 @@ void OpenIGTLinkStreamer::generateStream() {
             // Receive transform data from the socket
             bool timeout = false;
             int r = mSocketWrapper->socket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize(), timeout);
-			if(r == 0 || timeout) {
-				//connectionLostSignal();
-				mSocketWrapper->socket->CloseSocket();
-				break;
-			}
+            if (r == 0 || timeout) {
+                //connectionLostSignal();
+                mSocketWrapper->socket->CloseSocket();
+                break;
+            }
 
 
-            if(statusMessageCounter > 3 && !mInFreezeMode) {
+            if (statusMessageCounter > 3 && !mInFreezeMode) {
                 reportInfo() << "3 STATUS MESSAGE received, freeze detected" << Reporter::end();
                 mInFreezeMode = true;
                 //freezeSignal();
@@ -358,6 +360,30 @@ void OpenIGTLinkStreamer::generateStream() {
                 // If no frames has been inserted, stop
                 frameAdded();
             }
+        } else if(strcmp(headerMsg->GetDeviceType(), "STRING") == 0 && !ignore) {
+            // Receive generic message
+            igtl::StringMessage::Pointer stringMsg;
+            stringMsg = igtl::StringMessage::New();
+            stringMsg->SetMessageHeader(headerMsg);
+            stringMsg->AllocatePack();
+
+            // Receive transform data from the socket
+            bool timeout = false;
+            int r = mSocketWrapper->socket->Receive(stringMsg->GetPackBodyPointer(), stringMsg->GetPackBodySize(), timeout);
+            if (r == 0 || timeout) {
+                //connectionLostSignal();
+                mSocketWrapper->socket->CloseSocket();
+                break;
+            }
+
+            stringMsg->Unpack();
+            auto message = stringMsg->GetString();
+
+            FASTString::pointer fastStringMsg = FASTString::create(message);
+            fastStringMsg->setCreationTimestamp(timestamp);
+
+            addTimestamp(timestamp);
+            addOutputData(mOutputPortDeviceNames[deviceName], fastStringMsg);
        } else {
            // Receive generic message
           igtl::MessageBase::Pointer message;
