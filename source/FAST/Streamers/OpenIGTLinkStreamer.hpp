@@ -4,9 +4,11 @@
 #include <unordered_map>
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
+#include "FAST/Data/SimpleDataObject.hpp"
 #include <set>
 #include "FASTExport.hpp"
 #include <deque>
+#include <string>
 
 // Forward declare
 
@@ -14,6 +16,9 @@ namespace fast {
 
 class Image;
 class IGTLSocketWrapper;
+
+FAST_SIMPLE_DATA_OBJECT(FASTString, std::string);
+
 
 /**
  * @brief Stream image or transforms from an OpenIGTLink server
