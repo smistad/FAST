@@ -206,18 +206,11 @@ void OpenVINOEngine::load() {
         } catch(::InferenceEngine::details::InferenceEngineException &e) {
             try {
                 reportInfo() << "Failed to get GPU plugin for OpenVINO inference engine: " << e.what() << reportEnd();
-                reportInfo() << "Trying VPU/Myriad/Neural compute stick plugin instead.." << reportEnd();
-                loadPlugin("MYRIAD");
+                reportInfo() << "Trying CPU plugin instead.." << reportEnd();
+                loadPlugin("CPU");
             } catch(::InferenceEngine::details::InferenceEngineException &e) {
-                try {
-                    reportInfo() << "Failed to get GPU/VPU plugin for OpenVINO inference engine: " << e.what()
-                                 << reportEnd();
-                    reportInfo() << "Trying CPU plugin instead.." << reportEnd();
-                    loadPlugin("CPU");
-                } catch(::InferenceEngine::details::InferenceEngineException &e) {
-                    reportError() << e.what() << reportEnd();
-                    throw Exception("Failed to load any device in OpenVINO IE");
-                }
+                reportError() << e.what() << reportEnd();
+                throw Exception("Failed to load any device in OpenVINO IE");
             }
         }
     } else {
