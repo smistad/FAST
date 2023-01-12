@@ -5,13 +5,14 @@
 
 namespace fast {
 
-MeshToSegmentation::MeshToSegmentation(Vector3i size) {
+MeshToSegmentation::MeshToSegmentation(Vector3i size, Vector3f spacing) {
 	createInputPort<Mesh>(0);
 	createInputPort<Image>(1, false);
 	createOutputPort<Image>(0);
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/MeshToSegmentation/MeshToSegmentation.cl");
 
 	mResolution = size;
+	m_spacing = spacing;
 }
 
 void MeshToSegmentation::setOutputImageResolution(uint x, uint y, uint z) {
@@ -51,13 +52,10 @@ void MeshToSegmentation::execute() {
             heightInMM = image->getSpacing().y() * image->getHeight();
             depthInMM = image->getSpacing().z() * image->getDepth();
             SceneGraph::setParentNode(segmentation, image);
+            segmentation->setSpacing(widthInMM/mResolution.x(), heightInMM/mResolution.y(), depthInMM/mResolution.z());
         } else {
-		    widthInMM = 1.0f*mResolution[0];
-            heightInMM = 1.0f*mResolution[1];
-            depthInMM = 1.0f*mResolution[2];
+            segmentation->setSpacing(m_spacing);
 		}
-		segmentation->setSpacing(widthInMM/mResolution.x(), heightInMM/mResolution.y(), depthInMM/mResolution.z());
-
 	}
 
 	ExecutionDevice::pointer mainDevice = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());

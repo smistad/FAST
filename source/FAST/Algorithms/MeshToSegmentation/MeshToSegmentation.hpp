@@ -26,7 +26,7 @@ class FAST_EXPORT MeshToSegmentation : public ProcessObject {
          * @param size Size of segmentation image to output. If not set it will use the same size as the image given to input 1 (optional).
          * @return instance
          */
-        FAST_CONSTRUCTOR(MeshToSegmentation, Vector3i, size, = Vector3i::Zero())
+        FAST_CONSTRUCTOR(MeshToSegmentation, Vector3i, size, = Vector3i::Zero(), Vector3f, spacing, = Vector3f::Ones())
         /**
          * Set output image resolution in voxels
          * @param x
@@ -38,6 +38,7 @@ class FAST_EXPORT MeshToSegmentation : public ProcessObject {
 		void execute();
 
 		Vector3i mResolution;
+		Vector3f m_spacing;
 
 };
 

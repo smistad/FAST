@@ -1,24 +1,39 @@
 // http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
-char get_line_intersection(float p0_x, float p0_y, float p1_x, float p1_y,
-    float p2_x, float p2_y, float p3_x, float p3_y, float* i_x, float* i_y)
+
+int get_line_intersection(float p0_x, float p0_y, float p1_x, float p1_y,
+    float p2_x, float p2_y, float p3_x, float p3_y, float *i_x, float *i_y)
 {
-    float s1_x, s1_y, s2_x, s2_y;
-    s1_x = p1_x - p0_x;     s1_y = p1_y - p0_y;
-    s2_x = p3_x - p2_x;     s2_y = p3_y - p2_y;
+    float epsilon = 0.001f;
 
-    float s, t;
-    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
-    t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+    float s02_x, s02_y, s10_x, s10_y, s32_x, s32_y, s_numer, t_numer, denom, t;
+    s10_x = p1_x - p0_x;
+    s10_y = p1_y - p0_y;
+    s32_x = p3_x - p2_x;
+    s32_y = p3_y - p2_y;
 
-    if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
-    {
-        // Collision detected
-        *i_x = p0_x + (t * s1_x);
-        *i_y = p0_y + (t * s1_y);
-        return 1;
-    }
+    denom = s10_x * s32_y - s32_x * s10_y;
+    if (denom == 0)
+        return 0; // Collinear
+    bool denomPositive = denom > 0;
 
-    return 0; // No collision
+    s02_x = p0_x - p2_x;
+    s02_y = p0_y - p2_y;
+    s_numer = s10_x * s02_y - s10_y * s02_x;
+    if ((s_numer < epsilon) == denomPositive)
+        return 0; // No collision
+
+    t_numer = s32_x * s02_y - s32_y * s02_x;
+    if ((t_numer < epsilon) == denomPositive)
+        return 0; // No collision
+
+    if (((s_numer > denom) == denomPositive) || ((t_numer > denom) == denomPositive))
+        return 0; // No collision
+    // Collision detected
+    t = t_numer / denom;
+    *i_x = p0_x + (t * s10_x);
+    *i_y = p0_y + (t * s10_y);
+
+    return 1;
 }
 
 __kernel void mesh_to_segmentation_2d(
@@ -37,7 +52,7 @@ __kernel void mesh_to_segmentation_2d(
 	int intersections = 0;
     float x1 = pos.x*spacingX;
     float y1 = pos.y*spacingY;
-    const float t = 0.00000001; // threshold
+    const float threshold = 0.00000001;
     // x2 and y2 is 0
     float y2 = y1;
 	for(int i = 0; i < nrOfLines; ++i) {
@@ -51,11 +66,14 @@ __kernel void mesh_to_segmentation_2d(
 	    float x4 = coordinate4.x;
 	    float y4 = coordinate4.y;
 
-	    // Order edge points so that it point downwards
+	    // Order edge points so that it always point downwards
 	    if(y3 > y4) {
+            // swap y
 	        float tmp = y4;
 	        y4 = y3;
 	        y3 = tmp;
+
+	        // swap x
 	        tmp = x4;
 	        x4 = x3;
 	        x3 = tmp;
@@ -69,11 +87,12 @@ __kernel void mesh_to_segmentation_2d(
         float x, y;
         if(get_line_intersection(x1, y1, 0, y2, x3, y3, x4, y4, &x, &y) == 1) {
             // Have we hit an edge point?
-            if(fabs(x-x4) < t && fabs(y-y4) < t) {
-                intersections++;
-            } else if(fabs(x-x3) < t && fabs(y-y3) < t) {
-            } else {
-                intersections++;
+            if(fabs(x-x4) < threshold && fabs(y-y4) < threshold) { // Through a top point
+                //++intersections;
+            } else if(fabs(x-x3) < threshold && fabs(y-y3) < threshold) { // Through a bottom point
+                ++intersections;
+            } else { // Passes through the middle of the line
+                ++intersections;
             }
         }
 	}
