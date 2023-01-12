@@ -327,6 +327,9 @@ Tensor::pointer NeuralNetwork::standardizeOutputTensorData(Tensor::pointer tenso
                 tensor->setLastFrame(lastFrame);
             // TODO will cause issue if multiple input images:
             tensor->setSpacing(mNewInputSpacing);
+            tensor->setFrameData("network-input-size-x", std::to_string(m_newInputSize.x()));
+            tensor->setFrameData("network-input-size-y", std::to_string(m_newInputSize.y()));
+            tensor->setFrameData("network-input-size-z", std::to_string(m_newInputSize.z()));
             SceneGraph::setParentNode(tensor, mInputImages[inputNode.first][sample]);
         } else {
             for(auto &&frameData : mInputTensors[inputNode.first][sample]->getFrameData())
@@ -521,6 +524,7 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
 }
 
 std::vector<std::shared_ptr<Image>> NeuralNetwork::resizeImages(const std::vector<std::shared_ptr<Image>> &images, int width, int height, int depth) {
+    m_newInputSize = Vector3i(width, height, depth);
     mRuntimeManager->startRegularTimer("image input resize");
     std::vector<Image::pointer> resizedImages;
 	for(Image::pointer image : images) {
@@ -538,7 +542,7 @@ std::vector<std::shared_ptr<Image>> NeuralNetwork::resizeImages(const std::vecto
             resizedImages.push_back(resizedImage);
 		} else {
 			mNewInputSpacing = image->getSpacing();
-			resizedImages.push_back(image);
+            resizedImages.push_back(image);
 		}
 	}
 	mRuntimeManager->stopRegularTimer("image input resize");

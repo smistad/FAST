@@ -265,6 +265,7 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         float mScaleFactor, mMean, mStd, mMinIntensity, mMaxIntensity;
         bool mMinAndMaxIntensitySet = false;
         Vector3f mNewInputSpacing;
+        Vector3i m_newInputSize;
         std::unordered_map<std::string, std::vector<int>> mInputSizes;
         std::unordered_map<int, DataObject::pointer> m_processedOutputData;
 

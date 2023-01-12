@@ -21,6 +21,8 @@ fast_add_sources(
     FlowNetwork.hpp
     ImageToImageNetwork.cpp
     ImageToImageNetwork.hpp
+    VertexTensorToSegmentation.cpp
+    VertexTensorToSegmentation.hpp
 )
 fast_add_python_interfaces(InferenceEngine.hpp InferenceEngineManager.hpp)
 fast_add_python_shared_pointers(InferenceEngine)
@@ -36,6 +38,7 @@ fast_add_process_object(ImageToImageNetwork ImageToImageNetwork.hpp)
 fast_add_process_object(TensorToSegmentation TensorToSegmentation.hpp)
 fast_add_process_object(TensorToImage TensorToImage.hpp)
 fast_add_process_object(TensorToBoundingBoxSet TensorToBoundingBoxSet.hpp)
+fast_add_process_object(VertexTensorToSegmentation VertexTensorToSegmentation.hpp)
 
 if(FAST_MODULE_Visualization)
     fast_add_test_sources(

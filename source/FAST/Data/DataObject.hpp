@@ -48,6 +48,8 @@ class FAST_EXPORT  DataObject : public Object {
         void setFrameData(std::string name, std::string value);
         void setFrameData(std::map<std::string, std::string> frameData);
         std::string getFrameData(std::string name);
+        template <class T>
+        T getFrameData(std::string name);
         bool hasFrameData(std::string name) const;
         std::map<std::string, std::string> getFrameData();
         void accessFinished();
@@ -83,5 +85,10 @@ class FAST_EXPORT  DataObject : public Object {
 
 
 };
+
+template <>
+int DataObject::getFrameData(std::string name);
+template <>
+float DataObject::getFrameData(std::string name);
 
 }

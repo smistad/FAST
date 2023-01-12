@@ -124,4 +124,14 @@ void DataObject::setFrameData(std::map<std::string, std::string> frameData) {
     m_frameData = frameData;
 }
 
+
+template <>
+int DataObject::getFrameData(std::string name) {
+    return std::stoi(getFrameData(name));
+}
+template <>
+float DataObject::getFrameData(std::string name) {
+    return std::stof(getFrameData(name));
+}
+
 } // end namespace fast

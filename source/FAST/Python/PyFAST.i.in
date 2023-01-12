@@ -112,6 +112,7 @@ public
 %template(vectormeshvertex) std::vector<fast::MeshVertex>;
 %template(vectormeshline) std::vector<fast::MeshLine>;
 %template(vectormeshtriangle) std::vector<fast::MeshTriangle>;
+%template(Connections) std::vector<std::vector<fast::MeshLine>>;
 
 // FAST CORE LIBRARY
 
