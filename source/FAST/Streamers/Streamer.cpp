@@ -61,15 +61,15 @@ void Streamer::setStreamingMode(StreamingMode mode) {
 }
 
 DataChannel::pointer Streamer::getOutputPort(uint portID) {
-    if(!m_outputPO) {
+    if(m_outputPOs.count(portID) == 0) {
         auto channel = ProcessObject::getOutputPort(portID);
-        m_outputPO = RunLambda::create([](DataObject::pointer data) -> DataList {
+        m_outputPOs[portID] = RunLambda::create([](DataObject::pointer data) -> DataList {
             return DataList(data);
         });
-        m_outputPO->setInputConnection(channel);
+        m_outputPOs[portID]->setInputConnection(channel);
     }
 
-    return m_outputPO->getOutputPort();
+    return m_outputPOs[portID]->getOutputPort();
 }
 
 bool Streamer::isStopped() {

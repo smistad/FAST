@@ -87,7 +87,7 @@ class FAST_EXPORT Streamer : public ProcessObject {
         std::unique_ptr<std::thread> m_thread;
         std::condition_variable m_firstFrameCondition;
 
-        std::shared_ptr<ProcessObject> m_outputPO;
+        std::map<uint, std::shared_ptr<ProcessObject>> m_outputPOs;
 
 
 };

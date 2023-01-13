@@ -1,5 +1,6 @@
 #include "OpenIGTLinkStreamer.hpp"
 #include "FAST/Data/Image.hpp"
+#include "FAST/Data/SimpleDataObject.hpp"
 #include <igtl/igtlOSUtil.h>
 #include <igtl/igtlMessageHeader.h>
 #include <igtl/igtlTransformMessage.h>
@@ -9,14 +10,15 @@
 #include <igtl/igtlStringMessage.h>
 #include <igtl/igtlClientSocket.h>
 #include <chrono>
+#include <string>
 
 namespace fast {
 
-	class IGTLSocketWrapper {
-	public:
-		IGTLSocketWrapper(igtl::ClientSocket::Pointer socket) : socket(socket) {};
-		igtl::ClientSocket::Pointer socket;
-	};
+class IGTLSocketWrapper {
+public:
+    IGTLSocketWrapper(igtl::ClientSocket::Pointer socket) : socket(socket) {};
+    igtl::ClientSocket::Pointer socket;
+};
 
 void OpenIGTLinkStreamer::setConnectionAddress(std::string address) {
     mAddress = address;
@@ -29,8 +31,8 @@ void OpenIGTLinkStreamer::setConnectionPort(uint port) {
 }
 
 DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(uint portID) {
-    if(getNrOfInputPorts() == 0) {
-        int portID = getOutputPortNumber("");
+    if(getNrOfOutputPorts() == 0) {
+        portID = getOutputPortNumber("");
     }
 	return Streamer::getOutputPort(portID);
 }
@@ -81,6 +83,7 @@ std::vector<std::string> OpenIGTLinkStreamer::getActiveTransformStreamNames() {
 static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
     int width, height, depth;
     message->GetDimensions(width, height, depth);
+    std::cout << "Got image of size: " << width << " " << height << " " << depth << std::endl;
     void* data = message->GetScalarPointer();
     DataType type;
     switch(message->GetScalarType()) {
@@ -320,6 +323,7 @@ void OpenIGTLinkStreamer::generateStream() {
                     image->setCreationTimestamp(timestamp);
                     addTimestamp(timestamp);
                     addOutputData(mOutputPortDeviceNames[deviceName], image);
+                    std::cout << "Added image message to " << deviceName << " " << mOutputPortDeviceNames[deviceName] << std::endl;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -343,14 +347,14 @@ void OpenIGTLinkStreamer::generateStream() {
             // Receive transform data from the socket
             bool timeout = false;
             int r = mSocketWrapper->socket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize(), timeout);
-			if(r == 0 || timeout) {
-				//connectionLostSignal();
-				mSocketWrapper->socket->CloseSocket();
-				break;
-			}
+            if (r == 0 || timeout) {
+                //connectionLostSignal();
+                mSocketWrapper->socket->CloseSocket();
+                break;
+            }
 
 
-            if(statusMessageCounter > 3 && !mInFreezeMode) {
+            if (statusMessageCounter > 3 && !mInFreezeMode) {
                 reportInfo() << "3 STATUS MESSAGE received, freeze detected" << Reporter::end();
                 mInFreezeMode = true;
                 //freezeSignal();
@@ -358,6 +362,31 @@ void OpenIGTLinkStreamer::generateStream() {
                 // If no frames has been inserted, stop
                 frameAdded();
             }
+        } else if(strcmp(headerMsg->GetDeviceType(), "STRING") == 0 && !ignore) {
+            // Receive generic message
+            igtl::StringMessage::Pointer stringMsg;
+            stringMsg = igtl::StringMessage::New();
+            stringMsg->SetMessageHeader(headerMsg);
+            stringMsg->AllocatePack();
+
+            // Receive transform data from the socket
+            bool timeout = false;
+            int r = mSocketWrapper->socket->Receive(stringMsg->GetPackBodyPointer(), stringMsg->GetPackBodySize(), timeout);
+            if (r == 0 || timeout) {
+                //connectionLostSignal();
+                mSocketWrapper->socket->CloseSocket();
+                break;
+            }
+
+            stringMsg->Unpack();
+            auto message = stringMsg->GetString();
+
+            auto fastString = String::create(message);
+            fastString->setCreationTimestamp(timestamp);
+
+            addTimestamp(timestamp);
+            addOutputData(mOutputPortDeviceNames[deviceName], fastString);
+            std::cout << "Added string message to " << deviceName << " " << mOutputPortDeviceNames[deviceName] << std::endl;
        } else {
            // Receive generic message
           igtl::MessageBase::Pointer message;
