@@ -31,8 +31,8 @@ void OpenIGTLinkStreamer::setConnectionPort(uint port) {
 }
 
 DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(uint portID) {
-    if(getNrOfInputPorts() == 0) {
-        int portID = getOutputPortNumber("");
+    if(getNrOfOutputPorts() == 0) {
+        portID = getOutputPortNumber("");
     }
 	return Streamer::getOutputPort(portID);
 }
@@ -83,6 +83,7 @@ std::vector<std::string> OpenIGTLinkStreamer::getActiveTransformStreamNames() {
 static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
     int width, height, depth;
     message->GetDimensions(width, height, depth);
+    std::cout << "Got image of size: " << width << " " << height << " " << depth << std::endl;
     void* data = message->GetScalarPointer();
     DataType type;
     switch(message->GetScalarType()) {
@@ -322,6 +323,7 @@ void OpenIGTLinkStreamer::generateStream() {
                     image->setCreationTimestamp(timestamp);
                     addTimestamp(timestamp);
                     addOutputData(mOutputPortDeviceNames[deviceName], image);
+                    std::cout << "Added image message to " << deviceName << " " << mOutputPortDeviceNames[deviceName] << std::endl;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -379,11 +381,12 @@ void OpenIGTLinkStreamer::generateStream() {
             stringMsg->Unpack();
             auto message = stringMsg->GetString();
 
-            FASTString::pointer fastStringMsg = FASTString::create(message);
-            fastStringMsg->setCreationTimestamp(timestamp);
+            auto fastString = String::create(message);
+            fastString->setCreationTimestamp(timestamp);
 
             addTimestamp(timestamp);
-            addOutputData(mOutputPortDeviceNames[deviceName], fastStringMsg);
+            addOutputData(mOutputPortDeviceNames[deviceName], fastString);
+            std::cout << "Added string message to " << deviceName << " " << mOutputPortDeviceNames[deviceName] << std::endl;
        } else {
            // Receive generic message
           igtl::MessageBase::Pointer message;

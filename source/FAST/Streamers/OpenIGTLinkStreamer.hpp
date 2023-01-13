@@ -17,7 +17,8 @@ namespace fast {
 class Image;
 class IGTLSocketWrapper;
 
-FAST_SIMPLE_DATA_OBJECT(FASTString, std::string);
+// Should be moved somewhere else, but for now it is only used by OpenIGTLinkStreamer
+FAST_SIMPLE_DATA_OBJECT(String, std::string);
 
 
 /**
