@@ -268,8 +268,24 @@ std::unique_ptr<T> make_uninitialized_unique(std::size_t size) {
  */
 FAST_EXPORT void extractZipFile(std::string zipFilepath, std::string destination);
 
+/**
+ * @brief Convert string to only upper case
+ * @return upper case string
+ */
 FAST_EXPORT std::string stringToLower(std::string);
+
+/**
+ * @brief Convert string to only lower case
+ * @return lower case string
+ */
 FAST_EXPORT std::string stringToUpper(std::string);
+
+/**
+ * @brief Generate random alphanumeric string of a given length
+ * @param length
+ * @return random string
+ */
+FAST_EXPORT std::string generateRandomString(int length);
 
 } // end namespace fast
 

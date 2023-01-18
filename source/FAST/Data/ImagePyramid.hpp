@@ -74,6 +74,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
 
         openslide_t* m_fileHandle = nullptr;
         TIFF* m_tiffHandle = nullptr;
+        bool m_tempFile = false;
         bool m_isOMETIFF = false;
         std::string m_tiffPath;
 

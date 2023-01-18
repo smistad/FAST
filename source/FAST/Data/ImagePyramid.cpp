@@ -30,12 +30,20 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
     int currentWidth = width;
     int currentHeight = height;
     m_channels = channels;
+    m_tempFile = true;
 
+    std::cout << "Creating tiff path.." << std::endl;
+    do {
+        std::string randomString = generateRandomString(32);
+        std::cout << "random string: " << randomString << std::endl;
 #ifdef WIN32
-    m_tiffPath = "C:/windows/temp/fast_image_pyramid_" + std::to_string(m_counter) + ".tiff";
+        m_tiffPath = "C:/windows/temp/fast_image_pyramid_" + randomString + ".tiff";
 #else
-    m_tiffPath = "/tmp/fast_image_pyramid_" + std::to_string(m_counter) + ".tiff";
+        m_tiffPath = "/tmp/fast_image_pyramid_" + randomString + ".tiff";
 #endif
+        std::cout << "TIFF path: " << m_tiffPath << std::endl;
+    } while(fileExists(m_tiffPath));
+
     TIFFSetErrorHandler([](const char* module, const char* fmt, va_list ap) {
         auto str = make_uninitialized_unique<char[]>(512);
         sprintf(str.get(), fmt, ap);
@@ -230,6 +238,10 @@ void ImagePyramid::freeAll() {
     } else if(m_tiffHandle != nullptr) {
         m_levels.clear();
         TIFFClose(m_tiffHandle);
+        if(m_tempFile) {
+            // If this is a temp file created by FAST. Delete it.
+            std::remove(m_tiffPath.c_str());
+        }
     } else if(!m_vsiTiles.empty()) {
         m_vsiFileHandle->close();
         delete m_vsiFileHandle;
