@@ -86,8 +86,12 @@ void CommandLineParser::processToken(std::shared_ptr<Variable>& currentVariable,
             currentVariable->setValue(""); // This will set options to true
         } else {
             // Positional variables get token right away
-            m_positionVariables.at(currentPosition)->setValue(token);
-            Reporter::info() << "CommandLineParser: Assigning variable " << m_positionVariables.at(currentPosition)->name << " with value " << token << Reporter::end();
+            if(m_positionVariables.count(currentPosition) == 0) {
+                Reporter::warning() << "Unknown positional variable given to CommandLineParser: " << token << Reporter::end();
+            } else {
+                m_positionVariables.at(currentPosition)->setValue(token);
+                Reporter::info() << "CommandLineParser: Assigning variable " << m_positionVariables.at(currentPosition)->name << " with value " << token << Reporter::end();
+            }
         }
     } else {
         if(token.size() > 2 && token.substr(0, 2) == "--") {
