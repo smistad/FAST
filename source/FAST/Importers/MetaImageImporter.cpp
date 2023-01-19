@@ -291,17 +291,30 @@ void MetaImageImporter::execute() {
             std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
-            if(values.size() != 3) {
-                reportError() << "Offset/Origin/Position in MetaImage file did not contain 3 numbers" << reportEnd();
-                reportError() << "Ignoring" << reportEnd();
-            } else {
-                try {
+
+            try {
+                if(imageIs3D){
+                    if(values.size() != 3) {
+                        reportError() << "Offset/Origin/Position in MetaImage file did not contain 3 numbers" << reportEnd();
+                        reportError() << "Ignoring" << reportEnd();
+                    }
                     offset[0] = std::stof(values[0].c_str());
                     offset[1] = std::stof(values[1].c_str());
                     offset[2] = std::stof(values[2].c_str());
-                } catch(std::out_of_range &e) {
-                    reportWarning() << "Out of range exception occured when reading offset values from metaimage file" << reportEnd();
+                } else {
+                    if(values.size() != 2 && values.size() != 3)
+                        throw Exception("Offset/Origin/Position in MetaImage file did not contain 2 or 3 numbers");
+
+                    offset[0] = std::stof(values[0].c_str());
+                    offset[1] = std::stof(values[1].c_str());
+                    if(values.size() == 2) {
+                        offset[2] = 0;
+                    } else {
+                        offset[2] = std::stof(values[2].c_str());
+                    }
                 }
+            } catch(std::out_of_range &e) {
+                reportWarning() << "Out of range exception occured when reading offset values from metaimage file" << reportEnd();
             }
         } else if(key == "TransformMatrix" || key == "Rotation" || key == "Orientation") {
             std::vector<std::string> values = split(value);
