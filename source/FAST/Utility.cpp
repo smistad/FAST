@@ -674,7 +674,9 @@ void createDirectories(std::string path) {
 
 bool fileExists(std::string filename) {
 #ifdef _WIN32
-    return _access_s(filename.c_str(), 0) == 0;
+    //return _access_s(filename.c_str(), 0) == 0;
+    struct __stat64 stat_buf;
+    return (_stat64(filename.c_str(), &stat_buf) == 0);
 #else
     struct stat buffer;
     return (stat (filename.c_str(), &buffer) == 0);
