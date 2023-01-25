@@ -64,7 +64,7 @@ void TissueMicroArrayExtractor::generateStream() {
     for(auto& region : m_regions->get()) {
         if(region.perimiterLength > 0 && region.pixelCount > 100/* && compactness > 0.1*/) {
             //std::cout << region.area << " " << averageArea << " " << maxArea << std::endl;
-            if(std::fabs(maxArea - region.area) < 0.5*maxArea) {
+            if(std::fabs(averageArea - region.area) < 0.5*averageArea) {
                 filteredRegions.push_back(region);
             }
         }
