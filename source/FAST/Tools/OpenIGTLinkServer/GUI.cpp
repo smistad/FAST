@@ -199,6 +199,9 @@ static igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) 
     imgMsg->SetScalarType(scalarType);
     imgMsg->SetDeviceName("DummyImage");
     imgMsg->SetSubVolume(size, svoffset);
+    auto ts = igtl::TimeStamp::New();
+    ts->SetTime((double)image->getCreationTimestamp() / 1000.0);
+    imgMsg->SetTimeStamp(ts);
     imgMsg->AllocateScalars();
 
     ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);

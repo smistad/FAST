@@ -212,11 +212,7 @@ void OpenIGTLinkStreamer::generateStream() {
             }
         }
 
-        //unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
-        auto now = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> duration = now - start;
-        uint64_t timestamp = duration.count();
-        reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
+        uint64_t timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0 && !ignore) {
             mTransformStreamNames.insert(headerMsg->GetDeviceName());
             mStreamDescriptions[headerMsg->GetDeviceName()] = "Transform";
@@ -319,9 +315,9 @@ void OpenIGTLinkStreamer::generateStream() {
                 mStreamDescriptions[headerMsg->GetDeviceName()] = description;
 
                 try {
-                    Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
-                    image->setCreationTimestamp(timestamp);
-                    addTimestamp(timestamp);
+                    auto image = createFASTImageFromMessage(imgMsg, getMainDevice());
+					image->setCreationTimestamp(timestamp);
+					addTimestamp(timestamp);
                     addOutputData(mOutputPortDeviceNames[deviceName], image);
                     std::cout << "Added image message to " << deviceName << " " << mOutputPortDeviceNames[deviceName] << std::endl;
                 } catch(NoMoreFramesException &e) {
