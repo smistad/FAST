@@ -47,6 +47,7 @@ void TissueMicroArrayExtractor::generateStream() {
     Image::pointer previousPatch;
     float averageArea = 0.0f;
     float maxArea = 0.0f;
+    std::vector<float> areas;
     for(auto& region : m_regions->get()) {
         //std::cout << region.centroid.transpose() << std::endl;
         //std::cout << region.perimiterLength << std::endl;
@@ -56,15 +57,18 @@ void TissueMicroArrayExtractor::generateStream() {
         if(region.perimiterLength > 0 && region.pixelCount > 100/* && compactness > 0.1*/) {
             averageArea += region.area;
             maxArea = std::max(maxArea, region.area);
+            areas.push_back(region.area);
         }
     }
+    std::sort(areas.begin(), areas.end());
+    float medianArea = areas[areas.size()/2];
     averageArea /= m_regions->get().size();
     // Remove all regions which have an area which differs too much from the average
     std::vector<Region> filteredRegions;
     for(auto& region : m_regions->get()) {
         if(region.perimiterLength > 0 && region.pixelCount > 100/* && compactness > 0.1*/) {
             //std::cout << region.area << " " << averageArea << " " << maxArea << std::endl;
-            if(std::fabs(averageArea - region.area) < 0.5*averageArea) {
+            if(std::fabs(medianArea - region.area) < 0.5*medianArea) {
                 filteredRegions.push_back(region);
             }
         }
