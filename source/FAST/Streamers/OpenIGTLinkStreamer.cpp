@@ -83,7 +83,6 @@ std::vector<std::string> OpenIGTLinkStreamer::getActiveTransformStreamNames() {
 static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
     int width, height, depth;
     message->GetDimensions(width, height, depth);
-    std::cout << "Got image of size: " << width << " " << height << " " << depth << std::endl;
     void* data = message->GetScalarPointer();
     DataType type;
     switch(message->GetScalarType()) {
@@ -319,7 +318,6 @@ void OpenIGTLinkStreamer::generateStream() {
 					image->setCreationTimestamp(timestamp);
 					addTimestamp(timestamp);
                     addOutputData(mOutputPortDeviceNames[deviceName], image);
-                    std::cout << "Added image message to " << deviceName << " " << mOutputPortDeviceNames[deviceName] << std::endl;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -382,7 +380,6 @@ void OpenIGTLinkStreamer::generateStream() {
 
             addTimestamp(timestamp);
             addOutputData(mOutputPortDeviceNames[deviceName], fastString);
-            std::cout << "Added string message to " << deviceName << " " << mOutputPortDeviceNames[deviceName] << std::endl;
        } else {
            // Receive generic message
           igtl::MessageBase::Pointer message;
