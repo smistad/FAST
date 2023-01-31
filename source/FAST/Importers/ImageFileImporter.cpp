@@ -7,6 +7,7 @@
 #include "ImageImporter.hpp"
 #endif
 #include "FAST/Data/Image.hpp"
+#include "NIFTIImporter.hpp"
 #include <algorithm>
 #include <utility>
 
@@ -81,7 +82,7 @@ void ImageFileImporter::execute() {
                   matchExtension(ext, "bmp") ||
                   matchExtension(ext, "tif") ||
                   matchExtension(ext, "tiff")
-                ) {
+                  ) {
 #ifdef FAST_MODULE_VISUALIZATION
             auto importer = ImageImporter::New();
             importer->setFilename(m_filename);
@@ -93,6 +94,11 @@ void ImageFileImporter::execute() {
 #else
             throw Exception("Importing regular images requires FAST built with Qt");
 #endif
+        } else if(matchExtension(ext, "nii") ||
+                matchExtension(ext, "nii.gz")) {
+            auto importer = NIFTIImporter::create(m_filename);
+            importer->setMainDevice(getMainDevice());
+            addOutputData(0, importer->runAndGetOutputData<Image>());
         } else {
             throw Exception("The ImageFileImporter does not recognize the file extension " + ext);
         }
