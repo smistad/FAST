@@ -48,6 +48,7 @@ void TissueMicroArrayExtractor::generateStream() {
     float averageArea = 0.0f;
     float maxArea = 0.0f;
     std::vector<float> areas;
+    std::vector<float> radii;
     for(auto& region : m_regions->get()) {
         //std::cout << region.centroid.transpose() << std::endl;
         //std::cout << region.perimiterLength << std::endl;
@@ -58,17 +59,22 @@ void TissueMicroArrayExtractor::generateStream() {
             averageArea += region.area;
             maxArea = std::max(maxArea, region.area);
             areas.push_back(region.area);
+            radii.push_back(std::max(region.maxPixelPosition.x() - region.minPixelPosition.x(), region.maxPixelPosition.y() - region.minPixelPosition.y()));
         }
     }
     std::sort(areas.begin(), areas.end());
+    std::sort(radii.begin(), radii.end());
     float medianArea = areas[areas.size()/2];
+    float medianRadius = radii[radii.size()/2];
     averageArea /= m_regions->get().size();
     // Remove all regions which have an area which differs too much from the average
     std::vector<Region> filteredRegions;
     for(auto& region : m_regions->get()) {
         if(region.perimiterLength > 0 && region.pixelCount > 100/* && compactness > 0.1*/) {
             //std::cout << region.area << " " << averageArea << " " << maxArea << std::endl;
-            if(std::fabs(medianArea - region.area) < 0.5*medianArea) {
+            auto radius = std::max(region.maxPixelPosition.x() - region.minPixelPosition.x(), region.maxPixelPosition.y() - region.minPixelPosition.y());
+            if(std::fabs(medianArea - region.area) < 0.5*medianArea &&
+                std::fabs(medianRadius - radius) < 0.5*medianRadius) {
                 filteredRegions.push_back(region);
             }
         }
