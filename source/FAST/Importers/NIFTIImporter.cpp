@@ -1,7 +1,7 @@
 #include <fstream>
 #include "NIFTIImporter.hpp"
 #include <FAST/Data/Image.hpp>
-#include <zlib.h>
+#include <zlib/zlib.h>
 
 namespace fast {
 
