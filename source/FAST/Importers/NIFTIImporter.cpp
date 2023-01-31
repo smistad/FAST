@@ -39,10 +39,10 @@ class Uncompressed : public NIFTIFile {
 class Compressed : public NIFTIFile {
     public:
         Compressed(std::string filename) {
-            m_file = gzopen64(filename.c_str(), "r");
+            m_file = gzopen(filename.c_str(), "r");
         }
         void seek(uint64_t position) {
-            gzseek64(m_file, position, SEEK_SET);
+            gzseek(m_file, position, SEEK_SET);
         }
         void read(char* data, uint64_t bytes) {
             gzread(m_file, data, bytes);
