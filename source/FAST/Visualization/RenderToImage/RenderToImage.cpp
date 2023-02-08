@@ -526,4 +526,10 @@ void RenderToImage::paintGL() {
         mRuntimeManager->stopRegularTimer("paint");
 }
 
+void RenderToImage::removeAllRenderers() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    mNonVolumeRenderers.clear();
+    mVolumeRenderers.clear();
+}
+
 }
