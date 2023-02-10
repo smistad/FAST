@@ -130,7 +130,8 @@ void RegionProperties::execute() {
             checkPosition = pos + neighborhood[checkLocationNr-1].head(2);
             newCheckLocationNr = neighborhood[checkLocationNr-1].z();
 
-            if(pixels[checkPosition.x() + checkPosition.y()*width] == region.label) // Next border point found
+            if(checkPosition.x() >= 0 && checkPosition.y() >= 0 && checkPosition.x() < input->getWidth() && checkPosition.y() < input->getHeight() &&
+                pixels[checkPosition.x() + checkPosition.y()*width] == region.label) // Next border point found
             {
                 if(checkPosition == startPos) { // Should we stop?
                     counter ++;
