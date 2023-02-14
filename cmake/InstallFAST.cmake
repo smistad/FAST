@@ -2,16 +2,19 @@
 
 # Install FAST library
 if(WIN32)
-# DLL should be in binary folder
-install(TARGETS FAST
-	DESTINATION fast/bin
-	COMPONENT fast
-)
+		# DLL should be in binary folder
+		install(TARGETS FAST
+			DESTINATION fast/bin
+			COMPONENT fast
+		)
+		set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION fast/bin)
+		set(CMAKE_INSTALL_OPENMP_LIBRARIES ON)
+		include(InstallRequiredSystemLibraries) # Install vcruntime dlls
 else()
-install(TARGETS FAST
-	DESTINATION fast/lib
-	COMPONENT fast
-)
+		install(TARGETS FAST
+			DESTINATION fast/lib
+			COMPONENT fast
+		)
 endif()
 
 if(FAST_BUILD_TESTS)
@@ -278,6 +281,12 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
     RENAME README.md
 	COMPONENT fast
 )
+if(WIN32)
+	install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/MSVC_redis_files_license.txt
+	    DESTINATION fast/licenses/MSVC/
+			COMPONENT fast
+	)
+endif()
 
 # Install license files for depedencies
 # Eigen
