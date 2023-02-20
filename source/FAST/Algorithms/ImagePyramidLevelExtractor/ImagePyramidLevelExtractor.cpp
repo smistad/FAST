@@ -14,17 +14,27 @@ ImagePyramidLevelExtractor::ImagePyramidLevelExtractor(int level, int magnificat
 }
 
 void ImagePyramidLevelExtractor::execute() {
-    auto image = getInputData<ImagePyramid>();
+    auto data = getInputData<DataObject>();
+    auto imagePyramid = std::dynamic_pointer_cast<ImagePyramid>(data);
+    if(imagePyramid) {
+        auto access = imagePyramid->getAccess(ACCESS_READ);
+        auto level = m_level;
+        if(m_level < 0)
+            level = imagePyramid->getNrOfLevels()-1; // Get last level
+            if(m_magnification > 0)
+                level = imagePyramid->getLevelForMagnification(m_magnification);
 
-    auto access = image->getAccess(ACCESS_READ);
-    auto level = m_level;
-    if(m_level < 0)
-        level = image->getNrOfLevels()-1; // Get last level
-    if(m_magnification > 0)
-        level = image->getLevelForMagnification(m_magnification);
-
-    auto imageLevel = access->getLevelAsImage(level);
-    addOutputData(0, imageLevel);
+            auto imageLevel = access->getLevelAsImage(level);
+            addOutputData(0, imageLevel);
+    } else {
+        auto image = std::dynamic_pointer_cast<Image>(data);
+        if(image) {
+            // Input is already an image
+            addOutputData(0, image);
+        } else {
+            throw Exception("Input to ImagePyramidLevelExtractor was not an ImagePyramid nor an Image");
+        }
+    }
 }
 
 void ImagePyramidLevelExtractor::setLevel(int level) {
