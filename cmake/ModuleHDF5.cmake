@@ -7,14 +7,14 @@ if(FAST_MODULE_HDF5)
                 hdf5.lib hdf5_cpp.lib
         )
     elseif(APPLE)
-if(${CMAKE_OSX_ARCHITECTURES} STREQUAL "arm64")
+        if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
 	fast_download_dependency(hdf5
                 1.10.6
 		1cb25e5add41c9ac4d201da1a0edecb0c962a7564da2fe941574c5fed2dba868
                 libhdf5.dylib libhdf5_cpp.dylib
         )
 
-else()
+	else()
         fast_download_dependency(hdf5
                 1.10.6
                 3dfeab5a3143c6f3452629936935810297eba010f706d047ce4da837193ccd2b
