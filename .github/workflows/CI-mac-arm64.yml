@@ -21,11 +21,11 @@ jobs:
     
     - name: Install dependencies
       run: |
-        brew reinstall zlib
-        brew install openslide pcre
+        arch -arm64 brew reinstall zlib
+        arch -arm64 brew install openslide pcre
         # Install a specific version of libomp (14.0.6) since newer versions fail with cmake
-        brew extract --version=14.0.6 libomp homebrew/cask
-        brew install libomp@14.0.6
+        arch -arm64 brew extract --version=14.0.6 libomp homebrew/cask
+        arch -arm64 brew install libomp@14.0.6
 
     - name: Setup pyenv
       env:
