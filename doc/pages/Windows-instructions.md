@@ -105,4 +105,12 @@ cmake.exe --build . --config Release --target package -j 8
 
 Build the Python bindings (pyFAST)
 -----------------------
-@todo
+Configure cmake with Python enabled:
+```bash
+cmake.exe .. -DFAST_MODULE_Python=ON
+```
+Then build the python-wheel target:
+```bash
+cmake.exe --build . --config Release --target python-wheel -j 8
+```
+The wheel will appear in the python/dist folder.

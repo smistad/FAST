@@ -31,6 +31,7 @@ mkdir build
 cd build
 # Default cmake configuration. Options may be added like so: 
 # cmake .. -DFAST_BUILD_TESTS=OFF -DFAST_BUILD_EXAMPLES=ON -DFAST_MODULE_TensorFlow=ON
+# If you are building for Apple Silicon ARM64 processors you should set the following flag -DCMAKE_OSX_ARCHITECTURES="arm64"
 cmake ..
 ```
 
@@ -40,17 +41,17 @@ Here is a list of some options which might be useful:
 * FAST_BUILD_EXAMPLES
 * FAST_BUILD_TESTS
 * FAST_BUILD_DOCS
-* FAST_MODULE_TensorFlow
-* FAST_MODULE_TensorRT
-* FAST_MODULE_OpenVINO
+* FAST_MODULE_TensorFlo (not supported on Apple Silicon)w
+* FAST_MODULE_TensorRT (not supported on Mac)
+* FAST_MODULE_OpenVIN (not supported on Apple Silicon)O
 * FAST_MODULE_Dicom
 * FAST_MODULE_WholeSlideImaging
 * FAST_MODULE_OpenIGTLink
-* FAST_MODULE_Clarius
+* FAST_MODULE_Clarius (not supported on Apple Silicon)
 * FAST_MODULE_Python
 * FAST_MODULE_HDF5
 * FAST_MODULE_Plotting
-* FAST_MODULE_RealSense
+* FAST_MODULE_RealSense (not supported on Mac)
 
 Compile
 -----------------------
@@ -94,4 +95,12 @@ make -j8 package
 
 Build the Python bindings (pyFAST)
 -----------------------
-@todo
+Configure cmake with Python enabled:
+```bash
+cmake .. -DFAST_MODULE_Python=ON
+```
+Then build the python-wheel target:
+```bash
+make -j8 python-wheel
+```
+The wheel will appear in the python/dist folder.

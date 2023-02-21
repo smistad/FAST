@@ -116,10 +116,34 @@ To build a Debian package run:
 make -j8 package
 ```
 
-Build the documentation
------------------------
-@todo
-
 Build the Python bindings (pyFAST)
 -----------------------
-@todo
+Install the python development libraries and some dependencies:
+```bash
+sudo apt install python3 libpython3-dev python3-pip python3-setuptools
+sudo pip3 install --upgrade pip
+pip3 install numpy==1.19.5 pylddwrap==1.2.0 twine wheel==0.37.1
+```
+
+Then configure cmake with Python enabled:
+```bash
+cmake .. -DFAST_MODULE_Python=ON
+```
+
+Finally, build the python-wheel target:
+```bash
+make -j8 python-wheel
+```
+The wheel will appear in the python/dist folder.
+
+Build the documentation
+-----------------------
+Configure cmake with documentation building enabled:
+```bash
+cmake .. -DFAST_BUILD_DOCS=ON
+```
+
+Then build the documentation target:
+```bash
+make -j8 documentation
+```
