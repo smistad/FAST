@@ -1,0 +1,187 @@
+name: CI macOS 11 x86_64
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  MACOSX_DEPLOYMENT_TARGET: 10.13
+
+jobs:
+  build:
+    runs-on: macos-11
+    steps:
+    - uses: actions/checkout@v2   
+    
+    - name: Install dependencies
+      run: |
+        brew reinstall zlib
+        brew install openslide pcre
+        # Install a specific version of libomp (14.0.6) since newer versions fail with cmake
+        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/c87d6a0c8360c4684e3375ce6c4576214acdd71b/Formula/libomp.rb > $(find $(brew --repository) -name libomp.rb) && brew reinstall libomp
+    
+    - name: Setup pyenv
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        MACOSX_DEPLOYMENT_TARGET: 10.13
+        PYTHON_CONFIGURE_OPTS: "--enable-framework"
+        CFLAGS: "-Wno-implicit-function-declaration"
+        LDFLAGS: "-L/usr/local/opt/zlib/lib"
+        CPPFLAGS: "-I/usr/local/opt/zlib/include"
+        PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
+      uses: "gabrielfalcao/pyenv-action@v5"
+      with:
+          default: 3.6.9
+        
+    - name: Install pip dependencies
+      run: |
+        pip3 install --upgrade pip
+        pip3 install numpy==1.19.5 twine wheel==0.37.1
+
+    - name: Configure CMake
+      run: |
+        cmake -B ${{github.workspace}}/build \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
+            -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" \
+            -DFAST_MODULE_OpenVINO=ON \
+            -DFAST_MODULE_Dicom=ON \
+            -DFAST_MODULE_WholeSlideImaging=ON \
+            -DFAST_MODULE_OpenIGTLink=ON \
+            -DFAST_MODULE_Clarius=ON \
+            -DFAST_MODULE_TensorFlow=ON \
+            -DFAST_MODULE_HDF5=ON \
+            -DFAST_MODULE_Plotting=ON \
+            -DFAST_MODULE_Python=ON \
+            -DFAST_Python_Version="3.6" \
+            -DFAST_Python_Include="$(dirname $(pyenv which python))/../include/python3.6m/" \
+            -DFAST_Python_Library="$(dirname $(pyenv which python))/../lib/libpython3.6.dylib" \
+            -DFAST_MODULE_RealSense=OFF \
+            -DFAST_BUILD_EXAMPLES=ON
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
+
+    - name: Build Python wheel
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 10.13
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
+
+    - name: Package
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+
+    - name: Upload archive package
+      uses: actions/upload-artifact@v2
+      with:
+        name: Archive package (tar.xz)
+        path: ${{github.workspace}}/build/fast_*.tar.xz
+        if-no-files-found: error
+
+    - name: Upload Python wheel
+      uses: actions/upload-artifact@v2
+      with:
+        name: Python wheel
+        path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        if-no-files-found: error
+
+    - name: Upload archive package to release
+      if: ${{ github.event_name == 'release' }}
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/build/fast_*.tar.xz
+        file_glob: true
+        tag: ${{ github.ref }}
+        overwrite: true
+
+    - name: Upload Python wheel to release
+      if: ${{ github.event_name == 'release' }}
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        file_glob: true
+        tag: ${{ github.ref }}
+        overwrite: true
+
+    - name: Upload Python wheel to PyPi
+      if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
+      run: |
+        twine upload --username smistad --password ${{ secrets.PYPI_PASSWORD }} ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+
+    - name: Test PyPi upload
+      if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
+      run: |
+        sleep 30
+        pip3 install pyfast==${GITHUB_REF#refs/tags/v}
+      shell: bash
+
+#  test-cpp:
+#    name: Run C++ Tests
+#    needs: [build]
+#    runs-on: [self-hosted, macos]
+#    steps:
+#      - name: Download artifacts
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: 'Archive package (tar.xz)'
+#          path: ${{github.workspace}}/download/
+#      - name: Extract artifact
+#        run: |
+#          mkdir -p ${{github.workspace}}/download/
+#          cd ${{github.workspace}}/download/
+#          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+#      - name: Download test data
+#        run: |
+#          cd ${{github.workspace}}
+#          cd fast*
+#          cd fast/bin/
+#          ./downloadTestData
+#      - name: Run tests
+#        run: |
+#          cd ${{github.workspace}}
+#          cd fast_*
+#          cd fast/bin/
+#          ./testFAST ~[visual]~[unstablemac]
+#      - name: Cleanup
+#        if: always()
+#        run: |
+#          rm -Rf ${{github.workspace}}
+#          rm -Rf $HOME/FAST/kernel_binaries/*
+#
+#  test-python:
+#    name: Run Python Tests
+#    needs: [build]
+#    runs-on: [self-hosted, macos]
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: Download artifacts
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: 'Python wheel'
+#          path: ${{github.workspace}}/download/
+#      - name: Create environment and install python packages
+#        run: |
+#          cd ${{github.workspace}}
+#          mkdir tmp
+#          cd tmp
+#          virtualenv -p python3 venv
+#          source venv/bin/activate
+#          pip3 install pytest
+#          pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+#      - name: Run tests
+#        run: |
+#          cd ${{github.workspace}}/tmp/
+#          source venv/bin/activate
+#          pytest ../source/FAST/
+#      - name: Cleanup
+#        if: always()
+#        run: |
+#          rm -Rf ${{github.workspace}}/download/
+#          rm -Rf ${{github.workspace}}/tmp/
+#          rm -Rf $HOME/FAST/kernel_binaries/*

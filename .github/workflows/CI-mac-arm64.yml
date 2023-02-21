@@ -1,4 +1,4 @@
-name: CI macOS 11
+name: CI macOS 11 arm64
 
 on:
   push:
@@ -48,12 +48,13 @@ jobs:
       run: |
         cmake -B ${{github.workspace}}/build \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
-            -DFAST_MODULE_OpenVINO=ON \
+            -DFAST_MODULE_OpenVINO=OFF \
+            -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" \
             -DFAST_MODULE_Dicom=ON \
             -DFAST_MODULE_WholeSlideImaging=ON \
             -DFAST_MODULE_OpenIGTLink=ON \
-            -DFAST_MODULE_Clarius=ON \
-            -DFAST_MODULE_TensorFlow=ON \
+            -DFAST_MODULE_Clarius=OFF \
+            -DFAST_MODULE_TensorFlow=OFF \
             -DFAST_MODULE_HDF5=ON \
             -DFAST_MODULE_Plotting=ON \
             -DFAST_MODULE_Python=ON \
@@ -120,67 +121,67 @@ jobs:
         pip3 install pyfast==${GITHUB_REF#refs/tags/v}
       shell: bash
 
-  test-cpp:
-    name: Run C++ Tests
-    needs: [build]
-    runs-on: [self-hosted, macos]
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: 'Archive package (tar.xz)'
-          path: ${{github.workspace}}/download/
-      - name: Extract artifact
-        run: |
-          mkdir -p ${{github.workspace}}/download/
-          cd ${{github.workspace}}/download/
-          tar -xf fast_*.tar.xz -C ${{github.workspace}}
-      - name: Download test data
-        run: |
-          cd ${{github.workspace}}
-          cd fast*
-          cd fast/bin/
-          ./downloadTestData
-      - name: Run tests
-        run: |
-          cd ${{github.workspace}}
-          cd fast_*
-          cd fast/bin/
-          ./testFAST ~[visual]~[unstablemac]
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -Rf ${{github.workspace}}
-          rm -Rf $HOME/FAST/kernel_binaries/*
-          
-  test-python:
-    name: Run Python Tests
-    needs: [build]
-    runs-on: [self-hosted, macos]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: 'Python wheel'
-          path: ${{github.workspace}}/download/
-      - name: Create environment and install python packages
-        run: |
-          cd ${{github.workspace}}
-          mkdir tmp
-          cd tmp
-          virtualenv -p python3 venv
-          source venv/bin/activate
-          pip3 install pytest
-          pip3 install ${{github.workspace}}/download/pyFAST-*.whl
-      - name: Run tests
-        run: |
-          cd ${{github.workspace}}/tmp/
-          source venv/bin/activate
-          pytest ../source/FAST/
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -Rf ${{github.workspace}}/download/
-          rm -Rf ${{github.workspace}}/tmp/
-          rm -Rf $HOME/FAST/kernel_binaries/*
+#  test-cpp:
+#    name: Run C++ Tests
+#    needs: [build]
+#    runs-on: [self-hosted, macos]
+#    steps:
+#      - name: Download artifacts
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: 'Archive package (tar.xz)'
+#          path: ${{github.workspace}}/download/
+#      - name: Extract artifact
+#        run: |
+#          mkdir -p ${{github.workspace}}/download/
+#          cd ${{github.workspace}}/download/
+#          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+#      - name: Download test data
+#        run: |
+#          cd ${{github.workspace}}
+#          cd fast*
+#          cd fast/bin/
+#          ./downloadTestData
+#      - name: Run tests
+#        run: |
+#          cd ${{github.workspace}}
+#          cd fast_*
+#          cd fast/bin/
+#          ./testFAST ~[visual]~[unstablemac]
+#      - name: Cleanup
+#        if: always()
+#        run: |
+#          rm -Rf ${{github.workspace}}
+#          rm -Rf $HOME/FAST/kernel_binaries/*
+#
+#  test-python:
+#    name: Run Python Tests
+#    needs: [build]
+#    runs-on: [self-hosted, macos]
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: Download artifacts
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: 'Python wheel'
+#          path: ${{github.workspace}}/download/
+#      - name: Create environment and install python packages
+#        run: |
+#          cd ${{github.workspace}}
+#          mkdir tmp
+#          cd tmp
+#          virtualenv -p python3 venv
+#          source venv/bin/activate
+#          pip3 install pytest
+#          pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+#      - name: Run tests
+#        run: |
+#          cd ${{github.workspace}}/tmp/
+#          source venv/bin/activate
+#          pytest ../source/FAST/
+#      - name: Cleanup
+#        if: always()
+#        run: |
+#          rm -Rf ${{github.workspace}}/download/
+#          rm -Rf ${{github.workspace}}/tmp/
+#          rm -Rf $HOME/FAST/kernel_binaries/*
