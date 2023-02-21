@@ -1,6 +1,12 @@
 #include "ONNXRuntimeEngine.hpp"
 #include <onnxruntime_cxx_api.h>
+#ifdef WIN32
 #include <dml_provider_factory.h>
+#elif defined(__APPLE__) || defined(__MACOSX)
+#include <coreml_provider_factory.h>
+#else
+#endif
+
 #include <FAST/Config.hpp>
 
 namespace fast {
@@ -69,7 +75,11 @@ void ONNXRuntimeEngine::load() {
 	m_env = std::make_unique<Ort::Env>(ORT_LOGGING_LEVEL_WARNING, "ONNXRuntime");
     if(m_deviceType == InferenceDeviceType::CPU) {
 		Ort::SessionOptions session_options;
+#ifdef WIN32
 		m_session = std::make_unique<Ort::Session>(*m_env.get(), wideStr.c_str(), session_options);
+#else
+		m_session = std::make_unique<Ort::Session>(*m_env.get(), filename.c_str(), session_options);
+#endif
     } else {
 #ifdef WIN32
         try {
@@ -91,12 +101,12 @@ void ONNXRuntimeEngine::load() {
             Ort::SessionOptions session_options;
             uint32_t coreml_flags = 0;
             Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CoreML(session_options, coreml_flags));
-            m_session = std::make_unique<Ort::Session>(*m_env.get(), wideStr.c_str(), session_options);
+            m_session = std::make_unique<Ort::Session>(*m_env.get(), filename.c_str(), session_options);
         }
         catch (Ort::Exception& e) {
             reportWarning() << "Exception occured while trying to load CoreML for ONNXRuntime with message: (" << e.GetOrtErrorCode() << ") " << e.what() << ". Falling back to CPU." << reportEnd();
             Ort::SessionOptions session_options;
-            m_session = std::make_unique<Ort::Session>(*m_env.get(), wideStr.c_str(), session_options);
+            m_session = std::make_unique<Ort::Session>(*m_env.get(), filename.c_str(), session_options);
         }
 #else
         // LINUX
