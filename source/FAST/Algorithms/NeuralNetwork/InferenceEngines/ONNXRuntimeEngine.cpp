@@ -71,6 +71,7 @@ void ONNXRuntimeEngine::load() {
 		Ort::SessionOptions session_options;
 		m_session = std::make_unique<Ort::Session>(*m_env.get(), wideStr.c_str(), session_options);
     } else {
+#ifdef WIN32
         try {
             Ort::SessionOptions session_options;
             SetDllDirectory(Config::getLibraryPath().c_str()); // Make sure delay-load dlls are found (directml.dll) etc.
@@ -80,10 +81,26 @@ void ONNXRuntimeEngine::load() {
             SetDllDirectory("");
         }
         catch (Ort::Exception& e) {
-            reportWarning() << "Exception occured while trying to load DirectML for ONNXRuntime with message: (" << e.GetOrtErrorCode() << ") " << e.what() << reportEnd();
+            reportWarning() << "Exception occured while trying to load DirectML for ONNXRuntime with message: (" << e.GetOrtErrorCode() << ") " << e.what()  << ". Falling back to CPU." << reportEnd();
             Ort::SessionOptions session_options;
             m_session = std::make_unique<Ort::Session>(*m_env.get(), wideStr.c_str(), session_options);
         }
+#elif defined(__APPLE__) || defined(__MACOSX)
+        // APPLE
+        try {
+            Ort::SessionOptions session_options;
+            uint32_t coreml_flags = 0;
+            Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CoreML(session_options, coreml_flags));
+            m_session = std::make_unique<Ort::Session>(*m_env.get(), wideStr.c_str(), session_options);
+        }
+        catch (Ort::Exception& e) {
+            reportWarning() << "Exception occured while trying to load CoreML for ONNXRuntime with message: (" << e.GetOrtErrorCode() << ") " << e.what() << ". Falling back to CPU." << reportEnd();
+            Ort::SessionOptions session_options;
+            m_session = std::make_unique<Ort::Session>(*m_env.get(), wideStr.c_str(), session_options);
+        }
+#else
+        // LINUX
+#endif
     }
 	Ort::AllocatorWithDefaultOptions allocator;
 	reportInfo() << "ONNXRuntime Session created" << reportEnd();
