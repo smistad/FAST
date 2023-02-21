@@ -2,8 +2,8 @@ if(FAST_MODULE_ONNXRuntime)
     message("-- Enabling Microsoft ONNX runtime inference engine module")
     if(WIN32)
         fast_download_dependency(onnxruntime
-              1.13.1
-              07ab6a1e875fbd336fd694cf71728535d935bf1a87c80cb1307e04758bce87d9
+              1.14.0
+              6314b9ef3a5c0609407293abf1053b5a37e12f2bbb0cff08637f0b1004c6a140
         )
     elseif(APPLE)
         if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
