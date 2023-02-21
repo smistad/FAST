@@ -84,6 +84,14 @@ if(FAST_MODULE_Python)
     add_dependencies(install_to_wheel _fast)
     message("PYTHON LIBRARIES: ${PYTHON_LIBRARIES}")
 
+    if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+        set(OSX_DEPLOYMENT_TARGET "11.0")
+        set(OSX_ARCHITECTURE "arm64")
+    else()
+        set(OSX_DEPLOYMENT_TARGET "10.13")
+        set(OSX_ARCHITECTURE "x86_64")
+    endif()
+
     add_custom_target(python-wheel
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
@@ -99,7 +107,8 @@ if(FAST_MODULE_Python)
         -D NUMPY_INCLUDE_DIR:STRING=${PYTHON_NUMPY_INCLUDE_DIR}
         -D OpenCL_LIBRARIES:STRING=${OpenCL_LIBRARIES}
         -D OPENGL_LIBRARIES:STRING=${OPENGL_LIBRARIES}
-        -D OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
+        -D OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
+        -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
         -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
     add_dependencies(python-wheel install_to_wheel)
 else()

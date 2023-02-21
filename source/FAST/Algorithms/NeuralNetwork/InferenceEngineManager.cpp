@@ -280,10 +280,13 @@ void InferenceEngineManager::loadAll() {
             }
 #else
             if(name == "TensorFlow") {
+#ifdef __arm64__
+#else
                 if(!__builtin_cpu_supports("avx2")) {
                     Reporter::warning() << "You CPU does not support AVX2, unable to load TensorFlow inference engine." << Reporter::end();
                     continue;
                 }
+#endif
             }
             auto handle = dlopen(path.c_str(), RTLD_LAZY);
             if(!handle) {

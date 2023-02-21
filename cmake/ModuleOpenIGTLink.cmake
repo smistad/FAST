@@ -8,11 +8,19 @@ if(FAST_MODULE_OpenIGTLink)
                 OpenIGTLink.lib
         )
     elseif(APPLE)
+if(${CMAKE_OSX_ARCHITECTURES} STREQUAL "arm64")
+        fast_download_dependency(OpenIGTLink
+                3.1
+		f6b3974728153c7efd29ec539bc1957ba77c657da7678114eabaedb6548b3619
+                libOpenIGTLink.dylib
+        )
+else()
         fast_download_dependency(OpenIGTLink
                 3.1
                 cf378861fa4a4d6324a60c4d23c41f19582f92029212bfb3fbccc57455afb4b0
                 libOpenIGTLink.dylib
         )
+endif()
     else()
         fast_download_dependency(OpenIGTLink
                 3.1

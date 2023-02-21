@@ -17,10 +17,17 @@ elseif(APPLE)
 	find_package(OpenCL REQUIRED) # Need to link with Apple OpenCL binary and not khronos..?
 	list(APPEND LIBRARIES ${OpenCL_LIBRARIES})
 	list(APPEND FAST_INCLUDE_DIRS ${OpenCL_INCLUDE_DIRS})
+if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+        fast_download_dependency(opencl
+            3.0.8
+            a97ebc4eb918ba0bd7ae4b1a01afdbd1097fa300854da433f6687eaa891f75fa
+        )
+else()
         fast_download_dependency(opencl
             3.0.8
             63d72f3af7a3362e48ea45b55c772f2717de55a27de5aaf38e55e0364a4ee45b
         )
+endif()
 else()
     fast_download_dependency(opencl
             3.0.8
@@ -56,11 +63,19 @@ if(FAST_MODULE_Visualization)
                     e0f9b5d26627c70abbfa9e3b0d731a81995bdd2af2177eebf1c4b32691643c9e
             )
       	elseif(APPLE)
+		if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+			fast_download_dependency(qt5
+			    5.15.8
+			    2c5e30b1ae862e9d47f3e59ae2346eea0cb24c2208307bbade6ac2ec8bca3463
+			    libQt5Core.dylib libQt5Gui.dylib libQt5Widgets.dylib libQt5OpenGL.dylib libQt5Multimedia.dylib libQt5MultimediaWidgets.dylib libQt5Network.dylib libQt5PrintSupport.dylib libQt5SerialPort.dylib
+			    )
+		else()
             fast_download_dependency(qt5
                     5.15.2
 		    0f5ff6ea8a9299cda1f41922f310a1f8f5bb8bf8829c46e85eb68e2638e2a840
                     libQt5Core.dylib libQt5Gui.dylib libQt5Widgets.dylib libQt5OpenGL.dylib libQt5Multimedia.dylib libQt5MultimediaWidgets.dylib libQt5Network.dylib libQt5PrintSupport.dylib libQt5SerialPort.dylib
             )
+		endif()
         else()
             fast_download_dependency(qt5
                     5.15.2

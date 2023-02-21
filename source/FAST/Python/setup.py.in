@@ -146,7 +146,7 @@ elif is_apple:
     additional_libraries = []
     # Override platform tag, or it gets tag 10_15 for some reason
     sys.argv.append('--plat-name')
-    sys.argv.append('macosx_10_13_x86_64')
+    sys.argv.append('macosx_' + '@OSX_DEPLOYMENT_TARGET@'.replace('.', '_') + '_' + '@OSX_ARCHITECTURE@')
 else:
     compile_args = ['-std=c++17']
     link_args = ['-Wl,-rpath=$ORIGIN/../lib']
