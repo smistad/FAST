@@ -3,7 +3,7 @@ if(FAST_MODULE_ONNXRuntime)
     if(WIN32)
         fast_download_dependency(onnxruntime
               1.14.0
-              6314b9ef3a5c0609407293abf1053b5a37e12f2bbb0cff08637f0b1004c6a140
+              28d0477bbc21efa87ea1c44c5f3b8b29bf3e272b22921126981d7ecdfac2b998
         )
     elseif(APPLE)
         if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
