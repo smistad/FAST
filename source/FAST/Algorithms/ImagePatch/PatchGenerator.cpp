@@ -158,7 +158,8 @@ void PatchGenerator::generateStream() {
                     }
                     if(patch->getWidth() != m_width || patch->getHeight() != m_height) {
                         patch = patch->crop(Vector2i(0, 0), Vector2i(m_width, m_height), true, paddingValue);
-                    } else if(m_overlapPercent > 0.0f && (patchX == 0 || patchY == 0)) {
+                    }
+                    if(m_overlapPercent > 0.0f && (patchX == 0 || patchY == 0)) {
                         int offsetX = patchX == 0 ? -overlapInPixelsX : 0;
                         int offsetY = patchY == 0 ? -overlapInPixelsY : 0;
                         patch = patch->crop(Vector2i(offsetX, offsetY), Vector2i(m_width, m_height), true, paddingValue);
