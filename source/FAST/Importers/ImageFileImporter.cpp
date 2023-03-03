@@ -24,11 +24,11 @@ ImageFileImporter::ImageFileImporter(std::string filename) : FileImporter(filena
     setFilename(filename);
 }
 
-inline bool matchExtension(std::string extension, std::string extension2) {
+inline bool matchExtension(std::string filename, std::string extension) {
     // Convert to lower case first
+    std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
     std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
-    std::transform(extension2.begin(), extension2.end(), extension2.begin(), ::tolower);
-    return extension == extension2;
+    return filename.substr(filename.size() - extension.size()) == extension;
 
 }
 
@@ -55,8 +55,7 @@ void ImageFileImporter::execute() {
         throw Exception("The ImageFileImporter needs the dicom module (DCMTK) to be enabled in order to read dicom files.");
 #endif
     } else {
-        std::string ext = m_filename.substr(pos + 1);
-        if(matchExtension(ext, "mhd")) {
+        if(matchExtension(m_filename, "mhd")) {
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setMainDevice(getMainDevice());
             importer->setFilename(m_filename);
@@ -64,7 +63,7 @@ void ImageFileImporter::execute() {
             importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
-        } else if(matchExtension(ext, "dcm")) {
+        } else if(matchExtension(m_filename, "dcm")) {
 #ifdef FAST_MODULE_DICOM
             auto importer = DICOMFileImporter::New();
             importer->setFilename(m_filename);
@@ -76,12 +75,12 @@ void ImageFileImporter::execute() {
 #else
             throw Exception("The ImageFileImporter needs the dicom module (DCMTK) to be enabled in order to read dicom files.");
 #endif
-        } else if(matchExtension(ext, "jpg") ||
-                  matchExtension(ext, "jpeg") ||
-                  matchExtension(ext, "png") ||
-                  matchExtension(ext, "bmp") ||
-                  matchExtension(ext, "tif") ||
-                  matchExtension(ext, "tiff")
+        } else if(matchExtension(m_filename, "jpg") ||
+                  matchExtension(m_filename, "jpeg") ||
+                  matchExtension(m_filename, "png") ||
+                  matchExtension(m_filename, "bmp") ||
+                  matchExtension(m_filename, "tif") ||
+                  matchExtension(m_filename, "tiff")
                   ) {
 #ifdef FAST_MODULE_VISUALIZATION
             auto importer = ImageImporter::New();
@@ -94,13 +93,13 @@ void ImageFileImporter::execute() {
 #else
             throw Exception("Importing regular images requires FAST built with Qt");
 #endif
-        } else if(matchExtension(ext, "nii") ||
-                matchExtension(ext, "nii.gz")) {
+        } else if(matchExtension(m_filename, "nii") ||
+                matchExtension(m_filename, "nii.gz")) {
             auto importer = NIFTIImporter::create(m_filename);
             importer->setMainDevice(getMainDevice());
             addOutputData(0, importer->runAndGetOutputData<Image>());
         } else {
-            throw Exception("The ImageFileImporter does not recognize the file extension " + ext);
+            throw Exception("The ImageFileImporter does not recognize the file extension of the filename " + m_filename);
         }
     }
 
