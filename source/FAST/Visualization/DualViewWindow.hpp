@@ -59,6 +59,7 @@ class FAST_EXPORT DualViewWindow : public Window {
 
 /**
  * @brief A Window with 2 views in 2D mode
+ * @ingroup window
  */
 class FAST_EXPORT DualViewWindow2D : public DualViewWindow {
     FAST_OBJECT_V4(DualViewWindow2D)
@@ -82,6 +83,7 @@ class FAST_EXPORT DualViewWindow2D : public DualViewWindow {
 
 /**
  * @brief A Window with 2 views in 3D mode
+ * @ingroup window
  */
 class FAST_EXPORT DualViewWindow3D : public DualViewWindow {
     FAST_OBJECT_V4(DualViewWindow3D)

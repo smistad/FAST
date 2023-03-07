@@ -13,6 +13,8 @@ All the Python examples can be found in the [repository](https://github.com/smis
 |[Neural network segmentation of ultrasound images](@ref neural_network_image_segmentation.py)| @image html images/examples/python/neural_network_segmentation.jpg width=350px; |
 |[Export visualization of ultrasound video segmentation to a video file](@ref export_visualization_to_video.py)| @image html images/examples/python/neural_network_segmentation.jpg width=350px; |
 |[Capture individual frames of a video file, convert to images and display with matplotlib](@ref convert_video_to_image_frames.py)| @image html images/examples/python/video_frames.jpg width=350px; |
+|[Display orthogonal slices of 3D CT data with segmentation overlay](@ref slicer_window_CT.py)| @image html images/examples/python/slicer_window_CT.jpg width=350px; |
+|[Display orthogonal slices of 3D MRI data with segmentation overlay](@ref slicer_window_MRI.py)| @image html images/examples/python/slicer_window_MRI.jpg width=350px; |
 |[Block matching based ultrasound speckle tracking](@ref block_matching_speckle_tracking.py)| @image html images/examples/python/block_matching_tracking.jpg width=350px; |
 |[Stream images from webcamera and apply edge detection](@ref stream_from_webcamera.py)| @image html images/examples/python/webcamera.jpg width=350px; |
 |[Stream images from Clarius ultrasound scanner and apply a non-local means (NLM) filter](@ref stream_from_clarius_ultrasound_scanner.py)| @image html images/examples/python/clarius_streaming.jpg width=350px; |
