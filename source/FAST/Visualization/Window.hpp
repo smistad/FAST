@@ -16,6 +16,15 @@ namespace fast {
 
 class ProcessObject;
 
+/**
+ * @defgroup window Windows
+ * Windows to display data using renderers.
+ */
+
+/**
+ * @brief Abstract base class for windows
+ * @ingroup window
+ */
 class FAST_EXPORT  Window : public QObject, public Object {
     Q_OBJECT
     public:

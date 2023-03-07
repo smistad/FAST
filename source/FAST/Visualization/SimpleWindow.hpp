@@ -8,6 +8,7 @@ namespace fast {
 
 /**
  * @brief A Window with only 1 View
+ * @ingroup window
  */
 class FAST_EXPORT SimpleWindow : public Window {
     FAST_OBJECT(SimpleWindow)
@@ -44,6 +45,7 @@ class FAST_EXPORT SimpleWindow : public Window {
 
 /**
  * @brief A Window with only 1 View in 2D mode
+ * @ingroup window
  */
 class FAST_EXPORT SimpleWindow2D : public SimpleWindow {
     FAST_OBJECT_V4(SimpleWindow2D)
@@ -62,6 +64,7 @@ class FAST_EXPORT SimpleWindow2D : public SimpleWindow {
 
 /**
  * @brief A Window with only 1 View in 3D mode
+ * @ingroup window
  */
 class FAST_EXPORT SimpleWindow3D : public SimpleWindow {
     FAST_OBJECT_V4(SimpleWindow3D)

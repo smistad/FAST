@@ -9,6 +9,7 @@ namespace fast {
 
 /**
  * @brief A Window with 2 views
+ * @ingroup window
  */
 class FAST_EXPORT DualViewWindow : public Window {
     FAST_OBJECT_V4(DualViewWindow)

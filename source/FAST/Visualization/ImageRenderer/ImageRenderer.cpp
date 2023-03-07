@@ -213,12 +213,23 @@ void ImageRenderer::drawTextures(std::unordered_map<uint, std::shared_ptr<Spatia
             // Determine level and window
             float window = mWindow;
             float level = mLevel;
-            // If mWindow/mLevel is equal to -1 use default level/window values
-            if (window == -1) {
-                window = getDefaultIntensityWindow(type);
+            float minIntensity, maxIntensity;
+            if((window == -1 || level == -1) && type != TYPE_UINT8) {
+                minIntensity = it.second->calculateMinimumIntensity();
+                maxIntensity = it.second->calculateMaximumIntensity();
             }
-            if (level == -1) {
+            // If mWindow/mLevel is equal to -1 use default level/window values
+            if (window <= 0) {
+                window = getDefaultIntensityWindow(type);
+                if(type != TYPE_UINT8) {
+                    window = maxIntensity - minIntensity;
+                }
+            }
+            if (level == -1) { // TODO what if level actually is set to -1
                 level = getDefaultIntensityLevel(type);
+                if(type != TYPE_UINT8) {
+                    level = (maxIntensity - minIntensity)/2.0f + minIntensity;
+                }
             }
             setShaderUniform("window", window, shaderName);
             setShaderUniform("level", level, shaderName);
