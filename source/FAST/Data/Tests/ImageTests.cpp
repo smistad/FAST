@@ -1202,8 +1202,6 @@ inline float getStandardDeviationFromData(void* data, unsigned int nrOfElements,
     return sum;
 }
 
-
-
 TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image stored as OpenCL image" , "[fast][image]") {
     DeviceManager* deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
@@ -1225,6 +1223,31 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image
             CHECK(image->calculateAverageIntensity() == Approx(average));
             deleteArray(data, type);
         }
+    //}
+}
+
+TEST_CASE("calculateAverageIntensity returns the average intensity of a 3D image stored as OpenCL image" , "[fast][image]") {
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
+    unsigned int width = 31;
+    unsigned int height = 64;
+    unsigned int depth = 43;
+
+    // Test for having channels 1 to 4 and for all data types
+    unsigned int nrOfChannels = 1;
+    //for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
+    for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+        DataType type = (DataType)typeNr;
+
+        // Create a data array with random data
+        void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
+
+        Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, device, data);
+
+        float average = getSumFromData(data, width*height*depth*nrOfChannels, type) / (width*height*depth);
+        CHECK(image->calculateAverageIntensity() == Approx(average));
+        deleteArray(data, type);
+    }
     //}
 }
 
@@ -1252,6 +1275,30 @@ TEST_CASE("calculateStandardDeviationIntensity returns the std dev intensity of 
     //}
 }
 
+TEST_CASE("calculateStandardDeviationIntensity returns the std dev intensity of a 3D image stored as OpenCL image" , "[fast][image]") {
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
+    unsigned int width = 31;
+    unsigned int height = 64;
+    unsigned int depth = 40;
+
+    // Test for having channels 1 to 4 and for all data types
+    unsigned int nrOfChannels = 1;
+    //for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
+    for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+        DataType type = (DataType)typeNr;
+
+        // Create a data array with random data
+        void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
+
+        auto image = Image::create(width, height, depth, type, nrOfChannels, device, data);
+
+        float average = getStandardDeviationFromData(data, width*height*depth*nrOfChannels, type);
+        CHECK(image->calculateStandardDeviationIntensity() == Approx(average).margin(0.01));
+        deleteArray(data, type);
+    }
+    //}
+}
 
 
 TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image stored on host" , "[fast][image]") {

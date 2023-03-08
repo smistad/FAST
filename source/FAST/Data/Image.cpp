@@ -908,26 +908,13 @@ float Image::calculateSumIntensity() {
                 if(it->second == true) {
                     OpenCLDevice::pointer device = it->first;
                     float sum;
+                    auto access = getOpenCLImageAccess(ACCESS_READ, device);
                     if(mDimensions == 2) {
-                        OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
-                        cl::Image2D* clImage = access->get2DImage();
+                        auto clImage = access->get2DImage();
                         getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
                     } else {
-                        if(!device->isWritingTo3DTexturesSupported()) {
-                            // Writing to 3D images is not supported on this device
-                            // Copy data to buffer instead and do the max min calculation on the buffer instead
-                            OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
-                            cl::Buffer* buffer = access->get();
-                            // TODO
-                            throw Exception("Not implemented yet");
-                            //getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
-                        } else {
-                            OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
-                            cl::Image3D* clImage = access->get3DImage();
-                            // TODO
-                            throw Exception("Not implemented yet");
-                            //getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
-                        }
+                        auto clImage = access->get3DImage();
+                        getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
                     }
                     mSumIntensity = sum;
                     found = true;
@@ -937,13 +924,18 @@ float Image::calculateSumIntensity() {
             if(!found) {
                 for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
                     if(it->second == true) {
+                        // TODO FIXME, ideally we should use the Buffers directly here, here we get a copy from image to buffer
                         OpenCLDevice::pointer device = it->first;
-                        OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
-                        cl::Buffer* buffer = access->get();
-                        // TODO
-                        throw Exception("Not implemented yet");
-                        //getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
-                        found = true;
+                        float sum;
+                        auto access = getOpenCLImageAccess(ACCESS_READ, device);
+                        if(mDimensions == 2) {
+                            auto clImage = access->get2DImage();
+                            getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
+                        } else {
+                            auto clImage = access->get3DImage();
+                            getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
+                        }
+                        mSumIntensity = sum;
                     }
                 }
             }
@@ -996,26 +988,13 @@ float Image::calculateStandardDeviationIntensity() {
                 if(it->second == true) {
                     OpenCLDevice::pointer device = it->first;
                     float stddev;
+                    auto access = getOpenCLImageAccess(ACCESS_READ, device);
                     if(mDimensions == 2) {
-                        OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
-                        cl::Image2D* clImage = access->get2DImage();
+                        auto clImage = access->get2DImage();
                         getIntensityStdDevFromOpenCLImage(device, *clImage, mType, average, &stddev);
                     } else {
-                        if(!device->isWritingTo3DTexturesSupported()) {
-                            // Writing to 3D images is not supported on this device
-                            // Copy data to buffer instead and do the max min calculation on the buffer instead
-                            OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
-                            cl::Buffer* buffer = access->get();
-                            // TODO
-                            throw Exception("Not implemented yet");
-                            //getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
-                        } else {
-                            OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
-                            cl::Image3D* clImage = access->get3DImage();
-                            // TODO
-                            throw Exception("Not implemented yet");
-                            //getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
-                        }
+                        auto clImage = access->get3DImage();
+                        getIntensityStdDevFromOpenCLImage(device, *clImage, mType, average, &stddev);
                     }
                     mStdDevIntensity = stddev;
                     found = true;
@@ -1025,12 +1004,18 @@ float Image::calculateStandardDeviationIntensity() {
             if(!found) {
                 for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
                     if(it->second == true) {
+                        // TODO FIXME, ideally we should use the Buffers directly here, here we get a copy from image to buffer
                         OpenCLDevice::pointer device = it->first;
-                        OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
-                        cl::Buffer* buffer = access->get();
-                        // TODO
-                        throw Exception("Not implemented yet");
-                        //getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
+                        float stddev;
+                        auto access = getOpenCLImageAccess(ACCESS_READ, device);
+                        if(mDimensions == 2) {
+                            auto clImage = access->get2DImage();
+                            getIntensityStdDevFromOpenCLImage(device, *clImage, mType, average, &stddev);
+                        } else {
+                            auto clImage = access->get3DImage();
+                            getIntensityStdDevFromOpenCLImage(device, *clImage, mType, average, &stddev);
+                        }
+                        mStdDevIntensity = stddev;
                         found = true;
                     }
                 }

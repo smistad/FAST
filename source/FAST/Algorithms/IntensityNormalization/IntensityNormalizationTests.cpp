@@ -81,4 +81,14 @@ TEST_CASE("ZeroMeanUnitVariance 2D", "[fast][ZeroMeanUnitVariance]") {
     CHECK(image->calculateStandardDeviationIntensity() == Approx(1).margin(0.01));
 }
 
+TEST_CASE("ZeroMeanUnitVariance 3D", "[fast][ZeroMeanUnitVariance]") {
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "MRI/MR-Abdomen.mhd");
+
+    auto normalize = ZeroMeanUnitVariance::create()->connect(importer);
+
+    auto image = normalize->runAndGetOutputData<Image>();
+
+    CHECK(image->calculateAverageIntensity() == Approx(0).margin(0.1));
+    CHECK(image->calculateStandardDeviationIntensity() == Approx(1).margin(0.1));
+}
 }

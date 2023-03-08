@@ -74,7 +74,9 @@ FAST_EXPORT void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::I
 FAST_EXPORT void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* min, float* max);
 FAST_EXPORT void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffer, unsigned int size, DataType type, float* min, float* max);
 FAST_EXPORT void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* sum);
+FAST_EXPORT void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* sum);
 FAST_EXPORT void getIntensityStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float average, float* sum);
+FAST_EXPORT void getIntensityStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float average, float* sum);
 
 template <class T>
 void getMaxAndMinFromData(void* voidData, unsigned int nrOfElements, float* min, float* max) {

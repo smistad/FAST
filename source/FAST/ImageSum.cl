@@ -65,6 +65,25 @@ __kernel void createFirstSumImage2DLevel(
     write_imagef(firstLevel, pos, sum);
 }
 
+__kernel void createFirstSumImage3DLevel(
+        __read_only image3d_t image,
+        __global float* firstLevel
+        ) {
+    const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
+    const int4 readPos = pos*2;
+    const int3 size = {get_image_width(image), get_image_height(image), get_image_depth(image)};
+
+    float sum = 0.0f;
+    for(int i = 0; i < 8; ++i) {
+        int4 nPos = readPos + offset3D[i];
+        if(nPos.x < size.x && nPos.y < size.y && nPos.z < size.z) {
+            sum += READ_IMAGE(image, sampler, nPos).x;
+        }
+    }
+
+    firstLevel[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = sum;
+}
+
 __kernel void createSumImage2DLevel(
         __read_only image2d_t readLevel,
         __write_only image2d_t writeLevel
@@ -80,6 +99,25 @@ __kernel void createSumImage2DLevel(
 
     write_imagef(writeLevel, pos, sum);
 }
+
+__kernel void createSumImage3DLevel(
+        __global float* readLevel,
+        __global float* writeLevel
+        ) {
+    const int3 pos = {get_global_id(0), get_global_id(1), get_global_id(2)};
+    const int3 readPos = pos*2;
+    const int3 size = {get_global_size(0), get_global_size(1), get_global_size(2)};
+    const int3 readSize = size*2;
+
+    float sum = 0.0f;
+    for(int i = 0; i < 8; i++) {
+        int3 nPos = readPos + offset3D[i].xyz;
+        sum += readLevel[nPos.x+nPos.y*readSize.x+nPos.z*readSize.x*readSize.y];
+    }
+
+    writeLevel[pos.x+pos.y*size.x+pos.z*size.x*size.y] = sum;
+}
+
 
 __kernel void createFirstStdDevImage2DLevel(
         __read_only image2d_t image,
@@ -99,4 +137,24 @@ __kernel void createFirstStdDevImage2DLevel(
     }
 
     write_imagef(firstLevel, pos, sum);
+}
+
+__kernel void createFirstStdDevImage3DLevel(
+        __read_only image3d_t image,
+        __global float* firstLevel,
+        __private float average
+        ) {
+    const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
+    const int4 readPos = pos*2;
+    const int3 size = {get_image_width(image), get_image_height(image), get_image_depth(image)};
+
+    float sum = 0.0f;
+    for(int i = 0; i < 8; i++) {
+        int4 nPos = readPos + offset3D[i];
+        if(nPos.x < size.x && nPos.y < size.y && nPos.z < size.z) {
+            sum += pow(READ_IMAGE(image, sampler, nPos).x - average, 2.0f);
+        }
+    }
+
+    firstLevel[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = sum;
 }
