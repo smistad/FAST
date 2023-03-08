@@ -8,7 +8,7 @@ IntensityClipping::IntensityClipping(float minValue, float maxValue) {
     createOutputPort(0, "Image");
     setMinValue(minValue);
     setMaxValue(maxValue);
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/IntensityClipping/IntensityClipping2D.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/IntensityClipping/IntensityClipping2D.cl", "2D");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/IntensityClipping/IntensityClipping3D.cl", "3D");
 }
 
