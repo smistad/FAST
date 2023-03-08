@@ -12,12 +12,12 @@ __kernel void flip3D(
     int4 posInput = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     int3 targetPos = posInput.xyz;
     int3 size = {get_image_width(input), get_image_height(input), get_image_depth(input)};
-    if(flipHorizontal == 1) 
+    if(flipHorizontal == 1)
         targetPos.x = size.x - posInput.x - 1;
-    if(flipVertical == 1) 
+    if(flipVertical == 1)
         targetPos.y = size.y - posInput.y - 1;
-    if(flipDepth == 1) 
-        targetPos.z = size.z - posInput.y - 1;
+    if(flipDepth == 1)
+        targetPos.z = size.z - posInput.z - 1;
 
     int dataType = get_image_channel_data_type(input);
     if(dataType == CLK_FLOAT) {
