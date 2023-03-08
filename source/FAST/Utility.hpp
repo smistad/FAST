@@ -117,7 +117,7 @@ float getStandardDeviationFromData(void* voidData, unsigned int nrOfElements) {
         sum += ((float)data[i] - average)*((float)data[i] - average);
     }
 
-    return sum / nrOfElements;
+    return std::sqrt(sum / nrOfElements);
 }
 
 

@@ -1245,7 +1245,7 @@ TEST_CASE("calculateStandardDeviationIntensity returns the std dev intensity of 
 
             Image::pointer image = Image::create(width, height, type, nrOfChannels, device, data);
 
-            float average = getStandardDeviationFromData(data, width*height*nrOfChannels, type) / (width*height);
+            float average = getStandardDeviationFromData(data, width*height*nrOfChannels, type);
             CHECK(image->calculateStandardDeviationIntensity() == Approx(average));
             deleteArray(data, type);
         }

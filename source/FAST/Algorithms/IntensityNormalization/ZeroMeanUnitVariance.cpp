@@ -13,10 +13,10 @@ ZeroMeanUnitVariance::ZeroMeanUnitVariance() {
 void ZeroMeanUnitVariance::execute() {
 	auto input = getInputData<Image>();
 	float average = input->calculateAverageIntensity();
-	float standardDeviation = input->calculateAverageIntensity();
+	float standardDeviation = input->calculateStandardDeviationIntensity();
 
-	auto output = Image::create(image->getSize(), TYPE_FLOAT, image->getNrOfChannels());
-	output->setSpacing(image->getSpacing());
+	auto output = Image::create(input->getSize(), TYPE_FLOAT, input->getNrOfChannels());
+	output->setSpacing(input->getSpacing());
 	SceneGraph::setParentNode(output, input);
 
 	auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
@@ -26,13 +26,13 @@ void ZeroMeanUnitVariance::execute() {
         globalSize = cl::NDRange(input->getWidth(), input->getHeight());
 		kernel = cl::Kernel(getOpenCLProgram(device), "normalize2D");
 		auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
-		auto outputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+		auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 		kernel.setArg(0, *inputAccess->get2DImage());
 		kernel.setArg(1, *outputAccess->get2DImage());
 	} else {
 		// 3D
         globalSize = cl::NDRange(input->getWidth(), input->getHeight(), input->getDepth());
-		kernel = cl::Kernel(getOpenCLProgram(device,"normalize3D");
+		kernel = cl::Kernel(getOpenCLProgram(device),"normalize3D");
 		auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
 
 		kernel.setArg(0, *inputAccess->get3DImage());

@@ -150,9 +150,10 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D im
     delete[] result;
 }
 
-void getIntensitStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float average, float* stddev) {
+void getIntensityStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float average, float* stddev) {
     // Get power of two size
     unsigned int powerOfTwoSize = getPowerOfTwoSize(std::max(image.getImageInfo<CL_IMAGE_WIDTH>(), image.getImageInfo<CL_IMAGE_HEIGHT>()));
+    int totalNrOfElements = image.getImageInfo<CL_IMAGE_WIDTH>()*image.getImageInfo<CL_IMAGE_HEIGHT>();
 
     // Create image levels
     unsigned int size = powerOfTwoSize;
@@ -227,7 +228,7 @@ void getIntensitStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D 
     unsigned int nrOfComponents = getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, TYPE_FLOAT, 1).image_channel_order == CL_RGBA ? 4 : 1;
     float* result = (float*)allocateDataArray(nrOfElements,TYPE_FLOAT,nrOfComponents);
     queue.enqueueReadImage(levels[levels.size()-1],CL_TRUE,createOrigoRegion(),createRegion(4,4,1),0,0,result);
-    *stddev = getSumFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents);
+    *stddev = std::sqrt(getSumFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents)/totalNrOfElements);
     delete[] result;
 }
 

@@ -1,5 +1,6 @@
 #include "FAST/Testing.hpp"
 #include "IntensityNormalization.hpp"
+#include "ZeroMeanUnitVariance.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Data/Image.hpp"
 
@@ -69,5 +70,15 @@ TEST_CASE("IntensityNormalization image 3D with high and low set", "[fast][Inten
     CHECK(result->calculateMaximumIntensity() == Approx(10));
 }
 
+TEST_CASE("ZeroMeanUnitVariance 2D", "[fast][ZeroMeanUnitVariance]") {
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_0.mhd");
+
+    auto normalize = ZeroMeanUnitVariance::create()->connect(importer);
+
+    auto image = normalize->runAndGetOutputData<Image>();
+
+    CHECK(image->calculateAverageIntensity() == Approx(0).margin(0.01));
+    CHECK(image->calculateStandardDeviationIntensity() == Approx(1).margin(0.01));
+}
 
 }

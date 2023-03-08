@@ -63,7 +63,7 @@ __kernel void normalize3D(
     } else {
         value = convert_float4(read_imagei(input, sampler, pos));
     }
-    value = (value - average) / std
+    value = (value - average) / std;
 
     output[(pos.x + pos.y*get_image_width(input) + pos.z*get_image_width(input)*get_image_height(input))*outputChannels] = value.x;
     if(outputChannels > 1)

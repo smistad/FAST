@@ -995,11 +995,11 @@ float Image::calculateStandardDeviationIntensity() {
             for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
                 if(it->second == true) {
                     OpenCLDevice::pointer device = it->first;
-                    float sum;
+                    float stddev;
                     if(mDimensions == 2) {
                         OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
                         cl::Image2D* clImage = access->get2DImage();
-                        getIntensityStdDevFromOpenCLImage(device, *clImage, mType, average, &sum);
+                        getIntensityStdDevFromOpenCLImage(device, *clImage, mType, average, &stddev);
                     } else {
                         if(!device->isWritingTo3DTexturesSupported()) {
                             // Writing to 3D images is not supported on this device
@@ -1017,7 +1017,7 @@ float Image::calculateStandardDeviationIntensity() {
                             //getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
                         }
                     }
-                    mStdDevIntensity = sum;
+                    mStdDevIntensity = stddev;
                     found = true;
                 }
             }

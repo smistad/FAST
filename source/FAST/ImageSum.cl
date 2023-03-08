@@ -94,7 +94,7 @@ __kernel void createFirstStdDevImage2DLevel(
     for(int i = 0; i < 4; i++) {
         int2 nPos = readPos + offset2D[i];
         if(nPos.x < size.x && nPos.y < size.y) {
-            sum += pow(READ_IMAGE(image, sampler, nPos).x - average), 2.0f)
+            sum += pow(READ_IMAGE(image, sampler, nPos).x - average, 2.0f);
         }
     }
 
