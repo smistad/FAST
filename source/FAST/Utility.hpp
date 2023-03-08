@@ -74,6 +74,9 @@ FAST_EXPORT void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::I
 FAST_EXPORT void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* min, float* max);
 FAST_EXPORT void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffer, unsigned int size, DataType type, float* min, float* max);
 FAST_EXPORT void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* sum);
+FAST_EXPORT void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* sum);
+FAST_EXPORT void getIntensityStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float average, float* sum);
+FAST_EXPORT void getIntensityStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float average, float* sum);
 
 template <class T>
 void getMaxAndMinFromData(void* voidData, unsigned int nrOfElements, float* min, float* max) {
@@ -101,6 +104,25 @@ float getSumFromData(void* voidData, unsigned int nrOfElements) {
     }
     return sum;
 }
+
+template <class T>
+float getStandardDeviationFromData(void* voidData, unsigned int nrOfElements) {
+    T* data = (T*)voidData;
+
+    float sum = 0.0f;
+    for(unsigned int i = 0; i < nrOfElements; i++) {
+        sum += (float)data[i];
+    }
+    float average = sum / nrOfElements;
+    sum = 0.0f;
+    for(unsigned int i = 0; i < nrOfElements; i++) {
+        sum += ((float)data[i] - average)*((float)data[i] - average);
+    }
+
+    return std::sqrt(sum / nrOfElements);
+}
+
+
 
 FAST_EXPORT cl::size_t<3> createRegion(unsigned int x, unsigned int y, unsigned int z);
 FAST_EXPORT cl::size_t<3> createRegion(Vector3ui size);

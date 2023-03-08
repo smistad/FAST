@@ -150,6 +150,255 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D im
     delete[] result;
 }
 
+
+void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* sum) {
+    // Get power of two size
+    unsigned int powerOfTwoSize = getPowerOfTwoSize(
+            std::max(std::max(image.getImageInfo<CL_IMAGE_WIDTH>(), image.getImageInfo<CL_IMAGE_HEIGHT>()), image.getImageInfo<CL_IMAGE_DEPTH>()));
+
+    // Create image levels
+    unsigned int size = powerOfTwoSize;
+    size /= 2;
+    std::vector<cl::Buffer> levels;
+    while(size >= 4) {
+        cl::Buffer level = cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, size*size*size*sizeof(float));
+        levels.push_back(level);
+        size /= 2;
+    }
+
+    // Compile OpenCL code
+    std::string buildOptions = "";
+    switch(type) {
+        case TYPE_FLOAT:
+            buildOptions = "-DTYPE_FLOAT";
+            break;
+        case TYPE_UINT8:
+            buildOptions = "-DTYPE_UINT8";
+            break;
+        case TYPE_INT8:
+            buildOptions = "-DTYPE_INT8";
+            break;
+        case TYPE_UINT16:
+            buildOptions = "-DTYPE_UINT16";
+            break;
+        case TYPE_INT16:
+            buildOptions = "-DTYPE_INT16";
+            break;
+    }
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageSum.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
+    cl::CommandQueue queue = device->getCommandQueue();
+
+    // Fill first level
+    size = powerOfTwoSize/2;
+    cl::Kernel firstLevel(program, "createFirstSumImage3DLevel");
+    firstLevel.setArg(0, image);
+    firstLevel.setArg(1, levels[0]);
+
+    queue.enqueueNDRangeKernel(
+            firstLevel,
+            cl::NullRange,
+            cl::NDRange(size,size,size),
+            cl::NullRange
+    );
+
+    // Fill all other levels
+    cl::Kernel createLevel(program, "createSumImage3DLevel");
+    int i = 0;
+    size /= 2;
+    while(size >= 4) {
+        createLevel.setArg(0, levels[i]);
+        createLevel.setArg(1, levels[i+1]);
+        queue.enqueueNDRangeKernel(
+                createLevel,
+                cl::NullRange,
+                cl::NDRange(size,size,size),
+                cl::NullRange
+        );
+        i++;
+        size /= 2;
+    }
+
+    // Get result from the last level
+    unsigned int nrOfElements = 4*4*4;
+    unsigned int nrOfComponents = 1;
+    float* result = (float*)allocateDataArray(nrOfElements,TYPE_FLOAT,nrOfComponents);
+    queue.enqueueReadBuffer(levels[levels.size()-1],CL_TRUE, 0, nrOfElements*sizeof(float), result);
+    *sum = getSumFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents);
+    delete[] result;
+}
+
+void getIntensityStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float average, float* stddev) {
+    // Get power of two size
+    unsigned int powerOfTwoSize = getPowerOfTwoSize(
+            std::max(std::max(image.getImageInfo<CL_IMAGE_WIDTH>(), image.getImageInfo<CL_IMAGE_HEIGHT>()), image.getImageInfo<CL_IMAGE_DEPTH>()));
+    int totalNrOfElements = image.getImageInfo<CL_IMAGE_WIDTH>()*image.getImageInfo<CL_IMAGE_HEIGHT>()*image.getImageInfo<CL_IMAGE_DEPTH>();
+
+    // Create image levels
+    unsigned int size = powerOfTwoSize;
+    size /= 2;
+    std::vector<cl::Buffer> levels;
+    while(size >= 4) {
+        cl::Buffer level = cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, size*size*size*sizeof(float));
+        levels.push_back(level);
+        size /= 2;
+    }
+
+    // Compile OpenCL code
+    std::string buildOptions = "";
+    switch(type) {
+        case TYPE_FLOAT:
+            buildOptions = "-DTYPE_FLOAT";
+            break;
+        case TYPE_UINT8:
+            buildOptions = "-DTYPE_UINT8";
+            break;
+        case TYPE_INT8:
+            buildOptions = "-DTYPE_INT8";
+            break;
+        case TYPE_UINT16:
+            buildOptions = "-DTYPE_UINT16";
+            break;
+        case TYPE_INT16:
+            buildOptions = "-DTYPE_INT16";
+            break;
+    }
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageSum.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
+    cl::CommandQueue queue = device->getCommandQueue();
+
+    // Fill first level
+    size = powerOfTwoSize/2;
+    cl::Kernel firstLevel(program, "createFirstStdDevImage3DLevel");
+    firstLevel.setArg(0, image);
+    firstLevel.setArg(1, levels[0]);
+    firstLevel.setArg(2, average);
+
+    queue.enqueueNDRangeKernel(
+            firstLevel,
+            cl::NullRange,
+            cl::NDRange(size,size,size),
+            cl::NullRange
+            );
+
+    // Fill all other levels
+    cl::Kernel createLevel(program, "createSumImage3DLevel");
+    int i = 0;
+    size /= 2;
+    while(size >= 4) {
+        createLevel.setArg(0, levels[i]);
+        createLevel.setArg(1, levels[i+1]);
+        queue.enqueueNDRangeKernel(
+                createLevel,
+                cl::NullRange,
+                cl::NDRange(size,size,size),
+                cl::NullRange
+                );
+        i++;
+        size /= 2;
+    }
+
+    // Get result from the last level
+    unsigned int nrOfElements = 4*4*4;
+    unsigned int nrOfComponents = 1;
+    float* result = (float*)allocateDataArray(nrOfElements,TYPE_FLOAT,nrOfComponents);
+    queue.enqueueReadBuffer(levels[levels.size()-1],CL_TRUE, 0, nrOfElements*sizeof(float), result);
+    *stddev = std::sqrt(getSumFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents)/totalNrOfElements);
+    delete[] result;
+}
+
+void getIntensityStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float average, float* stddev) {
+    // Get power of two size
+    unsigned int powerOfTwoSize = getPowerOfTwoSize(std::max(image.getImageInfo<CL_IMAGE_WIDTH>(), image.getImageInfo<CL_IMAGE_HEIGHT>()));
+    int totalNrOfElements = image.getImageInfo<CL_IMAGE_WIDTH>()*image.getImageInfo<CL_IMAGE_HEIGHT>();
+
+    // Create image levels
+    unsigned int size = powerOfTwoSize;
+    size /= 2;
+    std::vector<cl::Image2D> levels;
+    while(size >= 4) {
+        cl::Image2D level = cl::Image2D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, TYPE_FLOAT, 1), size, size);
+        levels.push_back(level);
+        size /= 2;
+    }
+
+    // Compile OpenCL code
+    std::string buildOptions = "";
+    switch(type) {
+    case TYPE_FLOAT:
+        buildOptions = "-DTYPE_FLOAT";
+        break;
+    case TYPE_UINT8:
+        buildOptions = "-DTYPE_UINT8";
+        break;
+    case TYPE_INT8:
+        buildOptions = "-DTYPE_INT8";
+        break;
+    case TYPE_UINT16:
+        buildOptions = "-DTYPE_UINT16";
+        break;
+    case TYPE_INT16:
+        buildOptions = "-DTYPE_INT16";
+        break;
+    }
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageSum.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
+    cl::CommandQueue queue = device->getCommandQueue();
+
+    // Fill first level
+    size = powerOfTwoSize/2;
+    cl::Kernel firstLevel(program, "createFirstStdDevImage2DLevel");
+    firstLevel.setArg(0, image);
+    firstLevel.setArg(1, levels[0]);
+    firstLevel.setArg(2, average);
+
+    queue.enqueueNDRangeKernel(
+            firstLevel,
+            cl::NullRange,
+            cl::NDRange(size,size),
+            cl::NullRange
+    );
+
+    // Fill all other levels
+    cl::Kernel createLevel(program, "createSumImage2DLevel");
+    int i = 0;
+    size /= 2;
+    while(size >= 4) {
+        createLevel.setArg(0, levels[i]);
+        createLevel.setArg(1, levels[i+1]);
+        queue.enqueueNDRangeKernel(
+                createLevel,
+                cl::NullRange,
+                cl::NDRange(size,size),
+                cl::NullRange
+        );
+        i++;
+        size /= 2;
+    }
+
+    // Get result from the last level
+    unsigned int nrOfElements = 4*4;
+    unsigned int nrOfComponents = getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, TYPE_FLOAT, 1).image_channel_order == CL_RGBA ? 4 : 1;
+    float* result = (float*)allocateDataArray(nrOfElements,TYPE_FLOAT,nrOfComponents);
+    queue.enqueueReadImage(levels[levels.size()-1],CL_TRUE,createOrigoRegion(),createRegion(4,4,1),0,0,result);
+    *stddev = std::sqrt(getSumFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents)/totalNrOfElements);
+    delete[] result;
+}
+
+
+
 void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* min, float* max) {
     // Get power of two size
     unsigned int powerOfTwoSize = getPowerOfTwoSize(std::max(image.getImageInfo<CL_IMAGE_WIDTH>(), image.getImageInfo<CL_IMAGE_HEIGHT>()));

@@ -259,6 +259,7 @@ class FAST_EXPORT Image : public SpatialDataObject {
         float calculateMinimumIntensity();
         float calculateAverageIntensity();
         float calculateSumIntensity();
+        float calculateStandardDeviationIntensity();
 
         /**
          * Copy image and put contents to specific device
@@ -356,9 +357,9 @@ class FAST_EXPORT Image : public SpatialDataObject {
 
         Vector3f mSpacing;
 
-        float mMaximumIntensity, mMinimumIntensity, mSumIntensity;
-        unsigned long mMaxMinTimestamp, mSumIntensityTimestamp;
-        bool mMaxMinInitialized, mSumInitialized;
+        float mMaximumIntensity, mMinimumIntensity, mSumIntensity, mStdDevIntensity;
+        unsigned long mMaxMinTimestamp, mSumIntensityTimestamp, mStdDevIntensityTimestamp;
+        bool mMaxMinInitialized = false, mSumInitialized = false, mStdDevInitialized = false;
         void calculateMaxAndMinIntensity();
 
         // Declare as friends so they can get access to the accessFinished methods
