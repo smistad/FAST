@@ -17,6 +17,7 @@ namespace fast {
  * Outputs:
  * - 0: Image float
  *
+ * @ingroup filter
  */
 class FAST_EXPORT IntensityNormalization : public ProcessObject {
     FAST_PROCESS_OBJECT(IntensityNormalization);
