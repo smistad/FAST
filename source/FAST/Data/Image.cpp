@@ -957,6 +957,96 @@ float Image::calculateSumIntensity() {
     return mSumIntensity;
 }
 
+float Image::calculateStandardDeviationIntensity() {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+
+    float average = calculateAverageIntensity();
+
+    // Calculate sum if image has changed or it is the first time
+    if(!mStdDevInitialized || mStdDevIntensityTimestamp != getTimestamp()) {
+        unsigned int nrOfElements = mWidth*mHeight*mDepth;
+        if((mHostHasData && mHostDataIsUpToDate) || getNrOfVoxels() < 256) {
+            // Host data is up to date, or image is very small, calculate min and max on host
+            auto access = getImageAccess(ACCESS_READ);
+            void* data = access->get();
+            switch(mType) {
+                case TYPE_FLOAT:
+                    mStdDevIntensity = getStandardDeviationFromData<float>(data,nrOfElements);
+                    break;
+                case TYPE_INT8:
+                    mStdDevIntensity = getStandardDeviationFromData<char>(data,nrOfElements);
+                    break;
+                case TYPE_UINT8:
+                    mStdDevIntensity = getStandardDeviationFromData<uchar>(data,nrOfElements);
+                    break;
+                case TYPE_INT16:
+                    mStdDevIntensity = getStandardDeviationFromData<short>(data,nrOfElements);
+                    break;
+                case TYPE_UINT16:
+                    mStdDevIntensity = getStandardDeviationFromData<ushort>(data,nrOfElements);
+                    break;
+            }
+        } else {
+            // TODO the logic here can be improved. For instance choose the best device
+            // Find some OpenCL image data or buffer data that is up to date
+            bool found = false;
+            std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+            for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
+                if(it->second == true) {
+                    OpenCLDevice::pointer device = it->first;
+                    float sum;
+                    if(mDimensions == 2) {
+                        OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
+                        cl::Image2D* clImage = access->get2DImage();
+                        getIntensityStdDevFromOpenCLImage(device, *clImage, mType, average, &sum);
+                    } else {
+                        if(!device->isWritingTo3DTexturesSupported()) {
+                            // Writing to 3D images is not supported on this device
+                            // Copy data to buffer instead and do the max min calculation on the buffer instead
+                            OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
+                            cl::Buffer* buffer = access->get();
+                            // TODO
+                            throw Exception("Not implemented yet");
+                            //getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
+                        } else {
+                            OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
+                            cl::Image3D* clImage = access->get3DImage();
+                            // TODO
+                            throw Exception("Not implemented yet");
+                            //getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
+                        }
+                    }
+                    mStdDevIntensity = sum;
+                    found = true;
+                }
+            }
+
+            if(!found) {
+                for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
+                    if(it->second == true) {
+                        OpenCLDevice::pointer device = it->first;
+                        OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
+                        cl::Buffer* buffer = access->get();
+                        // TODO
+                        throw Exception("Not implemented yet");
+                        //getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
+                        found = true;
+                    }
+                }
+            }
+        }
+
+        // Update timestamp
+        mStdDevIntensityTimestamp = getTimestamp();
+        mStdDevInitialized = true;
+    }
+
+    return mStdDevIntensity;
+}
+
+
+
 float Image::calculateAverageIntensity() {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");

@@ -81,3 +81,22 @@ __kernel void createSumImage2DLevel(
     write_imagef(writeLevel, pos, sum);
 }
 
+__kernel void createFirstStdDevImage2DLevel(
+        __read_only image2d_t image,
+        __write_only image2d_t firstLevel,
+        __private float average
+        ) {
+    const int2 pos = {get_global_id(0), get_global_id(1)};
+    const int2 readPos = pos*2;
+    const int2 size = {get_image_width(image), get_image_height(image)};
+
+    float sum = 0.0f;
+    for(int i = 0; i < 4; i++) {
+        int2 nPos = readPos + offset2D[i];
+        if(nPos.x < size.x && nPos.y < size.y) {
+            sum += pow(READ_IMAGE(image, sampler, nPos).x - average), 2.0f)
+        }
+    }
+
+    write_imagef(firstLevel, pos, sum);
+}

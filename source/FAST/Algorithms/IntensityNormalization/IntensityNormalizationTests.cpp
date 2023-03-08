@@ -5,7 +5,7 @@
 
 namespace fast {
 
-TEST_CASE("Scale image 2D", "[fast][IntensityNormalization]") {
+TEST_CASE("IntensityNormalization 2D", "[fast][IntensityNormalization]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_0.mhd");
 
@@ -20,7 +20,7 @@ TEST_CASE("Scale image 2D", "[fast][IntensityNormalization]") {
     CHECK(result->calculateMaximumIntensity() == Approx(1));
 }
 
-TEST_CASE("Scale image 3D", "[fast][IntensityNormalization]") {
+TEST_CASE("IntensityNormalization 3D", "[fast][IntensityNormalization]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CT/CT-Abdomen.mhd");
 
@@ -35,7 +35,7 @@ TEST_CASE("Scale image 3D", "[fast][IntensityNormalization]") {
     CHECK(result->calculateMaximumIntensity() == Approx(1));
 }
 
-TEST_CASE("Scale image 2D with high and low set", "[fast][IntensityNormalization]") {
+TEST_CASE("IntensityNormalization image 2D with high and low set", "[fast][IntensityNormalization]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_0.mhd");
 
@@ -52,7 +52,7 @@ TEST_CASE("Scale image 2D with high and low set", "[fast][IntensityNormalization
     CHECK(result->calculateMaximumIntensity() == Approx(10));
 }
 
-TEST_CASE("Scale image 3D with high and low set", "[fast][IntensityNormalization]") {
+TEST_CASE("IntensityNormalization image 3D with high and low set", "[fast][IntensityNormalization]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CT/CT-Abdomen.mhd");
 
