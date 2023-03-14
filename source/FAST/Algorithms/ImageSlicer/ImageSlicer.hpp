@@ -38,6 +38,7 @@ class FAST_EXPORT ImageSlicer : public ProcessObject {
         FAST_CONSTRUCTOR(ImageSlicer, Plane, slicePlane,);
         void setOrthogonalSlicePlane(PlaneType orthogonalSlicePlane, int sliceNr = -1);
 		void setArbitrarySlicePlane(Plane slicePlane);
+        void loadAttributes();
 	private:
         void init();
 		ImageSlicer();

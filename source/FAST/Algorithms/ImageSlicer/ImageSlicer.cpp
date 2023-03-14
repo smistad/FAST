@@ -19,6 +19,22 @@ void ImageSlicer::setArbitrarySlicePlane(Plane slicePlane) {
     mIsModified = true;
 }
 
+void ImageSlicer::loadAttributes() {
+    auto orthoPlane = getStringAttribute("orthogonal-slice-plane");
+    if (!orthoPlane.empty()) {
+        orthoPlane = stringToLower(orthoPlane);
+        if (orthoPlane == "x") {
+            setOrthogonalSlicePlane(PLANE_X);
+        } else if (orthoPlane == "y") {
+            setOrthogonalSlicePlane(PLANE_Y);
+        } else if (orthoPlane == "z") {
+            setOrthogonalSlicePlane(PLANE_Z);
+        } else {
+            throw Exception("Unrecognized orthogonal slice plane: " + orthoPlane);
+        }
+    }
+}
+
 void ImageSlicer::init() {
     createInputPort(0);
     createOutputPort(0);
@@ -26,6 +42,7 @@ void ImageSlicer::init() {
 
     mArbitrarySlicing = false;
     mOrthogonalSlicing = false;
+    createStringAttribute("orthogonal-slice-plane", "Orthogonal slice plane", "Orthogonal slice plane", "");
 }
 
 ImageSlicer::ImageSlicer(Plane slicePlane) {

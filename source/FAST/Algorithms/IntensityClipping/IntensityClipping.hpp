@@ -33,6 +33,7 @@ class FAST_EXPORT IntensityClipping : public ProcessObject {
         )
         void setMinValue(float value);
         void setMaxValue(float value);
+        void loadAttributes() override;
     private:
         void execute() override;
 

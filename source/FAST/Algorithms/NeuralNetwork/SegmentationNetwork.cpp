@@ -13,6 +13,7 @@ void SegmentationNetwork::loadAttributes() {
 	}
 	setThreshold(getFloatAttribute("threshold"));
 	setChannelsToIgnore(getIntegerListAttribute("ignore-channels"));
+    setResizeBackToOriginalSize(getBooleanAttribute("resize-to-original-size"));
 	NeuralNetwork::loadAttributes();
 }
 
@@ -51,6 +52,7 @@ SegmentationNetwork::SegmentationNetwork() {
     m_tensorToSegmentation = TensorToSegmentation::New();
     mHeatmapOutput = false;
     createBooleanAttribute("heatmap-output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
+    createBooleanAttribute("resize-to-original-size", "Resize to original size", "Resize output segmentation to original input size", false);
     createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", 0.5f);
     createIntegerAttribute("ignore-channels", "Ignore Channels", "List of channels to ignore", -1);
 }

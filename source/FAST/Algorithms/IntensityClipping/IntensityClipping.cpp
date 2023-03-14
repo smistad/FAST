@@ -3,13 +3,20 @@
 
 namespace fast {
 
+void IntensityClipping::loadAttributes() {
+    setMinValue(getFloatAttribute("min"));
+    setMinValue(getFloatAttribute("max"));
+}
+
 IntensityClipping::IntensityClipping(float minValue, float maxValue) {
     createInputPort(0, "Image");
     createOutputPort(0, "Image");
-    setMinValue(minValue);
-    setMaxValue(maxValue);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/IntensityClipping/IntensityClipping2D.cl");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/IntensityClipping/IntensityClipping3D.cl", "3D");
+    createFloatAttribute("min", "Minimum intensity", "Minimum intensity", minValue);
+    createFloatAttribute("max", "Maximum intensity", "Maximum intensity", maxValue);
+    setMinValue(minValue);
+    setMaxValue(maxValue);
 }
 
 void IntensityClipping::setMinValue(float value) {
