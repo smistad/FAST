@@ -5,7 +5,7 @@ namespace fast {
 
 void IntensityClipping::loadAttributes() {
     setMinValue(getFloatAttribute("min"));
-    setMinValue(getFloatAttribute("max"));
+    setMaxValue(getFloatAttribute("max"));
 }
 
 IntensityClipping::IntensityClipping(float minValue, float maxValue) {
