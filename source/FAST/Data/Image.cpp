@@ -834,7 +834,7 @@ void Image::calculateMaxAndMinIntensity() {
                         cl::Image2D* clImage = access->get2DImage();
                         getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
                     } else {
-                        if(device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") == std::string::npos) {
+                        if(!device->isWritingTo3DTexturesSupported()) {
                             // Writing to 3D images is not supported on this device
                             // Copy data to buffer instead and do the max min calculation on the buffer instead
                             OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
