@@ -499,6 +499,8 @@ void UFFStreamer::generateStream() {
                 // This is a hack to make UFFStreamer work with InterleavePlayback
                 resultImage = image->copy(getMainDevice());
                 resultImage->setFrameData(image->getFrameData());
+                if(image->isLastFrame())
+                    resultImage->setLastFrame("UFFStreamer");
             } else {
                 // We must perform envelope and log compression
                 m_envelopeAndLogCompressor->connect(image);

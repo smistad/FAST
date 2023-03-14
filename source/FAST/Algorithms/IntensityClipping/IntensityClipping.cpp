@@ -11,7 +11,13 @@ void IntensityClipping::loadAttributes() {
 IntensityClipping::IntensityClipping(float minValue, float maxValue) {
     createInputPort(0, "Image");
     createOutputPort(0, "Image");
+<<<<<<< HEAD
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/IntensityClipping/IntensityClipping2D.cl");
+=======
+    setMinValue(minValue);
+    setMaxValue(maxValue);
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/IntensityClipping/IntensityClipping2D.cl", "2D");
+>>>>>>> fdeb0928064d1d954cdfc6eddc4480a88d114576
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/IntensityClipping/IntensityClipping3D.cl", "3D");
     createFloatAttribute("min", "Minimum intensity", "Minimum intensity", minValue);
     createFloatAttribute("max", "Maximum intensity", "Maximum intensity", maxValue);
