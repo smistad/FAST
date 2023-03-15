@@ -29,7 +29,7 @@ class FAST_EXPORT TissueMicroArrayExtractor : public Streamer {
          * @brief Create instance
          * @param level Which image pyramid level to extract TMAs from. Default is 0 which is highest resolution level.
          *      Negative level means the last level (lowest resolution).
-         * @param areaThreshold Percentage of max area a TMA disc candidate has to have to be included.
+         * @param areaThreshold Percentage of median area a TMA disc candidate has to have to be included.
          * @return instance
          */
         FAST_CONSTRUCTOR(TissueMicroArrayExtractor,
