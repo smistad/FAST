@@ -37,5 +37,8 @@ def connect(self, *args):
     else:
         raise TypeError("Incorrect arguemnts to connect()")
 
-    super().connect(inputPortID, parentProcessObject, outputPortID)
+    if isinstance(parentProcessObject, DataObject):
+        super().connect(inputPortID, parentProcessObject) # There is no output port id we are trying to connect to a dataobject
+    else:
+        super().connect(inputPortID, parentProcessObject, outputPortID)
     return self

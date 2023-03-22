@@ -16,9 +16,7 @@ import $module
 %module(moduleimport=MODULEIMPORT, directors=1) fast
 #pragma SWIG nowarn=511
 
-
 %{
-
 
 #include <FAST/Object.hpp>
 #include <FAST/ProcessObject.hpp>
@@ -387,6 +385,14 @@ namespace fast {
             ProcessObject::setInputConnection(portID, port);
         }
 
+        void setInputData(DataObject::pointer data) {
+            ProcessObject::setInputData(0, data);
+        }
+
+        void setInputData(uint portID, DataObject::pointer data) {
+            ProcessObject::setInputData(portID, data);
+        }
+
         DataChannel::pointer getOutputPort(uint portID = 0) {
             return ProcessObject::getOutputPort(portID);
         }
@@ -598,3 +604,14 @@ namespace fast {
 %}
 }
 
+/*
+%inline {
+    PyObject* convertImageToPyObject(PyObject* capsule) {
+        std::shared_ptr<fast::Image>* ptr = (std::shared_ptr<fast::Image>*)PyCapsule_GetPointer(capsule, NULL);
+        printf("convertImageToPyObject pointer at %p\n", (void*)ptr);
+        PyObject* result = SWIG_Python_NewPointerObj(NULL, SWIG_as_voidptr(ptr), SWIGTYPE_p_std__shared_ptrT_fast__Image_t, 0); // <-- seg faults here, why?
+        printf("done");
+        return result;
+    }
+}
+*/
