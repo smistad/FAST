@@ -22,9 +22,6 @@ jobs:
     runs-on: ubuntu-20.04
     container:
       image: ubuntu:18.04
-      options: --privileged
-      volumes:
-        - ${{github.workspace}}/artifacts:${{github.workspace}}/artifacts
 
     steps:
     - uses: actions/checkout@v2
