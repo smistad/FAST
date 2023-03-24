@@ -1,5 +1,6 @@
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Data/Image.hpp>
+#include <utility>
 #include "ImageFileStreamer.hpp"
 
 namespace fast {
@@ -8,9 +9,19 @@ ImageFileStreamer::ImageFileStreamer() {
     createOutputPort(0, "Image");
 }
 
-ImageFileStreamer::ImageFileStreamer(std::string filename, bool loop, bool useTimestamps, int framerate) {
+ImageFileStreamer::ImageFileStreamer(std::string filename, bool loop, bool useTimestamps, int framerate)  {
     createOutputPort(0, "Image");
-    setFilenameFormat(filename);
+    setFilenameFormat(std::move(filename));
+    if(loop)
+        enableLooping();
+    setUseTimestamp(useTimestamps);
+    setFramerate(framerate);
+}
+
+
+ImageFileStreamer::ImageFileStreamer(std::vector<std::string> filenames, bool loop, bool useTimestamps, int framerate) {
+    createOutputPort(0, "Image");
+    setFilenameFormats(std::move(filenames));
     if(loop)
         enableLooping();
     setUseTimestamp(useTimestamps);
