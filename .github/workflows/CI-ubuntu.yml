@@ -32,6 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt update && apt install -y sudo
+        mkdir -p ${{github.workspace}}/artifacts
         # Get a newer version of cmake
         sudo apt install -y gpg wget software-properties-common lsb-release
         wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
