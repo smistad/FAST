@@ -31,6 +31,7 @@ jobs:
     
     - name: Install dependencies
       run: |
+        mkdir {{github.workspace}}/artifacts
         apt update && apt install -y sudo
         # Get a newer version of cmake
         sudo apt install -y gpg wget software-properties-common lsb-release
