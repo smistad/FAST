@@ -28,14 +28,14 @@ jobs:
     
     - name: Install dependencies
       run: |
-        apt update && apt install sudo
-        sudo apt install snapd
-        sudo snap install cmake --classic # Use snap to get more recent version of cmake on Ubuntu 18.04
-        sudo apt install g++ patchelf
-        sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-        sudo apt install libopenslide-dev # Needed for WSI module
-        sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
-        sudo apt install python3 libpython3-dev python3-pip python3-setuptools
+        apt update && apt install -y sudo
+        sudo apt install -y snapd
+        sudo snap install -y cmake --classic # Use snap to get more recent version of cmake on Ubuntu 18.04
+        sudo apt install -y g++ patchelf
+        sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+        sudo apt install -y libopenslide-dev # Needed for WSI module
+        sudo apt install -y pkgconf libusb-1.0-0-dev # Needed for realsense
+        sudo apt install -y python3 libpython3-dev python3-pip python3-setuptools
         sudo pip3 install --upgrade pip
         pip3 install numpy==1.19.5 pylddwrap==1.2.0 twine wheel==0.37.1
         
