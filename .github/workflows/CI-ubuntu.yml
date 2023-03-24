@@ -31,7 +31,6 @@ jobs:
     
     - name: Install dependencies
       run: |
-        mkdir {{github.workspace}}/artifacts
         apt update && apt install -y sudo
         # Get a newer version of cmake
         sudo apt install -y gpg wget software-properties-common lsb-release
@@ -86,13 +85,13 @@ jobs:
     - name: Build Python wheel
       run: |
         cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
-        mv ${{github.workspace}}/build/python/dist/pyFAST-*.whl {{github.workspace}}/artifacts
+        mv ${{github.workspace}}/build/python/dist/pyFAST-*.whl ${{github.workspace}}/artifacts
 
     - name: Package
       run: |
         cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
-        mv ${{github.workspace}}/build/fast_*.deb {{github.workspace}}/artifacts
-        mv ${{github.workspace}}/build/fast_*.tar.xz {{github.workspace}}/artifacts
+        mv ${{github.workspace}}/build/fast_*.deb ${{github.workspace}}/artifacts
+        mv ${{github.workspace}}/build/fast_*.tar.xz ${{github.workspace}}/artifacts
 
     - name: Upload Debian package
       uses: actions/upload-artifact@v3
