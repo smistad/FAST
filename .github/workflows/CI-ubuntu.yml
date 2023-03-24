@@ -24,7 +24,7 @@ jobs:
       image: ubuntu:18.04
       options: --privileged
       volumes:
-        - ${{github.workspace}}/build:${{github.workspace}}/build
+        - ${{github.workspace}}/artifacts:${{github.workspace}}/artifacts
 
     steps:
     - uses: actions/checkout@v2
@@ -83,30 +83,35 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
 
     - name: Build Python wheel
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
+        mv ${{github.workspace}}/build/python/dist/pyFAST-*.whl {{github.workspace}}/artifacts
 
     - name: Package
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package -j 4
+        mv ${{github.workspace}}/build/fast_*.deb {{github.workspace}}/artifacts
+        mv ${{github.workspace}}/build/fast_*.tar.xz {{github.workspace}}/artifacts
 
     - name: Upload Debian package
       uses: actions/upload-artifact@v3
       with:
         name: Debian package
-        path: ${{github.workspace}}/build/fast_*.deb
+        path: ${{github.workspace}}/artifacts/fast_*.deb
         if-no-files-found: error
 
     - name: Upload archive package
       uses: actions/upload-artifact@v3
       with:
         name: Archive package (tar.xz)
-        path: ${{github.workspace}}/build/fast_*.tar.xz
+        path: ${{github.workspace}}/artifacts/fast_*.tar.xz
         if-no-files-found: error
 
     - name: Upload Python wheel
       uses: actions/upload-artifact@v3
       with:
         name: Python wheel
-        path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        path: ${{github.workspace}}/artifacts/pyFAST-*.whl
         if-no-files-found: error
 
     - name: Upload Debian package to release
@@ -114,7 +119,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}/build/fast_*.deb
+        file: ${{github.workspace}}/artifacts/fast_*.deb
         file_glob: true
         tag: ${{ github.ref }}
         overwrite: true
@@ -124,7 +129,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}/build/fast_*.tar.xz
+        file: ${{github.workspace}}/artifacts/fast_*.tar.xz
         file_glob: true
         tag: ${{ github.ref }}
         overwrite: true
@@ -134,7 +139,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        file: ${{github.workspace}}/artifacts/pyFAST-*.whl
         file_glob: true
         tag: ${{ github.ref }}
         overwrite: true
@@ -142,7 +147,7 @@ jobs:
     - name: Upload Python wheel to PyPi
       if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
       run: |
-        twine upload --username smistad --password ${{ secrets.PYPI_PASSWORD }} ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        twine upload --username smistad --password ${{ secrets.PYPI_PASSWORD }} ${{github.workspace}}/artifacts/pyFAST-*.whl
 
     - name: Test PyPi upload
       if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
