@@ -30,7 +30,7 @@ jobs:
       run: |
         apt update && apt install -y sudo
         # Get a newer version of cmake
-        sudo apt install -y gpg wget
+        sudo apt install -y gpg wget software-properties-common lsb-release
         wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
         echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
         sudo apt-get update
