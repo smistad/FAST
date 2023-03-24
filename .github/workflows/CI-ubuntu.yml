@@ -30,6 +30,9 @@ jobs:
       run: |
         apt update && apt install -y sudo
         sudo apt install -y snapd
+        sudo systemctl unmask snapd.service
+        sudo systemctl enable snapd.service
+        sudo systemctl start snapd.service
         sudo snap install cmake --classic # Use snap to get more recent version of cmake on Ubuntu 18.04
         sudo apt install -y g++ patchelf
         sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
