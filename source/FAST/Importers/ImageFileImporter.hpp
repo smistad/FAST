@@ -24,13 +24,21 @@ class FAST_EXPORT  ImageFileImporter : public FileImporter {
          * @brief Create an instance
          *
          * @param filename Path to image file to load
+         * @param grayscale Convert images to grayscale if the source image is in color
          * @return instance
          */
-        FAST_CONSTRUCTOR(ImageFileImporter, std::string, filename,);
+        FAST_CONSTRUCTOR(ImageFileImporter, std::string, filename,,
+                         bool, grayscale, = false);
+        /**
+         * @brief Convert images to grayscale if the source image is in color
+         * @param grayscale Convert or not
+         */
+        void setGrayscale(bool grayscale);
         void loadAttributes() override;
     private:
         ImageFileImporter();
         void execute() override;
+        bool m_grayscale = false;
 };
 
 }

@@ -17,7 +17,7 @@ class FAST_EXPORT ImageImporter : public FileImporter {
     public:
         FAST_CONSTRUCTOR(ImageImporter,
                          std::string, filename,,
-                         bool, convertToGrayscale, = true
+                         bool, grayscale, = false
         )
         void setGrayscale(bool grayscale);
         void loadAttributes() override;

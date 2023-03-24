@@ -10,6 +10,7 @@
 #include "NIFTIImporter.hpp"
 #include <algorithm>
 #include <utility>
+#include <FAST/Algorithms/Color/ColorToGrayscale.hpp>
 
 namespace fast {
 
@@ -18,10 +19,11 @@ ImageFileImporter::ImageFileImporter() {
     setMainDevice(Host::getInstance()); // Default is to put image on host
 }
 
-ImageFileImporter::ImageFileImporter(std::string filename) : FileImporter(filename) {
+ImageFileImporter::ImageFileImporter(std::string filename, bool grayscale) : FileImporter(filename) {
     createOutputPort<Image>(0);
     setMainDevice(Host::getInstance()); // Default is to put image on host
     setFilename(filename);
+    setGrayscale(grayscale);
 }
 
 inline bool matchExtension(std::string filename, std::string extension) {
@@ -41,6 +43,7 @@ void ImageFileImporter::execute() {
 
     // Get file extension
     size_t pos = m_filename.rfind(".", -5);
+    Image::pointer data;
     if(pos == std::string::npos) {
         reportWarning() << "Filename " << m_filename << " had no extension, guessing it to be DICOM.." << reportEnd();
 #ifdef FAST_MODULE_DICOM
@@ -49,8 +52,7 @@ void ImageFileImporter::execute() {
         importer->setFilename(m_filename);
         DataChannel::pointer port = importer->getOutputPort();
         importer->update(); // Have to to update because otherwise the data will not be available
-        Image::pointer data = port->getNextFrame<Image>();
-        addOutputData(0, data);
+        data = port->getNextFrame<Image>();
 #else
         throw Exception("The ImageFileImporter needs the dicom module (DCMTK) to be enabled in order to read dicom files.");
 #endif
@@ -61,8 +63,7 @@ void ImageFileImporter::execute() {
             importer->setFilename(m_filename);
             DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available
-            Image::pointer data = port->getNextFrame<Image>();
-            addOutputData(0, data);
+            data = port->getNextFrame<Image>();
         } else if(matchExtension(m_filename, "dcm")) {
 #ifdef FAST_MODULE_DICOM
             auto importer = DICOMFileImporter::New();
@@ -70,8 +71,7 @@ void ImageFileImporter::execute() {
             importer->setMainDevice(getMainDevice());
             DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available
-            Image::pointer data = port->getNextFrame<Image>();
-            addOutputData(0, data);
+            data = port->getNextFrame<Image>();
 #else
             throw Exception("The ImageFileImporter needs the dicom module (DCMTK) to be enabled in order to read dicom files.");
 #endif
@@ -85,11 +85,11 @@ void ImageFileImporter::execute() {
 #ifdef FAST_MODULE_VISUALIZATION
             auto importer = ImageImporter::New();
             importer->setFilename(m_filename);
+            importer->setGrayscale(false);
             importer->setMainDevice(getMainDevice());
             DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available
-            Image::pointer data = port->getNextFrame<Image>();
-            addOutputData(0, data);
+            data = port->getNextFrame<Image>();
 #else
             throw Exception("Importing regular images requires FAST built with Qt");
 #endif
@@ -97,16 +97,26 @@ void ImageFileImporter::execute() {
                 matchExtension(m_filename, "nii.gz")) {
             auto importer = NIFTIImporter::create(m_filename);
             importer->setMainDevice(getMainDevice());
-            addOutputData(0, importer->runAndGetOutputData<Image>());
+            data = importer->runAndGetOutputData<Image>();
         } else {
             throw Exception("The ImageFileImporter does not recognize the file extension of the filename " + m_filename);
         }
     }
 
+    if(m_grayscale && data->getNrOfChannels() > 1) {
+        data = ColorToGrayscale::create()->connect(data)->runAndGetOutputData<Image>();
+    }
+
+    addOutputData(0, data);
 }
 
 void ImageFileImporter::loadAttributes() {
     setFilename(getStringAttribute("filename"));
+    setGrayscale(getBooleanAttribute("grayscale"));
+}
+
+void ImageFileImporter::setGrayscale(bool grayscale) {
+    m_grayscale = grayscale;
 }
 
 }

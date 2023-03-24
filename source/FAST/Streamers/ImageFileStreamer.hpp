@@ -31,13 +31,15 @@ class FAST_EXPORT ImageFileStreamer : public FileStreamer {
          * @param loop Whether to loop the recording or not
          * @param useTimestamps Whether to use timestamps in image files (if available) when streaming, or just stream as fast as possible
          * @param framerate If framerate is > 0, this framerate will be used for streaming the images
+         * @param grayscale Convert images to grayscale if the source image is in color.
          * @return instance
          */
         FAST_CONSTRUCTOR(ImageFileStreamer,
                          std::string, filenameFormat,,
                          bool, loop, = false,
                          bool, useTimestamps, = true,
-                         int, framerate, = -1
+                         int, framerate, = -1,
+                         bool, grayscale, = false
         );
 #ifndef SWIG
         /**
@@ -50,19 +52,29 @@ class FAST_EXPORT ImageFileStreamer : public FileStreamer {
          * @param loop Whether to loop the recording or not
          * @param useTimestamps Whether to use timestamps in image files (if available) when streaming, or just stream as fast as possible
          * @param framerate If framerate is > 0, this framerate will be used for streaming the images
+         * @param grayscale Convert images to grayscale if the source image is in color.
          * @return instance
          */
         FAST_CONSTRUCTOR(ImageFileStreamer,
                          std::vector<std::string>, filenameFormats,,
                          bool, loop, = false,
                          bool, useTimestamps, = true,
-                         int, framerate, = -1
-                                 )
+                         int, framerate, = -1,
+                         bool, grayscale, = false
+        )
 #endif
+        /**
+         * @brief Convert images to grayscale if the source image is in color
+         * @param grayscale Convert or not
+         */
+        void setGrayscale(bool grayscale);
+        void loadAttributes() override;
     protected:
         DataObject::pointer getDataFrame(std::string filename) override;
 
         ImageFileStreamer();
+
+        bool m_grayscale = false;
 
 };
 

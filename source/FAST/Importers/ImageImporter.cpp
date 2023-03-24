@@ -74,7 +74,7 @@ void ImageImporter::loadAttributes() {
 }
 
 ImageImporter::ImageImporter() {
-    mGrayscale = true;
+    mGrayscale = false;
     mIsModified = true;
     createOutputPort(0, "Image");
     createBooleanAttribute("grayscale", "Grayscale", "Whether to convert image to grayscale or not", mGrayscale);
