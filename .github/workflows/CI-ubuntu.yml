@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-20.04
     container:
       image: jrei/systemd-ubuntu:18.04
+      options: --privileged
 
     steps:
     - uses: actions/checkout@v2
