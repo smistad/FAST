@@ -29,6 +29,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt update && apt install sudo
+        sudo apt install snapd
         sudo snap install cmake --classic # Use snap to get more recent version of cmake on Ubuntu 18.04
         sudo apt install g++ patchelf
         sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
