@@ -104,7 +104,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: Python wheel
-        path: ${{github.workspace}}/build/pyFAST-*.whl
+        path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
         if-no-files-found: error
 
     - name: Upload Debian package to release
