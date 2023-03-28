@@ -88,6 +88,8 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
 
         void addTimestamp(uint64_t timestamp);
 
+        bool detectAndHandleError(int r, bool timeout);
+
         uint mNrOfFrames;
         uint mMaximumNrOfFrames;
         bool mMaximumNrOfFramesSet;
