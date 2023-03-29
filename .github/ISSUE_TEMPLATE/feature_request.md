@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: 'Suggest a new feature for FAST. Please do not use issues for questions. Use discussions Q&A https://github.com/smistad/FAST/discussions/new?category=q-a or the gitter chat https://gitter.im/smistad/FAST. '
+about: 'Suggest a new feature for FAST. Please do not use issues for questions. Use discussions Q&A https://github.com/smistad/FAST/discussions/new?category=q-a or the chat https://gitter.im/smistad/FAST. '
 title: ''
 labels: new feature
 assignees: ''
