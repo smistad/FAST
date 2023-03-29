@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: 'Please do not use issues for questions. Use [discussions Q&A](https://github.com/smistad/FAST/discussions/new?category=q-a) or the [gitter chat](https://gitter.im/smistad/FAST) instead.'
+about: 'Please do not use issues for questions. Use discussions Q&A https://github.com/smistad/FAST/discussions/new?category=q-a or the gitter chat https://gitter.im/smistad/FAST instead.'
 title: ''
 labels: bug
 assignees: ''
@@ -9,7 +9,7 @@ assignees: ''
 
 **Describe the bug**
 A clear and concise description of what the bug is. 
-**Please do not use issues for questions. Use [discussions Q&A](https://github.com/smistad/FAST/discussions/new?category=q-a) or the gitter chat: https://gitter.im/smistad/FAST and we will do our best to help you!**
+**Please do not use issues for questions. Use discussions Q&A https://github.com/smistad/FAST/discussions/new?category=q-a or the gitter chat https://gitter.im/smistad/FAST instead and we will do our best to help you!**
 
 **To Reproduce**
 Steps and data to reproduce the behavior
