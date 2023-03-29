@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: 'Please do not use issues for questions. Use [discussions Q&A](https://github.com/smistad/FAST/discussions/new?category=q-a) or the [gitter chat](https://gitter.im/smistad/FAST) instead. https://gitter.im/smistad/FAST'
+about: 'Please do not use issues for questions. Use [discussions Q&A](https://github.com/smistad/FAST/discussions/new?category=q-a) or the [gitter chat](https://gitter.im/smistad/FAST) instead.'
 title: ''
 labels: bug
 assignees: ''
