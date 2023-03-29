@@ -1,5 +1,6 @@
 ![](https://github.com/smistad/FAST/wiki/images/fast_logo.png)
 
+[![GitHub Discussions](https://img.shields.io/github/discussions/smistad/FAST?label=GitHub%20discussions&logo=github)](https://github.com/smistad/FAST/discussions)
 [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
 [![GitHub Downloads](https://img.shields.io/github/downloads/smistad/FAST/total?label=GitHub%20downloads&logo=github)](https://fast.eriksmistad.no/download-stats.html)
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://fast.eriksmistad.no/download-stats.html)
@@ -15,7 +16,7 @@ Learn best by example? Check out all the examples for [C++](https://fast.eriksmi
 
 For more examples and documentation, go to [fast.eriksmistad.no](https://fast.eriksmistad.no).
 
-Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
+Need help? Post your questions on the [Discussions](https://github.com/smistad/FAST/discussions/new?category=q-a) page or use the [Gitter Chat](https://gitter.im/smistad/FAST).
 
 ### Main features
 
