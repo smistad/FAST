@@ -131,7 +131,6 @@ void SlicerWindow::createLayout() {
     levelLayout->addWidget(levelLabel);
     m_levelSlider = new QSlider(Qt::Horizontal);
     QObject::connect(m_levelSlider, &QSlider::sliderMoved, [=](int value) {
-        std::cout << value << std::endl;
         for(auto renderer : m_imageRenderers) {
             if(renderer)
                 renderer->setIntensityLevel((float)value);
