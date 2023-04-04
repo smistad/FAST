@@ -26,7 +26,7 @@ SlicerWindow::SlicerWindow(Color bgcolor, uint width, uint height) {
     createLayout();
 }
 
-std::shared_ptr<SlicerWindow> SlicerWindow::connectImage(std::shared_ptr<ProcessObject> processObject, float level, float window) {
+std::shared_ptr<SlicerWindow> SlicerWindow::connectImage(std::shared_ptr<ProcessObject> processObject, float level, float window, uint outputPortID) {
     for(int i = 0; i < 3; i++) {
         // Need to have an intermediate PO here which can set the range and current value automatically
         auto updateSliders = RunLambda::create([=](DataObject::pointer data) {
@@ -55,7 +55,7 @@ std::shared_ptr<SlicerWindow> SlicerWindow::connectImage(std::shared_ptr<Process
                 m_sliderWidgets[i]->setSliderPosition(image->getDepth()/2);
             }
             return DataList(data);
-        })->connect(processObject);
+        })->connect(processObject, outputPortID);
         auto slicer = ImageSlicer::create(m_slicePlanes[i]);
         slicer->connect(updateSliders);
         m_slicers[m_slicePlanes[i]].push_back(slicer);
@@ -66,7 +66,7 @@ std::shared_ptr<SlicerWindow> SlicerWindow::connectImage(std::shared_ptr<Process
     return std::dynamic_pointer_cast<SlicerWindow>(mPtr.lock());
 }
 
-std::shared_ptr<SlicerWindow> SlicerWindow::connectSegmentation(std::shared_ptr<ProcessObject> processObject, LabelColors colors, float opacity, float borderOpacity, int borderRadius) {
+std::shared_ptr<SlicerWindow> SlicerWindow::connectSegmentation(std::shared_ptr<ProcessObject> processObject, LabelColors colors, float opacity, float borderOpacity, int borderRadius, uint outputPortID) {
     for(int i = 0; i < 3; i++) {
         // Need to have an intermediate PO here which can set the range and current value automatically
         auto updateSliders = RunLambda::create([=](DataObject::pointer data) {
@@ -83,7 +83,7 @@ std::shared_ptr<SlicerWindow> SlicerWindow::connectSegmentation(std::shared_ptr<
                 m_sliderWidgets[i]->setSliderPosition(image->getDepth()/2);
             }
             return DataList(data);
-        })->connect(processObject);
+        })->connect(processObject, outputPortID);
         auto slicer = ImageSlicer::create(m_slicePlanes[i]);
         slicer->connect(updateSliders);
         m_slicers[m_slicePlanes[i]].push_back(slicer);
@@ -119,7 +119,7 @@ void SlicerWindow::createLayout() {
         m_sliderWidgets[i] = new QSlider;
         m_sliderWidgets[i]->setOrientation(Qt::Horizontal);
         layout->addWidget(m_sliderWidgets[i]);
-        connect(m_sliderWidgets[i], &QSlider::sliderMoved, [=](int sliceNr) {
+        QObject::connect(m_sliderWidgets[i], &QSlider::sliderMoved, [=](int sliceNr) {
             for(auto slicer : m_slicers[m_slicePlanes[i]]) {
                 slicer->setOrthogonalSlicePlane(m_slicePlanes[i], sliceNr);
             }
@@ -130,7 +130,7 @@ void SlicerWindow::createLayout() {
     levelLabel->setText("Intensity Level:");
     levelLayout->addWidget(levelLabel);
     m_levelSlider = new QSlider(Qt::Horizontal);
-    connect(m_levelSlider, &QSlider::sliderMoved, [=](int value) {
+    QObject::connect(m_levelSlider, &QSlider::sliderMoved, [=](int value) {
         std::cout << value << std::endl;
         for(auto renderer : m_imageRenderers) {
             if(renderer)
@@ -143,7 +143,7 @@ void SlicerWindow::createLayout() {
     windowLabel->setText("Intensity Window:");
     windowLayout->addWidget(windowLabel);
     m_windowSlider = new QSlider(Qt::Horizontal);
-    connect(m_windowSlider, &QSlider::sliderMoved, [=](int value) {
+    QObject::connect(m_windowSlider, &QSlider::sliderMoved, [=](int value) {
         for(auto renderer : m_imageRenderers) {
             if(renderer)
                 renderer->setIntensityWindow((float)value);
@@ -162,6 +162,44 @@ void SlicerWindow::setTextLabels(LabelNames labelNames, LabelColors labelColors,
         m_labelRenderers[i]->setAreaThreshold(areaThreshold);
         m_labelRenderers[i]->setDisabled(false);
     }
+}
+
+std::shared_ptr<Window> SlicerWindow::connect(uint id, std::shared_ptr<DataObject> data) {
+    auto image = std::dynamic_pointer_cast<Image>(data);
+    if(image == nullptr)
+        throw Exception("Data given to SlicerWindow connect was not an Image");
+    if(id == 0) {
+        return connectImage(image);
+    } else {
+        return connectSegmentation(image);
+    }
+}
+
+std::shared_ptr<Window> SlicerWindow::connect(uint id, std::shared_ptr<ProcessObject> PO, uint portID) {
+    if(id == 0) {
+        return connectImage(PO, -1, -1, portID);
+    } else {
+        return connectSegmentation(PO, LabelColors(), 0.5, -1.0f, 1, portID);
+    }
+}
+
+std::shared_ptr<SlicerWindow> SlicerWindow::connectImage(std::shared_ptr<Image> image, float level, float window) {
+    return connectImage(
+            RunLambda::create([](DataObject::pointer data) { return DataList(data);})->connect(image),
+            level,
+            window
+    );
+}
+
+std::shared_ptr<SlicerWindow> SlicerWindow::connectSegmentation(std::shared_ptr<Image> image, LabelColors colors, float opacity,
+                                      float borderOpacity, int borderRadius) {
+    return connectSegmentation(
+            RunLambda::create([](DataObject::pointer data) { return DataList(data);})->connect(image),
+            colors,
+            opacity,
+            borderOpacity,
+            borderRadius
+    );
 }
 
 

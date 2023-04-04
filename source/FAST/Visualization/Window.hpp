@@ -95,6 +95,9 @@ class FAST_EXPORT  Window : public QObject, public Object {
          * @brief Set 3D mode for all views in this window
          */
         void set3DMode();
+
+        virtual std::shared_ptr<Window> connect(uint id, std::shared_ptr<DataObject> data);
+        virtual std::shared_ptr<Window> connect(uint id, std::shared_ptr<ProcessObject> PO, uint portID = 0);
 protected:
         void startComputationThread();
         void stopComputationThread();

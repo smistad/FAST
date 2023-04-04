@@ -12,15 +12,29 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     if(Config::getVisualization()) {
-        auto gui = GUI::New();
         if(parser.gotValue("pipeline-filename")) {
-            gui->setPipelineFile(parser.get("pipeline-filename"), parser.getVariables());
+            Pipeline pipeline(parser.get("pipeline-filename"), parser.getVariables());
+            pipeline.parse(); // Have to parse now to get window
+            if(pipeline.hasWindow()) {
+                pipeline.getWindow()->run();
+            } else {
+                auto gui = GUI::New();
+                gui->setPipeline(pipeline);
+                gui->run();
+            }
         } else if(parser.gotValue("datahub")) {
             DataHub hub;
             hub.download(parser.get("datahub"));
-            gui->setPipelineFile(join(hub.getStorageDirectory(), parser.get("datahub"), "pipeline.fpl"), parser.getVariables());
+            Pipeline pipeline(join(hub.getStorageDirectory(), parser.get("datahub"), "pipeline.fpl"), parser.getVariables());
+            pipeline.parse(); // Have to parse now to get window
+            if(pipeline.hasWindow()) {
+                pipeline.getWindow()->run();
+            } else {
+                auto gui = GUI::New();
+                gui->setPipeline(pipeline);
+                gui->run();
+            }
         }
-        gui->run();
     } else {
         Reporter::info() << "Running pipeline in headless mode" << Reporter::end();
         // Headless mode

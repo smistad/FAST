@@ -412,4 +412,17 @@ std::shared_ptr<ComputationThread> Window::getComputationThread() {
     return mThread;
 }
 
+std::shared_ptr<Window> Window::connect(uint id, std::shared_ptr<DataObject> data) {
+    // Do nothing
+    return std::dynamic_pointer_cast<Window>(mPtr.lock());
+}
+
+std::shared_ptr<Window> Window::connect(uint id, std::shared_ptr<ProcessObject> PO, uint portID) {
+    // Only add if renderer
+    auto renderer = std::dynamic_pointer_cast<Renderer>(PO);
+    if(renderer != nullptr)
+        getView(id)->addRenderer(renderer);
+    return std::dynamic_pointer_cast<Window>(mPtr.lock());
+}
+
 } // end namespace fast

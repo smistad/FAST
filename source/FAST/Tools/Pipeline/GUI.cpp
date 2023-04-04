@@ -52,7 +52,7 @@ GUI::GUI() {
 
 	auto runButton = new QPushButton;
 	runButton->setText("Run");
-	connect(runButton, &QPushButton::clicked, [this]() {
+	QObject::connect(runButton, &QPushButton::clicked, [this]() {
 		m_currentPipeline = m_pipelineSelector->currentData().toInt();
 		loadPipeline();
 	});
@@ -60,7 +60,7 @@ GUI::GUI() {
 
 	auto stopButton = new QPushButton;
 	stopButton->setText("Stop");
-	connect(stopButton, &QPushButton::clicked, [this]() {
+	QObject::connect(stopButton, &QPushButton::clicked, [this]() {
         auto thread = getComputationThread();
         thread->clearViews();
         thread->clearProcessObjects();
@@ -85,7 +85,7 @@ GUI::GUI() {
 
 	auto editButton = new QPushButton;
 	editButton->setText("Edit");
-	connect(editButton, &QPushButton::clicked, [this]() {
+	QObject::connect(editButton, &QPushButton::clicked, [this]() {
 		std::string filename = m_pipelineSelector->currentData().toString().toStdString();
 		auto editor = new PipelineEditor(filename);
 		editor->show();
@@ -104,7 +104,7 @@ GUI::GUI() {
 
 	auto newButton = new QPushButton;
 	newButton->setText("New");
-	connect(newButton, &QPushButton::clicked, [this, pipelinePath, editButton]() {
+	QObject::connect(newButton, &QPushButton::clicked, [this, pipelinePath, editButton]() {
 		// Ask user for pipeline filename
 		QString filename;
 		bool ok;
@@ -168,7 +168,7 @@ void GUI::loadPipeline() {
 
 		// Load pipeline (must be done after stopComputationThread)
 		std::string filename = m_pipelineSelector->currentData().toString().toStdString();
-		Pipeline pipeline(filename, m_variables);
+		Pipeline pipeline(filename);
 		pipeline.parse();
 
 		// Setup renderers and views
@@ -220,7 +220,7 @@ void GUI::loadPipeline() {
 
 }
 
-void GUI::setPipelineFile(std::string file, std::map<std::string, std::string> variables) {
+void GUI::setPipeline(Pipeline& pipeline) {
     // Need this to make sure View is initialized properly..
     int screenHeight = getScreenHeight();
     int screenWidth = getScreenWidth();
@@ -232,8 +232,6 @@ void GUI::setPipelineFile(std::string file, std::map<std::string, std::string> v
     mWidget->move(x, y);
     mWidget->show();
 
-	m_variables = variables;
-	Pipeline pipeline(file, m_variables);
 	auto filename = QString(pipeline.getFilename().c_str());
 	m_pipelineSelector->addItem(pipeline.getName().c_str(), filename);
 	int index = m_pipelineSelector->findData(filename);

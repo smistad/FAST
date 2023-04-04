@@ -9,7 +9,11 @@
 #include <QCheckBox>
 #include "ProcessObjectList.hpp"
 #include <FAST/Visualization/View.hpp>
+
+#include <FAST/Visualization/SimpleWindow.hpp>
+#include <FAST/Visualization/SlicerWindow.hpp>
 #include <FAST/Visualization/MultiViewWindow.hpp>
+#include <FAST/Visualization/DualViewWindow.hpp>
 
 namespace fast {
 
@@ -135,6 +139,75 @@ void Pipeline::parseView(
     }
 
     view->loadAttributes();
+}
+
+
+void Pipeline::parseWindow(
+        std::string objectName,
+        std::string objectID,
+        int& lineNr
+        ) {
+    // Create object
+    std::shared_ptr<Window> window;
+    if(objectName == "SimpleWindow2D") {
+        window = SimpleWindow2D::create();
+    } else if(objectName == "SimpleWindow3D") {
+        window = SimpleWindow3D::create();
+    } else if(objectName == "MultiViewWindow") {
+        window = MultiViewWindow::create(0);
+        throw Exception("Multi view window support for pipeline is not implemented yet"); // TODO FIXME
+    } else if(objectName == "DualViewWindow2D") {
+        window = DualViewWindow2D::create();
+    } else if(objectName == "DualViewWindow3D") {
+        window = DualViewWindow3D::create();
+    } else if(objectName == "SlicerWindow") {
+        window = SlicerWindow::create();
+    } else {
+        throw Exception("Unknown window: " + objectName);
+    }
+
+    m_window = window;
+
+    // Get inputs and connect the POs and renderers
+    ++lineNr;
+    while (lineNr < m_lines.size()) {
+        std::string line = m_lines[lineNr];
+        trim(line);
+        if(line == "")
+            break;
+
+        std::vector<std::string> tokens = split(line);
+        if(tokens[0] != "Input")
+            break;
+        if(tokens.size() < 3)
+            throw Exception("Expecting at least 3 items on input line when parsing object " + objectName + " but got " + line);
+
+        int inputPortID = std::stoi(tokens[1]);
+        std::string inputID = tokens[2];
+        if(tokens.size() == 3) {
+            // Check if it is registered as pipeline input data
+            if(m_pipelineInputData.count(inputID) > 0) {
+                if(!m_pipelineInputData[inputID].second)
+                    throw Exception("This pipeline requires input data named " + inputID + ", but no such data was given to Pipeline::parse()");
+
+                Reporter::info() << "Connected data object " << inputID << " to " << objectID << Reporter::end();
+                m_window->connect(inputPortID, m_pipelineInputData[inputID].second);
+
+                ++lineNr;
+                continue;
+            }
+        }
+        int outputPortID = 0;
+        if(tokens.size() == 4)
+            outputPortID = std::stoi(tokens[3]);
+
+        if(mProcessObjects.count(inputID) == 0)
+            throw Exception("Input with id " + inputID + " was not found before " + objectID);
+
+        Reporter::info() << "Connected process object " << inputID << " to " << objectID << Reporter::end();
+        m_window->connect(inputPortID, mProcessObjects.at(inputID), outputPortID);
+        ++lineNr;
+    }
 }
 
 void Pipeline::parseProcessObject(
@@ -305,6 +378,14 @@ void Pipeline::parse(std::map<std::string, std::shared_ptr<DataObject>> inputDat
                 // View has no renderers.. throw error message?
             }
             parseView(id, lineNr);
+            lineNr--;
+        } else if(key == "Window") {
+            if(tokens.size() != 3) {
+                throw Exception("Unable to parse pipeline file " + mFilename + ", expected 3 tokens but got line " + line);
+            }
+            std::string id = tokens[1];
+            std::string object = tokens[2];
+            parseWindow(object, id, lineNr);
             lineNr--;
         } else if(key == "Attribute") {
             // Custom field/attribute/metadata..
@@ -495,6 +576,14 @@ std::map<std::string, DataObject::pointer> Pipeline::run(std::map<std::string, s
     std::cout << "Pipeline execution finished." << std::endl;
 
     return data;
+}
+
+bool Pipeline::hasWindow() {
+    return m_window != nullptr;
+}
+
+std::shared_ptr<Window> Pipeline::getWindow() {
+    return m_window;
 }
 
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {

@@ -12,7 +12,7 @@ namespace fast {
 class GUI : public Window {
 	FAST_OBJECT(GUI)
 	public:
-		void setPipelineFile(std::string filename, std::map<std::string, std::string> variables);
+		void setPipeline(Pipeline &pipeline);
 	private:
 		void loadPipeline();
 		void updateAvailablePipelines();
@@ -20,7 +20,6 @@ class GUI : public Window {
 		bool m_running = false;
 		int m_currentPipeline = 0;
 		std::vector<Pipeline> m_availablePipelines;
-		std::map<std::string, std::string> m_variables;
 
 		QComboBox* m_pipelineSelector;
 

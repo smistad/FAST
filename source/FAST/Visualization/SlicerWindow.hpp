@@ -43,8 +43,16 @@ class FAST_EXPORT SlicerWindow : public Window {
          * @param processObject Process object producing a 3D image
          * @param level Intensity level
          * @param window Intensity window
+         * @param outputPortID Output port id of process object
          */
-        std::shared_ptr<SlicerWindow> connectImage(std::shared_ptr<ProcessObject> processObject, float level = -1, float window = -1);
+        std::shared_ptr<SlicerWindow> connectImage(std::shared_ptr<ProcessObject> processObject, float level = -1, float window = -1, uint outputPortID = 0);
+        /**
+         * @brief Connect a 3D image to this window
+         * @param image 3D image to connect
+         * @param level Intensity level
+         * @param window Intensity window
+         */
+        std::shared_ptr<SlicerWindow> connectImage(std::shared_ptr<Image> image, float level = -1, float window = -1);
         /**
          * @brief Connect a 3D segmentation soruce to this window
          * @param processObject Process object producing a 3D segmentation image
@@ -52,17 +60,36 @@ class FAST_EXPORT SlicerWindow : public Window {
          * @param opacity Segmentation overlay opacity
          * @param borderOpacity Segmentation overlay border opacity
          * @param borderRadius How thick, in pixels, the border radius should be
+         * @param outputPortID Output port id of process object
          */
         std::shared_ptr<SlicerWindow> connectSegmentation(std::shared_ptr<ProcessObject> processObject,
                                                           LabelColors colors = LabelColors(),
                                                           float opacity = 0.5f,
                                                           float borderOpacity = -1.0f,
-                                                          int borderRadius = 1
+                                                          int borderRadius = 1,
+                                                          uint outputPortID = 0
           );
+        /**
+          * @brief Connect a 3D segmentation to this window
+          * @param image 3D segmentation image
+          * @param colors Label colors
+          * @param opacity Segmentation overlay opacity
+          * @param borderOpacity Segmentation overlay border opacity
+          * @param borderRadius How thick, in pixels, the border radius should be
+          */
+        std::shared_ptr<SlicerWindow> connectSegmentation(std::shared_ptr<Image> image,
+                                                          LabelColors colors = LabelColors(),
+                                                          float opacity = 0.5f,
+                                                          float borderOpacity = -1.0f,
+                                                          int borderRadius = 1
+                                                          );
     void setTextLabels(
             LabelNames labelNames,
             LabelColors labelColors = LabelColors(),
             float areaThreshold = 1.0f);
+
+    std::shared_ptr<Window> connect(uint id, std::shared_ptr<DataObject> data) override;
+    std::shared_ptr<Window> connect(uint id, std::shared_ptr<ProcessObject> PO, uint portID = 0) override;
 protected:
     void createLayout();
 

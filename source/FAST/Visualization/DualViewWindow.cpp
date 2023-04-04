@@ -149,7 +149,16 @@ std::shared_ptr<DualViewWindow> DualViewWindow::connect(QWidget *widget) {
     return std::dynamic_pointer_cast<DualViewWindow>(mPtr.lock());
 }
 
-    DualViewWindow2D::DualViewWindow2D(Color bgcolor, int width, int height, bool verticalMode) : DualViewWindow(bgcolor, width, height, verticalMode) {
+std::shared_ptr<Window> DualViewWindow::connect(uint id, std::shared_ptr<DataObject> data) {
+    throw Exception("DualView window expects a renderer");
+    return Window::connect(id, data);
+}
+
+std::shared_ptr<Window> DualViewWindow::connect(uint id, std::shared_ptr<ProcessObject> PO, uint portID) {
+    return Window::connect(id, PO, portID);
+}
+
+DualViewWindow2D::DualViewWindow2D(Color bgcolor, int width, int height, bool verticalMode) : DualViewWindow(bgcolor, width, height, verticalMode) {
     set2DMode();
 }
 

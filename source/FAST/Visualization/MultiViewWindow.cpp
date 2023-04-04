@@ -19,10 +19,7 @@ void MultiViewWindow::removeAllRenderers() {
     }
 }
 MultiViewWindow::MultiViewWindow(int viewCount, Color bgcolor, int width, int height, bool verticalMode) {
-    clearViews();
-    for(int i = 0; i < viewCount; i++) {
-        auto view = createView();
-    }
+    setNrOfViews(viewCount);
     setBackgroundColor(bgcolor);
     if(width > 0)
         setWidth(width);
@@ -30,6 +27,13 @@ MultiViewWindow::MultiViewWindow(int viewCount, Color bgcolor, int width, int he
         setHeight(height);
     if(verticalMode)
         setVerticalMode();
+}
+
+void MultiViewWindow::setNrOfViews(int viewCount) {
+    clearViews();
+    for(int i = 0; i < viewCount; i++) {
+        auto view = createView();
+    }
 }
 
 void MultiViewWindow::setHorizontalMode() {

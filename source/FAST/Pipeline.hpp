@@ -12,6 +12,7 @@ namespace fast {
 
 class Renderer;
 class View;
+class Window;
 
 using StringMap = std::map<std::string, std::string>;
 using DataMap = std::map<std::string, std::shared_ptr<DataObject>>;
@@ -131,6 +132,18 @@ class FAST_EXPORT  Pipeline {
           * @return pipeline output data object
           */
         DataObject::pointer getPipelineOutputData(std::string name, std::function<void(float)> progressFunction = nullptr);
+
+        /**
+         * @brief Check whether pipeline has a window specified or not
+         * @return If pipeline has defined a pipeline
+         */
+        bool hasWindow();
+
+        /**
+         * @brief Get window defined in pipeline. If none is defined it will be a nullptr
+         * @return Window defined in pipeline, null if none was defined.
+         */
+        std::shared_ptr<Window> getWindow();
     private:
         bool m_parsed = false;
         std::string mName;
@@ -143,6 +156,7 @@ class FAST_EXPORT  Pipeline {
         std::map<std::string, std::string> m_attributes;
         std::map<std::string, std::pair<std::string, uint>> m_pipelineOutputData;
         std::map<std::string, std::pair<std::string, std::shared_ptr<DataObject>>> m_pipelineInputData;
+        std::shared_ptr<Window> m_window;
 
         void parseProcessObject(
             std::string objectName,
@@ -151,6 +165,11 @@ class FAST_EXPORT  Pipeline {
             bool isRenderer = false
         );
         void parseView(
+                std::string objectID,
+                int& lineNr
+        );
+        void parseWindow(
+                std::string objectName,
                 std::string objectID,
                 int& lineNr
         );

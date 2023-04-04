@@ -27,6 +27,7 @@ class FAST_EXPORT MultiViewWindow : public Window {
         void setHorizontalMode();
         void setVerticalMode();
         void setBackgroundColor(Color color);
+        void setNrOfViews(int views);
         void start() override;
         ~MultiViewWindow();
         std::shared_ptr<MultiViewWindow> connect(int viewNr, std::shared_ptr<Renderer> renderer);
