@@ -470,18 +470,31 @@ Pipeline Pipeline::fromDataHub(std::string itemID, std::map<std::string, std::st
 }
 
 std::map<std::string, DataObject::pointer> Pipeline::run(std::map<std::string, std::shared_ptr<DataObject>> inputData, std::map<std::string, std::shared_ptr<ProcessObject>> processObjects, bool visualization) {
+    std::cout << "Pipeline execution started." << std::endl;
     if(!isParsed())
         parse(inputData, processObjects, visualization);
 
+    for(auto PO : getProcessObjects()) {
+        if(std::dynamic_pointer_cast<Exporter>(PO.second) != nullptr) {
+            // PO is an exporter, run it.
+            Reporter::info() << "Found exporter " << PO.first << " (" << PO.second->getNameOfClass() << ") in pipeline, running..." << Reporter::end();
+            PO.second->run();
+        }
+    }
+
+    std::map<std::string, std::shared_ptr<DataObject>> data;
     if(!m_views.empty()) {
         auto window = MultiViewWindow::create(0);
         for(auto&& view : getViews())
             window->addView(view);
         window->run(); // Visualize and block here
-        return getAllPipelineOutputData();
+        data = getAllPipelineOutputData();
     } else {
-        return getAllPipelineOutputData();
+        data = getAllPipelineOutputData();
     }
+    std::cout << "Pipeline execution finished." << std::endl;
+
+    return data;
 }
 
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {

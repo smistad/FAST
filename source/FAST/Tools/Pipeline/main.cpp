@@ -11,13 +11,30 @@ int main(int argc, char** argv) {
 
     parser.parse(argc, argv);
 
-    auto gui = GUI::New();
-    if(parser.gotValue("pipeline-filename"))
-		gui->setPipelineFile(parser.get("pipeline-filename"), parser.getVariables());
-    if(parser.gotValue("datahub")) {
-        DataHub hub;
-        hub.download(parser.get("datahub"));
-        gui->setPipelineFile(join(hub.getStorageDirectory(), parser.get("datahub"), "pipeline.fpl"), parser.getVariables());
+    if(Config::getVisualization()) {
+        auto gui = GUI::New();
+        if(parser.gotValue("pipeline-filename")) {
+            gui->setPipelineFile(parser.get("pipeline-filename"), parser.getVariables());
+        } else if(parser.gotValue("datahub")) {
+            DataHub hub;
+            hub.download(parser.get("datahub"));
+            gui->setPipelineFile(join(hub.getStorageDirectory(), parser.get("datahub"), "pipeline.fpl"), parser.getVariables());
+        }
+        gui->run();
+    } else {
+        Reporter::info() << "Running pipeline in headless mode" << Reporter::end();
+        // Headless mode
+        std::string filename;
+        if(parser.gotValue("pipeline-filename")) {
+            filename = parser.get("pipeline-filename");
+        } else if(parser.gotValue("datahub")) {
+            DataHub hub;
+            hub.download(parser.get("datahub"));
+            filename = join(hub.getStorageDirectory(), parser.get("datahub"), "pipeline.fpl");
+        } else {
+            throw Exception("You must supply a pipeline filename or datahub item id");
+        }
+        auto pipeline = Pipeline(filename, parser.getVariables());
+        pipeline.run({}, {}, false);
     }
-    gui->run();
 }

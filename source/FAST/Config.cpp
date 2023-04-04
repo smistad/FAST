@@ -27,6 +27,13 @@
 #include <dlfcn.h>
 #endif
 
+// For XOpenDisplay
+#ifndef WIN32
+#ifndef __APPLE__
+#include <X11/Xlib.h>
+#endif
+#endif
+
 namespace fast {
 
 		namespace {
@@ -325,7 +332,18 @@ namespace fast {
 		}
 
 		bool Config::getVisualization() {
-		    return m_visualization;
+#ifdef FAST_MODULE_VISUALIZATION
+		    m_visualization = true;
+#if defined(WIN32) || defined(__APPLE__)
+#else
+            if(XOpenDisplay(nullptr) == nullptr) {
+                m_visualization = false;
+            }
+#endif
+#else
+            m_visualization = false;
+#endif
+            return m_visualization;
 		}
 
         void Config::setTerminateHandlerDisabled(bool disabled) {
