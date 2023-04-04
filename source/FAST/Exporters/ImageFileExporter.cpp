@@ -29,9 +29,7 @@ void ImageFileExporter::execute() {
     if(m_filename.empty())
         throw Exception("No filename was given to the ImageFileExporter");
 
-    std::cout << "Getting data.." << std::endl;
     auto input = getInputData<Image>();
-    std::cout << "Done" << std::endl;
 
     // Get file extension
     size_t pos = m_filename.rfind(".", -5);

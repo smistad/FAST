@@ -14,15 +14,18 @@
 
 namespace fast {
 
-ImageFileImporter::ImageFileImporter() {
-    createOutputPort<Image>(0);
+void ImageFileImporter::init() {
+    createOutputPort(0);
     setMainDevice(Host::getInstance()); // Default is to put image on host
+    createBooleanAttribute("grayscale", "Grayscale", "Whether to convert image to grayscale or not", m_grayscale);
+}
+
+ImageFileImporter::ImageFileImporter() {
+    init();
 }
 
 ImageFileImporter::ImageFileImporter(std::string filename, bool grayscale) : FileImporter(filename) {
-    createOutputPort<Image>(0);
-    setMainDevice(Host::getInstance()); // Default is to put image on host
-    setFilename(filename);
+    init();
     setGrayscale(grayscale);
 }
 

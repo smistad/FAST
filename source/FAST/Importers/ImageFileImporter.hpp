@@ -38,6 +38,7 @@ class FAST_EXPORT  ImageFileImporter : public FileImporter {
     private:
         ImageFileImporter();
         void execute() override;
+        void init();
         bool m_grayscale = false;
 };
 
