@@ -24,7 +24,15 @@ void NeuralNetwork::loadAttributes() {
     auto preferredEngine = getStringAttribute("inference-engine");
     if(!preferredEngine.empty())
         setInferenceEngine(preferredEngine);
-    
+
+    // Select engine based on format, engine must be selected before parsing input/output-nodes
+    auto format = getModelFormat(getStringAttribute("model"));
+    if(!getInferenceEngine()->isModelFormatSupported(format)) {
+        reportInfo() << "Model format " << getModelFormatName(format) << " was not supported by engine " << getInferenceEngine()->getName() << ", auto selecting engine which supports this format..." << reportEnd();
+        setInferenceEngine(InferenceEngineManager::loadBestAvailableEngine(format));
+        reportInfo() << "Selected " << getInferenceEngine()->getName() << " as the best engine for format " << getModelFormatName(format) << reportEnd();
+    }
+
     // If input and/or output nodes names and shapes are defined:
     for(std::string inputOrOutput : {"input", "output"}) {
         auto nodes = getStringListAttribute(inputOrOutput + "-nodes");
@@ -57,12 +65,6 @@ void NeuralNetwork::loadAttributes() {
     setPreserveAspectRatio(getBooleanAttribute("preserve-aspect"));
 
     // Load network here so that input and output nodes are readily defined after loadAttributes()
-    auto format = getModelFormat(getStringAttribute("model"));
-    if(!getInferenceEngine()->isModelFormatSupported(format)) {
-        reportInfo() << "Model format " << getModelFormatName(format) << " was not supported by engine " << getInferenceEngine()->getName() << ", auto selecting engine which supports this format..." << reportEnd();
-        setInferenceEngine(InferenceEngineManager::loadBestAvailableEngine(format));
-        reportInfo() << "Selected " << getInferenceEngine()->getName() << " as the best engine for format " << getModelFormatName(format) << reportEnd();
-    }
 	load(getStringAttribute("model"));
 }
 
