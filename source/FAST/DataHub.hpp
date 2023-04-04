@@ -55,6 +55,7 @@ class FAST_EXPORT DataHub : public QObject {
                 std::string copyright;
                 std::string type;
                 std::string license;
+                std::string licenseCustom;
                 std::string licenseURL;
                 std::string thumbnailURL;
                 std::string downloadURL;

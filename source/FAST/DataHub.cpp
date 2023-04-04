@@ -203,6 +203,7 @@ DataHub::Item DataHub::Item::fromJSON(QJsonObject json) {
     itemObject.copyright = json["copyright"].toString().toStdString();
     itemObject.description = json["description"].toString().toStdString();
     itemObject.license = json["license_name"].toString().toStdString();
+    itemObject.licenseCustom = json["license_custom"].toString().toStdString();
     itemObject.licenseURL = json["license_url"].toString().toStdString();
     itemObject.thumbnailURL = json["thumbnail_url"].toString().toStdString();
     itemObject.downloadURL = json["download_url"].toString().toStdString();
@@ -357,6 +358,9 @@ DataHub::Download DataHub::download(std::string itemID, bool force) {
             downloadTextFile(itemObject.downloadURL, folder, downloadName, counter);
         } else {
             std::cout << "License: " << itemObject.license << std::endl;
+            if(!itemObject.licenseCustom.empty()) {
+                std::cout << "Additional license information: " << itemObject.licenseCustom << std::endl;
+            }
             downloadAndExtractZipFile(itemObject.downloadURL, folder, downloadName, counter);
         }
         ++counter;
