@@ -317,12 +317,20 @@ void TensorRTEngine::load() {
 
     const bool inputsDefined = !mInputNodes.empty();
     const bool outputsDefined = !mOutputNodes.empty();
+
+    // Sort nodes to be consistent
+    std::map<std::string, int> bindings; // Map is sorted by key
+    for (int i = 0; i < m_engine->getNbBindings(); ++i) {
+        bindings[m_engine->getBindingName(i)] = i;
+    }
+
     // Get input and output nodes from the CUDA engine
     if(filename.substr(filename.size()-4) != ".uff") {
         int inputCount = 0;
         int outputCount = 0;
-        for (int i = 0; i < m_engine->getNbBindings(); ++i) {
-            auto name = m_engine->getBindingName(i);
+        for(auto binding : bindings) {
+            auto name = binding.first;
+            int i = binding.second;
             auto shape = getTensorShape(m_engine->getBindingDimensions(i));
             NodeType type;
             if(shape.getDimensions() >= 4) { // If image; 2D or 3D

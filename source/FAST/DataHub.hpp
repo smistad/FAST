@@ -58,6 +58,8 @@ class FAST_EXPORT DataHub : public QObject {
                 std::string licenseURL;
                 std::string thumbnailURL;
                 std::string downloadURL;
+                std::string minFASTVersion;
+                std::string maxFASTVersion;
                 uint64_t downloads;
                 std::vector<DataHub::Item> needs;
                 /**
@@ -111,9 +113,10 @@ class FAST_EXPORT DataHub : public QObject {
         /**
          * @brief Download an item and all dependencies from the DataHub
          * @param itemID
+         * @param force Force item to be downloaded (override version check)
          * @return
          */
-        DataHub::Download download(std::string itemID);
+        DataHub::Download download(std::string itemID, bool force = false);
         /**
          * @brief Whether an item (including dependencies) has been downloaded or not.
          * @param itemID

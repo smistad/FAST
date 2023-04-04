@@ -206,6 +206,8 @@ DataHub::Item DataHub::Item::fromJSON(QJsonObject json) {
     itemObject.licenseURL = json["license_url"].toString().toStdString();
     itemObject.thumbnailURL = json["thumbnail_url"].toString().toStdString();
     itemObject.downloadURL = json["download_url"].toString().toStdString();
+    itemObject.minFASTVersion = json["min_fast_version"].toString().toStdString();
+    itemObject.maxFASTVersion = json["max_fast_version"].toString().toStdString();
     for(auto jsonItem2 : json["needs"].toArray()) {
         itemObject.needs.push_back(fromJSON(jsonItem2.toObject()));
     }
@@ -273,7 +275,39 @@ DataHub::Item DataHub::Item::fromJSON(QJsonObject json) {
     return items;
 }
 
-DataHub::Download DataHub::download(std::string itemID) {
+static bool checkMinVersion(std::string version, std::string minVersion) {
+    if(minVersion.empty())
+        return true;
+    auto parts1 = split(version, ".");
+    auto parts2 = split(minVersion, ".");
+    for(int i = 0; i < 3; ++i) {
+        if(parts1[i] < parts2[i]) {
+            return false;
+        } else if(parts1[i] > parts2[i]) {
+            return true;
+        }
+    }
+    return true; // All equal
+}
+
+
+static bool checkMaxVersion(std::string version, std::string maxVersion) {
+    if(maxVersion.empty())
+        return true;
+    auto parts1 = split(version, ".");
+    auto parts2 = split(maxVersion, ".");
+    for(int i = 0; i < 3; ++i) {
+        if(parts1[i] < parts2[i]) {
+            return true;
+        } else if(parts1[i] > parts2[i]) {
+            std::cout << parts1[i] << " " << parts2[i] << std::endl;
+            return false;
+        }
+    }
+    return true; // All equal
+}
+
+DataHub::Download DataHub::download(std::string itemID, bool force) {
     DataHub::Download download;
     QJsonDocument json;
     try {
@@ -301,6 +335,23 @@ DataHub::Download DataHub::download(std::string itemID) {
             continue;
         } else {
             std::cout << "Retrieving " << downloadName << " " << itemObject.type << " from FAST Data Hub" << std::endl;
+        }
+        const std::string version = std::to_string(FAST_VERSION_MAJOR) + "."  + std::to_string(FAST_VERSION_MINOR) + "." + std::to_string(FAST_VERSION_PATCH);
+        if(!checkMinVersion(version, itemObject.minFASTVersion)) {
+            std::string msg = "The data hub item " + itemObject.name + " requires at least version " + itemObject.minFASTVersion + " of FAST. Consider upgrading to use this item.";
+            if(force) {
+                Reporter::warning() << msg << Reporter::end();
+            } else {
+                throw Exception(msg);
+            }
+        }
+        if(!checkMaxVersion(version, itemObject.maxFASTVersion)) {
+            std::string msg = "The data hub item " + itemObject.name + " requires FAST version to be equal or below " + itemObject.maxFASTVersion + ". Consider downgrading to use this item.";
+            if(force) {
+                Reporter::warning() << msg << Reporter::end();
+            } else {
+                throw Exception(msg);
+            }
         }
         if(itemObject.type == "pipeline") {
             downloadTextFile(itemObject.downloadURL, folder, downloadName, counter);
