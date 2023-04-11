@@ -475,7 +475,7 @@ void View::initializeGL() {
     std::vector<Renderer::pointer> renderers = getRenderers();
     for(int i = 0; i < renderers.size(); i++) {
         if(!renderers[i]->isDisabled())
-            renderers[i]->update();
+            renderers[i]->update(0);
     }
     if(renderers.empty())
         return;

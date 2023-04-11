@@ -35,7 +35,7 @@ void ComputationThread::run() {
 
     m_signalFinished = true;
 
-    uint executeToken = 0;
+    uint executeToken = 1;
     while(true) {
 		bool canUpdate = false;
         std::vector<View*> mViews;
