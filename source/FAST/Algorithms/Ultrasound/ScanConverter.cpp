@@ -3,13 +3,21 @@
 
 namespace fast {
 
-ScanConverter::ScanConverter(int width, int height, float gain, float dynamicRange) {
+ScanConverter::ScanConverter(int width, int height, float gain, float dynamicRange, float startDepth, float endDepth, float startAngle, float endAngle, float leftPos, float rightPos) {
     createInputPort(0, "Beamspace image");
     createOutputPort(0, "Scan converted image");
+
     m_width = width;
     m_height = height;
     m_gain = gain;
     m_dynamicRange = dynamicRange;
+    m_startDepth = startDepth;
+    m_endDepth = endDepth;
+    m_startAngle = startAngle;
+    m_endAngle = endAngle;
+    m_leftPos = leftPos;
+    m_rightPos = rightPos;
+
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Ultrasound/ScanConverter.cl");
 }
 
@@ -22,15 +30,31 @@ void ScanConverter::execute() {
     auto input = getInputData<Image>();
     auto output = Image::create(m_width, m_height, TYPE_UINT8, 1);
 
-    float startRadius = std::stof(input->getFrameData("startRadius"));
-    float stopRadius = std::stof(input->getFrameData("stopRadius"));
-    float startTheta = std::stof(input->getFrameData("startTheta"));
-    float stopTheta = std::stof(input->getFrameData("stopTheta"));
-    float depthSpacing = std::stof(input->getFrameData("depthSpacing"));
-    float azimuthSpacing = std::stof(input->getFrameData("azimuthSpacing"));
+    float startRadius = m_startDepth;
+    float stopRadius = m_endDepth;
+    if(m_endDepth - m_startDepth <= 0) {
+        startRadius = std::stof(input->getFrameData("startRadius"));
+        stopRadius = std::stof(input->getFrameData("stopRadius"));
+    }
+    float startTheta;
+    float stopTheta;
+    bool isPolar = false;
+    if(m_endAngle - m_startAngle > 0) {
+        isPolar = true;
+        startTheta = m_startAngle;
+        stopTheta = m_endAngle;
+    } else if(m_rightPos - m_leftPos > 0) {
+        isPolar = false;
+        startTheta = m_leftPos;
+        stopTheta = m_rightPos;
+    } else {
+        startTheta = std::stof(input->getFrameData("startTheta"));
+        stopTheta = std::stof(input->getFrameData("stopTheta"));
+        isPolar = input->getFrameData("isPolar") == "true";
+    }
 
     float startX, startY, stopX, stopY, notUsed;
-    if(input->getFrameData("isPolar") == "true") {
+    if(isPolar) {
         pol2cart(startRadius, startTheta, startY, notUsed);
         pol2cart(stopRadius, startTheta, notUsed, startX);
         pol2cart(stopRadius, 0, stopY, notUsed);
@@ -63,9 +87,9 @@ void ScanConverter::execute() {
         kernel.setArg(7, startY);
         kernel.setArg(8, startRadius);
         kernel.setArg(9, startTheta);
-        kernel.setArg(10, depthSpacing);
-        kernel.setArg(11, azimuthSpacing);
-        kernel.setArg(12, (int)(input->getFrameData("isPolar") == "true" ? 1 : 0));
+        kernel.setArg(10, (stopRadius-startRadius)/input->getHeight());
+        kernel.setArg(11, (stopTheta-startTheta)/input->getWidth());
+        kernel.setArg(12, (int)(isPolar ? 1 : 0));
 
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
@@ -85,9 +109,9 @@ void ScanConverter::execute() {
         kernel.setArg(5, startY);
         kernel.setArg(6, startRadius);
         kernel.setArg(7, startTheta);
-        kernel.setArg(8, depthSpacing);
-        kernel.setArg(9, azimuthSpacing);
-        kernel.setArg(10, (int)(input->getFrameData("isPolar") == "true" ? 1 : 0));
+        kernel.setArg(8, (stopRadius-startRadius)/input->getHeight());
+        kernel.setArg(9, (stopTheta-startTheta)/input->getWidth());
+        kernel.setArg(10, (int)(isPolar ? 1 : 0));
 
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,

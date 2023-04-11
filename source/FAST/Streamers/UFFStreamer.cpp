@@ -479,8 +479,6 @@ void UFFStreamer::generateStream() {
         image->setFrameData("stopRadius", std::to_string(stopRadius));
         image->setFrameData("startTheta", std::to_string(startTheta));
         image->setFrameData("stopTheta", std::to_string(stopTheta));
-        image->setFrameData("depthSpacing", std::to_string(m_uffData->depth_axis[1]-m_uffData->depth_axis[0]));
-        image->setFrameData("azimuthSpacing", std::to_string(m_uffData->azimuth_axis[1]-m_uffData->azimuth_axis[0]));
 
         Image::pointer resultImage;
         if(m_doScanConversion) {
