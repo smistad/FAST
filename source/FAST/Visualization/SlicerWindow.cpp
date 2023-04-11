@@ -24,6 +24,11 @@ SlicerWindow::SlicerWindow(Color bgcolor, uint width, uint height) {
     }
 
     createLayout();
+
+    createFloatAttribute("opacity", "Segmentation Opacity", "", m_opacity);
+    createFloatAttribute("border-opacity", "Segmentation border opacity", "", m_borderOpacity);
+    createIntegerAttribute("border-radius", "Segmentation border radius", "", m_borderRadius);
+    createStringAttribute("label-colors", "Label color", "Label color set as <label1> <color1> <label2> <color2>", "");
 }
 
 std::shared_ptr<SlicerWindow> SlicerWindow::connectImage(std::shared_ptr<ProcessObject> processObject, float level, float window, uint outputPortID) {
@@ -87,8 +92,26 @@ std::shared_ptr<SlicerWindow> SlicerWindow::connectSegmentation(std::shared_ptr<
         auto slicer = ImageSlicer::create(m_slicePlanes[i]);
         slicer->connect(updateSliders);
         m_slicers[m_slicePlanes[i]].push_back(slicer);
+        if(opacity < 0)
+            opacity = getOpacity();
+        if(borderOpacity < 0)
+            borderOpacity = getBorderOpacity();
+        if(borderRadius < 0)
+            borderRadius = getBorderRadius();
+        if(colors.empty())
+            colors = m_labelColors;
         auto renderer = SegmentationRenderer::create(colors, opacity, borderOpacity, borderRadius)
                 ->connect(slicer);
+        if(colors.empty() && m_segmentationRenderers[m_slicePlanes[i]].size() >= 1) {
+            // Rotate colors, in case multiple segmentations have been added, but colors where not specified.
+            auto originalColors = renderer->getColors();
+            auto newColors = originalColors;
+            int count = m_segmentationRenderers[m_slicePlanes[i]].size();
+            for(int j = 1; j < 8; ++j) {
+                newColors[j] = originalColors[(j+count) % 7 + 1];
+            }
+            renderer->setColors(newColors);
+        }
         m_segmentationRenderers[m_slicePlanes[i]].push_back(renderer);
         getView(i)->addRenderer(renderer);
 
@@ -178,7 +201,7 @@ std::shared_ptr<Window> SlicerWindow::connect(uint id, std::shared_ptr<ProcessOb
     if(id == 0) {
         return connectImage(PO, -1, -1, portID);
     } else {
-        return connectSegmentation(PO, LabelColors(), 0.5, -1.0f, 1, portID);
+        return connectSegmentation(PO, LabelColors(), -1, -1.0f, -1, portID);
     }
 }
 
@@ -201,5 +224,57 @@ std::shared_ptr<SlicerWindow> SlicerWindow::connectSegmentation(std::shared_ptr<
     );
 }
 
+void SlicerWindow::loadAttributes() {
+    auto borderOpacity = getFloatAttribute("border-opacity");
+    if(borderOpacity >= 0.0) {
+        setOpacity(getFloatAttribute("opacity"), borderOpacity);
+    } else {
+        setOpacity(getFloatAttribute("opacity"));
+    }
+    setBorderRadius(getIntegerAttribute("border-radius"));
+    auto colors = getStringListAttribute("label-colors");
+    for(int i = 0; i < colors.size(); i += 2) {
+        int label = std::stoi(colors[i]);
+        Color color = Color::fromString(colors.at(i + 1));
+        m_labelColors[label] = color;
+    }
+}
+
+void SlicerWindow::setBorderRadius(int radius) {
+    if(radius <= 0)
+        throw Exception("Border radius must be >= 0");
+
+    m_borderRadius = radius;
+}
+
+void SlicerWindow::setOpacity(float opacity, float borderOpacity) {
+    if(opacity < 0 || opacity > 1)
+        throw Exception("SlicerWindow opacity has to be >= 0 and <= 1");
+    m_opacity = opacity;
+    if(borderOpacity >= 0.0) {
+        m_borderOpacity = borderOpacity;
+    } else {
+        m_borderOpacity = opacity;
+    }
+}
+
+
+void SlicerWindow::setBorderOpacity(float opacity) {
+    if(opacity < 0 || opacity > 1)
+        throw Exception("SlicerWindow opacity has to be >= 0 and <= 1");
+    m_borderOpacity = opacity;
+}
+
+float SlicerWindow::getOpacity() const {
+    return m_opacity;
+}
+
+float SlicerWindow::getBorderOpacity() const {
+    return m_borderOpacity;
+}
+
+int SlicerWindow::getBorderRadius() const {
+    return m_borderRadius;
+}
 
 }

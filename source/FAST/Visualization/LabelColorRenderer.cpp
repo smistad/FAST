@@ -59,4 +59,8 @@ Color LabelColorRenderer::getColor(int label) const {
     return m_labelColors.at(label);
 }
 
+LabelColors LabelColorRenderer::getColors() const {
+    return m_labelColors;
+}
+
 }

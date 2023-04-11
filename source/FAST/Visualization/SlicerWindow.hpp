@@ -64,9 +64,9 @@ class FAST_EXPORT SlicerWindow : public Window {
          */
         std::shared_ptr<SlicerWindow> connectSegmentation(std::shared_ptr<ProcessObject> processObject,
                                                           LabelColors colors = LabelColors(),
-                                                          float opacity = 0.5f,
+                                                          float opacity = -1,
                                                           float borderOpacity = -1.0f,
-                                                          int borderRadius = 1,
+                                                          int borderRadius = -1,
                                                           uint outputPortID = 0
           );
         /**
@@ -90,6 +90,16 @@ class FAST_EXPORT SlicerWindow : public Window {
 
     std::shared_ptr<Window> connect(uint id, std::shared_ptr<DataObject> data) override;
     std::shared_ptr<Window> connect(uint id, std::shared_ptr<ProcessObject> PO, uint portID = 0) override;
+    std::string getNameOfClass() {
+        return "SlicerWindow";
+    }
+    void setBorderRadius(int radius);
+    void setOpacity(float opacity, float borderOpacity = -1);
+    void setBorderOpacity(float borderOpacity);
+    float getOpacity() const;
+    float getBorderOpacity() const;
+    int getBorderRadius() const;
+    void loadAttributes() override;
 protected:
     void createLayout();
 
@@ -101,6 +111,12 @@ protected:
     QSlider* m_levelSlider;
     QSlider* m_windowSlider;
     PlaneType m_slicePlanes[3] = {PLANE_X, PLANE_Y, PLANE_Z};
+
+    // Segmentation attributes
+    int m_borderRadius = 1;
+    float m_borderOpacity = 0.5;
+    float m_opacity = 0.5;
+    LabelColors m_labelColors;
 };
 
 }

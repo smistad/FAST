@@ -25,7 +25,7 @@ class ProcessObject;
  * @brief Abstract base class for windows
  * @ingroup window
  */
-class FAST_EXPORT  Window : public QObject, public Object {
+class FAST_EXPORT  Window : public QObject, public AttributeObject {
     Q_OBJECT
     public:
         static void initializeQtApp();
@@ -98,6 +98,9 @@ class FAST_EXPORT  Window : public QObject, public Object {
 
         virtual std::shared_ptr<Window> connect(uint id, std::shared_ptr<DataObject> data);
         virtual std::shared_ptr<Window> connect(uint id, std::shared_ptr<ProcessObject> PO, uint portID = 0);
+        std::string getNameOfClass() {
+            return "Window";
+        }
 protected:
         void startComputationThread();
         void stopComputationThread();

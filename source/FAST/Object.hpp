@@ -5,6 +5,8 @@
 #include "FAST/Exception.hpp"
 #include "FAST/Reporter.hpp"
 #include "FASTVersion.hpp"
+#include "FAST/Attribute.hpp"
+#include <unordered_map>
 #include <memory>
 
 
@@ -290,6 +292,30 @@ class FAST_EXPORT  Object {
     private:
         Reporter mReporter;
 
+};
+
+class FAST_EXPORT AttributeObject : public Object {
+    public:
+        virtual void loadAttributes();
+        std::shared_ptr<Attribute> getAttribute(std::string id);
+        std::unordered_map<std::string, std::shared_ptr<Attribute>> getAttributes();
+        void setAttributes(std::vector<std::shared_ptr<Attribute>> attributes);
+        virtual std::string getNameOfClass() const = 0;
+    protected:
+        void createFloatAttribute(std::string id, std::string name, std::string description, float initialValue);
+        void createIntegerAttribute(std::string id, std::string name, std::string description, int initialValue);
+        void createBooleanAttribute(std::string id, std::string name, std::string description, bool initialValue);
+        void createStringAttribute(std::string id, std::string name, std::string description, std::string initialValue);
+        float getFloatAttribute(std::string id);
+        int getIntegerAttribute(std::string id);
+        bool getBooleanAttribute(std::string id);
+        std::string getStringAttribute(std::string id);
+        std::vector<float> getFloatListAttribute(std::string id);
+        std::vector<int> getIntegerListAttribute(std::string id);
+        std::vector<bool> getBooleanListAttribute(std::string id);
+        std::vector<std::string> getStringListAttribute(std::string id);
+
+        std::unordered_map<std::string, std::shared_ptr<Attribute>> mAttributes;
 };
 
 }

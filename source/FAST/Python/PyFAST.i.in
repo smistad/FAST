@@ -151,6 +151,7 @@ public
 
 // Shared_ptr declerations
 %shared_ptr(fast::Object)
+%shared_ptr(fast::AttributeObject)
 %shared_ptr(fast::DataChannel)
 %shared_ptr(fast::ExecutionDevice)
 %shared_ptr(fast::Host)

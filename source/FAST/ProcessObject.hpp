@@ -63,7 +63,7 @@ class ProcessObject;
 /**
  * @brief Abstract base class for all process objects
  */
-class FAST_EXPORT  ProcessObject : public Object {
+class FAST_EXPORT  ProcessObject : public AttributeObject {
     public:
         virtual ~ProcessObject();
         /**
@@ -121,14 +121,9 @@ class FAST_EXPORT  ProcessObject : public Object {
         int getNrOfOutputPorts() const;
         int getNrOfInputPorts() const;
 
-        virtual std::string getNameOfClass() const = 0;
         static std::string getStaticNameOfClass() {
             return "ProcessObject";
         }
-        virtual void loadAttributes();
-        std::shared_ptr<Attribute> getAttribute(std::string id);
-        std::unordered_map<std::string, std::shared_ptr<Attribute>> getAttributes();
-        void setAttributes(std::vector<std::shared_ptr<Attribute>> attributes);
 
         /**
          * @brief Stop a pipeline.
@@ -217,19 +212,6 @@ class FAST_EXPORT  ProcessObject : public Object {
                 std::string buildOptions = ""
         );
 
-        void createFloatAttribute(std::string id, std::string name, std::string description, float initialValue);
-        void createIntegerAttribute(std::string id, std::string name, std::string description, int initialValue);
-        void createBooleanAttribute(std::string id, std::string name, std::string description, bool initialValue);
-        void createStringAttribute(std::string id, std::string name, std::string description, std::string initialValue);
-        float getFloatAttribute(std::string id);
-        int getIntegerAttribute(std::string id);
-        bool getBooleanAttribute(std::string id);
-        std::string getStringAttribute(std::string id);
-        std::vector<float> getFloatListAttribute(std::string id);
-        std::vector<int> getIntegerListAttribute(std::string id);
-        std::vector<bool> getBooleanListAttribute(std::string id);
-        std::vector<std::string> getStringListAttribute(std::string id);
-
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
 
         std::map<uint, bool> mRequiredInputs;
@@ -258,11 +240,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         void validateInputPortExists(uint portID);
         void validateOutputPortExists(uint portID);
 
-
-
         std::unordered_map<std::string, std::shared_ptr<OpenCLProgram> > mOpenCLPrograms;
-
-        std::unordered_map<std::string, std::shared_ptr<Attribute>> mAttributes;
 
         // Frame data
         // Similar to metadata, only this is transferred from input to output

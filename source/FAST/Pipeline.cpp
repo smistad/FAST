@@ -168,6 +168,34 @@ void Pipeline::parseWindow(
 
     m_window = window;
 
+    // Continue to scan file for attributes
+    ++lineNr;
+    while(lineNr < m_lines.size()) {
+        std::string line = m_lines[lineNr];
+        trim(line);
+        if(line == "")
+            break;
+
+        std::vector<std::string> tokens = split(line);
+        if(tokens[0] != "Attribute")
+            break;
+
+        if(tokens.size() < 3)
+            throw Exception("Expecting at least 3 items on attribute line when parsing object " + objectName + " but got " + line);
+
+        std::string name = tokens[1];
+
+        std::shared_ptr<Attribute> attribute = m_window->getAttribute(name);
+        std::string attributeValues = line.substr(line.find(name) + name.size());
+        trim(attributeValues);
+        attribute->parseInput(attributeValues);
+        Reporter::info() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << Reporter::end();
+        ++lineNr;
+    }
+    --lineNr;
+
+    m_window->loadAttributes();
+
     // Get inputs and connect the POs and renderers
     ++lineNr;
     while (lineNr < m_lines.size()) {
@@ -208,6 +236,7 @@ void Pipeline::parseWindow(
         m_window->connect(inputPortID, mProcessObjects.at(inputID), outputPortID);
         ++lineNr;
     }
+
 }
 
 void Pipeline::parseProcessObject(
