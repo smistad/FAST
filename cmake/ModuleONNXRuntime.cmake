@@ -18,5 +18,9 @@ if(FAST_MODULE_ONNXRuntime)
             )
         endif()
     else()
+        fast_download_dependency(onnxruntime
+                1.14.0
+                b7e8f893459770596075be66bd311a3d93b71e07a47f1075d5541432054cfdc1
+        )
     endif()
 endif()

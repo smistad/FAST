@@ -15,7 +15,7 @@ namespace fast {
 std::string print_shape(const std::vector<int64_t>& v) {
   std::stringstream ss("");
   for (size_t i = 0; i < v.size() - 1; i++)
-    ss << v[i] << "x";
+    ss << v[i] << " ";
   ss << v[v.size() - 1];
   return ss.str();
 }
@@ -57,10 +57,14 @@ void ONNXRuntimeEngine::run() {
     int counter = 0;
     for(auto& outputNode : mOutputNodes) {
         const float* data = output[counter].GetTensorData<float>();
+        // Get shape of output tensor
+        auto shape = TensorShape();
+        for(int x : output[counter].GetTensorTypeAndShapeInfo().GetShape()) {
+            shape.addDimension(x);
+        }
         const auto name = outputNode.first;
-        auto shape2 = outputNode.second.shape;
-        shape2[0] = 1;
-        auto outputTensor = Tensor::create(data, shape2);
+        outputNode.second.shape = shape;
+        auto outputTensor = Tensor::create(data, shape);
         outputNode.second.data = outputTensor;
         ++counter;
     }
@@ -109,7 +113,9 @@ void ONNXRuntimeEngine::load() {
             m_session = std::make_unique<Ort::Session>(*m_env.get(), filename.c_str(), session_options);
         }
 #else
-        // LINUX
+        // LINUX (only CPU available)
+        Ort::SessionOptions session_options;
+        m_session = std::make_unique<Ort::Session>(*m_env.get(), filename.c_str(), session_options);
 #endif
     }
 	Ort::AllocatorWithDefaultOptions allocator;
@@ -210,10 +216,12 @@ std::vector<InferenceDeviceInfo> ONNXRuntimeEngine::getDeviceList() {
     cpu.type = InferenceDeviceType::CPU;
     cpu.index = 0;
     result.push_back(cpu);
+#ifdef WIN32
     InferenceDeviceInfo gpu;
     gpu.type = InferenceDeviceType::GPU;
     gpu.index = 0;
     result.push_back(gpu);
+#endif
     return result;
 }
 
