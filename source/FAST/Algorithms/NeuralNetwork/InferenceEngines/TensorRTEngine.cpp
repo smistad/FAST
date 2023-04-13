@@ -106,7 +106,7 @@ void TensorRTEngine::run() {
                         if(m_previousInputShapes[i] != inputNode.second.data->getShape()) {
                             reshapeNeeded = true;
                             reportInfo() << "Reshaping TensorRT network for node " << inputNode.first << " because shape has changed" << reportEnd();
-                            m_context->setInputShape(m_engine->getBindingName(i), shapeToDims(inputNode.second.data->getShape()));
+                            m_context->setBindingDimensions(i, shapeToDims(inputNode.second.data->getShape()));
                             m_previousInputShapes[i] = inputNode.second.data->getShape();
                             inputNode.second.shape = inputNode.second.data->getShape();
                         }
@@ -129,7 +129,7 @@ void TensorRTEngine::run() {
                 shape = mInputNodes[name].data->getShape();
             } else if(!m_engine->bindingIsInput(i) && mOutputNodes.count(name) > 0) {
                 m_outputIndexes[name] = i;
-                shape = getTensorShape(m_context->getTensorShape(name));
+                shape = getTensorShape(m_context->getBindingDimensions(i));
             } else {
                 shape = getTensorShape(m_context->getBindingDimensions(i));
             }
@@ -149,7 +149,7 @@ void TensorRTEngine::run() {
         auto dtype = m_engine->getBindingDataType(index);
         auto shape = inputNode.second.shape;
         shape[0] = batchSize;
-        if(shape != getTensorShape(m_context->getTensorShape(inputNode.first.c_str()))) // If shapes differ, e.g. batch size has changed, we need to reshape
+        if(shape != getTensorShape(m_context->getBindingDimensions(index))) // If shapes differ, e.g. batch size has changed, we need to reshape
             m_context->setBindingDimensions(index, shapeToDims(shape));
         CUDA_CHECK(cudaMemcpy(m_cudaBuffers[index], tensorData,
                               shape.getTotalSize() * elementSize(dtype),
@@ -169,9 +169,9 @@ void TensorRTEngine::run() {
         const auto name = outputNode.first;
         const int index = m_outputIndexes[name];
         if(reshapeNeeded) {
-            reportInfo() << "Updating output node shape to: " << getTensorShape(m_context->getTensorShape(name.c_str())).toString() << reportEnd();
+            reportInfo() << "Updating output node shape to: " << getTensorShape(m_context->getBindingDimensions(index)).toString() << reportEnd();
             // Update shape of output node
-            outputNode.second.shape = getTensorShape(m_context->getTensorShape(name.c_str()));
+            outputNode.second.shape = getTensorShape(m_context->getBindingDimensions(index));
         }
         auto shape = outputNode.second.shape;
 
