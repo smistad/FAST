@@ -3,7 +3,7 @@
  * An example of streaming and visualizing images from files using the ImageFileStreamer
  */
 #include <FAST/Tools/CommandLineParser.hpp>
-#include <FAST/Visualization/Widgets/PlaybackWidget.hpp>
+#include <FAST/Visualization/Widgets/PlaybackWidget/PlaybackWidget.hpp>
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"

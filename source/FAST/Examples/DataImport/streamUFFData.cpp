@@ -7,7 +7,7 @@
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Tools/CommandLineParser.hpp>
-#include <FAST/Visualization/Widgets/PlaybackWidget.hpp>
+#include <FAST/Visualization/Widgets/PlaybackWidget/PlaybackWidget.hpp>
 #include <FAST/Algorithms/NonLocalMeans/NonLocalMeans.hpp>
 #include <FAST/Algorithms/Interleave/Interleave.hpp>
 

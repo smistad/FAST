@@ -10,7 +10,7 @@
 #include <FAST/Visualization/SegmentationLabelRenderer/SegmentationLabelRenderer.hpp>
 #include <FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp>
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngineManager.hpp>
-#include <FAST/Visualization/Widgets/PlaybackWidget.hpp>
+#include <FAST/Visualization/Widgets/PlaybackWidget/PlaybackWidget.hpp>
 
 using namespace fast;
 
