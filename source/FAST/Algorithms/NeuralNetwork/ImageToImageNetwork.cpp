@@ -100,6 +100,7 @@ void ImageToImageNetwork::execute() {
         height = shape[dims - 2];
         width = shape[dims - 1];
     }
+    shape[0] = 1;
     if(shape.getUnknownDimensions() > 0) {
         reportInfo() << "Dynamic input shape detected in ImageToImageNetwork" << reportEnd();
         if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelLast) {

@@ -274,6 +274,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                             shape[4] = inputImages[0]->getNrOfChannels();
                         }
                     }
+                    shape[0] = m_batchSize;
                     tensors[inputNode.first] = convertImagesToTensor(inputImages, shape, containsSequence);
                 } else {
                     auto inputImages2 = resizeImages(inputImages, width, height, depth);
