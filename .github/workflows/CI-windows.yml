@@ -109,11 +109,11 @@ jobs:
       if: ${{ github.event_name != 'pull_request' }}
       shell: powershell
       run: |
-        Expand-Archive -Path ${{github.workspace}}/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive.zip -DestinationPath ${{github.workspace}}/cudnn/
-        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
-        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
-        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
-        Expand-Archive -Path ${{github.workspace}}/TensorRT-8.4.2.4.Windows10.x86_64.cuda-11.6.cudnn8.4.zip -DestinationPath ${{github.workspace}}/trt/
+        Expand-Archive -Path ${{github.workspace}}/cudnn-windows-x86_64-8.6.0.163_cuda11-archive.zip -DestinationPath ${{github.workspace}}/cudnn/
+        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.6.0.163_cuda11-archive/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
+        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.6.0.163_cuda11-archive/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
+        cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.6.0.163_cuda11-archive/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
+        Expand-Archive -Path ${{github.workspace}}/TensorRT-8.5.3.1.Windows10.x86_64.cuda-11.8.cudnn8.6.zip -DestinationPath ${{github.workspace}}/trt/
     - name: Configure CMake (with TensorRT)
       if: ${{ github.event_name != 'pull_request' }}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -128,9 +128,9 @@ jobs:
             -DFAST_MODULE_Clarius=ON `
             -DFAST_MODULE_TensorFlow=ON `
             -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/" `
-            -DTensorRT_ROOT="${{github.workspace}}/trt/TensorRT-8.4.2.4/" `
-            -DTensorRT_parsers_LIBRARY="${{github.workspace}}/trt/TensorRT-8.4.2.4/lib/nvparsers.lib" `
-            -DTensorRT_onnx_parser_LIBRARY="${{github.workspace}}/trt/TensorRT-8.4.2.4/lib/nvonnxparser.lib" `
+            -DTensorRT_ROOT="${{github.workspace}}/trt/TensorRT-8.5.3.1/" `
+            -DTensorRT_parsers_LIBRARY="${{github.workspace}}/trt/TensorRT-8.5.3.1/lib/nvparsers.lib" `
+            -DTensorRT_onnx_parser_LIBRARY="${{github.workspace}}/trt/TensorRT-8.5.3.1/lib/nvonnxparser.lib" `
             -DFAST_MODULE_TensorRT=ON `
             -DFAST_MODULE_HDF5=ON `
             -DFAST_MODULE_Plotting=ON `
