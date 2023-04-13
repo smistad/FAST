@@ -79,22 +79,6 @@ class FAST_EXPORT Batch : public SimpleDataObject<InferenceDataList> {
 };
 
 /**
- * @brief A struct representing a neural network input/output node
- * @ingroup neural-network
- */
-class FAST_EXPORT NeuralNetworkNode {
-    public:
-        NeuralNetworkNode(std::string name, NodeType type = NodeType::UNSPECIFIED, TensorShape shape = TensorShape(), uint id = 0) : name(name), type(type), shape(shape), id(id) {
-
-        }
-        NeuralNetworkNode() {name = "uninitialized";};
-        uint id;
-        std::string name;
-        NodeType type;
-        fast::TensorShape shape; // namespace is needed here for swig/pyfast to work for some reason
-};
-
-/**
  * @defgroup neural-network Neural Network
  * Objects and functions related to Neural Network processing.
  */
@@ -194,6 +178,8 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         InferenceEngine::pointer getInferenceEngine() const;
         void setInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape());
         void setOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape());
+        void setInputNode(NeuralNetworkNode node);
+        void setOutputNode(NeuralNetworkNode node);
         /**
          * For each input value i: new_i = i*scale
          * @param scale

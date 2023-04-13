@@ -96,7 +96,29 @@ void TensorRTEngine::run() {
         reportWarning() << "Batch is larger than the max batch size" << reportEnd();
     }
 
-    if(m_cudaBuffers.empty() || m_currentBatchSize != batchSize) {
+    bool reshapeNeeded = false;
+    if(m_dynamicInputShapes) {
+        reportInfo() << "Looking if shape has changed." << reportEnd();
+        for(int i = 0; i < nbBindings; ++i) {
+            if(m_engine->bindingIsInput(i)) {
+                for(auto& inputNode : mInputNodes) {
+                    if(inputNode.first == m_engine->getBindingName(i)) {
+                        if(m_previousInputShapes[i] != inputNode.second.data->getShape()) {
+                            reshapeNeeded = true;
+                            reportInfo() << "Reshaping TensorRT network for node " << inputNode.first << " because shape has changed" << reportEnd();
+                            m_context->setInputShape(m_engine->getBindingName(i), shapeToDims(inputNode.second.data->getShape()));
+                            m_previousInputShapes[i] = inputNode.second.data->getShape();
+                            inputNode.second.shape = inputNode.second.data->getShape();
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if(m_cudaBuffers.empty() || m_currentBatchSize != batchSize || reshapeNeeded) {
+        for(auto buffer : m_cudaBuffers) // Free old buffers if any
+            CUDA_CHECK(cudaFree(buffer));
+        m_cudaBuffers.clear();
         m_currentBatchSize = batchSize;
         // Initialize cuda buffers. WARNING: This assumes that shapes (except batch size) do not change during execution
         for(int i = 0; i < nbBindings; ++i) {
@@ -104,12 +126,12 @@ void TensorRTEngine::run() {
             TensorShape shape;
             if(m_engine->bindingIsInput(i) && mInputNodes.count(name) > 0) {
                 m_inputIndexes[name] = i;
-                shape = mInputNodes[name].shape;
+                shape = mInputNodes[name].data->getShape();
             } else if(!m_engine->bindingIsInput(i) && mOutputNodes.count(name) > 0) {
                 m_outputIndexes[name] = i;
-                shape = mOutputNodes[name].shape;
+                shape = getTensorShape(m_context->getTensorShape(name));
             } else {
-                shape = getTensorShape(m_engine->getBindingDimensions(i));
+                shape = getTensorShape(m_context->getBindingDimensions(i));
             }
             shape[0] = batchSize;
             // Allocate data
@@ -127,7 +149,8 @@ void TensorRTEngine::run() {
         auto dtype = m_engine->getBindingDataType(index);
         auto shape = inputNode.second.shape;
         shape[0] = batchSize;
-        m_context->setBindingDimensions(index, shapeToDims(shape));
+        if(shape != getTensorShape(m_context->getTensorShape(inputNode.first.c_str()))) // If shapes differ, e.g. batch size has changed, we need to reshape
+            m_context->setBindingDimensions(index, shapeToDims(shape));
         CUDA_CHECK(cudaMemcpy(m_cudaBuffers[index], tensorData,
                               shape.getTotalSize() * elementSize(dtype),
                               cudaMemcpyHostToDevice));
@@ -144,9 +167,15 @@ void TensorRTEngine::run() {
     // Transfer output data back
     for(auto& outputNode : mOutputNodes) {
         const auto name = outputNode.first;
-        auto shape = outputNode.second.shape;
-        shape[0] = batchSize;
         const int index = m_outputIndexes[name];
+        if(reshapeNeeded) {
+            reportInfo() << "Updating output node shape to: " << getTensorShape(m_context->getTensorShape(name.c_str())).toString() << reportEnd();
+            // Update shape of output node
+            outputNode.second.shape = getTensorShape(m_context->getTensorShape(name.c_str()));
+        }
+        auto shape = outputNode.second.shape;
+
+        shape[0] = batchSize;
         auto dtype = m_engine->getBindingDataType(index);
         reportInfo() << "Processing output node " << name << reportEnd();
         auto outputData = make_uninitialized_unique<float[]>(shape.getTotalSize()); // TODO possible type mismatch issue here..
@@ -241,7 +270,7 @@ void TensorRTEngine::load() {
                 auto shape = node.second.shape;
                 if(shape.getDimensions() == 0)
                     throw Exception("Unknown shape for input node " + node.first +
-                                    ". For TensorRT you need to specify the input tensor shape explictly with addInputNode");
+                                    ". For TensorRT UFF you need to specify the input tensor shape explictly with addInputNode");
                 if(shape.getDimensions() == 4)
                     uffparser->registerInput(node.first.c_str(), nvinfer1::Dims3(shape[1], shape[2], shape[3]),
                                           nvuffparser::UffInputOrder::kNCHW);
@@ -274,11 +303,45 @@ void TensorRTEngine::load() {
                 auto input = network->getInput(inputNr);
                 auto dims = input->getDimensions();
                 reportInfo() << "TensorRT found input node " << input->getName() << "with shape: " << getTensorShape(dims).toString() << reportEnd();
-                dims.d[0] = 1;
-                profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, dims);
-                profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);
-                dims.d[0] = m_maxBatchSize;
-                profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, dims);
+                bool dynamic = false;
+                for(int i = 1; i < dims.nbDims; ++i) {
+                    if(dims.d[i] < 0)
+                        dynamic = true;
+                }
+                if(dynamic) {
+                    m_dynamicInputShapes = true;
+                    reportInfo() << "This node has dynamic shape" << reportEnd();
+                    // Go through all specified input nodes, see if min/max/opt shapes have been set, if not
+                    // throw an exception.
+                    TensorShape minShape, maxShape, optShape;
+                    bool found = false;
+                    for(auto node : mInputNodes) {
+                        if(node.first == input->getName()) {
+                            // Check that all shapes are present
+                            if(!node.second.minShape.empty() && node.second.minShape.getUnknownDimensions() == 0 &&
+                                    !node.second.maxShape.empty() && node.second.maxShape.getUnknownDimensions() == 0 &&
+                                    !node.second.optShape.empty() && node.second.optShape.getUnknownDimensions() == 0) {
+                                maxShape = node.second.maxShape;
+                                minShape = node.second.minShape;
+                                optShape = node.second.optShape;
+                                found = true;
+                            } else {
+                                throw Exception("Dynamic node " + node.first + " was specified. But min, max and/or opt shapes where not properly defined as required by TensorRT");
+                            }
+                        }
+                    }
+                    if(!found)
+                        throw Exception("Input node " + std::string(input->getName()) + " has dynamic shape, but the node was not specified with shapes. See inputNodes on NeuralNetwork object.");
+                    profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, shapeToDims(minShape));
+                    profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, shapeToDims(optShape));
+                    profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, shapeToDims(maxShape));
+                } else {
+                    dims.d[0] = 1;
+                    profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, dims);
+                    profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);
+                    dims.d[0] = m_maxBatchSize;
+                    profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, dims);
+                }
             }
             config->addOptimizationProfile(profile);
         }
@@ -354,21 +417,32 @@ void TensorRTEngine::load() {
                 reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
                 if(inputsDefined) {
                     if(mInputNodes.count(name) > 0) {
-                        reportInfo() << "Node was defined by user at id " << mInputNodes[name].portID  << reportEnd();
+                        reportInfo() << "Node was defined by user at id " << mInputNodes[name].id  << reportEnd();
                         if(mInputNodes[name].shape.empty())
                             mInputNodes[name].shape = shape;
                     } else {
                         reportInfo() << "Ignored input node " << name << " because input nodes were specified, but not this one." << reportEnd();
                     }
+                    auto dims = m_engine->getBindingDimensions(i);
+                    bool dynamic = false;
+                    for(int i = 1; i < dims.nbDims; ++i) {
+                        if(dims.d[i] < 0)
+                            dynamic = true;
+                    }
+                    if(dynamic) {
+                        m_dynamicInputShapes = true;
+                        reportInfo() << "This node has dynamic shape" << reportEnd();
+                    }
                 } else {
-                    addInputNode(inputCount, name, type, shape);
+                    NeuralNetworkNode node(name, type, shape, inputCount);
+                    addInputNode(node);
                     ++inputCount;
                 }
             } else {
                 reportInfo() << "Found output node " << name << " with shape " << shape.toString() << reportEnd();
                 if(outputsDefined) {
                     if(mOutputNodes.count(name) > 0) {
-                        reportInfo() << "Node was defined by user at id " << mOutputNodes[name].portID  << reportEnd();
+                        reportInfo() << "Node was defined by user at id " << mOutputNodes[name].id  << reportEnd();
                         if(mOutputNodes[name].shape.empty()) {
                             reportInfo() << "Shape was empty, setting it to " << shape.toString() << reportEnd();
                             mOutputNodes[name].shape = shape;
@@ -377,7 +451,8 @@ void TensorRTEngine::load() {
                         reportInfo() << "Ignored output node " << name << " because output nodes were specified, but not this one." << reportEnd();
                     }
                 } else {
-                    addOutputNode(outputCount, name, type, shape);
+                    NeuralNetworkNode node(name, type, shape, outputCount);
+                    addOutputNode(node);
                     ++outputCount;
                 }
             }

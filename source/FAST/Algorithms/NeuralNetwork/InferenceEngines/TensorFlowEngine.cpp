@@ -168,7 +168,7 @@ void TensorFlowEngine::run() {
     // Collect all output data as FAST tensors
     for(int j = 0; j < outputNames.size(); ++j) {
         const std::string outputName = outputNames[j];
-        const NetworkNode node = mOutputNodes[outputName];
+        const auto node = mOutputNodes[outputName];
         auto tensor = TensorFlowTensor::create(new TensorFlowTensorWrapper(std::move(output_tensors[j])));
         mOutputNodes[outputName].data = tensor;
 	}
@@ -248,7 +248,7 @@ void TensorFlowEngine::load() {
 				// Input node found:
 				// Get its shape
 				// Input nodes use the Op Placeholder
-				reportInfo() << "Found input node: " << i << " with name " << node.name() << reportEnd();
+				reportInfo() << "Found input node: " << i << " with name " << node.name() << " (" << inputCounter << ")" << reportEnd();
 				reportInfo() << "Node has shape " << shape.toString() << reportEnd();
 				if(mInputNodes.count(node.name()) == 0) {
 					reportInfo() << "Node was not specified by user" << reportEnd();
@@ -256,7 +256,7 @@ void TensorFlowEngine::load() {
                     if(inputsSpecified) {
                         throw Exception("Encountered unknown node " + node.name());
                     }
-					addInputNode(inputCounter, node.name(), type, shape);
+                    addInputNode(NeuralNetworkNode(node.name(), type, shape, inputCounter));
 					++inputCounter;
 				} else {
 				    // If shape that was given was empty, add the detected one here
@@ -268,13 +268,13 @@ void TensorFlowEngine::load() {
 		    if(outputsSpecified) {
                 reportInfo() << "Found output node " << node.name() << reportEnd();
                 if(mOutputNodes.count(node.name()) > 0) {
-		            reportInfo() << "Node was defined by user at id " << mOutputNodes[node.name()].portID  << reportEnd();
+		            reportInfo() << "Node was defined by user at id " << mOutputNodes[node.name()].id  << reportEnd();
 		            if(mOutputNodes[node.name()].shape.empty())
 		                mOutputNodes[node.name()].shape = shape;
 		        }
 		    } else if(node.name() == "StatefulPartitionedCall") {
                 reportWarning() << "No output nodes specified by user, FAST is guessing it is the node with name " << node.name() << reportEnd();
-                addOutputNode(outputCounter, node.name(), type, shape);
+                addOutputNode(NeuralNetworkNode(node.name(), type, shape, outputCounter));
                 ++outputCounter;
 		    }
 		}
@@ -284,7 +284,7 @@ void TensorFlowEngine::load() {
     if(mOutputNodes.empty()) {
         tensorflow::NodeDef node = tensorflow_graph.node(tensorflow_graph.node_size()-1);
         reportWarning() << "No output nodes were given to TensorFlow engine, FAST is guessing it is the last node with name " << node.name() << reportEnd();
-        addOutputNode(0, node.name());
+        addOutputNode(NeuralNetworkNode(node.name()));
     }
 
 	// Clear the proto to save memory space.

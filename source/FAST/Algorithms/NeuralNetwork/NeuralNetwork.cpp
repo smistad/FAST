@@ -91,11 +91,11 @@ NeuralNetwork::NeuralNetwork(std::string modelFilename, std::vector<NeuralNetwor
     }
     for(int i = 0; i < inputNodes.size(); ++i) {
         auto node = inputNodes[i];
-        setInputNode(i, node.name, node.type, node.shape);
+        setInputNode(node);
     }
     for(int i = 0; i < outputNodes.size(); ++i) {
         auto node = outputNodes[i];
-        setOutputNode(i, node.name, node.type, node.shape);
+        setOutputNode(node);
     }
     load(modelFilename, customPlugins);
     auto dimOrder = getStringAttribute("dimension-ordering");
@@ -155,7 +155,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
             continue;
         }
 
-        std::shared_ptr<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
+        std::shared_ptr<DataObject> data = getInputData<DataObject>(inputNode.second.id);
         mRuntimeManager->startRegularTimer("input_processing");
 
         bool containsSequence = false;
@@ -249,11 +249,38 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                         depth = m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelLast ? shape[dims - 4] : shape[
                                 dims - 3];
                 }
-                auto inputImages2 = resizeImages(inputImages, width, height, depth);
-
-                // Convert images to tensors
-                shape[0] = m_batchSize;
-                tensors[inputNode.first] = convertImagesToTensor(inputImages2, shape, containsSequence);
+                bool dynamicShape = false;
+                if(shape.getUnknownDimensions(true) > 0) {
+                    reportInfo() << "Dynamic input shape detected in NeuralNetwork" << reportEnd();
+                    dynamicShape = true;
+                }
+                if(dynamicShape) {
+                    // Update shape
+                    if(shape.getDimensions() == 4) {
+                        shape[1] = inputImages[0]->getHeight();
+                        shape[2] = inputImages[0]->getWidth();
+                        shape[3] = inputImages[0]->getNrOfChannels();
+                    } else if(shape.getDimensions() == 5) {
+                        if(containsSequence) {
+                            shape[1] = inputImages.size();
+                            shape[2] = inputImages[0]->getHeight();
+                            shape[3] = inputImages[0]->getWidth();
+                            shape[4] = inputImages[0]->getNrOfChannels();
+                        } else {
+                            // 3D
+                            shape[1] = inputImages[0]->getDepth();
+                            shape[2] = inputImages[0]->getHeight();
+                            shape[3] = inputImages[0]->getWidth();
+                            shape[4] = inputImages[0]->getNrOfChannels();
+                        }
+                    }
+                    tensors[inputNode.first] = convertImagesToTensor(inputImages, shape, containsSequence);
+                } else {
+                    auto inputImages2 = resizeImages(inputImages, width, height, depth);
+                    // Convert images to tensors
+                    shape[0] = m_batchSize;
+                    tensors[inputNode.first] = convertImagesToTensor(inputImages2, shape, containsSequence);
+                }
             } else {
                 // TODO fix ordering if necessary. We are now assuming that input tensors are in correct ordering.
                 mInputTensors[inputNode.first] = inputTensors;
@@ -400,12 +427,12 @@ void NeuralNetwork::processOutputTensors() {
                 tensorList.push_back(newTensor);
             }
             auto outputBatch = Batch::create(tensorList);
-            m_processedOutputData[node.second.portID] = outputBatch;
+            m_processedOutputData[node.second.id] = outputBatch;
         } else {
             // Remove first dimension as it is 1, due to batch size 1
             tensor->deleteDimension(0);
             tensor = standardizeOutputTensorData(tensor);
-            m_processedOutputData[node.second.portID] = tensor;
+            m_processedOutputData[node.second.id] = tensor;
         }
     }
     // Copy any temporal state links
@@ -567,17 +594,41 @@ void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
 NeuralNetwork::~NeuralNetwork() {
 }
 
+void NeuralNetwork::setInputNode(NeuralNetworkNode node) {
+    if(m_engine->isLoaded())
+        throw Exception("NeuralNetwork setInputNode/setOutputNode must be called before load()");
+    m_engine->addInputNode(node);
+    createInputPort<DataObject>(node.id);
+}
+
+void NeuralNetwork::setOutputNode(NeuralNetworkNode node) {
+    if(m_engine->isLoaded())
+        throw Exception("NeuralNetwork setInputNode/setOutputNode must be called before load()");
+    m_engine->addOutputNode(node);
+    createOutputPort<DataObject>(node.id);
+}
+
 void NeuralNetwork::setInputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
     if(m_engine->isLoaded())
         throw Exception("NeuralNetwork setInputNode/setOutputNode must be called before load()");
-	m_engine->addInputNode(portID, name, type, shape);
+    NeuralNetworkNode node;
+    node.id = portID;
+    node.name = name;
+    node.type = type;
+    node.shape = shape;
+	m_engine->addInputNode(node);
 	createInputPort<DataObject>(portID);
 }
 
 void NeuralNetwork::setOutputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
     if(m_engine->isLoaded())
         throw Exception("NeuralNetwork setInputNode/setOutputNode must be called before load()");
-    m_engine->addOutputNode(portID, name, type, shape);
+    NeuralNetworkNode node;
+    node.id = portID;
+    node.name = name;
+    node.type = type;
+    node.shape = shape;
+    m_engine->addOutputNode(node);
     createOutputPort<DataObject>(portID);
 }
 
@@ -591,10 +642,10 @@ void NeuralNetwork::load(std::string filename, std::vector<std::string> customPl
     m_engine->load();
     // Make sure all ports exist
     for(auto node : m_engine->getInputNodes()) {
-        createInputPort<DataObject>(node.second.portID);
+        createInputPort<DataObject>(node.second.id);
     }
     for(auto node : m_engine->getOutputNodes()) {
-        createOutputPort<DataObject>(node.second.portID);
+        createOutputPort<DataObject>(node.second.id);
     }
 }
 
@@ -605,10 +656,10 @@ void NeuralNetwork::load(std::vector<uint8_t> model, std::vector<uint8_t> weight
     m_engine->load();
     // Make sure all ports exist
     for(auto node : m_engine->getInputNodes()) {
-        createInputPort<DataObject>(node.second.portID);
+        createInputPort<DataObject>(node.second.id);
     }
     for(auto node : m_engine->getOutputNodes()) {
-        createOutputPort<DataObject>(node.second.portID);
+        createOutputPort<DataObject>(node.second.id);
     }
 }
 
@@ -639,36 +690,24 @@ void NeuralNetwork::setMinAndMaxIntensity(float min, float max) {
 }
 
 std::map<std::string, NeuralNetworkNode> NeuralNetwork::getInputNodes() {
-    auto nodes = m_engine->getInputNodes();
-    // TODO Use same node data type as InferenceEngine?
-    std::map<std::string, NeuralNetworkNode> result;
-    for(auto& node : nodes) {
-        result.insert(std::make_pair(node.first, NeuralNetworkNode(node.first, node.second.type, node.second.shape, node.second.portID)));
-    }
-    return result;
+    return m_engine->getInputNodes();
 }
 
 std::map<std::string, NeuralNetworkNode> NeuralNetwork::getOutputNodes() {
-    auto nodes = m_engine->getOutputNodes();
-    // TODO Use same node data type as InferenceEngine?
-    std::map<std::string, NeuralNetworkNode> result;
-    for(auto& node : nodes) {
-        result.insert(std::make_pair(node.first, NeuralNetworkNode(node.first, node.second.type, node.second.shape, node.second.portID)));
-    }
-    return result;
+    return m_engine->getOutputNodes();
 }
 
 NeuralNetworkNode NeuralNetwork::getNode(std::string name) {
     {
         auto nodes = m_engine->getInputNodes();
         if(nodes.count(name) > 0) {
-            return NeuralNetworkNode(name, nodes[name].type, nodes[name].shape, nodes[name].portID);
+            return nodes[name];
         }
     }
     {
         auto nodes = m_engine->getOutputNodes();
         if(nodes.count(name) > 0) {
-            return NeuralNetworkNode(name, nodes[name].type, nodes[name].shape, nodes[name].portID);
+            return nodes[name];
         }
     }
     throw Exception("Node with name " + name + " not found in neural network");
@@ -678,7 +717,7 @@ void NeuralNetwork::addTemporalState(std::string inputNodeName, std::string outp
     bool found = false;
     for(auto&& port : m_engine->getInputNodes()) {
         if(port.first == inputNodeName) {
-            mInputPorts.erase(port.second.portID);
+            mInputPorts.erase(port.second.id);
             found = true;
             break;
         }
@@ -688,7 +727,7 @@ void NeuralNetwork::addTemporalState(std::string inputNodeName, std::string outp
     found = false;
     for(auto&& port : m_engine->getOutputNodes()) {
         if(port.first == outputNodeName) {
-            mOutputPorts.erase(port.second.portID);
+            mOutputPorts.erase(port.second.id);
             found = true;
             break;
         }

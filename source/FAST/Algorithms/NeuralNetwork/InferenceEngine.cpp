@@ -24,35 +24,27 @@ void InferenceEngine::setIsLoaded(bool loaded) {
     m_isLoaded = loaded;
 }
 
-void InferenceEngine::addInputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
-    NetworkNode node;
-    node.portID = portID;
-    node.type = type;
-    node.shape = shape;
-    mInputNodes[name] = node;
+void InferenceEngine::addInputNode(NeuralNetworkNode node) {
+    mInputNodes[node.name] = node;
 }
 
-void InferenceEngine::addOutputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
-    NetworkNode node;
-    node.portID = portID;
-    node.type = type;
-    node.shape = shape;
-    mOutputNodes[name] = node;
+void InferenceEngine::addOutputNode(NeuralNetworkNode node) {
+    mOutputNodes[node.name] = node;
 }
 
-InferenceEngine::NetworkNode InferenceEngine::getInputNode(std::string name) const {
+NeuralNetworkNode InferenceEngine::getInputNode(std::string name) const {
     return mInputNodes.at(name);
 }
 
-InferenceEngine::NetworkNode InferenceEngine::getOutputNode(std::string name) const {
+NeuralNetworkNode InferenceEngine::getOutputNode(std::string name) const {
     return mOutputNodes.at(name);
 }
 
-std::map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getOutputNodes() const {
+std::map<std::string, NeuralNetworkNode> InferenceEngine::getOutputNodes() const {
     return mOutputNodes;
 }
 
-std::map<std::string, InferenceEngine::NetworkNode> InferenceEngine::getInputNodes() const {
+std::map<std::string, NeuralNetworkNode> InferenceEngine::getInputNodes() const {
     return mInputNodes;
 }
 

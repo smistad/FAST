@@ -16,6 +16,7 @@ InferenceEngine* load() {                                                       
 
 namespace fast {
 
+
 /**
  * Different engines prefer different image dimension orderings.
  */
@@ -44,6 +45,47 @@ struct InferenceDeviceInfo {
     int index;
 };
 
+/**
+ * @brief A struct/class representing a neural network input/output node
+ * @ingroup neural-network
+ */
+class FAST_EXPORT NeuralNetworkNode {
+public:
+    /**
+     * @brief Constructor
+     *
+     * @param name Name of node, must match name of node in network file
+     * @param type
+     * @param shape
+     * @param id Input/Output port id
+     * @param minShape If node has dynamic shape, you can set the minimum shape for optimizations.
+     *    Note that this is required for the TensorRT engine.
+     * @param maxShape If node has dynamic shape, you can set the maximum shape for optimizations.
+     *    Note that this is required for the TensorRT engine.
+     */
+    NeuralNetworkNode(std::string name,
+                      NodeType type = NodeType::UNSPECIFIED,
+                      fast::TensorShape shape = fast::TensorShape(),
+                      uint id = 0,
+                      fast::TensorShape minShape = fast::TensorShape(),
+                      fast::TensorShape maxShape = fast::TensorShape(),
+                      fast::TensorShape optShape = fast::TensorShape()
+    ) : name(name), type(type), shape(shape), id(id), minShape(minShape), maxShape(maxShape), optShape(optShape) {
+
+    }
+
+#ifndef SWIG
+    NeuralNetworkNode() {name = "uninitialized";};
+#endif
+    uint id;
+    std::string name;
+    NodeType type;
+    fast::TensorShape shape; // namespace is needed here for swig/pyfast to work for some reason
+    fast::TensorShape optShape;
+    fast::TensorShape minShape;
+    fast::TensorShape maxShape;
+    std::shared_ptr<fast::Tensor> data;
+};
 /**
  * Neural network modell formats
  */
@@ -78,24 +120,18 @@ FAST_EXPORT std::string getModelFormatName(ModelFormat format);
 class FAST_EXPORT InferenceEngine : public Object {
     public:
         typedef std::shared_ptr<InferenceEngine> pointer;
-        struct NetworkNode {
-            uint portID;
-            NodeType type;
-            TensorShape shape;
-            std::shared_ptr<Tensor> data;
-        };
         virtual void setFilename(std::string filename);
         virtual void setModelAndWeights(std::vector<uint8_t> model, std::vector<uint8_t> weights);
         virtual std::string getFilename() const;
         virtual void run() = 0;
-        virtual void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape());
-        virtual void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = TensorShape());
+        virtual void addInputNode(NeuralNetworkNode node);
+        virtual void addOutputNode(NeuralNetworkNode node);
         virtual void setInputNodeShape(std::string name, TensorShape shape);
         virtual void setOutputNodeShape(std::string name, TensorShape shape);
-        virtual NetworkNode getInputNode(std::string name) const;
-        virtual NetworkNode getOutputNode(std::string name) const;
-        virtual std::map<std::string, NetworkNode> getOutputNodes() const;
-        virtual std::map<std::string, NetworkNode> getInputNodes() const;
+        virtual NeuralNetworkNode getInputNode(std::string name) const;
+        virtual NeuralNetworkNode getOutputNode(std::string name) const;
+        virtual std::map<std::string, NeuralNetworkNode> getOutputNodes() const;
+        virtual std::map<std::string, NeuralNetworkNode> getInputNodes() const;
         virtual void setInputData(std::string inputNodeName, std::shared_ptr<Tensor> tensor);
         virtual std::shared_ptr<Tensor> getOutputData(std::string inputNodeName);
         virtual void load() = 0;
@@ -142,8 +178,8 @@ class FAST_EXPORT InferenceEngine : public Object {
     protected:
         virtual void setIsLoaded(bool loaded);
 
-        std::map<std::string, NetworkNode> mInputNodes;
-        std::map<std::string, NetworkNode> mOutputNodes;
+        std::map<std::string, NeuralNetworkNode> mInputNodes;
+        std::map<std::string, NeuralNetworkNode> mOutputNodes;
 
         int m_deviceIndex = -1;
         InferenceDeviceType m_deviceType = InferenceDeviceType::ANY;

@@ -35,6 +35,8 @@ class INFERENCEENGINETENSORRT_EXPORT TensorRTEngine : public InferenceEngine {
         std::map<std::string, int> m_inputIndexes;
         std::map<std::string, int> m_outputIndexes;
         int m_currentBatchSize = 1;
+        bool m_dynamicInputShapes = false;
+        std::map<int, TensorShape> m_previousInputShapes;
 };
 
 DEFINE_INFERENCE_ENGINE(TensorRTEngine, INFERENCEENGINETENSORRT_EXPORT)

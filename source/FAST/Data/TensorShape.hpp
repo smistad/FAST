@@ -63,16 +63,19 @@ class FAST_EXPORT TensorShape {
          */
         int getKnownDimensions() const;
         /**
-         * Get nr of unknown dimensions (dimensions that are -1)
+         * @brief Get nr of unknown dimensions (dimensions that are -1)
+         * @param excludingFirstDimension Get nr of unknown dimensions, excluding the first dimension (batch dimension)
          */
-        int getUnknownDimensions() const;
+        int getUnknownDimensions(bool excludingFirstDimension = false) const;
         /**
-         * Get all dimensions as vector
+         * @brief Get all dimensions as vector
          * @return
          */
         std::vector<int> getAll() const;
         int& operator[](int i);
         const int& operator[](int i) const;
+        FAST_EXPORT friend bool operator==(const TensorShape& a, const TensorShape& b);
+        FAST_EXPORT friend bool operator!=(const TensorShape& a, const TensorShape& b);
         /**
          * Set dimension i to value
          * @param i

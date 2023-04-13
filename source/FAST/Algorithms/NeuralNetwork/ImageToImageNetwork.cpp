@@ -100,8 +100,20 @@ void ImageToImageNetwork::execute() {
         height = shape[dims - 2];
         width = shape[dims - 1];
     }
-    auto resizedImages = resizeImages({inputImage}, width, height, 1);
-    inputImage = resizedImages[0];
+    if(shape.getUnknownDimensions() > 0) {
+        reportInfo() << "Dynamic input shape detected in ImageToImageNetwork" << reportEnd();
+        if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelLast) {
+            shape[1] = inputImage->getHeight();
+            shape[2] = inputImage->getWidth();
+        } else {
+            shape[2] = inputImage->getHeight();
+            shape[1] = inputImage->getWidth();
+        }
+        shape[3] = inputImage->getNrOfChannels();
+    } else {
+        auto resizedImages = resizeImages({inputImage}, width, height, 1);
+        inputImage = resizedImages[0];
+    }
     Image::pointer image = inputImage;
     for(int i = 0; i < m_iterations; ++i) {
         auto tensor = convertImagesToTensor({inputImage}, shape, false);

@@ -141,14 +141,14 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
         }
         if(inputsDefined) {
             if(mInputNodes.count(name) > 0) {
-                reportInfo() << "Node was defined by user at id " << mInputNodes[name].portID  << reportEnd();
+                reportInfo() << "Node was defined by user at id " << mInputNodes[name].id  << reportEnd();
                 if(mInputNodes[name].shape.empty())
                     mInputNodes[name].shape = shape;
             } else {
                 reportInfo() << "Ignored input node " << name << " because input nodes were specified, but not this one." << reportEnd();
             }
         } else {
-            addInputNode(inputCount, name, type, shape);
+            addInputNode(NeuralNetworkNode(name, type, shape, inputCount));
             ++inputCount;
         }
         reportInfo() << "Found input node: " << name << " with shape " << shape.toString() << reportEnd();
@@ -165,7 +165,7 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
         reportInfo() << "Found output node " << name << " with shape " << shape.toString() << reportEnd();
         if(outputsDefined) {
             if(mOutputNodes.count(name) > 0) {
-                reportInfo() << "Node was defined by user at id " << mOutputNodes[name].portID  << reportEnd();
+                reportInfo() << "Node was defined by user at id " << mOutputNodes[name].id  << reportEnd();
                 if(mOutputNodes[name].shape.empty()) {
                     reportInfo() << "Shape was empty, setting it to " << shape.toString() << reportEnd();
                     mOutputNodes[name].shape = shape;
@@ -174,7 +174,7 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
                 reportInfo() << "Ignored output node " << name << " because output nodes were specified, but not this one." << reportEnd();
             }
         } else {
-            addOutputNode(outputCount, name, NodeType::TENSOR, shape);
+            addOutputNode(NeuralNetworkNode(name, NodeType::TENSOR, shape, outputCount));
             ++outputCount;
         }
     }

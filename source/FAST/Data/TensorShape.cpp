@@ -35,8 +35,14 @@ int TensorShape::getKnownDimensions() const {
     return static_cast<int>(std::count_if(m_data.begin(), m_data.end(), [](int i){ return i >= 0;}));
 }
 
-int TensorShape::getUnknownDimensions() const {
-    return static_cast<int>(std::count_if(m_data.begin(), m_data.end(), [](int i){ return i < 0;}));
+int TensorShape::getUnknownDimensions(bool excludingFirstDimension) const {
+    if(excludingFirstDimension) {
+        auto it = m_data.begin();
+        ++it;
+        return static_cast<int>(std::count_if(it, m_data.end(), [](int i){ return i < 0;}));
+    } else {
+        return static_cast<int>(std::count_if(m_data.begin(), m_data.end(), [](int i){ return i < 0;}));
+    }
 }
 
 std::vector<int> TensorShape::getAll() const {
@@ -85,6 +91,23 @@ void TensorShape::deleteDimension(int index) {
 
 void TensorShape::deleteDimensions(int startIndex, int endIndex) {
     m_data.erase(m_data.begin() + startIndex, m_data.begin() + endIndex);
+}
+
+bool operator!=(const TensorShape& a, const TensorShape& b) {
+    return !(a == b);
+}
+
+bool operator==(const TensorShape& a, const TensorShape& b) {
+    if(a.getDimensions() != b.getDimensions())
+        return false;
+    bool res = true;
+    for(int i = 0; i < a.getDimensions(); ++i) {
+        if(a[i] != b[i]) {
+            res = false;
+            break;
+        }
+    }
+    return res;
 }
 
 }
