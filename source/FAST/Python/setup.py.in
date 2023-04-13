@@ -179,6 +179,7 @@ else:
                 'libmyriadPlugin.so',
                 'libInferenceEngineTensorRT.so',
                 'libInferenceEngineTensorFlow.so',
+                'libInferenceEngineONNXRuntime.so',
             ])
           }
     additional_libraries = ['OpenCL', '@OPENGL_LIBRARIES@']
