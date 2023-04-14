@@ -8,8 +8,13 @@ class InferRequest;
 class Core;
 }
 
+namespace ov {
+    class Core;
+}
+
 namespace fast {
 
+class OpenVINOInfer;
 class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
     FAST_OBJECT(OpenVINOEngine)
     public:
@@ -45,14 +50,15 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
 
         ~OpenVINOEngine();
     private:
-        std::shared_ptr<::InferenceEngine::Core> m_inferenceCore;
-        // This has to be last, because then inferRequest will be deleted before the plugin, which is necessary to avoid a crash on delete
-        std::shared_ptr<::InferenceEngine::InferRequest> m_inferRequest;
-		
-        void loadPlugin(std::string deviceType);
+        std::shared_ptr<OpenVINOInfer> m_infer;
 
         // This mutex is used to ensure only one thread is using this OpenVINO instance at the same time
         std::mutex m_mutex;
+
+        std::shared_ptr<ov::Core> m_core;
+
+        std::map<std::string, int> m_inputIndices;
+        std::map<std::string, int> m_outputIndices;
 };
 
 DEFINE_INFERENCE_ENGINE(OpenVINOEngine, INFERENCEENGINEOPENVINO_EXPORT)
