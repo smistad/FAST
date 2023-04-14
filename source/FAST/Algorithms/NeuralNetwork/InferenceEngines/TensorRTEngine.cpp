@@ -129,15 +129,16 @@ void TensorRTEngine::run() {
                 shape = mInputNodes[name].data->getShape();
             } else if(!m_engine->bindingIsInput(i) && mOutputNodes.count(name) > 0) {
                 m_outputIndexes[name] = i;
-                shape = getTensorShape(m_context->getBindingDimensions(i));
+                shape = getTensorShape(m_engine->getBindingDimensions(i));
             } else {
-                shape = getTensorShape(m_context->getBindingDimensions(i));
+                shape = getTensorShape(m_engine->getBindingDimensions(i));
             }
             shape[0] = batchSize;
             // Allocate data
             nvinfer1::DataType dtype = m_engine->getBindingDataType(i);
             m_cudaBuffers.push_back(safeCudaMalloc(shape.getTotalSize() * elementSize(dtype)));
         }
+        reportInfo() << "Finished allocating cuda buffers for TensorRT" << reportEnd();
     }
 
     // Allocate data for each input and copy data to it
