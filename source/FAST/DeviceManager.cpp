@@ -104,6 +104,8 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
         criteria.setCapabilityCriteria(DEVICE_CAPABILITY_OPENGL_INTEROP);
     }
     std::vector<PlatformDevices> platformDevices = getDevices(criteria);
+    if(platformDevices.empty())
+        return {};
     std::vector<cl::Device> validDevices = getDevicesForBestPlatform(criteria, platformDevices);
 
     std::vector<OpenCLDevice::pointer> executionDevices;
