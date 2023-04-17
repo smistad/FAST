@@ -182,9 +182,9 @@ void OpenVINOEngine::load() {
         // Compile model for a given device
         std::map<InferenceDeviceType, std::string> deviceMap = {
                 {InferenceDeviceType::ANY, "AUTO"},
-                {InferenceDeviceType::GPU, "AUTO: GPU"},
-                {InferenceDeviceType::CPU, "AUTO: CPU"},
-                {InferenceDeviceType::VPU, "AUTO: MYRIAD"},
+                {InferenceDeviceType::GPU, "AUTO:GPU"},
+                {InferenceDeviceType::CPU, "AUTO:CPU"},
+                {InferenceDeviceType::VPU, "AUTO:MYRIAD"},
                 };
         ov::CompiledModel compiled_model = m_core->compile_model(model, deviceMap[m_deviceType]);
         reportInfo() << "OpenVINO successfully compiled model" << reportEnd();
