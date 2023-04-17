@@ -3,7 +3,7 @@ if(FAST_MODULE_OpenVINO)
     if(WIN32)
         fast_download_dependency(openvino
                 2022.3.0
-                d481dfa6ec31543121acf2ab23b701ce5c5b76da14ddebda9386580c686d2049
+		6f652dc6c533d2894650db728a0c2bc6e60e817ff6343f1dc30756b6ccadad0c
         )
     elseif(APPLE)
         fast_download_dependency(openvino
