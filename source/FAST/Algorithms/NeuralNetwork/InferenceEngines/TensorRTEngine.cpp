@@ -308,7 +308,8 @@ void TensorRTEngine::load() {
                 auto dims = input->getDimensions();
                 reportInfo() << "TensorRT found input node " << input->getName() << "with shape: " << getTensorShape(dims).toString() << reportEnd();
                 bool dynamic = false;
-                for(int i = 0; i < dims.nbDims; ++i) {
+                bool dynamicBatchDim = dims.d[0] < 0;
+                for(int i = 1; i < dims.nbDims; ++i) {
                     if(dims.d[i] < 0)
                         dynamic = true;
                 }
