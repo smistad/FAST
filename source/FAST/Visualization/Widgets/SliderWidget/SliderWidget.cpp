@@ -8,7 +8,7 @@
 namespace fast {
 
 void SliderWidget::init(std::string name, float initial, float min, float max, float step) {
-    auto layout = new QHBoxLayout();
+    auto layout = new QVBoxLayout();
     setLayout(layout);
     m_label = new QLabel();
     m_name = name;
