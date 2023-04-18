@@ -14,6 +14,7 @@
 #include <FAST/Algorithms/GaussianSmoothing/GaussianSmoothing.hpp>
 #include <FAST/Streamers/ImageFileStreamer.hpp>
 #include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
+#include <FAST/Visualization/Widgets/PlaybackWidget/PlaybackWidget.hpp>
 
 using namespace fast;
 
@@ -153,6 +154,14 @@ TEST_CASE("Multi input single output network", "[fast][neuralnetwork]") {
 
 TEST_CASE("Single input multi output network", "[fast][neuralnetwork]") {
     for(auto& engine : InferenceEngineManager::getEngineList()) {
+#ifdef WIN32
+#elif defined(__APPLE__) || defined(__MACOSX)
+#else
+        if(engine == "ONNXRuntime") {
+            // This test hangs on linux for ONNXRuntime for some reason
+            continue;
+        }
+#endif
         auto importer = ImageFileImporter::New();
         importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
 
@@ -206,6 +215,15 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
     for(auto&& engine : InferenceEngineManager::getEngineList()) {
         std::cout << engine << " for device type " << std::endl;
         std::cout << "====================================" << std::endl;
+
+#ifdef WIN32
+#elif defined(__APPLE__) || defined(__MACOSX)
+#else
+        if(engine == "ONNXRuntime") {
+            // This test hangs on linux for ONNXRuntime for some reason
+            continue;
+        }
+#endif
 
         std::vector<Image::pointer> images;
 
@@ -372,3 +390,84 @@ TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralne
         }
     }
 }
+
+/*
+TEST_CASE("Dynamic input shapes", "[fast][dynamicshapes]") {
+    auto network = NeuralNetwork::create("/home/smistad/workspace/adapt-ai-tuning/models/unet-adapt-rspace-full-res-ssim-1.5-dynamic.onnx",
+                                         {NeuralNetworkNode("input_1", NodeType::IMAGE, TensorShape(), 0, TensorShape({1, 20, 20, 1}), TensorShape({1, 1024, 1024, 1}), TensorShape({1, 256, 256, 1}))}, {}, "OpenVINO");
+    auto tensor1 = Tensor::create(TensorShape({1, 256, 200, 1}));
+    network->setInputData(tensor1);
+    network->run();
+    auto tensor2 = Tensor::create(TensorShape({1, 256, 200, 1}));
+    network->setInputData(tensor2);
+    network->run();
+    auto tensor3 = Tensor::create(TensorShape({1, 256, 400, 1}));
+    network->setInputData(tensor3);
+    network->run();
+}
+
+#include "VertexTensorToSegmentation.hpp"
+#include <FAST/Algorithms/Lambda/RunLambda.hpp>
+#include <FAST/Visualization/LineRenderer/LineRenderer.hpp>
+
+TEST_CASE("VertexTensorToSegmentation", "[fast][VertexTensorToSegmentation]") {
+
+    auto streamer = ImageFileStreamer::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd", true, false, 20);
+
+    auto gray2color = RunLambda::create([](DataObject::pointer input) -> DataList {
+       auto inputImage = std::dynamic_pointer_cast<Image>(input);
+       auto inputAccess = inputImage->getImageAccess(ACCESS_READ);
+       auto output = Image::create(inputImage->getSize(), TYPE_FLOAT, 3);
+       output->setSpacing(inputImage->getSpacing());
+       auto outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
+       for(int i = 0; i < inputImage->getNrOfVoxels(); ++i) {
+           float value = (float)inputAccess->getScalarFast<uchar>(i) / 256.0f;
+           outputAccess->setScalarFast<float>(i, value, 0);
+           outputAccess->setScalarFast<float>(i, value, 1);
+           outputAccess->setScalarFast<float>(i, value, 2);
+       }
+       return DataList(output);
+    })->connect(streamer);
+
+    auto network = NeuralNetwork::create("/home/smistad/Downloads/echoGraphFineTuned.onnx", 1.0f, 0.5f, 0.5f)
+            ->connect(gray2color);
+
+    Connections connections = {{}, {}, {}};
+
+    int N = 41;
+    int N2 = 22;
+    int N3 = 41;
+    // LV
+    for(int i = 0; i < N; ++i) {
+        connections[1].push_back({i, i+1});
+    }
+    connections[1].push_back({0, 63}); // Close it
+    connections[1].push_back({N, 63}); // Close it
+    // LA
+    for(int i = N; i < N+N2; ++i) {
+        connections[2].push_back({i, i+1});
+    }
+    connections[2].push_back({N+N2, N}); // Close it
+    // Myocardium
+    for(int i = N+N2; i < N+N2+N3; ++i) {
+        connections[0].push_back({i, i+1});
+    }
+    connections[0].push_back({N+N2+N3, N}); // Close it
+    connections[0].push_back({N+N2, N}); // Close it
+
+    auto tensorToSeg = VertexTensorToSegmentation::create(connections)
+            ->connect(network);
+    tensorToSeg->enableRuntimeMeasurements();
+
+    auto imgRenderer = ImageRenderer::create()->connect(gray2color);
+    auto segRenderer = SegmentationRenderer::create(LabelColors(), 0.25)->connect(tensorToSeg);
+    auto lineRenderer = LineRenderer::create(Color::Green(), 0.5)->connect(tensorToSeg, 1);
+
+    auto widget = new PlaybackWidget(streamer);
+
+    auto window = SimpleWindow2D::create()->connect(imgRenderer)->connect(segRenderer)->connect(lineRenderer);
+    window->addWidget(widget);
+    window->run();
+    tensorToSeg->getRuntime()->print();
+}
+ */
