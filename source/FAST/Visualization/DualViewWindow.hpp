@@ -56,7 +56,6 @@ class FAST_EXPORT DualViewWindow : public Window {
     protected:
         void createLayout();
         bool mVerticalMode;
-        QVBoxLayout* m_widgetLayout;
 };
 
 /**

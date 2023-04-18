@@ -50,26 +50,22 @@ MultiViewWindow::~MultiViewWindow() {
 }
 
 void MultiViewWindow::createLayout() {
-    // Remove old layout by deleting it
-    QLayout* layout = mWidget->layout();
-    delete layout;
-
     // Add new layout
     std::vector<View*> views = getViews();
     if(mVerticalMode) {
-        QVBoxLayout* mainLayout = new QVBoxLayout;
+        auto mainLayout = new QVBoxLayout;
         for(View* view : views) {
             mainLayout->addWidget(view);
         }
         mainLayout->setContentsMargins(0, 0, 0, 0);
-        mWidget->setLayout(mainLayout);
+        setCenterLayout(mainLayout);
     } else {
-        QHBoxLayout* mainLayout = new QHBoxLayout;
+        auto mainLayout = new QHBoxLayout;
         for(View* view : views) {
             mainLayout->addWidget(view);
         }
         mainLayout->setContentsMargins(0, 0, 0, 0);
-        mWidget->setLayout(mainLayout);
+        setCenterLayout(mainLayout);
     }
 }
 

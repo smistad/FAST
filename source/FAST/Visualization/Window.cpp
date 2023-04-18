@@ -6,6 +6,7 @@
 #include <QIcon>
 #include <QFontDatabase>
 #include <QMessageBox>
+#include <QGridLayout>
 #ifndef WIN32
 #ifndef __APPLE__
 #include <X11/Xlib.h>
@@ -96,6 +97,34 @@ Window::Window() {
         //std::cout << "Got critical error signal. Thread: " << std::this_thread::get_id() << std::endl;
         int ret = QMessageBox::critical(mWidget, "Error", msg);
     }, Qt::QueuedConnection); // Queued connection ensures this runs in main thread
+
+    // Initialize main layout
+    m_mainHLayout = new QHBoxLayout;
+    mWidget->setLayout(m_mainHLayout);
+    m_mainLeftLayout = new QVBoxLayout;
+    m_mainHLayout->addLayout(m_mainLeftLayout);
+    m_mainVLayout = new QVBoxLayout;
+    m_mainTopLayout = new QVBoxLayout;
+    m_mainVLayout->addLayout(m_mainTopLayout);
+    QHBoxLayout* dummy = new QHBoxLayout;
+    m_mainVLayout->addLayout(dummy);
+    m_mainBottomLayout = new QVBoxLayout;
+    m_mainVLayout->addLayout(m_mainBottomLayout);
+    m_mainHLayout->addLayout(m_mainVLayout);
+    m_mainRightLayout = new QVBoxLayout;
+    m_mainHLayout->addLayout(m_mainRightLayout);
+
+    mWidget->setContentsMargins(0, 0, 0, 0);
+    m_mainVLayout->setContentsMargins(0, 0, 0, 0);
+    m_mainHLayout->setContentsMargins(0, 0, 0, 0);
+    m_mainTopLayout->setContentsMargins(0, 0, 0, 0);
+    m_mainBottomLayout->setContentsMargins(0, 0, 0, 0);
+    m_mainLeftLayout->setContentsMargins(0, 0, 0, 0);
+    m_mainRightLayout->setContentsMargins(0, 0, 0, 0);
+
+    m_mainHLayout->setStretch(0, 0); // stretch factors set to zero they will only get more space if no other widgets want the space
+    m_mainHLayout->setStretch(1, 1);
+    m_mainHLayout->setStretch(2, 0);
 }
 
 void Window::enableFullscreen() {
@@ -423,6 +452,42 @@ std::shared_ptr<Window> Window::connect(uint id, std::shared_ptr<ProcessObject> 
     if(renderer != nullptr)
         getView(id)->addRenderer(renderer);
     return std::dynamic_pointer_cast<Window>(mPtr.lock());
+}
+
+std::shared_ptr<Window> Window::connect(QWidget * widget, WidgetPosition position) {
+    switch(position) {
+        case WidgetPosition::BOTTOM:
+            m_mainBottomLayout->addWidget(widget);
+            break;
+        case WidgetPosition::TOP:
+            m_mainTopLayout->addWidget( widget);
+            break;
+        case WidgetPosition::LEFT:
+            m_mainLeftLayout->addWidget(widget);
+            break;
+        case WidgetPosition::RIGHT:
+            m_mainRightLayout->addWidget(widget);
+            break;
+    }
+    return std::dynamic_pointer_cast<Window>(mPtr.lock());
+}
+std::shared_ptr<Window> Window::connect(std::vector<QWidget *> widgets, WidgetPosition position) {
+    for(auto widget : widgets) {
+        connect(widget, position);
+    }
+    return std::dynamic_pointer_cast<Window>(mPtr.lock());
+}
+
+void Window::setCenterWidget(QWidget* widget) {
+    auto old = m_mainVLayout->takeAt(1);
+    delete old; // TODO delete?
+    m_mainVLayout->insertWidget(1, widget);
+}
+
+void Window::setCenterLayout(QLayout *layout) {
+    auto old = m_mainVLayout->takeAt(1);
+    delete old; // TODO delete?
+    m_mainVLayout->insertLayout(1, layout);
 }
 
 } // end namespace fast

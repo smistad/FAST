@@ -87,6 +87,7 @@ public
 %template(vectorc) std::vector<char>;
 %template(vectoruc) std::vector<uchar>;
 %template(vectors) std::vector<std::string>;
+%template(vectorqwidget) std::vector<QWidget*>;
 %ignore std::vector<fast::NeuralNetworkNode>::vector(size_type);
 %ignore std::vector<fast::NeuralNetworkNode>::resize;
 %ignore std::vector<fast::NeuralNetworkNode>::pop;

@@ -35,14 +35,9 @@ SimpleWindow::SimpleWindow(bool mode2D, Color bgcolor, uint width, uint height) 
 void SimpleWindow::init() {
 
     View* view = createView();
+    setCenterWidget(view);
 
-    auto mainLayout = new QHBoxLayout;
-    m_widgetLayout = new QVBoxLayout;
-    m_widgetLayout->addWidget(view);
-    mainLayout->addLayout(m_widgetLayout);
-    mWidget->setLayout(mainLayout);
-    mWidget->setContentsMargins(0, 0, 0, 0);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
+    //mWidget->setContentsMargins(0, 0, 0, 0);
 }
 
 View* SimpleWindow::getView() {
@@ -60,12 +55,14 @@ std::shared_ptr<SimpleWindow> SimpleWindow::connect(std::vector<std::shared_ptr<
 }
 
 void SimpleWindow::addWidget(QWidget *widget) {
-    m_widgetLayout->addWidget(widget);
+    connect(widget);
 }
 
-std::shared_ptr<SimpleWindow> SimpleWindow::connect(QWidget *widget) {
-    addWidget(widget);
-    return std::dynamic_pointer_cast<SimpleWindow>(mPtr.lock());
+std::shared_ptr<SimpleWindow> SimpleWindow::connect(QWidget* widget, WidgetPosition position) {
+    return std::dynamic_pointer_cast<SimpleWindow>(Window::connect(widget, position));
+}
+std::shared_ptr<SimpleWindow> SimpleWindow::connect(std::vector<QWidget*> widgets, WidgetPosition position) {
+    return std::dynamic_pointer_cast<SimpleWindow>(Window::connect(widgets, position));
 }
 
 SimpleWindow2D::SimpleWindow2D(Color bgcolor, uint width, uint height) : SimpleWindow(true, bgcolor, width, height) {

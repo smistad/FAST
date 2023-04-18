@@ -59,27 +59,19 @@ DualViewWindow::DualViewWindow(Color bgcolor, int width, int height, bool vertic
 }
 
 void DualViewWindow::createLayout() {
-    // Remove old layout by deleting it
-    QLayout* layout = mWidget->layout();
-    delete layout;
-
     // Add new layout
     if(mVerticalMode) {
-        QVBoxLayout* mainLayout = new QVBoxLayout;
+        auto mainLayout = new QVBoxLayout;
         mainLayout->addWidget(getView(0));
         mainLayout->addWidget(getView(1));
-        mWidget->setLayout(mainLayout);
         mainLayout->setContentsMargins(0, 0, 0, 0);
-        m_widgetLayout = mainLayout;
+        setCenterLayout(mainLayout);
     } else {
-        auto mainLayout = new QVBoxLayout;
-        auto viewLayout = new QHBoxLayout;
-        viewLayout->addWidget(getView(0));
-        viewLayout->addWidget(getView(1));
-        mainLayout->addLayout(viewLayout);
-        mWidget->setLayout(mainLayout);
+        auto mainLayout = new QHBoxLayout;
+        mainLayout->addWidget(getView(0));
+        mainLayout->addWidget(getView(1));
         mainLayout->setContentsMargins(0, 0, 0, 0);
-        m_widgetLayout = mainLayout;
+        setCenterLayout(mainLayout);
     }
 }
 
@@ -141,7 +133,7 @@ std::shared_ptr<DualViewWindow> DualViewWindow::connectBottom(std::vector<std::s
 }
 
 void DualViewWindow::addWidget(QWidget *widget) {
-    m_widgetLayout->addWidget(widget);
+    Window::connect(widget);
 }
 
 std::shared_ptr<DualViewWindow> DualViewWindow::connect(QWidget *widget) {

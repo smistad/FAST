@@ -125,10 +125,6 @@ std::shared_ptr<SlicerWindow> SlicerWindow::connectSegmentation(std::shared_ptr<
 }
 
 void SlicerWindow::createLayout() {
-    // Remove old layout by deleting it
-    QLayout* layout = mWidget->layout();
-    delete layout;
-
     // Add new layout
     std::vector<View*> views = getViews();
     auto topLayout = new QVBoxLayout;
@@ -174,7 +170,8 @@ void SlicerWindow::createLayout() {
     windowLayout->addWidget(m_windowSlider);
     topLayout->addLayout(levelLayout);
     topLayout->addLayout(windowLayout);
-    mWidget->setLayout(topLayout);
+    topLayout->setContentsMargins(10, 10, 10, 10);
+    setCenterLayout(topLayout);
 }
 
 void SlicerWindow::setTextLabels(LabelNames labelNames, LabelColors labelColors, float areaThreshold) {

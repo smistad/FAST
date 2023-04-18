@@ -10,11 +10,20 @@
 
 class QGLContext;
 class QEventLoop;
+class QVBoxLayout;
+class QHBoxLayout;
 class QOffscreenSurface;
 
 namespace fast {
 
 class ProcessObject;
+
+enum class WidgetPosition {
+    BOTTOM,
+    TOP,
+    LEFT,
+    RIGHT
+};
 
 /**
  * @defgroup window Windows
@@ -98,6 +107,8 @@ class FAST_EXPORT  Window : public QObject, public AttributeObject {
 
         virtual std::shared_ptr<Window> connect(uint id, std::shared_ptr<DataObject> data);
         virtual std::shared_ptr<Window> connect(uint id, std::shared_ptr<ProcessObject> PO, uint portID = 0);
+        std::shared_ptr<Window> connect(QWidget* widget, WidgetPosition position = WidgetPosition::BOTTOM);
+        std::shared_ptr<Window> connect(std::vector<QWidget*> widgets, WidgetPosition position = WidgetPosition::BOTTOM);
         std::string getNameOfClass() {
             return "Window";
         }
@@ -116,6 +127,14 @@ protected:
         QEventLoop* mEventLoop;
         std::shared_ptr<ComputationThread> mThread;
         std::mutex m_mutex;
+        QHBoxLayout* m_mainHLayout;
+        QVBoxLayout* m_mainVLayout;
+        QVBoxLayout* m_mainTopLayout;
+        QVBoxLayout* m_mainBottomLayout;
+        QVBoxLayout* m_mainLeftLayout;
+        QVBoxLayout* m_mainRightLayout;
+        void setCenterWidget(QWidget* widget);
+        void setCenterLayout(QLayout* layout);
     private:
         static QGLContext* mMainGLContext;
         static QGLContext* mSecondaryGLContext;

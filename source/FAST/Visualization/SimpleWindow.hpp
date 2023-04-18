@@ -36,10 +36,10 @@ class FAST_EXPORT SimpleWindow : public Window {
         ~SimpleWindow();
         std::shared_ptr<SimpleWindow> connect(std::shared_ptr<Renderer> renderer);
         std::shared_ptr<SimpleWindow> connect(std::vector<std::shared_ptr<Renderer>> renderers);
-        std::shared_ptr<SimpleWindow> connect(QWidget* widget);
+        std::shared_ptr<SimpleWindow> connect(QWidget* widget, WidgetPosition position = WidgetPosition::BOTTOM);
+        std::shared_ptr<SimpleWindow> connect(std::vector<QWidget*> widgets, WidgetPosition position = WidgetPosition::BOTTOM);
     protected:
         void init();
-        QVBoxLayout* m_widgetLayout;
 
 };
 
