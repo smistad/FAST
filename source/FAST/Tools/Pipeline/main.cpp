@@ -34,6 +34,9 @@ int main(int argc, char** argv) {
                 gui->setPipeline(pipeline);
                 gui->run();
             }
+        } else {
+            auto gui = GUI::New();
+            gui->run();
         }
     } else {
         Reporter::info() << "Running pipeline in headless mode" << Reporter::end();

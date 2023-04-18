@@ -103,7 +103,7 @@ SimpleGUI::SimpleGUI() {
     layout->addLayout(menuLayout);
     layout->addWidget(view);
 
-    mWidget->setLayout(layout);
+    setCenterLayout(layout);
 }
 
 void SimpleGUI::updateThreshold(int value) {

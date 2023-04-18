@@ -25,6 +25,8 @@ Renderer renderer ImageRenderer
 Input 0 streamer 0
 
 Renderer vectorRenderer VectorFieldColorRenderer
+Attribute level 0.5
+Attribute window 1.0
 Input 0 medianFilter 0
 
 View view renderer vectorRenderer

@@ -28,7 +28,7 @@ void GUI::updateAvailablePipelines() {
 GUI::GUI() {
 	setTitle("FAST - Pipeline");
 	m_mainLayout = new QVBoxLayout;
-	mWidget->setLayout(m_mainLayout);
+	setCenterLayout(m_mainLayout);
 
 	auto menuLayout = new QHBoxLayout;
 	m_mainLayout->addLayout(menuLayout);

@@ -80,7 +80,7 @@ GUI::GUI() {
     QObject::connect(deleteButton, &QPushButton::clicked, std::bind(&GUI::removeRecordings, this));
     layout->addWidget(deleteButton);
 
-    mWidget->setLayout(layout);
+    setCenterLayout(layout);
     mStartStopButton->setFocus();
 }
 

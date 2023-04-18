@@ -198,7 +198,7 @@ TrackingGUI::TrackingGUI() {
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addLayout(menuLayout);
     layout->addWidget(view);
-    mWidget->setLayout(layout);
+    setCenterLayout(layout);
 
     // Update messages frequently
     QTimer* timer = new QTimer(this);

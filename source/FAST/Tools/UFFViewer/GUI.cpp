@@ -22,7 +22,7 @@ UFFViewerWindow::UFFViewerWindow() {
 
 	// Create layouts
 	auto mainLayout = new QHBoxLayout;
-	mWidget->setLayout(mainLayout);
+	setCenterLayout(mainLayout);
 
 	auto menuLayout = new QVBoxLayout;
 	menuLayout->setAlignment(Qt::AlignTop);

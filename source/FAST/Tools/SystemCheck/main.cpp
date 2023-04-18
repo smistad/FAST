@@ -118,7 +118,7 @@ public:
 
         // Set up GUI
         auto layout = new QVBoxLayout();
-        mWidget->setLayout(layout);
+        setCenterLayout(layout);
 
         auto renderer = ImageRenderer::New();
         renderer->setInputConnection(importer->getOutputPort());
