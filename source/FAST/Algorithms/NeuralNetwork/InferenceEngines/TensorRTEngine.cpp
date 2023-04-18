@@ -129,11 +129,14 @@ void TensorRTEngine::run() {
                 shape = mInputNodes[name].data->getShape();
             } else if(!m_engine->bindingIsInput(i) && mOutputNodes.count(name) > 0) {
                 m_outputIndexes[name] = i;
-                shape = getTensorShape(m_engine->getBindingDimensions(i));
+                shape = getTensorShape(m_context->getBindingDimensions(i));
             } else {
-                shape = getTensorShape(m_engine->getBindingDimensions(i));
+                shape = getTensorShape(m_context->getBindingDimensions(i));
             }
             shape[0] = batchSize;
+            reportInfo() << "Allocating CUDA data for shape " << shape.toString() << reportEnd();
+            if(shape.getUnknownDimensions() > 0)
+                throw Exception("Unable to allocate data for TensorRT has shape had unknown dimensions: " + shape.toString());
             // Allocate data
             nvinfer1::DataType dtype = m_engine->getBindingDataType(i);
             m_cudaBuffers.push_back(safeCudaMalloc(shape.getTotalSize() * elementSize(dtype)));
@@ -305,7 +308,7 @@ void TensorRTEngine::load() {
                 auto dims = input->getDimensions();
                 reportInfo() << "TensorRT found input node " << input->getName() << "with shape: " << getTensorShape(dims).toString() << reportEnd();
                 bool dynamic = false;
-                for(int i = 1; i < dims.nbDims; ++i) {
+                for(int i = 0; i < dims.nbDims; ++i) {
                     if(dims.d[i] < 0)
                         dynamic = true;
                 }
@@ -416,6 +419,16 @@ void TensorRTEngine::load() {
             }
             if(m_engine->bindingIsInput(i)) {
                 reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
+                auto dims = m_engine->getBindingDimensions(i);
+                bool dynamic = false;
+                for(int i = 0; i < dims.nbDims; ++i) {
+                    if(dims.d[i] < 0)
+                        dynamic = true;
+                }
+                if(dynamic) {
+                    m_dynamicInputShapes = true;
+                    reportInfo() << "This node has dynamic shape" << reportEnd();
+                }
                 if(inputsDefined) {
                     if(mInputNodes.count(name) > 0) {
                         reportInfo() << "Node was defined by user at id " << mInputNodes[name].id  << reportEnd();
@@ -423,16 +436,6 @@ void TensorRTEngine::load() {
                             mInputNodes[name].shape = shape;
                     } else {
                         reportInfo() << "Ignored input node " << name << " because input nodes were specified, but not this one." << reportEnd();
-                    }
-                    auto dims = m_engine->getBindingDimensions(i);
-                    bool dynamic = false;
-                    for(int i = 1; i < dims.nbDims; ++i) {
-                        if(dims.d[i] < 0)
-                            dynamic = true;
-                    }
-                    if(dynamic) {
-                        m_dynamicInputShapes = true;
-                        reportInfo() << "This node has dynamic shape" << reportEnd();
                     }
                 } else {
                     NeuralNetworkNode node(name, type, shape, inputCount);
