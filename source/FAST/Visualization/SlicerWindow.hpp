@@ -10,6 +10,11 @@ class QSlider;
 
 namespace fast {
 
+#ifdef SWIG
+%rename("_connectImage") SlicerWindow::connectImage;
+%rename("_connectSegmentation") SlicerWindow::connectSegmentation;
+#endif
+
 /**
  * @brief Window for showing slices of 3D data
  *
@@ -119,4 +124,50 @@ protected:
     LabelColors m_labelColors;
 };
 
+
+#ifdef SWIG
+%extend SlicerWindow {
+%pythoncode %{
+    def connectImage(self, object, level: float = -1, window: float = -1, outputPort: int = 0) -> "std::shared_ptr< fast::SlicerWindow >":
+        r"""
+        Connect an 3D image source to this window.
+
+        :type object: :py:class:`Object`
+        :param object: Process object producing a 3D image or data object
+        :type level: float
+        :param level: Intensity level
+        :type window: float
+        :param window: Intensity window
+        :type outputPortID: int
+        :param outputPortID: Output port id of process object
+        """
+        if object.getNameOfClass() == "Image":
+            return self._connectImage(object, level, window)
+        else:
+            return self._connectImage(object, level, window, outputPort)
+
+    def connectSegmentation(self, object, colors: LabelColors = LabelColors(), opacity: float = 0.5, borderOpacity: float = -1.0, borderRadius: int = 1, outputPort: int = 0) -> "std::shared_ptr< fast::SlicerWindow >":
+        r"""
+        Connect an 3D segmentation source to this window.
+
+        :type object: :py:class:`Object`
+        :param object: Process object producing a 3D segmentation or data object
+        :type colors: :py:class:`LabelColors`
+        :param colors: Label colors
+        :type opacity: float
+        :param opacity: Segmentation overlay opacity
+        :type borderOpacity: float
+        :param borderOpacity: Segmentation overlay border opacity
+        :type borderRadius: int
+        :param borderRadius: How thick, in pixels, the border radius should be
+        :type outputPortID: int
+        :param outputPortID: Output port id of process object
+        """
+        if object.getNameOfClass() == "Image":
+            return self._connectSegmentation(object, colors, opacity, borderOpacity, borderRadius)
+        else:
+            return self._connectSegmentation(object, colors, opacity, borderOpacity, borderRadius, outputPort)
+%}
+}
+#endif
 }
