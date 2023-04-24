@@ -28,8 +28,8 @@ jobs:
         sudo rm /usr/share/keyrings/kitware-archive-keyring.gpg
         sudo apt-get install kitware-archive-keyring
         sudo apt install -y cmake
-        sudo apt install g++ patchelf
-        sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+        sudo apt install -y g++ patchelf
+        sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
         sudo apt install -y libopenslide-dev libjpeg-turbo8-dev # Needed for WSI module
 
     - name: Install CUDA and TensorRT
