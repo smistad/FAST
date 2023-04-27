@@ -60,4 +60,23 @@ SliderWidget::SliderWidget(std::string name, float initial, float min, float max
     init(name, initial, min, max, step);
 }
 
+void SliderWidget::setValue(float value) {
+    m_slider->setSliderPosition((value - m_min)/m_step);
+    updateLabelWithValue(value);
+    if(m_callbackClass != nullptr) {
+        m_callbackClass->handle(value);
+    } else {
+        m_callbackFunction(value);
+    }
+}
+
+float SliderWidget::getValue() const {
+    float realValue = m_min + m_slider->sliderPosition()*m_step;
+    return realValue;
+}
+
+std::string SliderWidget::getName() const {
+    return m_name;
+}
+
 }

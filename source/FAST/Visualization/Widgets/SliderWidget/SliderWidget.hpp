@@ -39,9 +39,12 @@ class FAST_EXPORT SliderWidget : public QWidget {
     public:
 #ifndef SWIG
         SliderWidget(std::string name, float initial, float min, float max, float step, std::function<void(float)> callback, QWidget* parent = nullptr);
+        void valueChanged(int value);
 #endif
         SliderWidget(std::string name, float initial, float min, float max, float step, SliderWidgetCallback* callback, QWidget* parent = nullptr);
-        void valueChanged(int value);
+        void setValue(float value);
+        float getValue() const;
+        std::string getName() const;
     private:
         void updateLabelWithValue(float realValue);
         void init(std::string name, float current, float min, float max, float step);
