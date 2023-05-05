@@ -38,12 +38,15 @@ class ButtonWidgetCallback {
 class FAST_EXPORT ButtonWidget : public QWidget {
     public:
 #ifndef SWIG
-        ButtonWidget(std::string text, bool checked, std::function<void(bool)> callback, QWidget* parent = nullptr);
-#endif
-        ButtonWidget(std::string text, bool checked, ButtonWidgetCallback* callback, QWidget* parent = nullptr);
+        ButtonWidget(std::string text, bool checkable, std::function<void(bool)> callback, bool checked = false, QWidget* parent = nullptr);
         void clicked(bool check);
+#endif
+        ButtonWidget(std::string text, bool checkable, ButtonWidgetCallback* callback, bool checked = false, QWidget* parent = nullptr);
+        void setChecked(bool checked);
+        bool getChecked() const;
+        std::string getText() const;
     private:
-        void init(std::string text, bool checked);
+        void init(std::string text, bool checkable, bool checked);
         std::function<void(float)> m_callbackFunction;
         ButtonWidgetCallback* m_callbackClass = nullptr;
 

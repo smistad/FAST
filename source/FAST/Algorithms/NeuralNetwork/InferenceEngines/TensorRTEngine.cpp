@@ -108,7 +108,6 @@ void TensorRTEngine::run() {
                             reportInfo() << "Reshaping TensorRT network for node " << inputNode.first << " because shape has changed" << reportEnd();
                             m_context->setBindingDimensions(i, shapeToDims(inputNode.second.data->getShape()));
                             m_previousInputShapes[i] = inputNode.second.data->getShape();
-                            inputNode.second.shape = inputNode.second.data->getShape();
                         }
                     }
                 }
@@ -151,7 +150,7 @@ void TensorRTEngine::run() {
         float* tensorData = access->getRawData();
         const int index = m_inputIndexes.at(inputNode.first);
         auto dtype = m_engine->getBindingDataType(index);
-        auto shape = inputNode.second.shape;
+        auto shape = tensor->getShape();
         shape[0] = batchSize;
         if(shape != getTensorShape(m_context->getBindingDimensions(index))) // If shapes differ, e.g. batch size has changed, we need to reshape
             m_context->setBindingDimensions(index, shapeToDims(shape));
