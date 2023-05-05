@@ -28,10 +28,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Date
-      run: |
-        date
-    
     - name: Install dependencies
       run: |
         apt update && apt install -y sudo
