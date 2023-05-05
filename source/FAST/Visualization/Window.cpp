@@ -274,7 +274,6 @@ void Window::start() {
 	int screenHeight = getScreenHeight();
 	int screenWidth = getScreenWidth();
 
-    reportInfo() << "Resizing window to " << mWidth << " " << mHeight << reportEnd();
     if(mFullscreen) {
         mWidget->showFullScreen();
     } else if(mMaximized) {
@@ -287,8 +286,9 @@ void Window::start() {
         int y = (screenHeight - mHeight) / 2;
         mWidget->move(x, y);
         mWidget->show();
+        reportInfo() << "Resizing window to " << mWidth << " " << mHeight << reportEnd();
+        mWidget->resize(mWidth, mHeight);
     }
-    mWidget->resize(mWidth, mHeight);
 
     if(mTimeout > 0) {
         QTimer* timer = new QTimer(mWidget);
