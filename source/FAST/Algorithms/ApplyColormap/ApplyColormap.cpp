@@ -166,4 +166,8 @@ Colormap Colormap::Ultrasound(bool grayscale) {
     return Colormap(values, grayscale, false);
 }
 
+std::vector<float> Colormap::getData() const {
+    return m_data;
+}
+
 }
