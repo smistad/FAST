@@ -16,10 +16,6 @@ InferenceEngine* load() {                                                       
 
 namespace fast {
 
-
-/**
- * Different engines prefer different image dimension orderings.
- */
 enum class ImageOrdering {
     ChannelFirst,
     ChannelLast
@@ -175,6 +171,19 @@ class FAST_EXPORT InferenceEngine : public Object {
          * @param ordering
          */
         virtual void setImageOrdering(ImageOrdering ordering);
+        /**
+         * @brief Detect node type from shape
+         * @param shape
+         * @return
+         */
+        static NodeType detectNodeType(const TensorShape& shape);
+        /**
+         * @brief Detect image ordering from shape
+         * @param shape shape to check
+         * @param hasBatchDim Whether first dimension is batch dimension
+         * @return
+         */
+        static ImageOrdering detectImageOrdering(const TensorShape& shape, bool hasBatchDim = true);
     protected:
         virtual void setIsLoaded(bool loaded);
 

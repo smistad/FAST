@@ -230,14 +230,7 @@ void TensorFlowEngine::load() {
         // If node has not been specified by user, we need to add it
         // and thus know its type (fast image or tensor)
         // It is assumed to be an image if input shape has at least 4 dimensions
-        NodeType type = NodeType::TENSOR;
-        if(shape.getDimensions() >= 4) {
-            //reportInfo() << "Assuming node is an image" << reportEnd();
-            type = NodeType::IMAGE;
-        } else if(shape.getDimensions() > 0) {
-            //reportInfo() << "Assuming node is a tensor" << reportEnd();
-        } else {
-        }
+        NodeType type = detectNodeType(shape);
         if(node.op() == "Placeholder") {
             if(shape.getDimensions() == 0)
                 continue;

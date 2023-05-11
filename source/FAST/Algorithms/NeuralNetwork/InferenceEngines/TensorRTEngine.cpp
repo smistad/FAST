@@ -399,24 +399,9 @@ void TensorRTEngine::load() {
             auto name = binding.first;
             int i = binding.second;
             auto shape = getTensorShape(m_engine->getBindingDimensions(i));
-            NodeType type;
-            if(shape.getDimensions() >= 4) { // If image; 2D or 3D
-                type = NodeType::IMAGE;
-                // Try to determine channel ordering since TensorRT API doesn't seem to have a good way to do this..
-                if(m_engine->bindingIsInput(i)) {
-                    if (shape[shape.getDimensions() - 1] <= 4) {
-                        m_imageOrdering = ImageOrdering::ChannelLast;
-                        reportInfo() << "Guessed image ordering to be channel last as shape was " << shape.toString()
-                        << reportEnd();
-                    } else {
-                        m_imageOrdering = ImageOrdering::ChannelFirst;
-                        reportInfo() << "Guessed image ordering to be channel first as shape was " << shape.toString()
-                        << reportEnd();
-                    }
-                }
-            } else {
-                type = NodeType::TENSOR;
-            }
+            NodeType type = detectNodeType(shape);
+            if(type == NodeType::IMAGE && m_engine->bindingIsInput(i))
+                m_imageOrdering = detectImageOrdering(shape);
             if(m_engine->bindingIsInput(i)) {
                 reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
                 auto dims = m_engine->getBindingDimensions(i);

@@ -137,19 +137,9 @@ void ONNXRuntimeEngine::load() {
 			shape.addDimension(x);
 		}
 
-		NodeType type;
-        if (shape.getDimensions() >= 4) { // If image; 2D or 3D
-            type = NodeType::IMAGE;
-		   if(shape[shape.getDimensions() - 1] <= 4) {
-				m_imageOrdering = ImageOrdering::ChannelLast;
-				reportInfo() << "Guessed image ordering to be channel last as shape was " << shape.toString() << reportEnd();
-			} else {
-				m_imageOrdering = ImageOrdering::ChannelFirst;
-				reportInfo() << "Guessed image ordering to be channel first as shape was " << shape.toString() << reportEnd();
-			}
-        } else {
-			type = NodeType::TENSOR;
-        }
+		NodeType type = detectNodeType(shape);
+		if(type == NodeType::IMAGE)
+		    m_imageOrdering = detectImageOrdering(shape);
 		if(inputsDefined) {
 			if(mInputNodes.count(name) > 0) {
 				reportInfo() << "Node was defined by user at id " << mInputNodes[name].id  << reportEnd();
@@ -171,12 +161,7 @@ void ONNXRuntimeEngine::load() {
 		for (int x : m_session->GetOutputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape()) {
 			shape.addDimension(x);
 		}
-		NodeType type;
-        if (shape.getDimensions() >= 4) { // If image; 2D or 3D
-            type = NodeType::IMAGE;
-        } else {
-            type = NodeType::TENSOR;
-        }
+		NodeType type = detectNodeType(shape);
 		if(outputsDefined) {
 			if(mOutputNodes.count(name) > 0) {
 				reportInfo() << "Node was defined by user at id " << mOutputNodes[name].id  << reportEnd();

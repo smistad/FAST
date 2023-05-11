@@ -132,8 +132,33 @@ void InferenceEngine::setImageOrdering(ImageOrdering ordering) {
     m_imageOrdering = ordering;
 }
 
+ImageOrdering InferenceEngine::detectImageOrdering(const TensorShape &shape, bool hasBatchDim) {
+    if(shape.getDimensions() >= 4) { // If image; 2D or 3D
+        if(shape[shape.getDimensions() - 1] <= 4 && shape[shape.getDimensions() - 1] > 0) {
+            Reporter::info() << "Guessed image ordering to be channel last as shape was " << shape.toString() << Reporter::end();
+            return ImageOrdering::ChannelLast;
+        } else if(shape[hasBatchDim ? 1 : 0] <= 4 && shape[hasBatchDim ? 1 : 0] > 0) {
+            Reporter::info() << "Guessed image ordering to be channel first as shape was " << shape.toString() << Reporter::end();
+            return ImageOrdering::ChannelFirst;
+        } else {
+            // Unable to determine shape
+            throw Exception("Unable to determine image ordering from shape " + shape.toString());
+        }
+    } else {
+        throw Exception("Shape was not an image");
+    }
+}
+
+NodeType InferenceEngine::detectNodeType(const TensorShape &shape) {
+    if(shape.getDimensions() >= 4) {
+        return NodeType::IMAGE;
+    } else {
+        return NodeType::TENSOR;
+    }
+}
+
 std::string getModelFormatName(ModelFormat format) {
-    std::map<ModelFormat, std::string> map = {
+        std::map<ModelFormat, std::string> map = {
         {ModelFormat::SAVEDMODEL, "TensorFlow SavedModel"},
         {ModelFormat::PROTOBUF, "TensorFlow Protobuf"},
         {ModelFormat::ONNX, "ONNX"},
