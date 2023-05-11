@@ -50,15 +50,17 @@ int main(int argc, char** argv) {
         // Visualize
         auto renderer = ImageRenderer::create()->connect(streamer);
 
-        Renderer::pointer vectorRenderer;
+        auto window = SimpleWindow2D::create(Color::Black())->connect(renderer);
         if (parser.getOption("display-lines")) {
-            vectorRenderer = VectorFieldRenderer::create();
+            window->connect(VectorFieldRenderer::create(Color::Red())->connect(source));
         } else {
-            vectorRenderer = VectorFieldColorRenderer::create();
+            auto vectorRenderer = VectorFieldColorRenderer::create();
+            vectorRenderer->setIntensityWindow(1.0f);
+            vectorRenderer->setIntensityLevel(0.5f);
+            vectorRenderer->connect(source);
+            window->connect(vectorRenderer);
         }
-        vectorRenderer->connect(source);
 
-        auto window = SimpleWindow2D::create(Color::Black())->connect(renderer)->connect(vectorRenderer);
         window->run();
     } else {
         // TODO Use StreamToFileExporter instead..
