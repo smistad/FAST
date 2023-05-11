@@ -277,8 +277,9 @@ void Window::start() {
     if(mFullscreen) {
         mWidget->showFullScreen();
     } else if(mMaximized) {
-        //mWidth = screenWidth;
-        //mHeight = screenHeight;
+        mWidth = screenWidth;
+        mHeight = screenHeight;
+        mWidget->resize(mWidth, mHeight);
         mWidget->showMaximized();
     } else {
         // Move window to center

@@ -19,8 +19,6 @@ SimpleGUI::SimpleGUI() {
     View* view = createView();
     view->set3DMode();
 
-    setWidth(std::min(1920, getScreenWidth()));
-    setHeight(std::min(1080, getScreenHeight()));
     enableMaximized();
 
     // Import image
