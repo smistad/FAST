@@ -7,6 +7,8 @@ on:
     branches: [ master ]
   release:
     types: [ published ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -31,7 +33,7 @@ jobs:
         apt update && apt install -y sudo
         mkdir -p ${{github.workspace}}/artifacts
         # Get a newer version of cmake
-        sudo apt install -y gpg wget software-properties-common lsb-release
+        sudo apt install -y gpg wget software-properties-common lsb-release ca-certificates
         wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
         echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
         sudo apt-get update

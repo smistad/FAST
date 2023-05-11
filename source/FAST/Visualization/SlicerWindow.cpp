@@ -126,7 +126,6 @@ std::shared_ptr<SlicerWindow> SlicerWindow::connectSegmentation(std::shared_ptr<
 
 void SlicerWindow::createLayout() {
     // Add new layout
-    std::vector<View*> views = getViews();
     auto topLayout = new QVBoxLayout;
     auto mainLayout = new QHBoxLayout;
     topLayout->addLayout(mainLayout);
