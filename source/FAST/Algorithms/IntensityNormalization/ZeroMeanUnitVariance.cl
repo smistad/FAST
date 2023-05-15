@@ -27,7 +27,7 @@ __kernel void normalize3D(
         __read_only image3d_t input,
         __write_only image3d_t output,
         __private float average,
-        __private float std,
+        __private float std
         ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     int dataType = get_image_channel_data_type(input);
