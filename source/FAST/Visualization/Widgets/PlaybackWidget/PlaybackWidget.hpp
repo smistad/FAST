@@ -9,7 +9,7 @@ class QPushButton;
 namespace fast {
 /**
  * @brief A widget to control playback of a RandomAccessStreamer
- * @in-group widgets
+ * @ingroup widgets
  */
 class FAST_EXPORT PlaybackWidget : public QWidget {
     public:

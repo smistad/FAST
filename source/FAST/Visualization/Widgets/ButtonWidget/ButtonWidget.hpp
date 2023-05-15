@@ -29,12 +29,20 @@ def ButtonCallback(func):
 %}
 #endif
 
+/**
+ * @brief Callback class for ButtonWidget
+ * Used primarily by pyFAST
+ */
 class ButtonWidgetCallback {
     public:
         virtual void handle(bool checked) = 0;
         virtual ~ButtonWidgetCallback() {};
 };
 
+/**
+ * @brief A button widget
+ * @ingroup widgets
+ */
 class FAST_EXPORT ButtonWidget : public QWidget {
     public:
 #ifndef SWIG

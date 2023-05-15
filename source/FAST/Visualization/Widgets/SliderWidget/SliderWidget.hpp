@@ -29,12 +29,20 @@ def SliderCallback(func):
 %}
 #endif
 
+/**
+ * @brief Callback class for SliderWidget
+ * Used primarily by pyFAST
+ */
 class SliderWidgetCallback {
     public:
         virtual void handle(float value) = 0;
         virtual ~SliderWidgetCallback() { std::cout << "Destroying SliderWidgetCallback" << std::endl;};
 };
 
+/**
+ * @brief A slider widget to change a numerical parameter
+ * @ingroup widgets
+ */
 class FAST_EXPORT SliderWidget : public QWidget {
     public:
 #ifndef SWIG

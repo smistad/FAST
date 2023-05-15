@@ -270,6 +270,11 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
 namespace fast {
 
 /**
+ * @defgroup widgets Widgets
+ * Graphical user interface widgets which can be added to windows.
+ */
+
+/**
  * \brief Base class for all FAST objects.
  *
  * This class has some functionality common to all FAST objects.

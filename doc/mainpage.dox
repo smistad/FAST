@@ -2,7 +2,7 @@
 
 @image html fast_logo_wide.png
 
-
+[![GitHub Discussions](https://img.shields.io/github/discussions/smistad/FAST?label=GitHub%20discussions&logo=github)](https://github.com/smistad/FAST/discussions)
 [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
 [![](https://img.shields.io/static/v1?label=Code%20on&amp;message=GitHub&amp;color=blue&amp;logo=github)](https://github.com/smistad/FAST/)
 [![GitHub Downloads](https://img.shields.io/github/downloads/smistad/FAST/total?label=GitHub%20downloads&logo=github)](download-stats.html)
@@ -18,7 +18,7 @@ To start using the framework, check out the [C++ Intro Tutorial](@ref cpp-tutori
 
 Learn best by example? Check out all the examples for [C++](@ref cpp-examples) and [Python](@ref python-examples).
 
-Need help? Use the gitter chat: [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
+Need help? Post your questions on the [Discussions](https://github.com/smistad/FAST/discussions/new?category=q-a) page or use the [Gitter Chat](https://gitter.im/smistad/FAST).
 
 @section features Main features
 
