@@ -106,6 +106,7 @@ void ClariusStreamer::execute() {
         int argc = 0;
         std::string keydir = Config::getKernelBinaryPath();
         // TODO A hack here to get this to work. Fix later
+        // Lambdas converted to C style pointers can't have captures
         static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
 
         auto init = (int (*)(int argc,
@@ -139,13 +140,23 @@ void ClariusStreamer::execute() {
 			512, 
 			512
 		);
-        if(success < 0)
+        if(success != 0)
             throw Exception("Unable to initialize clarius cast");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
-        auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusReturnFn fn))getFunc("cusCastConnect");
-        success = connect(mIPAddress.c_str(), mPort, "research", nullptr);
-        if(success < 0)
+        auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusConnectFn fn))getFunc("cusCastConnect");
+        success = connect(mIPAddress.c_str(), mPort, "research", [](int port, int swMatch) {
+            if (port > 0) {
+				self->getReporter().info() << "Clarius connect on UDP port " << port << self->getReporter().end();
+                if (swMatch == CUS_FAILURE) {
+                    self->getReporter().warning() << "A software mismatch between Clarius Cast API in FAST and the scanner was detected." << self->getReporter().end();
+                }
+            } else {
+                self->getReporter().error() << "Failed to connect to Clarius device" << self->getReporter().end();
+				self->stop();
+            }
+        });
+        if(success != 0)
             throw Exception("Unable to connect to clarius scanner");
         reportInfo() << "Clarius streamer connected." << reportEnd();
         mStreamIsStarted = true;
@@ -201,8 +212,10 @@ ClariusStreamer::~ClariusStreamer() {
 }
 
 void ClariusStreamer::stop() {
+    reportInfo() << "Stopping clarius streamer.." << reportEnd();
     auto disconnect = (int (*)(CusReturnFn))getFunc("cusCastDisconnect");
-    int success = disconnect(nullptr);
+    int success = disconnect([](int code) {});
+    reportInfo() << "done" << reportEnd();
     if(success < 0)
         throw Exception("Unable to disconnect from clarius scanner");
     auto destroy = (int (*)())getFunc("cusCastDestroy");
