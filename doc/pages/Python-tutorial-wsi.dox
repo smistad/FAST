@@ -29,6 +29,8 @@ Displaying a WSI is done with the ImagePyramidRenderer. The example below shows 
 in the test dataset.
 
 @code{.py}
+import fast
+
 importer = fast.WholeSlideImageImporter\
     .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
 
@@ -48,6 +50,8 @@ the actual tissue, to avoid processing the glass parts of the image. FAST provid
 a TissueSegmentation algorithm for this purpose:
 
 @code{.py}
+import fast
+
 importer = fast.WholeSlideImageImporter\
     .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
 
@@ -95,20 +99,30 @@ on the original WSI. This can be done using the PatchStitcher as shown in this e
 an image segmentation neural network:
 
 @code{.py}
+import fast
+
 importer = fast.WholeSlideImageImporter\
     .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
 
 tissueSegmentation = fast.TissueSegmentation.create()\
     .connect(importer)
 
-generator = fast.PatchGenerator(256, 256, level=0, overlap=0.1)\
-    .connect(importer)\
+# Generate 256x256 patches at 20X magnification with 10% overlap
+generator = fast.PatchGenerator.create(
+        256, 256,
+        magnification=20,
+        overlapPercent=0.1
+    ).connect(importer)\
     .connect(1, tissueSegmentation)
 
-segmentation = fast.SegmentationNetwork('path/to/segmentation/network.onnx')\
-    .connect(generator)
+# Download a nuclei segmentation model and use it
+p = fast.DataHub().download('nuclei-segmentation-model')
+segmentation = fast.SegmentationNetwork.create(
+        p.paths[0] + '/high_res_nuclei_unet.onnx',
+        scaleFactor=1./255.
+    ).connect(generator)
 
-stitcher = fast.PatchStitcher()\
+stitcher = fast.PatchStitcher.create()\
     .connect(segmentation)
 
 # Display the stitched segmentation results on top of the WSI
