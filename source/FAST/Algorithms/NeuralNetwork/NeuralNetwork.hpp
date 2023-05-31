@@ -27,12 +27,16 @@ class FAST_EXPORT InferenceDataList {
 
         }
         std::vector<std::shared_ptr<Image>> getImages() const {
+            if(getSize() == 0)
+                return {};
             if(!isImages())
                 throw Exception("The inference data list contains tensors, not images");
 
             return m_images;
         }
         std::vector<std::shared_ptr<Tensor>> getTensors() const {
+            if(getSize() == 0)
+                return {};
             if(!isTensors())
                 throw Exception("The inference data list contains images, not tensors");
 
@@ -41,7 +45,7 @@ class FAST_EXPORT InferenceDataList {
         bool isTensors() const { return !m_tensors.empty(); };
         bool isImages() const { return !m_images.empty(); };
         int getSize() const {
-            return isImages() ? m_images.size() : m_tensors.size();
+            return std::max(m_images.size(), m_tensors.size());
         }
     private:
         std::vector<std::shared_ptr<Image>> m_images;
