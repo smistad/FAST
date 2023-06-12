@@ -31,7 +31,7 @@ __kernel void resize2DpreserveAspect(
 	) {
 	const int2 position = {get_global_id(0), get_global_id(1)};
     const float scale = (float)newHeight / get_image_height(input);
-	const float2 readPosition = {(float)position.x / get_global_size(0), (float)position.y / (scale*get_image_height(input))};
+	const float2 readPosition = {((float)position.x + 0.5f) / get_global_size(0), ((float)position.y + 0.5f) / (scale*get_image_height(input))};
 	float4 value;
     if(useInterpolation == 1) {
         value = readFromImage(input, samplerLinear, readPosition);
@@ -51,7 +51,7 @@ __kernel void resize2D(
         __private char useInterpolation
     ) {
 	const int2 position = {get_global_id(0), get_global_id(1)};
-	const float2 normalizedPosition = {(float)position.x / get_global_size(0), (float)position.y / get_global_size(1)};
+	const float2 normalizedPosition = {(float)(position.x + 0.5f) / get_global_size(0), (float)(position.y + 0.5f) / get_global_size(1)};
 	int dataType = get_image_channel_data_type(input);
 	float4 value;
     if(useInterpolation == 1) {
@@ -98,9 +98,9 @@ __kernel void resize3D(
     ) {
 	const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 	const float4 normalizedPosition = {
-	        (float)pos.x / get_global_size(0),
-            (float)pos.y / get_global_size(1),
-            (float)pos.z / get_global_size(2),
+	        ((float)pos.x + 0.5f) / get_global_size(0),
+            ((float)pos.y + 0.5f) / get_global_size(1),
+            ((float)pos.z + 0.5f) / get_global_size(2),
             0
 	};
 	int dataType = get_image_channel_data_type(input);
