@@ -63,4 +63,11 @@ cl::Buffer TransferFunction::getAsOpenCLBuffer(OpenCLDevice::pointer device) con
     );
 }
 
+TransferFunction::TransferFunction(std::vector<float> values) {
+    for(auto item : values) {
+        m_data.push_back(item);
+    }
+    checkData();
+}
+
 }

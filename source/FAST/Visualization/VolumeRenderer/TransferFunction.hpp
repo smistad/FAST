@@ -24,6 +24,15 @@ class FAST_EXPORT TransferFunction {
          * @param values
          */
         TransferFunction(std::initializer_list<float> values);
+
+        /**
+         * Initialize the transfer function. The input values have to be a multiple of 5.
+         * Thus a set of 5-tuples (intensity, red, green, blue, alpha)
+         *
+         * @param values
+         */
+        TransferFunction(std::vector<float> values);
+
         /**
          * Add a point to the transfer function. Intensity must be larger than previous point.
          * I.e. the transfer function has to be sorted on increasing intensity
