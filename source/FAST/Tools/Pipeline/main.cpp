@@ -27,12 +27,10 @@ int main(int argc, char** argv) {
             hub.download(parser.get("datahub"));
             Pipeline pipeline(join(hub.getStorageDirectory(), parser.get("datahub"), "pipeline.fpl"), parser.getVariables());
             pipeline.parse(); // Have to parse now to get window
-            if(pipeline.hasWindow()) {
+            if (pipeline.hasWindow()) {
                 pipeline.getWindow()->run();
             } else {
-                auto gui = GUI::New();
-                gui->setPipeline(pipeline);
-                gui->run();
+                pipeline.run({}, {}, true);
             }
         } else {
             auto gui = GUI::New();

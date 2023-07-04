@@ -17,6 +17,7 @@ class FAST_EXPORT TransferFunction {
          * Creates an empty transfer function
          */
         TransferFunction() {};
+#ifndef SWIG
         /**
          * Initialize the transfer function. The input values have to be a multiple of 5.
          * Thus a set of 5-tuples (intensity, red, green, blue, alpha)
@@ -24,6 +25,7 @@ class FAST_EXPORT TransferFunction {
          * @param values
          */
         TransferFunction(std::initializer_list<float> values);
+#endif
 
         /**
          * Initialize the transfer function. The input values have to be a multiple of 5.
