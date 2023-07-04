@@ -157,8 +157,9 @@ auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/Heart/
 auto renderer = ImageRenderer::create()->connect(importer);
 
 // Create a 2D window, add the renderer and start the computation/rendering loop.
-auto window = SimpleWindow2D::create()->connect(renderer);
-window->run();
+SimpleWindow2D::create()
+    ->connect(renderer)
+    ->run();
 @endcode
 
 You should now see this image:
@@ -190,8 +191,9 @@ auto filter = NonLocalMeans::create()->connect(importer);
 auto renderer = ImageRenderer::create()->connect(filter);
 
 // Create a window, add the renderer and start the computation/rendering loop.
-auto window = SimpleWindow2D::create()->connect(renderer);
-window->run();
+SimpleWindow2D::create()
+    ->connect(renderer)
+    ->run();
 @endcode
 
 The results should look like this:
@@ -204,8 +206,7 @@ The SimpleWindow used above only has a single View, to show two images side-by-s
 therefore we will use the DualViewWindow2D instead. We also need an additional ImageRenderer which is connected to the ImageFileImporter.
 Putting this all together, it should look like this:
 @code{.cpp}
-auto importer = ImageFileImporter::New();
-importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
 // Set up the NonLocalMeans processing step and connect it to the importer
 auto filter = NonLocalMeans::create()->connect(importer);
@@ -217,10 +218,10 @@ auto renderer = ImageRenderer::create()->connect(importer);
 auto filterRenderer = ImageRenderer::create()->connect(filter);
 
 // Create a dual view window, add the renderers and start the computation/rendering loop.
-auto window = DualViewWindow2D::create()
+DualViewWindow2D::create()
     ->connectLeft(renderer)
-    ->connectRight(filterRenderer);
-window->run();
+    ->connectRight(filterRenderer)
+    ->run();
 @endcode
 
 The result should look like this:
