@@ -118,7 +118,7 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
                          std::string, modelFilename,,
                          float, scaleFactor, = 1.0f,
                          float, meanIntensity, = 0.0f,
-                         float, stanardDeviationIntensity, = 1.0f,
+                         float, standardDeviationIntensity, = 1.0f,
                          std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
                          std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
                          std::string, inferenceEngine, = "",

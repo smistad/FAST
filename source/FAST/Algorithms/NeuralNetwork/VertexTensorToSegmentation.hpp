@@ -5,7 +5,9 @@
 
 namespace fast {
 
+#ifndef SWIG
 using Connections = std::vector<std::vector<MeshLine>>;
+#endif
 
 /**
  * @brief Convert a tensor of vertex positions (graph) to a segmentation
@@ -33,9 +35,9 @@ class FAST_EXPORT VertexTensorToSegmentation : public ProcessObject {
          * @return instance
          */
         FAST_CONSTRUCTOR(VertexTensorToSegmentation,
-                         Connections, connections,,
+                         std::vector<std::vector<fast::MeshLine>>, connections,,
                          int, width, = -1,
-                         int, height, = -1)
+                         int, height, = -1);
     protected:
         VertexTensorToSegmentation();
         void execute() override;
