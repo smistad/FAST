@@ -3,6 +3,6 @@ Python Tutorials {#python-tutorials}
 
 * [Introduction (Start here)](@ref python-tutorial-intro)
 * [Neural network processing](@ref python-tutorial-neural-networks)
-* [Whole slide image (WSI) processing](@ref python-tutorial-wsi)
-* [Making your own FAST image processing algorithm](@ref python-tutorial-process-object)
-* [Making your own FAST renderer](@ref python-tutorial-renderer)
+* [Using FAST on Whole-Slide Images (WSI)](@ref python-tutorial-wsi)
+* [Using FAST on MRI and CT images](@ref python-tutorial-mri-ct)
+* [Using FAST on Ultrasound images](@ref python-tutorial-ultrasound)

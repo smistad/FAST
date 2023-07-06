@@ -1,0 +1,307 @@
+namespace fast {
+/** @page python-tutorial-mri-ct Using FAST on MRI and CT images in Python
+@tableofcontents
+
+This is a tutorial for processing and visualizing MRI and CT images with FAST in python.
+
+MRI and CT images
+---------------------
+MRI and CT data are typically stored as volumes and can be stored in many different formats.
+FAST currently supports reading MRI and CT data stored as DICOM (.dcm), NIFTII (.nii/.nii.gz, popular in neuroimaging) and metaimage (.mhd/.raw/.zraw) format.
+
+
+Open and display a CT/MRI image
+---------------------
+
+Use the ImageFileImporter to read the images. This importer supports images of many formats.
+The SlicerWindow is convenient for visualizing 3D data as it displays 3 orthogonal slices of a volume.
+
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+fast.SlicerWindow.create()\
+    .connectImage(importer)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/slicer_window_CT.jpg
+
+Display segmentation on top of CT/MRI image
+---------------------
+
+The SlicerWindow can also be used to overlay segmentations on top of the MRI/CT image.
+
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+segmentation = fast.BinaryThresholding.create(300)\
+    .connect(importer)
+
+segmentation2 = fast.BinaryThresholding.create(-512, 0)\
+    .connect(importer)
+
+fast.SlicerWindow.create()\
+    .connectImage(importer)\
+    .connectSegmentation(segmentation)\
+    .connectSegmentation(segmentation2)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/slicer_window_segmentation.jpg
+
+Display a specific orthogonal slice of a CT/MRI volume
+---------------------
+Here we use the SliceRenderer to extract and display the 128th slice in the Y plane of an MRI volume:
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/MRI/MR-Abdomen.mhd")
+
+renderer = fast.SliceRenderer.create(fast.PLANE_Y, 128)\
+    .connect(importer)
+
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/mri_slice.jpg width=512px;
+
+Extract CT/MRI image to a numpy array
+---------------------
+To get data from a processing chain simply call the ProcessObject::runAndGetOutputData method on the process object.
+You can then convert it to a numpy array by using np.asarray().
+@code{.py}
+import fast
+import numpy as np
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/MRI/MR-Abdomen.mhd")
+
+data = np.asarray(importer.runAndGetOutputData())
+print(data.shape, data.dtype, np.min(data), np.max(data))
+# The print should return: (160, 320, 320, 1) uint16 0 1024
+@endcode
+
+
+Volume rendering of a CT/MRI image
+---------------------
+FAST has several different volume renderers available to render 3D data.
+These volume renderers perform ray casting using OpenCL, and displays the resulting image using OpenGL.
+
+### Alpha blending volume renderer
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+renderer = fast.AlphaBlendingVolumeRenderer.create()\
+            .connect(importer)
+
+fast.SimpleWindow3D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/alpha_blending_volume_renderer_CT.jpg width=400px;
+
+### Alpha blending volume renderer with custom TransferFunction
+You can create your own look with the alpha blending volume renderer using TransferFunction.
+TransferFunction accepts a sequence of 5-tuples (intensity, red, green, blue, alpha) and will do linear interpolation for
+the intensities between.
+
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+# TransferFunction accepts a sequence of 5-tuples (intensity, red, green, blue, alpha)
+func = fast.TransferFunction([
+                150, 0, 0, 0, 0,
+                600, 1, 1, 0.5, 0.1,
+                1000, 1, 1, 0.8, 1
+])
+renderer = fast.AlphaBlendingVolumeRenderer.create(func)\
+            .connect(importer)
+
+fast.SimpleWindow3D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/alpha_blending_volume_renderer_CT_custom.jpg width=400px;
+
+### Maximum intensity projection (MIP)
+The MaximumIntensityProjection volume renderer simply takes the maximum volume of each ray passing through the volume to
+create a volume rendered image.
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+renderer = fast.MaximumIntensityProjection.create()\
+            .connect(importer)
+
+fast.SimpleWindow3D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/maximum_intensity_projection.jpg width=400px;
+
+### Threshold volume rendering
+The ThresholdVolumeRenderer stops the ray casting when it hits a value above a certain threshold.
+Thus this is similar to what you can do with the SurfaceExtraction and TriangleRenderer.
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+renderer = fast.ThresholdVolumeRenderer.create(threshold=300)\
+            .connect(importer)
+
+fast.SimpleWindow3D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/threshold_volume_renderer.jpg width=400px;
+
+Surface extraction of a CT image
+---------------------
+SurfaceExtraction can be used to extract a triangle mesh from a volume using the marching cubes algorithm on the GPU.
+The triangle mesh can then be rendered using the TriangleRenderer.
+
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+surface = fast.SurfaceExtraction.create(300)\
+    .connect(importer)
+
+renderer = fast.TriangleRenderer.create(color=fast.Color.White())\
+    .connect(surface)
+
+fast.SimpleWindow3D.create(bgcolor=fast.Color.Black())\
+    .connect(renderer)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/surface_extraction_CT.jpg width=400px;
+
+Slice-wise processing
+---------------------
+If you need to repeat some processing for each slice, you do so using the PatchGenerator.
+You can then stitch the results back to a 3D volume using the PatchStitcher.
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+# This specific CT image has slices size of 512, 512
+slices = fast.PatchGenerator.create(512, 512, 1)\
+    .connect(importer)
+
+segment = fast.BinaryThresholding.create(300)\
+    .connect(slices)
+
+stitch = fast.PatchStitcher.create()\
+    .connect(segment)
+
+renderer = fast.ThresholdVolumeRenderer.create()\
+    .connect(stitch)
+
+fast.SimpleWindow3D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+
+Patch/slab-wise processing
+---------------------
+If you need to repeat some processing for a sub-volume/patch/slab you can do so also using the PatchGenerator.
+You can then stitch the results back using the PatchStitcher.
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+# Extract patches of size 256x256x8
+patches = fast.PatchGenerator.create(256, 256, 8)\
+    .connect(importer)
+
+segment = fast.BinaryThresholding.create(300)\
+    .connect(patches)
+
+# Stitch the results back together to form a 3D volume
+stitch = fast.PatchStitcher.create()\
+    .connect(segment)
+
+renderer = fast.ThresholdVolumeRenderer.create()\
+    .connect(stitch)
+
+fast.SimpleWindow3D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+Volumetric resizing and resampling
+---------------------
+You can use ImageResizer to resize a volume to a specific size.
+If you want to resize a volume so that it has a specific voxel spacing you do that using the ImageResampler.
+These methods run on the GPU and uses tri-linear interpolation by default.
+
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+# Resample volume to have a isotropic voxel spacing of 2.5 mm
+resample = fast.ImageResampler.create(2.5, 2.5, 2.5)\
+    .connect(importer)
+
+fast.SlicerWindow.create()\
+    .connectImage(resample)\
+    .run()
+@endcode
+
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Thorax.mhd")
+
+# Resize the volume to 256x256x256
+resize = fast.ImageResizer.create(256, 256, 256)\
+    .connect(importer)
+
+fast.SlicerWindow.create()\
+    .connectImage(resize)\
+    .run()
+@endcode
+
+Next steps
+---------------------
+
+- See more [Python Tutorials](@ref python-tutorials).
+- Check out some [Python Examples](@ref python-examples).
+- Review [Concepts & Glossary](@ref concepts) used in FAST.
+
+*/
+}
