@@ -239,7 +239,7 @@ void PatchGenerator::generateStream() {
                         int y = patchY * patchHeightWithoutOverlap - overlapInPixelsY;
                         int z = patchZ * patchDepthWithoutOverlap - overlapInPixelsZ;
 
-                        reportInfo() << "Creating 2D image patch at offset " << x << " " << y << " " << z << " with size " << patchWidth << " " << patchHeight << " " << patchDepth << reportEnd();
+                        reportInfo() << "Creating image patch at offset " << x << " " << y << " " << z << " with size " << patchWidth << " " << patchHeight << " " << patchDepth << reportEnd();
                         int paddingValue = m_paddingValue;
                         if(m_paddingValue < 0) {
                             if(m_inputVolume->getNrOfChannels() > 1) {

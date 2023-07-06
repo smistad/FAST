@@ -220,8 +220,8 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
     } else {
         // 3D
         // TODO overlap not implemented for 3D
-        const int startX = 0;
-        const int startY = 0;
+        const int startX = std::stoi(patch->getFrameData("patch-offset-x"));
+        const int startY = std::stoi(patch->getFrameData("patch-offset-y"));
         const int startZ = std::stoi(patch->getFrameData("patch-offset-z"));
         const int endX = startX + patch->getWidth();
         const int endY = startY + patch->getHeight();
