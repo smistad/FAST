@@ -1,14 +1,14 @@
 namespace fast {
-/** @page python-tutorial-wsi Python Whole Slide Image (WSI) Processing Tutorial
+/** @page python-tutorial-wsi Using FAST on Whole-Slide Images (WSI)
 @tableofcontents
 
-This is a tutorial for processing whole slide images (WSI) and other giga-resolution images in FAST with Python.
+This is a tutorial for processing whole slide images (WSI) and other giga-resolution images in FAST with python.
 
 Whole-slide images (WSI)
 ---------------------
 WSIs are digitized microscopy images, for instance of cross-section tissue samples
 of cancer tumours. Depending on the magnification used, these images are ofte gigantic,
-and may have sizes up to 200,000 x 200,000 pixels.
+and may have sizes up to 200,000 x 100,000 pixels.
 This poses several memory and processing challenges, as the entire image typically
 can't fit into RAM nor the GPU RAM.
 These images are therefore usually stored as a tiled image pyramid.
@@ -42,6 +42,8 @@ fast.SimpleWindow2D.create()\
     .run()
 @endcode
 
+@image html images/tutorials/wsi/open_wsi.jpg width=512px;
+
 Tissue segmentation
 ---------------------
 
@@ -70,15 +72,114 @@ fast.SimpleWindow2D.create()\
     .run()
 @endcode
 
+@image html images/tutorials/wsi/tissue_segmentation.jpg width=512px;
+
+Extract patch from WSI and convert to numpy ndarray
+---------------------
+Since a WSI is typically very big, we can't get the entire WSI at full resolution as a numpy ndarray.
+But we can extract specific patches at full resolution using ImagePyramidAccess::getPatchAsImage as shown in this example:
+@code{.py}
+import fast
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Run importer and get data
+imagePyramid = fast.WholeSlideImageImporter\
+    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")\
+    .runAndGetOutputData()
+
+# Extract specific patch at highest resolution
+access = imagePyramid.getAccess(fast.ACCESS_READ)
+level = 0
+x = 12000
+y = 14000
+w = 1024
+h = 1024
+image = access.getPatchAsImage(level, x, y, w, h)
+
+# Convert FAST image to numpy ndarray and plot
+image = np.asarray(image)
+# This should print: (1024, 1024, 3) uint8 255 1
+print(image.shape, image.dtype, np.max(image), np.min(image))
+
+plt.imshow(image)
+plt.show()
+@endcode
+
+@image html images/tutorials/wsi/get_patch_as_image.jpg width=400px;
+
+Extract image pyramid level from WSI and convert to numpy ndarray
+---------------------
+There is also a method called ImagePyramidAccess::getLevelAsImage which can extract an entire image pyramid level as an image.
+Note however that the largest image pyramid levels (like level=0) will be too big to extract like this and will result in an error.
+@code{.py}
+import fast
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Run importer and get data
+imagePyramid = fast.WholeSlideImageImporter\
+    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")\
+    .runAndGetOutputData()
+
+# Extract specific level as FAST image
+image = imagePyramid.getAccess(fast.ACCESS_READ).getLevelAsImage(level=2)
+
+# Convert FAST image to numpy ndarray and plot
+image = np.asarray(image)
+# This should print: (2664, 3222, 3) uint8 255 0
+print(image.shape, image.dtype, np.max(image), np.min(image))
+
+plt.imshow(image)
+plt.show()
+@endcode
+
+@image html images/tutorials/wsi/get_level_as_image.jpg width=400px;
+
 Patch-wise processing
 ---------------------
 
 Since we can't fit the entire image into memory, processing of these images are
-usually done in patch-wise. To perform patch-wise processing in FAST one can
-use the PatchGenerator which tiles the image using a specified patch size and image pyramid level.
-The PatchGenerator creates a stream Image data objects, here is an example:
+usually done one patch at a time. To perform patch-wise processing in FAST one can
+use the PatchGenerator which tiles the image using a specified patch size and image pyramid level or magnification level.
+The PatchGenerator creates a stream of Image data objects and has an optional second input which is a mask to generate patches from.
+In this example, we generate 512x512 patches at image pyramid level 0 (highest resolution) from tissue and display the patches
+using matplotlib:
 
-@include Python/generate_tissue_patches_from_wsi.py
+@code{.py}
+import fast
+import matplotlib.pyplot as plt
+
+importer = fast.WholeSlideImageImporter.create(
+    fast.Config.getTestDataPath() + 'WSI/A05.svs')
+
+# Do tissue segmentation to select patches from tissue only
+tissueSegmentation = fast.TissueSegmentation.create()\
+    .connect(importer)
+
+# You can specify level (0, 1, ..) or magnification (40, 20, 10, ..)
+patchGenerator = fast.PatchGenerator.create(512, 512, level=0)\
+    .connect(0, importer)\
+    .connect(1, tissueSegmentation)
+
+# Create a 3x3 subplot of 9 patches
+patch_list = []
+for patch in fast.DataStream(patchGenerator):
+    patch_list.append(patch)
+    if len(patch_list) == 9:
+        # Display the 9 last patches
+        f, axes = plt.subplots(3,3, figsize=(10,10))
+        for i in range(3):
+            for j in range(3):
+                axes[i, j].imshow(patch_list[i + j*3])
+        plt.show()
+        patch_list.clear()
+        break # Remove this break to show more
+@endcode
+
+@image html images/tutorials/wsi/tissue_patches.jpg width=512px;
+
+### Patch overlap
 
 When performing segmentation and object detection in a patch-wise way, one often get
 bad results at the borders of the patches. This can be dealt with using a certain amount
@@ -95,11 +196,15 @@ Stitching patches
 
 When performing patch-wise segmentation or classification of large images, we often
 want to stitch the results back together to form a new image pyramid which we can overlay
-on the original WSI. This can be done using the PatchStitcher as shown in this example using
-an image segmentation neural network:
+on the original WSI. This can be done using the PatchStitcher as shown in the example below
+which uses a neural network by André Pedersen (https://github.com/andreped/) to segment nuclei.
+Here we also use some patch overlap in the PatchGenerator to avoid edge segmentation artifacts.
 
 @code{.py}
 import fast
+
+# Download a nuclei segmentation model from the DataHub
+model = fast.DataHub().download('nuclei-segmentation-model')
 
 importer = fast.WholeSlideImageImporter\
     .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
@@ -115,10 +220,8 @@ generator = fast.PatchGenerator.create(
     ).connect(importer)\
     .connect(1, tissueSegmentation)
 
-# Download a nuclei segmentation model and use it
-p = fast.DataHub().download('nuclei-segmentation-model')
 segmentation = fast.SegmentationNetwork.create(
-        p.paths[0] + '/high_res_nuclei_unet.onnx',
+        model.paths[0] + '/high_res_nuclei_unet.onnx',
         scaleFactor=1./255.
     ).connect(generator)
 
@@ -138,10 +241,157 @@ fast.SimpleWindow2D.create()\
     .run()
 @endcode
 
+@image html images/tutorials/wsi/nuclei_segmentation_full.jpg width=400px;
+@image html images/tutorials/wsi/nuclei_segmentation.jpg width=400px;
 
-Export high-resolution segmentations
+Export and import high-resolution segmentations as TIFF
 ------------------------------------
 
+To simplest way to export high-resolution segmentations is to use the TIFFImagePyramidExporter.
+When used with the PatchStitcher, this exporter just becomes a simple copy operation because the PatchStitcher creates
+a tiled pyramidal TIFF in the background.
+Note that this example will take a while to run since it needs to run a neural network on all patches first.
+
+@code{.py}
+import fast
+
+# Download a nuclei segmentation model from the DataHub
+model = fast.DataHub().download('nuclei-segmentation-model')
+
+importer = fast.WholeSlideImageImporter\
+    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+
+tissueSegmentation = fast.TissueSegmentation.create()\
+    .connect(importer)
+
+# Reduced magnification and overlap to speed up the processing time of this example
+generator = fast.PatchGenerator.create(
+        256, 256,
+        magnification=10,
+        overlapPercent=0
+    ).connect(importer)\
+    .connect(1, tissueSegmentation)
+
+segmentation = fast.SegmentationNetwork.create(
+        model.paths[0] + '/high_res_nuclei_unet.onnx',
+        scaleFactor=1./255.
+    ).connect(generator)
+
+stitcher = fast.PatchStitcher.create()\
+    .connect(segmentation)
+
+# We need to wait until all patches have been processed and stitched
+# before exporting the segmentation. The RunUntilFinished process object
+# will do this for us
+finished = fast.RunUntilFinished.create()\
+    .connect(stitcher)
+
+# Finally we export the stitched image pyramid to TIFF
+exporter = fast.TIFFImagePyramidExporter.create('segmented-nuclei.tiff')\
+    .connect(finished)\
+    .run()
+@endcode
+
+You can then use the TIFFImagePyramidImporter to load the stored segmentation back into FAST.
+@code{.py}
+import fast
+
+importer = fast.TIFFImagePyramidImporter.create('segmented-nuclei.tiff')
+
+segmentationRenderer = fast.SegmentationRenderer.create()\
+    .connect(importer)
+
+fast.SimpleWindow2D.create()\
+    .connect(segmentationRenderer)\
+    .run()
+@endcode
+
+@image html images/tutorials/wsi/nuclei_segmentation_export_import.jpg width=400px;
+
+Export and import WSIs and segmentations as a set of PNG/JPEG images
+------------------------------------
+You can also export and import WSIs and image pyramid segmentations as a large set of PNG/JPEG images, for instance
+using the ImagePyramidPatchExporter:
+@code{.py}
+import fast
+
+importer = fast.WholeSlideImageImporter\
+    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+
+# Store patches from level 2
+exporter = fast.ImagePyramidPatchExporter.create('/home/smistad/wsi-export-folder/', 2, 512, 512)\
+    .connect(importer)\
+    .run()
+@endcode
+
+@image html images/tutorials/wsi/image_pyramid_patch_exporter.jpg width=400px;
+
+You can also do this manually using the PatchGenerator which gives you some more options, like only storing patches with tissue:
+@code{.py}
+import fast
+
+importer = fast.WholeSlideImageImporter\
+    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+
+# Do tissue segmentation to select patches from tissue only
+tissueSegmentation = fast.TissueSegmentation.create()\
+    .connect(importer)
+
+patchGenerator = fast.PatchGenerator.create(512, 512, level=2)\
+    .connect(0, importer)\
+    .connect(1, tissueSegmentation)
+
+for i, patch in enumerate(fast.DataStream(patchGenerator)):
+    fast.ImageExporter.create(f'patch_{i}.jpg')\
+        .connect(patch)\
+        .run()
+@endcode
+
+You can also import image pyramids stored as a set of PNG/JPEGs, but this is very slow and not recommended:
+
+@code{.py}
+import fast
+
+importer = fast.ImagePyramidPatchImporter.create('wsi-export-folder/')
+
+renderer = fast.ImagePyramidRenderer.create()\
+    .connect(importer)
+
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+Tissue micro array (TMA) extractor
+---------------------
+Tissue micro arrays (TMAs) are WSI of a set of tissue cores, which are circular tissue samples extracted from
+different locations of different WSIs from potentially many patients. FAST has a TissueMicroArrayExtractor which
+can extract each tissue core as separate images which can be useful if you need to index and process the tissue cores
+independently. The example below demonstrated this process object and displays 6 tissue core images at a time using matplotlib.
+
+@code{.py}
+import fast
+import matplotlib.pyplot as plt
+
+importer = fast.WholeSlideImageImporter\
+    .create('/home/smistad/data/TMA/TMA_TA407.svs')
+
+# Extract tissue cores at image pyramid level 1
+extractor = fast.TissueMicroArrayExtractor.create(level=1)\
+    .connect(importer)
+
+for i, core in enumerate(fast.DataStream(extractor)):
+    if i % 6 == 0:
+        if i > 0:
+            plt.show()
+        f, axes = plt.subplots(1,6, figsize=(30,5))
+    axes[i % 6].imshow(core)
+    # You can get the position of the extracted core from core.getTransform().getTranslation()
+    axes[i % 6].set_title(f'x: {core.getTransform().getTranslation()[0]}, ' +
+        f'y: {core.getTransform().getTranslation()[1]}')
+@endcode
+
+@image html images/tutorials/wsi/tma_extractor.jpg
 
 Next steps
 ---------------------

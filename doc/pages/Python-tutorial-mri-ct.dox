@@ -141,7 +141,7 @@ fast.SimpleWindow3D.create()\
 @image html images/tutorials/mri_ct/alpha_blending_volume_renderer_CT_custom.jpg width=400px;
 
 ### Maximum intensity projection (MIP)
-The MaximumIntensityProjection volume renderer simply takes the maximum volume of each ray passing through the volume to
+The MaximumIntensityProjection volume renderer simply takes the maximum value of each ray passing through the volume to
 create a volume rendered image.
 @code{.py}
 import fast
@@ -295,6 +295,178 @@ fast.SlicerWindow.create()\
     .connectImage(resize)\
     .run()
 @endcode
+
+Brain segmentation of MRI using a neural network
+---------------------
+In this example we will download an MRI brain scan and a brain segmentation network created by David Bouget (https://github.com/dbouget) from the FAST data hub.
+@code{.py}
+import fast
+
+# Download MRI brain scan and segmentation model
+model = fast.DataHub().download('brain-mri-segmentation-model')
+mri = fast.DataHub().download('brain-mri-t1')
+
+# Setup data importer
+importer = fast.ImageFileImporter\
+    .create(mri.paths[0] + '/UPENN-GBM-00003_11_T1_unstripped.nii.gz')
+
+# Flip the volume
+flip = fast.ImageFlipper.create(flipHorizontal=False, flipVertical=False, flipDepth=True)\
+    .connect(importer)
+
+# Resample to isotropic voxel spacing of 1 mm
+resample = fast.ImageResampler.create(1.0, 1.0, 1.0)\
+    .connect(flip)
+
+# Clip intensities to be between 0 and 2000
+clip = fast.IntensityClipping.create(0, 2000)\
+    .connect(flip)
+
+# Normalize intensities to have zero mean and unit variance
+zeromean = fast.ZeroMeanUnitVariance.create()\
+    .connect(clip)
+
+# Load and apply segmentation model
+segmentation = fast.SegmentationNetwork.create(model.paths[0] + '/model.onnx',
+        outputNodes=[fast.NeuralNetworkNode('conv3d_36')])\
+    .connect(zeromean)
+segmentation.setResizeBackToOriginalSize(True)
+
+# Setup visualization and run
+fast.SlicerWindow.create()\
+    .connectImage(resample)\
+    .connectSegmentation(segmentation, opacity=0.25, borderOpacity=0.75)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/brain-segmentation.jpg
+
+Skull stripping of MRI brain using a neural network
+---------------------
+In this example we will download an MRI brain scan and a brain segmentation network created by David Bouget (https://github.com/dbouget) from the FAST data hub.
+The brain segmentation is multiplied with the original image to effectively do skull stripping. Finally, alpha blending volume rendering is used to display the skull
+stripped MRI volume.
+@code{.py}
+import fast
+
+# Download MRI brain scan and segmentation model
+model = fast.DataHub().download('brain-mri-segmentation-model')
+mri = fast.DataHub().download('brain-mri-t1')
+
+# Setup data importer
+importer = fast.ImageFileImporter\
+    .create(mri.paths[0] + '/UPENN-GBM-00003_11_T1_unstripped.nii.gz')
+
+# Flip the volume
+flip = fast.ImageFlipper.create(flipHorizontal=False, flipVertical=False, flipDepth=True)\
+    .connect(importer)
+
+# Resample to isotropic voxel spacing of 1 mm
+resample = fast.ImageResampler.create(1.0, 1.0, 1.0)\
+    .connect(flip)
+
+# Clip intensities to be between 0 and 2000
+clip = fast.IntensityClipping.create(0, 2000)\
+    .connect(flip)
+
+# Normalize intensities to have zero mean and unit variance
+zeromean = fast.ZeroMeanUnitVariance.create()\
+    .connect(clip)
+
+# Load and apply segmentation model
+segmentation = fast.SegmentationNetwork.create(model.paths[0] + '/model.onnx',
+        outputNodes=[fast.NeuralNetworkNode('conv3d_36')])\
+    .connect(zeromean)
+segmentation.setResizeBackToOriginalSize(True)
+
+# Multiply segmentation with original image to skull strip
+skullStrip = fast.ImageMultiply.create()\
+    .connect(0, clip)\
+    .connect(1, segmentation)
+
+# Use alpha blending volume renderer and custom transfer function to
+# display the skull stripped MRI data
+transferFunction = fast.TransferFunction([
+	100, 0, 0, 0, 0,
+	200, 1, 0.25, 0.25, 0.1,
+	250, 1, 1, 1, 0.5,
+	])
+renderer = fast.AlphaBlendingVolumeRenderer.create(transferFunction)\
+	.connect(skullStrip)
+
+# Setup visualization and run
+fast.SimpleWindow3D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/skull_strip.jpg width=400px;
+
+Changing pipeline parameters using a simple GUI
+------------------
+FAST provides some simple GUI widgets which can be connected to process objects and added to the window.
+This enables you to change parameters in the GUI and see the effects in real-time with just one line of code.
+Here is an example were we added a SliderWidget to control the threshold of the SurfaceExtraction process object.
+The SliderWidget calls the SliderCallback everytime its value is changed. Remember to connect the GUI widget to the window
+object using the connect method.
+
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Abdomen.mhd")
+
+surface = fast.SurfaceExtraction.create(300)\
+    .connect(importer)
+
+renderer = fast.TriangleRenderer.create()\
+    .connect(surface)
+
+# Create a slider widget to control the surface extraction threshold
+# The arguments to SliderWidget are: name, current value, min value, max value, step size, callback
+thresholdSlider = fast.SliderWidget('Threshold', 300, 200, 500, 25, fast.SliderCallback(lambda x: surface.setThreshold(x)))
+
+fast.SimpleWindow3D.create()\
+    .connect(renderer)\
+    .connect(thresholdSlider)\ # Add slider to the window
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/gui_example.jpg width=400px;
+
+Here is a bigger example with two different SliderWidget and a ButtonWidget to control the threshold, a slice plane and turning on and off the slice plane.
+
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/CT/CT-Abdomen.mhd")
+
+surface = fast.SurfaceExtraction.create(300)\
+    .connect(importer)
+
+renderer = fast.TriangleRenderer.create()\
+    .connect(surface)
+
+slicer = fast.ImageSlicer.create(fast.PLANE_Z, 200)\
+    .connect(importer)
+
+sliceRenderer = fast.ImageRenderer.create()\
+    .connect(slicer)
+
+# Create two slider and a button widget
+thresholdSlider = fast.SliderWidget('Threshold', 300, 200, 500, 25, fast.SliderCallback(lambda x: surface.setThreshold(x)))
+sliceSlider = fast.SliderWidget('Slice', 200, 0, 426, 1, fast.SliderCallback(lambda x: slicer.setOrthogonalSlicePlane(fast.PLANE_Z, int(x))))
+disableButton = fast.ButtonWidget('Slice ON/OFF', True, fast.ButtonCallback(lambda x: sliceRenderer.setDisabled(x)))
+
+fast.SimpleWindow3D.create()\
+    .connect([renderer, sliceRenderer])\
+    # Add the widgets to the window:
+    .connect([thresholdSlider, sliceSlider, disableButton], fast.WidgetPosition_RIGHT)\
+    .run()
+@endcode
+
+@image html images/tutorials/mri_ct/gui_example2.jpg width=400px;
 
 Next steps
 ---------------------

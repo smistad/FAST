@@ -10,7 +10,7 @@ FAST is an open-source framework with the main goal of making it easier to do hi
 ### Get started
 See installation instructions for [Windows](https://fast.eriksmistad.no/install-windows.html), [Ubuntu Linux](https://fast.eriksmistad.no/install-ubuntu-linux.html) and [macOS](https://fast.eriksmistad.no/install-mac.html).
 
-To start using the framework, check out the [C++ Intro Tutorial](https://fast.eriksmistad.no/cpp-tutorial-intro.html) or the [Python Intro Tutorial](https://fast.eriksmistad.no/python-tutorial-intro.html).
+To start using the framework, check out the [C++ tutorials](https://fast.eriksmistad.no/cpp-tutorials.html) or the [Python tutorials](https://fast.eriksmistad.no/python-tutorials.html).
 
 Learn best by example? Check out all the examples for [C++](https://fast.eriksmistad.no/cpp-examples.html) and [Python](https://fast.eriksmistad.no/python-examples.html).
 

@@ -1,7 +1,8 @@
 Python Examples {#python-examples}
 =============================
 
-All the Python examples can be found in the [repository](https://github.com/smistad/FAST/tree/master/source/FAST/Examples/Python).
+All the python examples can be found in the [repository](https://github.com/smistad/FAST/tree/master/source/FAST/Examples/Python).
+You can also find many examples in the [python tutorials](@ref python-tutorials).
 
 |Example|Result|
 |----|----|

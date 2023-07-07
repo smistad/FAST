@@ -54,7 +54,7 @@ fast.SimpleWindow2D.create()\
     .run()
 ```
 
-To start using FAST for python, you might want to look at the [Python introduction tutorial](@ref python-tutorial-intro)
+To start using FAST for python, you might want to look at the [Python tutorials](@ref python-tutorials)
 and the [Python examples page](@ref python-examples).
 
 @m_class{m-block m-warning}

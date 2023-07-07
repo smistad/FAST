@@ -14,7 +14,7 @@ FAST is an open-source framework with the main goal of making it easier to do hi
 @section get-started Get started
 See installation instructions for [Windows](@ref install-windows), [Ubuntu Linux](@ref install-ubuntu-linux) and [macOS](@ref install-mac).
 
-To start using the framework, check out the [C++ Intro Tutorial](@ref cpp-tutorial-intro) or the [Python Intro Tutorial](@ref python-tutorial-intro).
+To start using the framework, check out the [C++ tutorials](@ref cpp-tutorials) or the [Python tutorials](@ref python-tutorials).
 
 Learn best by example? Check out all the examples for [C++](@ref cpp-examples) and [Python](@ref python-examples).
 
