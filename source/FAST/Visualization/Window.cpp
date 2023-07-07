@@ -102,6 +102,7 @@ Window::Window() {
     m_mainHLayout = new QHBoxLayout;
     mWidget->setLayout(m_mainHLayout);
     m_mainLeftLayout = new QVBoxLayout;
+    m_mainLeftLayout->setAlignment(Qt::AlignTop);
     m_mainHLayout->addLayout(m_mainLeftLayout);
     m_mainVLayout = new QVBoxLayout;
     m_mainTopLayout = new QVBoxLayout;
@@ -112,6 +113,7 @@ Window::Window() {
     m_mainVLayout->addLayout(m_mainBottomLayout);
     m_mainHLayout->addLayout(m_mainVLayout);
     m_mainRightLayout = new QVBoxLayout;
+    m_mainRightLayout->setAlignment(Qt::AlignTop);
     m_mainHLayout->addLayout(m_mainRightLayout);
 
     mWidget->setContentsMargins(0, 0, 0, 0);
