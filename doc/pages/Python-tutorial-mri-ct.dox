@@ -426,9 +426,10 @@ renderer = fast.TriangleRenderer.create()\
 # The arguments to SliderWidget are: name, current value, min value, max value, step size, callback
 thresholdSlider = fast.SliderWidget('Threshold', 300, 200, 500, 25, fast.SliderCallback(lambda x: surface.setThreshold(x)))
 
+# Create window and connect renderers and widgets
 fast.SimpleWindow3D.create()\
     .connect(renderer)\
-    .connect(thresholdSlider)\ # Add slider to the window
+    .connect(thresholdSlider)\
     .run()
 @endcode
 
@@ -459,9 +460,9 @@ thresholdSlider = fast.SliderWidget('Threshold', 300, 200, 500, 25, fast.SliderC
 sliceSlider = fast.SliderWidget('Slice', 200, 0, 426, 1, fast.SliderCallback(lambda x: slicer.setOrthogonalSlicePlane(fast.PLANE_Z, int(x))))
 disableButton = fast.ButtonWidget('Slice ON/OFF', True, fast.ButtonCallback(lambda x: sliceRenderer.setDisabled(x)))
 
+# Create window and connect renderers and widgets
 fast.SimpleWindow3D.create()\
     .connect([renderer, sliceRenderer])\
-    # Add the widgets to the window:
     .connect([thresholdSlider, sliceSlider, disableButton], fast.WidgetPosition_RIGHT)\
     .run()
 @endcode
