@@ -4,9 +4,11 @@
 import fast
 import matplotlib.pyplot as plt
 
-fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
+# This will download the test data needed to run the example
+fast.downloadTestDataIfNotExists()
 
-importer = fast.WholeSlideImageImporter.create(fast.Config.getTestDataPath() + 'WSI/A05.svs')
+importer = fast.WholeSlideImageImporter.create(
+    fast.Config.getTestDataPath() + 'WSI/A05.svs')
 
 tissueSegmentation = fast.TissueSegmentation.create().connect(importer)
 
@@ -26,3 +28,4 @@ for patch in fast.DataStream(patchGenerator):
                 axes[i, j].imshow(patch_list[i + j*3])
         plt.show()
         patch_list.clear()
+        break

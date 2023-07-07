@@ -47,6 +47,7 @@ class FAST_EXPORT SegmentationNetwork : public NeuralNetwork {
                          bool, hasBackgroundClass, = true,
                          float, meanIntensity, = 0.0f,
                          float, standardDeviationIntensity, = 1.0f,
+                         bool, resizeBackToOrigianlSize, = false,
                          std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
                          std::vector<NeuralNetworkNode>, outputNodes, = std::vector<NeuralNetworkNode>(),
                          std::string, inferenceEngine, = "",

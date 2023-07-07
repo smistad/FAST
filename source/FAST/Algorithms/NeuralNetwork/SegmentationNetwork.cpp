@@ -19,7 +19,7 @@ void SegmentationNetwork::loadAttributes() {
 
 SegmentationNetwork::SegmentationNetwork(std::string modelFilename, float scaleFactor, bool heatmapOutput,
                                          float threshold, bool hasBackgroundClass, float meanIntensity,
-                                         float stanardDeviationIntensity, std::vector<NeuralNetworkNode> inputNodes,
+                                         float stanardDeviationIntensity, bool resizeBackToOrigianlSize, std::vector<NeuralNetworkNode> inputNodes,
                                          std::vector<NeuralNetworkNode> outputNodes, std::string inferenceEngine,
                                          std::vector<std::string> customPlugins) : NeuralNetwork(modelFilename, scaleFactor, meanIntensity, stanardDeviationIntensity, inputNodes, outputNodes,inferenceEngine,customPlugins) {
     createInputPort(0, "Image");
@@ -33,6 +33,7 @@ SegmentationNetwork::SegmentationNetwork(std::string modelFilename, float scaleF
     }
     setThreshold(threshold);
     setBackgroundClass(hasBackgroundClass);
+    setResizeBackToOriginalSize(resizeBackToOrigianlSize);
 }
 
 SegmentationNetwork::SegmentationNetwork(std::string modelFilename, std::vector<NeuralNetworkNode> inputNodes,
