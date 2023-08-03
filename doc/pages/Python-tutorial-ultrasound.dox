@@ -1,0 +1,385 @@
+namespace fast {
+/** @page python-tutorial-ultrasound Using FAST on Ultrasound data in python
+@tableofcontents
+
+This is a tutorial for processing and visualizing Ultrasound data with FAST in python.
+
+Ultrasound data
+---------------------
+Ultrasound image data comes in many formats; as 2D images or 3D volumes, and often ultrasound data is a sequence
+of images/volumes over time.
+FAST can read sequences of ultrasound data stored as videos, images (.png/.jpeg), metaimages (.mhd/.raw/.zraw) and in ultrasound file format (UFF, HDF5).
+FAST can also stream data in real-time from ultrasound scanners either using the OpenIGTLink protocol or from Clarius scanners using their Cast API.
+Let's look at how we can stream data from each of these sources.
+
+If you haven't already, download the test dataset before proceeding:
+@code{.py}
+import fast
+fast.downloadTestDataIfNotExists()
+@endcode
+
+Read ultrasound images from a video
+---------------------
+
+Use the MovieStreamer object to read image frames from a video.
+Note that videos are often stored as color data, even though ultrasound videos typically are grayscale.
+You can convert the video to grayscale, by passing grayscale=True to MovieStreamer, or by using ColorToGrayscale.
+
+@code{.py}
+import fast
+
+streamer = fast.MovieStreamer\
+    .create(fast.Config.getTestDataPath() + "/US/sagittal_spine.avi")
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+This example will stream the video and display it in a window.
+
+@image html images/tutorials/mri_ct/slicer_window_CT.jpg
+
+To get each frame from the video you can use the DataStream and a for loop.
+In this example we convert every 20th frame to a numpy array and display it with matplotlib
+
+@code{.py}
+import fast
+import numpy as np
+import matplotlib.pyplot as plt
+
+streamer = fast.MovieStreamer\
+    .create(fast.Config.getTestDataPath() + "/US/sagittal_spine.avi",
+    grayscale=True # Convert the images to grayscale
+)
+
+frame_list = []
+counter = 0
+for frame in fast.DataStream(streamer):
+    counter += 1
+    # Only show every 20th frame
+    if counter % 20 == 0: frame_list.append((np.asarray(frame), counter))
+    if len(frame_list) == 9:
+        # Display the 9 last frames
+        f, axes = plt.subplots(3,3, figsize=(10,10))
+        for i in range(3):
+            for j in range(3):
+                axes[j, i].set_title('Frame: ' + str(frame_list[i + j*3][1]))
+                axes[j, i].imshow(frame_list[i + j*3][0][..., 0], cmap='gray')
+        plt.show()
+        frame_list.clear()
+        break # Remove to show more frames
+@endcode
+
+Read a single ultrasound image and convert to numpy array
+----------------------------------------------
+To read a single ultrasound image you can use the ImageFileImporter, and get the Image object using the runAndGetOutputData method.
+The resulting FAST Image can be convert to a numpy array using np.asarray():
+@code{.py}
+import fast
+import numpy as np
+
+image = fast.ImageFileImporter\
+    .create(fast.Config.getTestDataPath() + "/US/US-2D.jpg")\
+    .runAndGetOutputData()
+
+data = np.asarray(image)
+print(data.shape, data.dtype, np.min(data), np.max(data))
+# The print should return: (512, 512, 3) uint8 0 252
+
+# The image returned was a color image, to convert it to grayscale you can do:
+image = fast.ColorToGrayscale.create().connect(image).runAndGetOutputData()
+data = np.asarray(image)
+print(data.shape, data.dtype, np.min(data), np.max(data))
+# The print should return: (512, 512, 1) uint8 0 252
+@endcode
+
+Read ultrasound images from a sequence of images
+----------------------------------------------
+If you have ultrasound data stored as sequence of images (.png/.jpg) or as metaimages (.mhd/.raw/.zraw) you
+can stream them using the ImageFileStreamer.
+This assumes that the images are stored in the same folder, with same name except a number that increases for each frame. For example:
+frame_0.png, frame_1.png, frame_2.png ...
+or US_0.mhd, US_1.mhd, US_2.mhd ...
+
+If you are streaming metaimages, the ImageFileStreamer will try to read the Timestamp attribute in the mhd file and stream
+the files in the speed it was stored in. This can be turned off with useTimestamps=False. If timestamps doesn't exists and
+the framerate is not specified, the images will be streamed as quickly as possible.
+
+@code{.py}
+import fast
+
+# Specify path to where the images are stored, use a # to represent the frame index
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd',
+    framerate=20, # Specify framerate to stream data in
+    loop=True # Loop recording forever
+)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+Read 3D ultrasound images from metaimage files
+----------------------------------------------
+@code{.py}
+import fast
+
+# Specify path to where the images are stored, use a # to represent the frame index
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/Ball/US-3Dt_#.mhd',
+    framerate=5, # Specify framerate to stream data in
+    loop=True # Loop recording forever
+)
+
+# Use SlicerWindow to display the 3D data
+fast.SlicerWindow.create()\
+    .connectImage(streamer)\
+    .run()
+@endcode
+
+FAST has some simple volume rendering which can be used to render 3D data
+@code{.py}
+import fast
+
+# Specify path to where the images are stored, use a # to represent the frame index
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/Ball/US-3Dt_#.mhd',
+    framerate=5, # Specify framerate to stream data in
+    loop=True # Loop recording forever
+)
+
+# You can create your own custom TransferFunction and give that to the create method.
+# If not it will use the default ultrasound transfer function.
+renderer = fast.AlphaBlendingVolumeRenderer.create()\
+    .connect(streamer)
+
+# Use SlicerWindow to display the 3D data
+fast.SimpleWindow3D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+Playback widget
+---------------------
+
+The PlaybackWidget is useful when you want some simple GUI to play/pause/stop, scroll through the frames or change the framerate.
+Give the streamer as input to the PlaybackWidget constructor and connect it to your window:
+
+@code{.py}
+import fast
+
+# Specify path to where the images are stored, use a # to represent the frame index
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd',
+    framerate=20, # Specify framerate to stream data in
+)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+# Create playback widget and connect it to the window
+widget = fast.PlaybackWidget(streamer)
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .connect(widget)\
+    .run()
+@endcode
+
+Read ultrasound data stored in the ultrasound file format (UFF, HDF5)
+---------------------
+The UFFStreamer enables you to read ultrasound image data in the UFF format.
+Note that FAST can only stream beamformed data, as FAST does not have a beamformer (yet).
+Here we use FAST to stream some UFF beamformed data and display it.
+
+@code{.py}
+import fast
+
+streamer = fast.UFFStreamer.create(
+    fast.Config.getTestDataPath() + "US/UFF/P4_2_PLAX.uff",
+    framerate=5,
+    loop=True,
+    scanConversionWidth=1024,
+    scanConversionHeight=1024,
+)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+widget = fast.PlaybackWidget(streamer)
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+The UFFStreamer will scan convert the images by default, by you can disable this by setting doScanConversion=False in the create method.
+You can also set the gain and dynamic range if the data is stored in dB instead of uint8 (0-255).
+@code{.py}
+import fast
+
+streamer = fast.UFFStreamer.create(
+    fast.Config.getTestDataPath() + "US/UFF/P4_2_PLAX.uff",
+    framerate=5,
+    loop=True,
+    doScanConversion=False,
+    gain=10,
+    dynamicRange=60,
+)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+widget = fast.PlaybackWidget(streamer)
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+Scan conversion
+-----------------------
+
+Use the ScanConverter to do scan conversion of beamspace data on the GPU.
+You can specify the size of the output image (width, height).
+If you have a sector scan you need to supply the startDepth and endDepth (physical units, e.g. meter, millimeter), as well as the start and end angle (radians).
+For linear scans you specify startDepth, endDepth, and left and right in physical units.
+
+@code{.py}
+import fast
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create some fake beamspace data
+data = fast.Image.createFromArray(np.round(np.random.normal(size=(700,256,1))*255).astype(np.uint8))
+
+# Scan convert (sector scan)
+scan_convert = fast.ScanConverter.create(
+                width=1280,
+                height=1024,
+                startDepth=0,
+                endDepth=120,
+                startAngle=-0.785398,
+                endAngle=0.785398
+        ).connect(data)
+
+renderer = fast.ImageRenderer.create()\
+        .connect(scan_convert)
+
+fast.SimpleWindow2D.create()\
+        .connect(renderer)\
+        .run()
+
+# Visualize output of scan converter with matplotlib instead of FAST:
+plt.imshow(np.asarray(scan_convert.runAndGetOutputData())[..., 0], cmap='gray')
+plt.show()
+@endcode
+
+Envelope detection and log compression
+-----------------------
+FAST has some simple implementations of envelope detection and log compression running on the GPU.
+Here is example of how to do envelope detection, log compression and scan conversion on some IQ data:
+@code{.py}
+import fast
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create some fake IQ beamspace data
+iq_data = fast.Image.createFromArray(np.random.normal(size=(512,512,2)).astype(np.float32))
+
+# Create processing & visualization chain
+envelope = fast.EnvelopeAndLogCompressor.create()\
+        .connect(iq_data)
+
+scan_convert = fast.ScanConverter.create(
+                width=1280,
+                height=1024,
+                startDepth=0,
+                endDepth=120,
+                startAngle=-0.785398,
+                endAngle=0.785398
+        ).connect(envelope)
+
+renderer = fast.ImageRenderer.create()\
+        .connect(scan_convert)
+
+fast.SimpleWindow2D.create()\
+        .connect(renderer)\
+        .run()
+
+# Visualize output of scan converter with matplotlib instead of FAST:
+plt.imshow(np.asarray(scan_convert.runAndGetOutputData())[..., 0], cmap='gray')
+plt.show()
+@endcode
+
+Real-time image streaming from scanner using OpenIGTLink
+-------------------------------
+@code{.py}
+import fast
+
+streamer = fast.OpenIGTLinkStreamer.create("localhost", 18944)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+Real-time image streaming from Clarius scanner
+-------------------------------
+@code{.py}
+import fast
+
+streamer = fast.ClariusStreamer.create("192.168.1.1", 5858)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+Automatic ultrasound sector cropping
+-------------------------------
+
+Applying colormaps
+-------------------------------
+
+Applying a custom method to a stream of ultrasound images
+-------------------------------
+
+Block matching speckle tracking
+-------------------------------
+
+Neural network segmentation of an ultrasound image stream
+-------------------------------
+
+Neural network image classification of an ultrasound image stream
+-------------------------------
+
+Export visualization to video
+-------------------------------
+
+Denoise ultrasound image using Non Local Means
+-------------------------------
+
+GUI
+-------------------------------
+
+Next steps
+---------------------
+
+- See more [Python Tutorials](@ref python-tutorials).
+- Check out some [Python Examples](@ref python-examples).
+- Review [Concepts & Glossary](@ref concepts) used in FAST.
+
+*/
+}

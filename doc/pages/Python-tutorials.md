@@ -5,4 +5,4 @@ Python Tutorials {#python-tutorials}
 * [Neural network processing](@ref python-tutorial-neural-networks)
 * [Using FAST on Whole-Slide Images (WSI)](@ref python-tutorial-wsi)
 * [Using FAST on MRI and CT images](@ref python-tutorial-mri-ct)
-* [Using FAST on Ultrasound images](@ref python-tutorial-ultrasound)
+* [Using FAST on Ultrasound data](@ref python-tutorial-ultrasound)
