@@ -34,7 +34,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
          */
         FAST_CONSTRUCTOR(ClariusStreamer,
                          std::string, ipAddress, = "192.168.1.1",
-                         int, port, = 5858,
+                         int, port, = 5828,
                          bool, grayscale, = true
         );
         void setConnectionAddress(std::string ipAddress);

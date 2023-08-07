@@ -10,7 +10,7 @@ using namespace fast;
 
 int main(int argc, char**argv) {
     CommandLineParser parser("Clarius streaming example");
-    parser.addVariable("port", "5858", "Port to use for clarius connection");
+    parser.addVariable("port", "5828", "Port to use for clarius connection");
     parser.addVariable("ip", "192.168.1.1", "Address to use for clarius connection");
     parser.parse(argc, argv);
 
