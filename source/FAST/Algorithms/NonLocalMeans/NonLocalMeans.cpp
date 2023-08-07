@@ -134,16 +134,19 @@ void NonLocalMeans::setSmoothingAmount(float parameterH) {
         throw Exception("Smoothing amount must be larger than 0");
 
     m_parameterH = parameterH;
+    setModified(true);
 }
 
 void NonLocalMeans::setPreProcess(bool preProcess) {
     m_preProcess = preProcess;
+    setModified(true);
 }
 
 void NonLocalMeans::setMultiscaleIterations(int iterations) {
     if(iterations < 1)
         throw Exception("Multiscale iterations must be larger than 0");
     m_iterations = iterations;
+    setModified(true);
 }
 
 void NonLocalMeans::setSearchSize(int searchSize) {
@@ -151,16 +154,19 @@ void NonLocalMeans::setSearchSize(int searchSize) {
         throw Exception("Search size must be larger than 2 and be odd");
 
     m_searchSize = searchSize;
+    setModified(true);
 }
 
 void NonLocalMeans::setFilterSize(int filterSize) {
     if(filterSize < 3 || filterSize % 2 == 0)
         throw Exception("Filter size must be larger than 2 and be odd");
     m_filterSize = filterSize;
+    setModified(true);
 }
 
 void NonLocalMeans::setInputMultiplicationWeight(float weight) {
     m_multiplicationWeight = weight;
+    setModified(true);
 }
 
 }
