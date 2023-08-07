@@ -105,11 +105,15 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
             glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
             glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
             //if(w != input->getWidth() && h != input->getHeight()) {
-                // Delete old texture
-                glDeleteTextures(1, &mTexturesToRender[inputNr]);
+                // Remove old texture
+                //glDeleteTextures(1, &mTexturesToRender[inputNr]); // We cannot delete the texture, because it belongs to the Image object.
                 mTexturesToRender.erase(inputNr);
                 glDeleteVertexArrays(1, &mVAO[inputNr]);
                 mVAO.erase(inputNr);
+                glDeleteVertexArrays(1, &mVBO[inputNr]);
+                mVBO.erase(inputNr);
+                glDeleteVertexArrays(1, &mEBO[inputNr]);
+                mEBO.erase(inputNr);
             //}
         }
 

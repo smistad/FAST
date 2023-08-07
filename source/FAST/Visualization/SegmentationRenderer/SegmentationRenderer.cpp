@@ -95,7 +95,7 @@ void SegmentationRenderer::drawNormal(std::unordered_map<uint, std::shared_ptr<S
         // If texture exists, delete the old one
         if(mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
-            glDeleteTextures(1, &mTexturesToRender[inputNr]);
+            //glDeleteTextures(1, &mTexturesToRender[inputNr]); // We cannot delete the texture, because it belongs to the Image object.
             mTexturesToRender.erase(inputNr);
             glDeleteVertexArrays(1, &mVAO[inputNr]);
             mVAO.erase(inputNr);

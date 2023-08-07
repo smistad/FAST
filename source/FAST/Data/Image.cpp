@@ -737,6 +737,11 @@ void Image::freeAll() {
     if(mHostHasData) {
         this->free(Host::getInstance());
     }
+    if(m_GLtextureID > 0) {
+        glDeleteTextures(1, &m_GLtextureID);
+        m_GLtextureID = 0;
+        m_GLtextureUpToDate = false;
+    }
 }
 
 int Image::getWidth() const {
