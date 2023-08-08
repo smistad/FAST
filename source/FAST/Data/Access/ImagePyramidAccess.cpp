@@ -2,7 +2,11 @@
 #include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp>
 #include <FAST/Utility.hpp>
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <openslide.h>
+#else
 #include <openslide/openslide.h>
+#endif
 #include <tiffio.h>
 #include <FAST/Data/Image.hpp>
 #include <jpeglib.h>

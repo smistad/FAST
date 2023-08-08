@@ -1,5 +1,9 @@
 #include "ImagePyramid.hpp"
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <openslide.h>
+#else
 #include <openslide/openslide.h>
+#endif
 #include <tiffio.h>
 #include <FAST/Utility.hpp>
 #include <FAST/Data/Image.hpp>

@@ -6,7 +6,11 @@
 #include "FAST/Data/Image.hpp"
 #include <cctype>
 #include <algorithm>
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <openslide.h>
+#else
 #include <openslide/openslide.h>
+#endif
 #include <FAST/Data/ImagePyramid.hpp>
 #include <fstream>
 #include <jpeglib.h>
@@ -50,7 +54,90 @@ struct ETS_header {
     stream->read((char*)&X, sizeof(X)); \
     //std::cout << # X ": " << X << std::endl; \
 
+/*
+void readTags(std::ifstream* stream, int size) {
+    std::size_t fp = stream->tellg();
+    short headerSize;
+    READ(headerSize);
+    std::cout << "Header size: " << headerSize << std::endl;
+    short version;
+    READ(version);
+    std::cout << "Version: " << version << std::endl;
+    int volumeVersion;
+    READ(volumeVersion);
+    long dataFieldOffset;
+    READ(dataFieldOffset);
+    int flags;
+    READ(flags);
+    float dummy;
+    READ(dummy);
+    int tagCount = flags & 0xFFFFFFF;
+    std::cout << "Number of tags: " << tagCount << std::endl;
+
+    stream->seekg(fp + dataFieldOffset);
+    for(int i = 0; i < tagCount; ++i) {
+        int fieldType;
+        READ(fieldType);
+        int tag;
+        READ(tag);
+        int nextField2;
+        READ(nextField2);
+        std::cout << "Next field 2: " << nextField2;
+        long nextField = (long)nextField2 & (long)0xFFFFFFFF;
+        std::cout << "Next field: " << nextField << std::endl;
+        int dataSize;
+        READ(dataSize);
+        std::cout << "Found tag: " << tag << std::endl;
+        std::cout << "Data size: " << dataSize << std::endl;
+        bool extendedField = ((fieldType & 0x10000000) >> 28) == 1;
+        int realType = fieldType & 0xffffff;
+        bool extraTag = ((fieldType & 0x8000000) >> 27) == 1;
+        if(extraTag) {
+            std::cout << "extra tag.." << std::endl;
+            float dummy;
+            READ(dummy);
+        }
+        //if(tag == 10)
+        //    break;
+        if(extendedField) {
+            std::cout << "extended field.." << std::endl;
+            std::cout << "real type: " << realType << std::endl;
+            if(realType == 0) {
+                readTags(stream, size);
+//                long endPointer = stream->tellg() + (long)dataSize;
+//                while (stream->tellg() < endPointer &&
+//                stream->tellg() < size)
+//                {
+//                    long start = stream->tellg();
+//                    //readTags(vsi, populateMetadata || inDimensionProperties, getVolumeName(tag));
+//                    readTags(stream, size);
+//                    long end = stream->tellg();
+//                    if (start >= end) {
+//                        break;
+//                    }
+//                }
+            }
+        } else {
+            if(fp + nextField2 < size) {
+                stream->seekg(fp + nextField2);
+            } else {
+                break;
+            }
+        }
+    }
+}*/
+
 void WholeSlideImageImporter::readVSI(std::string filename) {
+
+    /*
+    // FIXME Read .vsi file to get pixel spacing
+    {
+        int size = fileSize(filename);
+        std::ifstream* stream = new std::ifstream(filename);
+        stream->seekg(8);
+        readTags(stream, size);
+    }*/
+
     std::string originalFilename = getFileName(filename);
     std::string directoryName = getDirName(filename) + "_" + originalFilename.substr(0, originalFilename.size()-4) + "_/";
     std::string etsFilename = "";
