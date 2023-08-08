@@ -12,19 +12,21 @@ FAST can read sequences of ultrasound data stored as videos, images (.png/.jpeg)
 FAST can also stream data in real-time from ultrasound scanners either using the OpenIGTLink protocol or from Clarius scanners using their Cast API.
 Let's look at how we can stream data from each of these sources.
 
-If you haven't already, download the test dataset before proceeding:
+If you haven't already, download the test dataset before running the examples on this page:
 @code{.py}
 import fast
 fast.downloadTestDataIfNotExists()
 @endcode
 
-Read ultrasound images from a video
+Reading and visualizing ultrasound images
 ---------------------
 
+### Read ultrasound images from a video
 Use the MovieStreamer object to read image frames from a video.
 Note that videos are often stored as color data, even though ultrasound videos typically are grayscale.
 You can convert the video to grayscale, by passing grayscale=True to MovieStreamer, or by using ColorToGrayscale.
 
+This example will stream the video and display it in a window:
 @code{.py}
 import fast
 
@@ -39,9 +41,7 @@ fast.SimpleWindow2D.create()\
     .run()
 @endcode
 
-This example will stream the video and display it in a window.
-
-@image html images/tutorials/mri_ct/slicer_window_CT.jpg
+@image html images/tutorials/ultrasound/read_video.jpg width=400px;
 
 To get each frame from the video you can use the DataStream and a for loop.
 In this example we convert every 20th frame to a numpy array and display it with matplotlib
@@ -74,8 +74,10 @@ for frame in fast.DataStream(streamer):
         break # Remove to show more frames
 @endcode
 
-Read a single ultrasound image and convert to numpy array
-----------------------------------------------
+@image html images/examples/python/video_frames.jpg width=400px;
+
+### Read a single ultrasound image and convert to numpy array
+
 To read a single ultrasound image you can use the ImageFileImporter, and get the Image object using the runAndGetOutputData method.
 The resulting FAST Image can be convert to a numpy array using np.asarray():
 @code{.py}
@@ -97,8 +99,7 @@ print(data.shape, data.dtype, np.min(data), np.max(data))
 # The print should return: (512, 512, 1) uint8 0 252
 @endcode
 
-Read ultrasound images from a sequence of images
-----------------------------------------------
+### Stream ultrasound images from a sequence of images
 If you have ultrasound data stored as sequence of images (.png/.jpg) or as metaimages (.mhd/.raw/.zraw) you
 can stream them using the ImageFileStreamer.
 This assumes that the images are stored in the same folder, with same name except a number that increases for each frame. For example:
@@ -127,8 +128,10 @@ fast.SimpleWindow2D.create()\
     .run()
 @endcode
 
-Read 3D ultrasound images from metaimage files
-----------------------------------------------
+@image html images/examples/python/left_ventricle.jpg width=250px;
+
+### Read 3D ultrasound images from metaimage files
+
 @code{.py}
 import fast
 
@@ -145,7 +148,10 @@ fast.SlicerWindow.create()\
     .run()
 @endcode
 
-FAST has some simple volume rendering which can be used to render 3D data
+@image html images/tutorials/ultrasound/read_3d_ultrasound_slicer_window.jpg
+
+
+FAST has some simple volume rendering which can be used to render 3D data as well:
 @code{.py}
 import fast
 
@@ -167,8 +173,9 @@ fast.SimpleWindow3D.create()\
     .run()
 @endcode
 
-Playback widget
----------------------
+@image html images/tutorials/ultrasound/read_3d_ultrasound_volume_rendering.jpg
+
+### Playback widget
 
 The PlaybackWidget is useful when you want some simple GUI to play/pause/stop, scroll through the frames or change the framerate.
 Give the streamer as input to the PlaybackWidget constructor and connect it to your window:
@@ -193,9 +200,14 @@ fast.SimpleWindow2D.create()\
     .run()
 @endcode
 
-Read ultrasound data stored in the ultrasound file format (UFF, HDF5)
+@image html images/tutorials/ultrasound/playback_widget.jpg
+
+Working with raw ultrasound image data
 ---------------------
+
+### Read ultrasound data stored in the ultrasound file format (UFF, HDF5)
 The UFFStreamer enables you to read ultrasound image data in the UFF format.
+The UFF format is used in the Matlab [UltraSound ToolBox USTB](https://www.ustb.no/).
 Note that FAST can only stream beamformed data, as FAST does not have a beamformer (yet).
 Here we use FAST to stream some UFF beamformed data and display it.
 
@@ -216,11 +228,14 @@ renderer = fast.ImageRenderer.create()\
 widget = fast.PlaybackWidget(streamer)
 fast.SimpleWindow2D.create()\
     .connect(renderer)\
+    .connect(widget)\
     .run()
 @endcode
 
+@image html images/tutorials/ultrasound/read_uff_data.jpg width=512px;
+
 The UFFStreamer will scan convert the images by default, by you can disable this by setting doScanConversion=False in the create method.
-You can also set the gain and dynamic range if the data is stored in dB instead of uint8 (0-255).
+You can also set the gain and dynamic range if the data is stored in dB instead of grayscale units uint8 (0-255).
 @code{.py}
 import fast
 
@@ -228,8 +243,9 @@ streamer = fast.UFFStreamer.create(
     fast.Config.getTestDataPath() + "US/UFF/P4_2_PLAX.uff",
     framerate=5,
     loop=True,
-    doScanConversion=False,
-    gain=10,
+    doScanConversion=False, # Turn off scan conversion to get beamspace data
+    convertToGrayscale=True, # Convert dB data to grayscale using the gain and dynamic range below
+    gain=0,
     dynamicRange=60,
 )
 
@@ -239,11 +255,13 @@ renderer = fast.ImageRenderer.create()\
 widget = fast.PlaybackWidget(streamer)
 fast.SimpleWindow2D.create()\
     .connect(renderer)\
+    .connect(widget)\
     .run()
 @endcode
 
-Scan conversion
------------------------
+@image html images/tutorials/ultrasound/read_uff_data_beamspace.jpg width=512px;
+
+### Scan conversion
 
 Use the ScanConverter to do scan conversion of beamspace data on the GPU.
 You can specify the size of the output image (width, height).
@@ -280,8 +298,10 @@ plt.imshow(np.asarray(scan_convert.runAndGetOutputData())[..., 0], cmap='gray')
 plt.show()
 @endcode
 
-Envelope detection and log compression
------------------------
+@image html images/tutorials/ultrasound/scan_convert.jpg width=400px;
+
+### Envelope detection and log compression
+
 FAST has some simple implementations of envelope detection and log compression running on the GPU.
 Here is example of how to do envelope detection, log compression and scan conversion on some IQ data:
 @code{.py}
@@ -317,8 +337,16 @@ plt.imshow(np.asarray(scan_convert.runAndGetOutputData())[..., 0], cmap='gray')
 plt.show()
 @endcode
 
-Real-time image streaming from scanner using OpenIGTLink
--------------------------------
+@image html images/tutorials/ultrasound/scan_convert.jpg width=400px;
+
+Real-time streaming from ultrasound scanner
+--------------------------------------
+
+### OpenIGTLink
+
+[OpenIGTLink](http://openigtlink.org/) is an open protocol for transferring image, tracking and other data to and from
+medical imaging devices in real-time.
+Here is an example of how to use the OpenIGTLinkStreamer in FAST to stream image data and visualize it in real-time:
 @code{.py}
 import fast
 
@@ -332,12 +360,24 @@ fast.SimpleWindow2D.create()\
     .run()
 @endcode
 
-Real-time image streaming from Clarius scanner
--------------------------------
+### Clarius
+FAST is bundled with the [Clarius Cast API](https://github.com/clariusdev/cast) which enables you to stream image data
+from the handheld ultrasound scanners from [Claruis](https://www.clarius.com). Note that you need a specific license from
+Clarius to enable real-time streaming.
+
+In the clarius app, make sure you have selected "Research (5828)" under Clarius Cast in settings.
+This will fix the streaming port to 5828.
+After this is done, connect to the clarius probe's WiFi access point with your machine running FAST.
+You should then be able to use the ClariusStreamer in FAST as shown in the example below.
+The password for the access point is added to the clipboard on your mobile device when connecting using the device.
+
+**Note for Windows:** The windows firewall will block the images sent from the Clarius scanner.
+Thus you need to disable the windows firewall or add an exception in the firewall.
+
 @code{.py}
 import fast
 
-streamer = fast.ClariusStreamer.create("192.168.1.1", 5858)
+streamer = fast.ClariusStreamer.create("192.168.1.1", 5828)
 
 renderer = fast.ImageRenderer.create()\
     .connect(streamer)
@@ -347,32 +387,444 @@ fast.SimpleWindow2D.create()\
     .run()
 @endcode
 
-Automatic ultrasound sector cropping
--------------------------------
+Ultrasound image processing
+--------------------------------
 
-Applying colormaps
--------------------------------
+### Noise removal / De-noising / De-speckling
 
-Applying a custom method to a stream of ultrasound images
--------------------------------
+FAST has an implementation of a Non Local Means filter which can remove noise and smooth speckle while preserving edges
+of ultrasound images on the GPU. The Non Local Means filter has several parameters which you can tune to get the look
+you want.
 
-Block matching speckle tracking
--------------------------------
+In this example, we use the DualViewWindow2D to show the original ultrasound image on the left side, and the processed image on the right:
+@code{.py}
+import fast
 
-Neural network segmentation of an ultrasound image stream
--------------------------------
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd',
+    framerate=2,
+    loop=True
+)
 
-Neural network image classification of an ultrasound image stream
--------------------------------
+nlm = fast.NonLocalMeans.create(
+        filterSize=3, # Increasing this makes it slower
+        searchSize=11, # Increasing this makes it slower
+        smoothingAmount=0.2,
+        inputMultiplicationWeight=0.5,
+).connect(streamer)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+rendererNLM = fast.ImageRenderer.create()\
+    .connect(nlm)
+
+widget = fast.PlaybackWidget(streamer)
+fast.DualViewWindow2D.create(width=1024, height=512)\
+    .connectLeft(renderer)\
+    .connectRight(rendererNLM)\
+    .connect(widget)\
+    .run()
+@endcode
+
+@image html images/tutorials/ultrasound/nlm_denoising.jpg
+
+### Automatic ultrasound sector cropping
+
+Sometimes ultrasound images are stored or streamed with padding around the image, or it can include text and the scanner GUI around the image.
+The UltrasoundImageCropper tries to extract the ultrasound image from the entire scanner GUI image using two thresholds.
+It does this by counting the number of non-zero pixels in every row and column of the image.
+This works best on linear array images.
+
+The UltrasoundImageCropper has some parameters which you can try to tune to get the best result.
+
+@code{.py}
+import fast
+
+streamer = fast.MovieStreamer\
+    .create(fast.Config.getTestDataPath() + "/US/sagittal_spine.avi")
+
+cropper = fast.UltrasoundImageCropper.create(
+    staticCropping=False, # Estimate cropping on first frame only or not
+    thresholdVertical=30,
+    thresholdHorizontal=10,
+).connect(streamer)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+renderer2 = fast.ImageRenderer.create()\
+    .connect(cropper)
+
+fast.DualViewWindow2D.create()\
+    .connectLeft(renderer)\
+    .connectRight(renderer2)\
+    .run()
+@endcode
+
+### Applying colormaps
+
+Ultrasound image data is often displayed using a predefined colormap.
+You can create your own color or grayscale colormap using the Colormap object, and then apply it in a FAST pipeline
+using the ApplyColormap process object.
+
+Here is an example of applying a built-in ultrasound colormap which applies and S-curve colormap with a hint of blue.
+The result is compared to the original using the DualViewWindow:
+@code{.py}
+import fast
+
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd',
+    loop=True,
+    framerate=20
+)
+
+# Use a predefined S-curve ultrasound colormap
+colormap = fast.Colormap.Ultrasound()
+
+apply = fast.ApplyColormap.create(colormap)\
+    .connect(streamer)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+rendererColormap = fast.ImageRenderer.create()\
+    .connect(apply)
+
+fast.DualViewWindow2D.create(width=1024, height=512)\
+    .connectLeft(renderer)\
+    .connectRight(rendererColormap)\
+    .run()
+@endcode
+
+@image html images/tutorials/ultrasound/colormap.jpg
+
+You can create your own custom colormaps from a list of floats:
+@code{.py}
+import fast
+
+# Create colormap from a list of floating point numbers
+# The floats must be intensity_source1, intensity_output1, intensity_source2, intensity_output2, ... N if you
+# have a grayscale colormap.
+# If you have a RGB colormap it should be: intensity_source1, red1, green1, blue1, intensity_source2, red2, green2, blue2, .... N
+# Grayscale:
+colormap = fast.Colormap([0, 0, 100, 50, 200, 180, 255, 255], True)
+# Color:
+colormap = fast.Colormap([0, 0, 0, 0, 100, 50, 50, 50, 200, 180, 180, 180, 255, 255, 255, 255], False)
+# Without interpolation, set last argument to False
+colormap = fast.Colormap([0, 0, 100, 50, 200, 180, 255, 255], True, False)
+@endcode
+
+### Applying a custom method to a stream of ultrasound images
+
+You can inject any Python code into a FAST processing pipeline by extending the PythonProcessObject class,
+and injecting it into your processing pipeline.
+Here is a complete example on how where we create a custom process object which inverts the ultrasound image
+using numpy and writes a text on the image if you have OpenCV installed.
+
+@code{.py}
+import fast
+import numpy as np
+
+# Check if OpenCV is available
+use_opencv = False
+try:
+    import cv2
+    use_opencv = True
+except ImportError:
+    pass
+
+
+""" Make a python process object which simply inverts image with numpy """
+class Inverter(fast.PythonProcessObject):
+    def __init__(self):
+        super().__init__()
+        self.createInputPort(0)
+        self.createOutputPort(0)
+
+    def execute(self):
+        # Get image and invert it with numpy
+        image = self.getInputData()
+        np_image = np.asarray(image)
+        np_image = 255 - np_image # invert
+
+        # If OpenCV is available, add some text using OpenCV
+        if use_opencv:
+            cv2.putText(np_image, 'OpenCV!', (40, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+
+        # Create new fast image and add as output
+        new_output_image = fast.Image.createFromArray(np_image)
+        new_output_image.setSpacing(image.getSpacing())
+        self.addOutputData(0, new_output_image)
+
+
+# Set up pipeline as normal
+importer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd',
+    loop=True,
+    framerate=40,
+)
+
+inverter = Inverter.create()\
+    .connect(importer)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(inverter)
+
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
+@endcode
+
+@image html images/tutorials/ultrasound/python_process_object.jpg width=400px;
+
+### Block matching speckle tracking
+
+Block matching is a common method for speckle tracking in ultrasound data.
+FAST has a GPU implementation of block matching using different matching metrics such as sum of absolute differences,
+sum of squared differences, and normalized cross-correlation.
+
+@code{.py}
+import fast
+import matplotlib.pyplot as plt
+import numpy as np
+
+visualize_with_matplotlib = True    # Switch between using FAST and matplotlib for visualization
+
+streamer = fast.ImageFileStreamer.create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
+
+blockMatching = fast.BlockMatching.create(
+        blockSize=13,
+        searchSize=11,
+        metric=fast.MatchingMetric_SUM_OF_ABSOLUTE_DIFFERENCES,
+        timeLag=1,
+        forwardBackwardTracking=False,
+).connect(streamer)
+blockMatching.setIntensityThreshold(75)
+
+if visualize_with_matplotlib:
+    frame_nr = 0
+    for fast_image, vectorField in fast.DataStream(streamer, blockMatching):
+        spacing = fast_image.getSpacing()
+        image = np.asarray(fast_image)
+        vectorField = np.asarray(vectorField)
+
+        if frame_nr > 0: # Skip first frame
+            plt.imshow(image[..., 0], cmap='gray', aspect=spacing[1]/spacing[0])
+            # Show a downsampled vector field
+            step = 8
+            Y, X = np.mgrid[0:image.shape[0]:step, 0:image.shape[1]:step]
+            plt.quiver(X, Y, vectorField[::step, ::step, 0], vectorField[::step, ::step, 1], color='r', scale=step*10)
+            plt.show()
+
+        frame_nr += 1
+
+        if fast_image.isLastFrame():
+            break
+
+else:
+    imageRenderer = fast.ImageRenderer.create().connect(streamer)
+    vectorRenderer = fast.VectorFieldColorRenderer.create().connect(blockMatching)
+    fast.SimpleWindow2D.create()\
+        .connect(imageRenderer)\
+        .connect(vectorRenderer)\
+        .run()
+@endcode
+
+@image html images/examples/python/block_matching_tracking.jpg width=400px;
+
+### Neural network segmentation of an ultrasound image stream
+
+You can use the SegmentationNetwork utility class to do image segmentation on
+a stream of ultrasound images as shown in the following example:
+
+@code{.py}
+import fast
+
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/JugularVein/US-2D_#.mhd',
+    loop=True
+)
+
+segmentationNetwork = fast.SegmentationNetwork.create(
+    fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_vein_segmentation.onnx',
+    scaleFactor=1./255.
+).connect(streamer)
+
+imageRenderer = fast.ImageRenderer.create().connect(streamer)
+
+segmentationRenderer = fast.SegmentationRenderer.create(
+    opacity=0.25,
+    colors={1: fast.Color.Red(), 2: fast.Color.Blue()},
+).connect(segmentationNetwork)
+
+labelRenderer = fast.SegmentationLabelRenderer.create(
+        labelNames={1: 'Artery', 2: 'Vein'},
+        labelColors={1: fast.Color.Red(), 2: fast.Color.Blue()},
+).connect(segmentationNetwork)
+
+widget = fast.PlaybackWidget(streamer)
+
+fast.SimpleWindow2D.create(bgcolor=fast.Color.Black())\
+    .connect([imageRenderer, segmentationRenderer, labelRenderer])\
+    .connect(widget)\
+    .run()
+@endcode
+
+@image html images/tutorials/ultrasound/neural_network_segmentation.jpg
+
+### Neural network image classification of an ultrasound image stream
+
+You can use the ImageClassificationNetwork utility class to do image classification on
+a stream of ultrasound images. The output of this process object is ImageClassification data,
+which you can convert to text data and display with the TextRenderer as in the following example:
+
+@code{.py}
+import fast
+
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/JugularVein/US-2D_#.mhd',
+    loop=True
+)
+
+classificationNetwork = fast.ImageClassificationNetwork.create(
+    'classification_model.onnx'
+    labels=['Label 1', 'Label 2', 'Label 3'], # Supply the name of each output class
+    scaleFactor=1./255.
+).connect(streamer)
+
+toText = fast.ClassificationToText.create()\
+    .connect(classificationNetwork)
+
+imageRenderer = fast.ImageRenderer.create()\
+    .connect(streamer)
+
+textRenderer = fast.TextRenderer.create()\
+    .connect(toText)
+
+widget = fast.PlaybackWidget(streamer)
+
+fast.SimpleWindow2D.create(bgcolor=fast.Color.Black())\
+    .connect([imageRenderer, textRenderer])\
+    .connect(widget)\
+    .run()
+@endcode
 
 Export visualization to video
 -------------------------------
 
-Denoise ultrasound image using Non Local Means
--------------------------------
+FAST visualizations can be converted to images using the RenderToImage process object which you then can save.
+Here is an example of using RenderToImage to save the visualization of a neural network segmentation pipeline of every frame
+in an ultrasound recording to a video file using imageio.
 
-GUI
--------------------------------
+@code{.py}
+import fast
+import imageio
+
+# Set up processing pipeline
+streamer = fast.ImageFileStreamer.create(
+    fast.Config.getTestDataPath() + 'US/JugularVein/US-2D_#.mhd',
+    loop=False
+)
+
+segmentationNetwork = fast.SegmentationNetwork.create(
+    fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_vein_segmentation.onnx',
+    scaleFactor=1./255.,
+    inferenceEngine='OpenVINO'
+).connect(streamer)
+
+# Set up rendering
+imageRenderer = fast.ImageRenderer.create().connect(streamer)
+
+segmentationRenderer = fast.SegmentationRenderer.create(
+    opacity=0.25,
+    colors={1: fast.Color.Red(), 2: fast.Color.Blue()},
+).connect(segmentationNetwork)
+
+labelRenderer = fast.SegmentationLabelRenderer.create(
+        labelNames={1: 'Artery', 2: 'Vein'},
+        labelColors={1: fast.Color.Red(), 2: fast.Color.Blue()},
+).connect(segmentationNetwork)
+
+# Render to image
+renderToImage = fast.RenderToImage.create(bgcolor=fast.Color.Black())\
+        .connect([imageRenderer, segmentationRenderer, labelRenderer])
+
+# Collect all image frames
+frames = []
+for image in fast.DataStream(renderToImage):
+    frames.append(image)
+    print(len(frames))
+
+# Save frames as video
+imageio.mimsave('segmentation_video.mp4', frames, fps=20)
+@endcode
+
+@image html images/tutorials/ultrasound/export_visualization_to_video_vlc.jpg
+
+Changing pipeline parameters using a simple GUI
+------------------
+FAST provides some simple GUI widgets which can be connected to process objects and added to the window.
+This enables you to change parameters in the GUI and see the effects in real-time with just one line of code.
+
+Here is an example were we added a SliderWidget to control the smoothing amount of the Non Local Means noise removal filter.
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+
+nlm = fast.NonLocalMeans.create(
+        filterSize=3, # Increasing this makes it slower
+        searchSize=11, # Increasing this makes it slower
+        smoothingAmount=0.2,
+        inputMultiplicationWeight=0.5,
+).connect(importer)
+
+rendererNLM = fast.ImageRenderer.create()\
+    .connect(nlm)
+
+sliderWidget = fast.SliderWidget('Smoothing', 0.2, 0.05, 0.8, 0.05, fast.SliderCallback(lambda x: nlm.setSmoothingAmount(x)))
+fast.SimpleWindow2D.create()\
+    .connect(rendererNLM)\
+    .connect(sliderWidget)\
+    .run()
+@endcode
+
+@image html images/tutorials/ultrasound/simple_gui.jpg width=400px;
+
+Here is an example with more widgets to control the Non Local Means filter, including a button to toggle the filter on and off
+by disabling the renderer.
+@code{.py}
+import fast
+
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+
+nlm = fast.NonLocalMeans.create(
+        filterSize=3, # Increasing this makes it slower
+        searchSize=11, # Increasing this makes it slower
+        smoothingAmount=0.2,
+        inputMultiplicationWeight=0.5,
+).connect(importer)
+
+renderer = fast.ImageRenderer.create()\
+    .connect(importer)
+
+rendererNLM = fast.ImageRenderer.create()\
+    .connect(nlm)
+
+sliderWidget = fast.SliderWidget('Smoothing', 0.2, 0.05, 0.8, 0.05, fast.SliderCallback(lambda x: nlm.setSmoothingAmount(x)))
+filterWidget = fast.SliderWidget('Filter size', 3, 3, 19, 2, fast.SliderCallback(lambda x: nlm.setFilterSize(int(x))))
+searchWidget = fast.SliderWidget('Search size', 11, 3, 19, 2, fast.SliderCallback(lambda x: nlm.setSearchSize(int(x))))
+inputWidget = fast.SliderWidget('Input multiplication weight', 0.5, 0.0, 1.0, 0.05, fast.SliderCallback(lambda x: nlm.setInputMultiplicationWeight(x)))
+toggleButton = fast.ButtonWidget('Toggle ON/OFF', True, fast.ButtonCallback(lambda x: rendererNLM.setDisabled(x)))
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .connect(rendererNLM)\
+    .connect([sliderWidget, filterWidget, searchWidget, inputWidget, toggleButton], fast.WidgetPosition_RIGHT)\
+    .run()
+@endcode
+
+@image html images/tutorials/ultrasound/simple_gui2.jpg
 
 Next steps
 ---------------------

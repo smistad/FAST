@@ -97,8 +97,9 @@ nlm = fast.NonLocalMeans.create().connect(importer)
 renderer = fast.ImageRenderer.create().connect(nlm)
 
 # Create a window, add the renderer and start the computation/rendering loop.
-window = fast.SimpleWindow2D.create().connect(renderer)
-window.run()
+fast.SimpleWindow2D.create()\
+    .connect(renderer)\
+    .run()
 @endcode
 
 The results should look like this:
