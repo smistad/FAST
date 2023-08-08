@@ -26,3 +26,20 @@ __kernel void normalizeEnvelope(
 
     write_imagef(output, pos, read_imagef(input, sampler, pos).x - maxdB);
 }
+
+__kernel void normalizeEnvelopeToGrayscale(
+        __read_only image2d_t input,
+        __write_only image2d_t output,
+        __private float maxdB,
+        __private float gain,
+        __private float dynamicRange
+    ) {
+    const int2 pos = {get_global_id(0), get_global_id(1)};
+
+    float dBPixel = read_imagef(input, sampler, pos).x - maxdB;
+    float img_sc_reject = dBPixel + gain;
+    img_sc_reject = (img_sc_reject < -dynamicRange) ? -dynamicRange : img_sc_reject; //Reject everything below dynamic range
+    img_sc_reject = (img_sc_reject > 0) ? 0 : img_sc_reject; // Everything above 0 dB should be saturated
+    uchar img_gray_scale = round(255*(img_sc_reject+dynamicRange)/dynamicRange);
+    write_imageui(output, pos, img_gray_scale);
+}

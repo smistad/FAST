@@ -8,7 +8,7 @@ namespace fast {
  * @brief Automatic cropping of an ultrasound scanner image
  *
  * When streaming or storing images/video on ultrasound scanner, the menu and a lot of information around the actual
- * ultrasound image is included.
+ * ultrasound image is often included.
  * This algorithm tries to extract the ultrasound image from the entire scanner GUI image using two thresholds.
  * It does this by counting the number of non-zero pixels in every row and column of the image.
  * Works best on linear array images.

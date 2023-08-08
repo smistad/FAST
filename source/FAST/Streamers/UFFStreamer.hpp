@@ -43,6 +43,8 @@ class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
          * @param scanConversionWidth Width of scan converted image
          * @param scanConversionHeight Height of scan converted image
          * @param doScanConversion Whether to perform scan conversion or not
+         * @param toGrayscale Whether to convert from dB to grayscale using the gain and dynamicRange if scan conversion is OFF.
+         *      When scan conversion is ON, the image is always converted to grayscale.
          * @return instance
          */
         FAST_CONSTRUCTOR(UFFStreamer,
@@ -53,7 +55,8 @@ class FAST_EXPORT UFFStreamer : public RandomAccessStreamer {
              float, dynamicRange, = 60,
              int, scanConversionWidth, = 1024,
              int, scanConversionHeight, = 1024,
-             bool, doScanConversion, = true
+             bool, doScanConversion, = true,
+             bool, convertToGrayscale, = true
         );
         void setFilename(std::string filename);
         void setGain(float gain);

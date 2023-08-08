@@ -392,8 +392,8 @@ UFFStreamer::UFFStreamer() {
 	createBooleanAttribute("loop", "Loop", "Loop recordin", false);
 }
 
-UFFStreamer::UFFStreamer(std::string filename, bool loop, uint framerate, float gain, float dynamicRange, int width, int height, bool scanConvert) {
-    m_envelopeAndLogCompressor = EnvelopeAndLogCompressor::create();
+UFFStreamer::UFFStreamer(std::string filename, bool loop, uint framerate, float gain, float dynamicRange, int width, int height, bool scanConvert, bool convertToGrayscale) {
+    m_envelopeAndLogCompressor = EnvelopeAndLogCompressor::create(convertToGrayscale, gain, dynamicRange);
     m_scanConverter = ScanConverter::create(width, height)
             ->connect(m_envelopeAndLogCompressor);
     createOutputPort(0, "Image");
@@ -535,11 +535,13 @@ int UFFStreamer::getNrOfFrames() {
 }
 
 void UFFStreamer::setGain(float gain) {
+    m_envelopeAndLogCompressor->setGain(gain);
     m_scanConverter->setGain(gain);
     setModified(true);
 }
 
 void UFFStreamer::setDynamicRange(float dynamicRange) {
+    m_envelopeAndLogCompressor->setDynamicRange(dynamicRange);
     m_scanConverter->setDynamicRange(dynamicRange);
     setModified(true);
 }
