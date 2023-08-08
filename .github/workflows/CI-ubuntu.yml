@@ -26,20 +26,6 @@ jobs:
       image: ubuntu:18.04
 
     steps:
-    - name: Install dependencies (sudo)
-      run: |
-        apt update && apt install -y sudo
-    - name: Free Up GitHub Actions Ubuntu Runner Disk Space
-      uses: jlumbroso/free-disk-space@main
-      with:
-        # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
-        tool-cache: true
-
-        # All of these default to true, but feel free to set to "false" if necessary for your workflow
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
     - name: Check free space
       run: |
         df -h
@@ -48,6 +34,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        apt update && apt install -y sudo
         mkdir -p ${{github.workspace}}/artifacts
         # Get a newer version of cmake
         sudo apt install -y gpg wget software-properties-common lsb-release ca-certificates
@@ -99,7 +86,10 @@ jobs:
     - name: Free some space
       run: |
         df -h
-        rm -Rf ${{github.workspace}}/build/external/tensorflow/src/tensorflow/
+        rm -Rf build/external/tensorflow/src/tensorflow/
+        rm -Rf build/external/openvino/src/openvino/
+        rm -Rf build/external/qt5/src/qt5/
+        rm -Rf build/external/clarius/src/clarius/
         df -h
 
     - name: Build Python wheel
