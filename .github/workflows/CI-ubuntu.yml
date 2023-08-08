@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Install dependencies
       run: |
         apt update && apt install -y sudo
@@ -77,8 +77,13 @@ jobs:
             -DFAST_BUILD_EXAMPLES=ON
 
     - name: Build
-      # Build your program with the given configuration
       run: cmake --build build --config ${{env.BUILD_TYPE}} -j 4
+
+    - name: Free some space
+      run: |
+        df -h
+        rm -Rf ${{github.workspace}}/build/external/tensorflow/src/tensorflow/
+        df -h
 
     - name: Build Python wheel
       run: |
