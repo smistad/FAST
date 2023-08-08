@@ -26,6 +26,9 @@ jobs:
       image: ubuntu:18.04
 
     steps:
+    - name: Install dependencies (sudo)
+      run: |
+        apt update && apt install -y sudo
     - name: Maximize build space
       uses: easimon/maximize-build-space@master
       with:
@@ -41,7 +44,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        apt update && apt install -y sudo
         mkdir -p ${{github.workspace}}/artifacts
         # Get a newer version of cmake
         sudo apt install -y gpg wget software-properties-common lsb-release ca-certificates
