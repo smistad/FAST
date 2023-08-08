@@ -729,8 +729,7 @@ streamer = fast.ImageFileStreamer.create(
 
 segmentationNetwork = fast.SegmentationNetwork.create(
     fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_vein_segmentation.onnx',
-    scaleFactor=1./255.,
-    inferenceEngine='OpenVINO'
+    scaleFactor=1./255.
 ).connect(streamer)
 
 # Set up rendering

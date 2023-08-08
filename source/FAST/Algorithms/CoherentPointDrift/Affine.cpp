@@ -25,13 +25,10 @@ namespace fast {
 
     void CoherentPointDriftAffine::maximization(Eigen::MatrixXf &fixedPoints, Eigen::MatrixXf &movingPoints) {
 
-        double startM = omp_get_wtime();
-
         // Define some useful matrix sums
         mPt1 = mResponsibilityMatrix.transpose().rowwise().sum();      // mNumFixedPoints x 1
         mP1 = mResponsibilityMatrix.rowwise().sum();                   // mNumMovingPoints x 1
         mNp = mPt1.sum();                                           // 1 (sum of all P elements)
-        double timeEndMUseful = omp_get_wtime();
 
         // Estimate new mean vectors
         MatrixXf fixedMean = fixedPoints.transpose() * mPt1 / mNp;
@@ -40,7 +37,6 @@ namespace fast {
         // Center point sets around estimated mean
         MatrixXf fixedPointsCentered = fixedPoints - fixedMean.transpose().replicate(mNumFixedPoints, 1);
         MatrixXf movingPointsCentered = movingPoints - movingMean.transpose().replicate(mNumMovingPoints, 1);
-        double timeEndMCenter = omp_get_wtime();
 
         /* **********************************************************
          * Find transformation parameters: affine matrix, translation
@@ -61,7 +57,6 @@ namespace fast {
             mVariance = 10.0 * std::numeric_limits<double>::epsilon();
             mRegistrationConverged = true;
         }
-        double timeEndMParameters = omp_get_wtime();
 
 
         /* ****************
@@ -94,13 +89,6 @@ namespace fast {
                 + (mNp * mNumDimensions)/2 * log(mVariance);
         mIterationError = std::fabs( (mObjectiveFunction - objectiveFunctionOld) / objectiveFunctionOld);
         mRegistrationConverged =  mIterationError <= mTolerance;
-
-        double endM = omp_get_wtime();
-        timeM += endM - startM;
-        timeMUseful += timeEndMUseful - startM;
-        timeMCenter += timeEndMCenter - timeEndMUseful;
-        timeMParameters += timeEndMParameters - timeEndMCenter;
-        timeMUpdate += endM - timeEndMParameters;
     }
 
 }

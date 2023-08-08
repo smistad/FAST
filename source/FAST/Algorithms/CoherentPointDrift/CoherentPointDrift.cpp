@@ -92,8 +92,6 @@ namespace fast {
 
     void CoherentPointDrift::expectation(MatrixXf& fixedPoints, MatrixXf& movingPoints) {
 
-        double timeStartE = omp_get_wtime();
-
         /* **********************************************************************************
          * Calculate distances between the points in the two point sets
          * Let row i in P equal the squared distances from all fixed points to moving point i
@@ -121,26 +119,15 @@ namespace fast {
                 mResponsibilityMatrix(row, col) = exp(norm / (-2.0 * mVariance));
             }
         }
-        double timeEndFirstLoop = omp_get_wtime();
 
 #pragma omp parallel for
         for (int col = 0; col < mNumFixedPoints; ++col) {
             float denom = mResponsibilityMatrix.col(col).sum() + c;
             mResponsibilityMatrix.col(col) /= max(denom, Eigen::NumTraits<float>::epsilon() );
         }
-
-        // Update computation times
-        double timeEndE = omp_get_wtime();
-        timeEDistances += 0.0;
-        timeENormal += timeEndFirstLoop - timeStartE;
-        timeEPosterior += 0.0;
-        timeEPosteriorDivision += timeEndE - timeEndFirstLoop;
-        timeE += timeEndE - timeStartE;
     }
 
     void CoherentPointDrift::execute() {
-
-        double timeStart = omp_get_wtime();
 
         // Store the point sets in matrices and store their dimensions
         initializePointSets();
@@ -161,37 +148,12 @@ namespace fast {
         /* *************************
          * Get some points drifting!
          * ************************/
-        double timeStartEM = omp_get_wtime();
-
         while (mIteration < mMaxIterations && !mRegistrationConverged) {
 //            std::cout << "ITERATION " << (int) mIteration << std::endl;
             expectation(mFixedPoints, mMovingPoints);
             maximization(mFixedPoints, mMovingPoints);
             mIteration++;
         }
-
-
-        /* *****************
-         * Computation times
-         * ****************/
-        double timeEndEM = omp_get_wtime();
-        double timeTotalEM = timeEndEM - timeStartEM;
-
-        std::cout << "\nCOMPUTATION TIMES:\n";
-        std::cout << "Initialization of point sets and normalization: " << timeStartEM-timeStart << " s.\n";
-        std::cout << "EM converged in " << mIteration-1 << " iterations in " << timeTotalEM << " s.\n";
-        std::cout << "Time spent on expectation: " << timeE << " s\n";
-        std::cout << "      - Calculating distances between points: " << timeEDistances << " s.\n";
-        std::cout << "      - Normal distribution: " << timeENormal << " s.\n";
-        std::cout << "      - Create denominator, no zero-elements: " << timeEPosterior << " s.\n";
-        std::cout << "      - Posterior GMM probabilities, division: " << timeEPosteriorDivision << " s.\n";
-        std::cout << "Time spent on maximization: " << timeM << " s\n";
-        std::cout << "      - Calculating P1, Pt1, Np: " << timeMUseful << " s.\n";
-        std::cout << "      - Centering point clouds: " << timeMCenter << " s.\n";
-        std::cout << "      - SVD: " << timeMSVD << " s.\n";
-        std::cout << "      - Calculation transformation parameters: " << timeMParameters << " s.\n";
-        std::cout << "      - Updating transformation and error: " << timeMUpdate << " s.\n";
-
 
         /* ***********************************************
          * Denormalize and set total transformation matrix

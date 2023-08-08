@@ -27,8 +27,6 @@ namespace fast {
     }
 
     void CoherentPointDriftRigid::maximization(MatrixXf& fixedPoints, MatrixXf& movingPoints) {
-        double startM = omp_get_wtime();
-
         // Calculate some useful matrix reductions
         mP1 = VectorXf::Zero(mNumMovingPoints);
         #pragma omp parallel for
@@ -46,7 +44,6 @@ namespace fast {
             mP1 += mP1Local;
         }
         mNp = mPt1.sum();                                           // 1 (sum of all P elements)
-        double timeEndMUseful = omp_get_wtime();
 
         // Estimate new mean vectors
         MatrixXf fixedMean = fixedPoints.transpose() * mPt1 / mNp;
@@ -56,7 +53,6 @@ namespace fast {
         MatrixXf fixedPointsCentered = fixedPoints - fixedMean.transpose().replicate(mNumFixedPoints, 1);
         MatrixXf movingPointsCentered = movingPoints - movingMean.transpose().replicate(mNumMovingPoints, 1);
 
-        double timeEndMCenter = omp_get_wtime();
 
 
         // Single value decomposition (SVD)
@@ -70,7 +66,6 @@ namespace fast {
         Eigen::RowVectorXf C = Eigen::RowVectorXf::Ones(mNumDimensions);
         C[mNumDimensions-1] = UVt.determinant();
 
-        double timeEndMSVD = omp_get_wtime();
 
         /* ************************************************************
          * Find transformation parameters: rotation, scale, translation
@@ -93,7 +88,6 @@ namespace fast {
             mVariance = 10.0 * std::numeric_limits<double>::epsilon();
             mRegistrationConverged = true;
         }
-        double timeEndMParameters = omp_get_wtime();
 
         /* ****************
          * Update transform
@@ -127,15 +121,6 @@ namespace fast {
                 + (mNp * mNumDimensions)/2 * log(mVariance);
         mIterationError = std::fabs( (mObjectiveFunction - objectiveFunctionOld) / objectiveFunctionOld);
         mRegistrationConverged =  mIterationError <= mTolerance;
-
-
-        double endM = omp_get_wtime();
-        timeM += endM - startM;
-        timeMUseful += timeEndMUseful - startM;
-        timeMCenter += timeEndMCenter - timeEndMUseful;
-        timeMSVD += timeEndMSVD - timeEndMCenter;
-        timeMParameters += timeEndMParameters - timeEndMSVD;
-        timeMUpdate += endM - timeEndMParameters;
     }
 
 
