@@ -26,13 +26,6 @@ jobs:
       image: ubuntu:18.04
 
     steps:
-    - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 512
-          swap-size-mb: 1024
-          remove-dotnet: 'true'
-          remove-android: 'true'
     - name: Check free space
       run: |
         df -h
@@ -93,12 +86,21 @@ jobs:
     - name: Free some space
       run: |
         df -h
-        rm -Rf ${{github.workspace}}/build/external/tensorflow/src/tensorflow/
+        rm -Rf build/external/tensorflow/src/tensorflow/
+        rm -Rf build/external/openvino/src/openvino/
+        rm -Rf build/external/qt5/src/qt5/
+        rm -Rf build/external/clarius/src/clarius/
         df -h
 
     - name: Build Python wheel
       run: |
         cmake --build build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
+
+    - name: Free some space
+      run: |
+        df -h
+        rm -Rf build/python/
+        df -h
 
     - name: Package
       run: |
