@@ -1369,7 +1369,7 @@ Image::~Image() {
     freeAll();
 }
 
-OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, OpenCLDevice::pointer device, bool compress) {
+OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, OpenCLDevice::pointer device, bool compress, bool getOwnership) {
 #ifdef FAST_MODULE_VISUALIZATION
     if(type == ACCESS_READ_WRITE)
         throw Exception("Read-only access to OpenGL texture for now");
@@ -1380,6 +1380,7 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
         std::lock_guard<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
+    uint textureID = 0;
     if(!m_GLtextureUpToDate) {
         std::map<int, std::vector<GLint>> mChannelsToSwizzle = {
                 {1, {GL_RED, GL_RED, GL_RED, GL_ONE}},
@@ -1465,8 +1466,8 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
         GLint* swizzleMask = mChannelsToSwizzle[mChannels].data();
 
         // Create OpenGl texture
-        glGenTextures(1, &m_GLtextureID);
-        glBindTexture(GL_TEXTURE_2D, m_GLtextureID);
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
@@ -1488,7 +1489,7 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
                         CL_MEM_READ_WRITE,
                         GL_TEXTURE_2D,
                         0,
-                        m_GLtextureID
+                        textureID
                 );
 
                 // Copy OpenCL image to the texture
@@ -1510,10 +1511,20 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
             glFinish();
         }
         glBindTexture(GL_TEXTURE_2D, 0);
-        m_GLtextureUpToDate = true;
+        if(!getOwnership) {
+            // This Image object will own this texture, so we need to keep a record of it
+            m_GLtextureID = textureID;
+            m_GLtextureUpToDate = true;
+        }
+    } else {
+        textureID = m_GLtextureID;
+        if(getOwnership) {
+            m_GLtextureID = 0;
+            m_GLtextureUpToDate = false;
+        }
     }
 
-    return std::make_unique<OpenGLTextureAccess>(m_GLtextureID, std::dynamic_pointer_cast<Image>(mPtr.lock()));
+    return std::make_unique<OpenGLTextureAccess>(textureID, std::dynamic_pointer_cast<Image>(mPtr.lock()));
 #else
     throw Exception("Image::getOpenGLTextureAccess() is only available when FAST is built with visualization/Qt");
 #endif

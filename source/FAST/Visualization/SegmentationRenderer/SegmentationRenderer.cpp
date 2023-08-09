@@ -208,7 +208,7 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
                         m_input->clearDirtyPatches({tileID}); // Have to clear this here to avoid clearing a dirty patch prematurely
                         patch = access->getPatchAsImage(level, tile_x, tile_y);
                     }
-                    auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, true);
+                    auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, true, true);
                     GLuint textureID = patchAccess->get();
 
                     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -338,7 +338,7 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
         const int mTilesY = m_input->getLevelTilesY(level);
         const int tileWidth = m_input->getLevelTileWidth(level);
         const int tileHeight = m_input->getLevelTileHeight(level);
-        const float mCurrentTileScale = (float)fullWidth/levelWidth;
+        const float mCurrentTileScale = m_input->getLevelScale(level);
 
         for(int tile_x = 0; tile_x < mTilesX; ++tile_x) {
             for(int tile_y = 0; tile_y < mTilesY; ++tile_y) {
