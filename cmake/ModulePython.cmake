@@ -71,6 +71,7 @@ if(FAST_MODULE_Python)
     endif()
     set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
     set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+    set_target_properties(_fast PROPERTIES EXCLUDE_FROM_ALL TRUE)
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
     target_include_directories(_fast PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
