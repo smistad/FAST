@@ -56,6 +56,15 @@ PatchGenerator::~PatchGenerator() {
     stop();
 }
 
+template <typename T>
+std::string to_string_with_precision(const T a_value, const int n = 6)
+{
+    std::ostringstream out;
+    out.precision(n);
+    out << std::fixed << a_value;
+    return std::move(out).str();
+}
+
 void PatchGenerator::generateStream() {
     try {
         Image::pointer previousPatch;
@@ -175,8 +184,10 @@ void PatchGenerator::generateStream() {
                     patch->setFrameData("patch-height", std::to_string(m_height));
                     patch->setFrameData("patch-overlap-x", std::to_string(overlapInPixelsX));
                     patch->setFrameData("patch-overlap-y", std::to_string(overlapInPixelsY));
-                    patch->setFrameData("patch-spacing-x", std::to_string(patch->getSpacing().x()));
-                    patch->setFrameData("patch-spacing-y", std::to_string(patch->getSpacing().y()));
+                    // Image patch spacing of a WSI can be very small, and std::to_string can round the numbers,
+                    // and there is no way to set the precision, so we use a custom function instead.
+                    patch->setFrameData("patch-spacing-x", to_string_with_precision(patch->getSpacing().x(), 32));
+                    patch->setFrameData("patch-spacing-y", to_string_with_precision(patch->getSpacing().y(), 32));
                     patch->setFrameData("patch-level", std::to_string(level));
                     m_progress = (float)(patchX+patchY*patchesX)/(patchesX*patchesY);
                     patch->setFrameData("progress", std::to_string(m_progress));
