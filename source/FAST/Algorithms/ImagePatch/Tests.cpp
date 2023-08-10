@@ -14,22 +14,27 @@
 
 using namespace fast;
 
-TEST_CASE("Patch generator for WSI", "[fast][wsi][PatchGenerator][visual]") {
-    auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+TEST_CASE("Patch generator for WSI", "[fast][wsi][PatchGenerator]") {
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
 
-    auto generator = PatchGenerator::New();
-    generator->setPatchSize(512, 512);
-    generator->setPatchLevel(0);
-    generator->setInputConnection(importer->getOutputPort());
-
-    auto renderer = ImageRenderer::New();
-    renderer->addInputConnection(generator->getOutputPort());
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->setTimeout(2000);
-    window->set2DMode();
-    window->start();
+    const int level = 2;
+    const int width = 512;
+    const int height = 256;
+    auto generator = PatchGenerator::create(width, height, 1, level)
+            ->connect(wsi);
+    auto stream = DataStream(generator);
+    const int nrOfPatches = std::ceil((float)wsi->getLevelWidth(level)/width)*std::ceil((float)wsi->getLevelHeight(level)/height);
+    REQUIRE(wsi->getLevelTileWidth(level) == 240);
+    REQUIRE(wsi->getLevelTileHeight(level) == 240);
+    int counter = 0;
+    while(!stream.isDone()) {
+        auto image = stream.getNextFrame<Image>();
+        REQUIRE(image->getWidth() == width);
+        REQUIRE(image->getHeight() == height);
+        ++counter;
+    }
+    REQUIRE(nrOfPatches == counter);
 }
 
 TEST_CASE("Patch generator for volumes", "[fast][volume][PatchGenerator][visual]") {
