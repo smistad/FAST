@@ -259,7 +259,7 @@ void PatchGenerator::generateStream() {
                                 paddingValue = 0;
                             }
                         }
-                        auto patch = m_inputVolume->crop(Vector3i(x, y, z), Vector3i(patchWidth, patchHeight, patchDepth), true, paddingValue);
+                        auto patch = m_inputVolume->crop(Vector3i(x, y, z), Vector3i(m_width, m_height, m_depth), true, paddingValue);
                         patch->setFrameData("original-width", std::to_string(width));
                         patch->setFrameData("original-height", std::to_string(height));
                         patch->setFrameData("original-depth", std::to_string(depth));

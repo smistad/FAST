@@ -37,6 +37,51 @@ TEST_CASE("Patch generator for WSI", "[fast][wsi][PatchGenerator]") {
     REQUIRE(nrOfPatches == counter);
 }
 
+TEST_CASE("Patch generator on 2D image", "[fast][PatchGenerator]") {
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/US/US-2D.jpg");
+    auto image = importer->runAndGetOutputData<Image>();
+
+    const int width = 33;
+    const int height = 33;
+    auto generator = PatchGenerator::create(width, height )
+            ->connect(importer);
+    auto stream = DataStream(generator);
+    const int nrOfPatches = std::ceil((float)image->getWidth()/width)*std::ceil((float)image->getHeight()/height);
+    int counter = 0;
+    while(!stream.isDone()) {
+        auto image = stream.getNextFrame<Image>();
+        REQUIRE(image->getWidth() == width);
+        REQUIRE(image->getHeight() == height);
+        ++counter;
+    }
+    REQUIRE(nrOfPatches == counter);
+}
+
+TEST_CASE("Patch generator on 3D image", "[fast][PatchGenerator]") {
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
+    auto image = importer->runAndGetOutputData<Image>();
+
+    const int width = 300;
+    const int height = 300;
+    const int depth = 100;
+    auto generator = PatchGenerator::create(width, height, depth)
+            ->connect(importer);
+    auto stream = DataStream(generator);
+    const int nrOfPatches = std::ceil((float)image->getWidth()/width)*
+            std::ceil((float)image->getHeight()/height)*
+            std::ceil((float)image->getDepth()/depth);
+
+    int counter = 0;
+    while(!stream.isDone()) {
+        auto image = stream.getNextFrame<Image>();
+        REQUIRE(image->getWidth() == width);
+        REQUIRE(image->getHeight() == height);
+        REQUIRE(image->getDepth() == depth);
+        ++counter;
+    }
+    REQUIRE(nrOfPatches == counter);
+}
+
 TEST_CASE("Patch generator for volumes", "[fast][volume][PatchGenerator][visual]") {
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
