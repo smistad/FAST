@@ -228,6 +228,16 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         reportInfo() << "Stitching " << startZ << reportEnd();
 		auto patchAccess = patch->getOpenCLImageAccess(ACCESS_READ, device);
 
+        int patchWidth = patch->getWidth();
+        if (startX + patchWidth > fullWidth)
+            patchWidth = fullWidth - startX;
+        int patchHeight = patch->getHeight();
+        if (startY + patchHeight > fullHeight)
+            patchHeight = fullHeight - startY;
+        int patchDepth = patch->getDepth();
+        if (startZ + patchDepth > fullDepth)
+            patchDepth = fullDepth - startZ;
+
         if(device->isWritingTo3DTexturesSupported()) {
             auto outputAccess = m_outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
             cl::Program program = getOpenCLProgram(device, "3D");
@@ -235,12 +245,12 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
             cl::NDRange size;
             if(patch->getDimensions() == 2) {
                 kernel = cl::Kernel(program, "applyPatch2Dto3D");
-                size = cl::NDRange(patch->getWidth(), patch->getHeight());
-                kernel.setArg(0, *patchAccess->get3DImage());
+                size = cl::NDRange(patchWidth, patchHeight);
+                kernel.setArg(0, *patchAccess->get2DImage());
             } else {
                 kernel = cl::Kernel(program, "applyPatch3D");
-                size =
-                kernel.setArg(0, *patchAccess->get2DImage());
+                size = cl::NDRange(patchWidth, patchHeight, patchDepth);
+                kernel.setArg(0, *patchAccess->get3DImage());
             }
             kernel.setArg(2, startX);
             kernel.setArg(3, startY);
@@ -260,12 +270,12 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
             cl::NDRange size;
             if(patch->getDimensions() == 2) {
                 kernel = cl::Kernel(program, "applyPatch2Dto3D");
-                size = cl::NDRange(patch->getWidth(), patch->getHeight());
-                kernel.setArg(0, *patchAccess->get3DImage());
+                size = cl::NDRange(patchWidth, patchHeight);
+                kernel.setArg(0, *patchAccess->get2DImage());
             } else {
                 kernel = cl::Kernel(program, "applyPatch3D");
-                size = cl::NDRange(patch->getWidth(), patch->getHeight(), patch->getDepth());
-                kernel.setArg(0, *patchAccess->get2DImage());
+                size = cl::NDRange(patchWidth, patchHeight, patchDepth);
+                kernel.setArg(0, *patchAccess->get3DImage());
             }
             kernel.setArg(1, *outputAccess->get());
             kernel.setArg(2, startX);
