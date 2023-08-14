@@ -70,9 +70,10 @@ void OpenVINOEngine::load() {
         int inputCount = 0;
         int outputCount = 0;
         bool dynamicInputShapes = false;
+        int index = 0;
         for(auto inputNode : model->inputs()) {
             auto name = inputNode.get_any_name();
-            reportInfo() << "Found input node " << inputNode.get_any_name() << " with shape " << inputNode.get_partial_shape().to_string() << reportEnd();
+            reportInfo() << "Found input node " << inputNode.get_any_name() << " with shape " << inputNode.get_partial_shape().to_string() << " and index " << inputNode.get_index() << reportEnd();
             if(inputNode.get_partial_shape().is_dynamic()) {
                 dynamicInputShapes = true;
             }
@@ -84,7 +85,8 @@ void OpenVINOEngine::load() {
                     shape.addDimension(x.get_length());
                 }
             }
-            m_inputIndices[name] = inputNode.get_index();
+            m_inputIndices[name] = index;// inputNode.get_index(); // get_index always return 0 for some reason?
+            ++index;
             NodeType type = detectNodeType(shape);
             if(type == NodeType::IMAGE)
                 m_imageOrdering = detectImageOrdering(shape);
@@ -133,6 +135,7 @@ void OpenVINOEngine::load() {
             }
         }
         // Go through output nodes
+        index = 0;
         for(auto outputNode : model->outputs()) {
             auto name = outputNode.get_any_name();
             reportInfo() << "Found output node " << name << " with shape " << outputNode.get_partial_shape().to_string() << reportEnd();
@@ -144,7 +147,8 @@ void OpenVINOEngine::load() {
                     shape.addDimension(x.get_length());
                 }
             }
-            m_outputIndices[name] = outputNode.get_index();
+            m_outputIndices[name] = index;// outputNode.get_index(); // get_index always returns 0 for some reason..
+            ++index;
             NodeType type = detectNodeType(shape);
             if(outputsDefined) {
                 if(mOutputNodes.count(name) > 0) {
