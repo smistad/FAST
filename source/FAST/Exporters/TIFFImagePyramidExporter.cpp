@@ -120,17 +120,17 @@ void TIFFImagePyramidExporter::execute() {
                          1.0f / (spacing.y() / 10) * scaleY); // Convert to cm, and adjust for level
         }
 
+        std::cout << "starting patch gen" << std::endl;
         auto generator = PatchGenerator::New();
         generator->setInputData(imagePyramid);
         generator->setPatchLevel(level);
         generator->setPatchSize(imagePyramid->getLevelTileWidth(level), imagePyramid->getLevelTileHeight(level));
-        auto port = generator->getOutputPort();
+        auto stream = DataStream(generator);
 
         Image::pointer image;
         int counter = 0;
-        do {
-            generator->update();
-            image = port->getNextFrame<Image>();
+        while(!stream.isDone()) {
+            image = stream.getNextFrame<Image>();
 
             // Write tile to tiff level
             if(image->getWidth() != imagePyramid->getLevelTileWidth(level) || image->getHeight() != imagePyramid->getLevelTileHeight(level)) {

@@ -37,8 +37,8 @@ int main(int argc, char** argv) {
 
 	auto renderer = ImageRenderer::create()->connect(interleave);
 
-	auto window = SimpleWindow2D::create(Color::Black())
+	SimpleWindow2D::create(Color::Black())
 	        ->connect(renderer)
-	        ->connect(widget);
-    window->run();
+	        ->connect(widget)
+            ->run();
 }
