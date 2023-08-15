@@ -738,7 +738,12 @@ void Image::freeAll() {
         this->free(Host::getInstance());
     }
     if(m_GLtextureID > 0) {
-        glDeleteTextures(1, &m_GLtextureID);
+        // We have to have current GL context to delete it
+        if(QGLContext::currentContext() == nullptr) {
+            reportWarning() << "Unable to delete texture because no OpenGL context was current" << reportEnd();
+        } else {
+            glDeleteTextures(1, &m_GLtextureID);
+        }
         m_GLtextureID = 0;
         m_GLtextureUpToDate = false;
     }
