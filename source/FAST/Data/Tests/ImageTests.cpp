@@ -1220,7 +1220,7 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image
             Image::pointer image = Image::create(width, height, type, nrOfChannels, device, data);
 
             float average = getSumFromData(data, width*height*nrOfChannels, type) / (width*height);
-            CHECK(image->calculateAverageIntensity() == Approx(average));
+            REQUIRE_THAT(image->calculateAverageIntensity(), Catch::Matchers::WithinAbs(average, 0.001));
             deleteArray(data, type);
         }
     //}
@@ -1245,7 +1245,7 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 3D image
         Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, device, data);
 
         float average = getSumFromData(data, width*height*depth*nrOfChannels, type) / (width*height*depth);
-        CHECK(image->calculateAverageIntensity() == Approx(average));
+        REQUIRE_THAT(image->calculateAverageIntensity(), Catch::Matchers::WithinAbs(average, 0.001));
         deleteArray(data, type);
     }
     //}
@@ -1269,7 +1269,7 @@ TEST_CASE("calculateStandardDeviationIntensity returns the std dev intensity of 
             Image::pointer image = Image::create(width, height, type, nrOfChannels, device, data);
 
             float average = getStandardDeviationFromData(data, width*height*nrOfChannels, type);
-            CHECK(image->calculateStandardDeviationIntensity() == Approx(average));
+            REQUIRE_THAT(image->calculateStandardDeviationIntensity(), Catch::Matchers::WithinAbs(average, 0.01));
             deleteArray(data, type);
         }
     //}
@@ -1294,7 +1294,7 @@ TEST_CASE("calculateStandardDeviationIntensity returns the std dev intensity of 
         auto image = Image::create(width, height, depth, type, nrOfChannels, device, data);
 
         float average = getStandardDeviationFromData(data, width*height*depth*nrOfChannels, type);
-        CHECK(image->calculateStandardDeviationIntensity() == Approx(average).margin(0.01));
+        REQUIRE_THAT(image->calculateStandardDeviationIntensity(), Catch::Matchers::WithinAbs(average, 0.01));
         deleteArray(data, type);
     }
     //}
@@ -1317,7 +1317,7 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image
             Image::pointer image = Image::create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             float average = getSumFromData(data, width*height*nrOfChannels, type) / (width*height);
-            CHECK(image->calculateAverageIntensity() == Approx(average));
+            REQUIRE_THAT(image->calculateAverageIntensity(), Catch::Matchers::WithinAbs(average, 0.001));
             deleteArray(data, type);
         }
     //}
@@ -1340,7 +1340,7 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 3D image
             Image::pointer image = Image::create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             float average = getSumFromData(data, width*height*depth*nrOfChannels, type) / (width*height*depth);
-            CHECK(image->calculateAverageIntensity() == Approx(average));
+            REQUIRE_THAT(image->calculateAverageIntensity(), Catch::Matchers::WithinAbs(average, 0.001));
             deleteArray(data, type);
         }
     //}
