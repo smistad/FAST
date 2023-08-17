@@ -161,7 +161,7 @@ jobs:
     - name: Upload Python wheel to PyPi
       if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
       run: |
-        twine upload --username smistad --password ${{ secrets.PYPI_PASSWORD }} ${{github.workspace}}/build/pyFAST-*.whl
+        twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/pyFAST-*.whl
 
     - name: Test PyPi upload
       if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
