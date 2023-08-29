@@ -6,6 +6,7 @@ namespace fast {
 
 class TensorToImage;
 
+
 /**
  * @brief Image-to-Image neural network process object
  *
@@ -88,6 +89,17 @@ class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
         void setResizeOutput(bool resizeOutput);
         void setCastOutput(bool castOutput);
         void setChannels(std::vector<int> channels);
+        enum class Normalization {
+            CLIP_0_1 = 0,
+            CLIP_0_SQUEEZE,
+            NONE
+        };
+        /**
+         * @brief Specify normalization to be performed after each iteration
+         * @sa ImageToImageNetwork::Normalization
+         * @param norm
+         */
+        void setNormalization(Normalization norm);
     private:
         ImageToImageNetwork();
         void execute();
@@ -100,6 +112,7 @@ class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
         bool m_castBackToOriginalType = true;
         std::vector<int> m_channelsToExtract;
         float mScaleFactor2 = 1.0f;
+        Normalization m_normalizationMethod = Normalization::CLIP_0_1;
 
 };
 

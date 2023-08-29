@@ -139,9 +139,16 @@ void ImageToImageNetwork::execute() {
             auto imageAdd = ImageAdd::create()->connect(0, inputImage)->connect(1, image);
             image = imageAdd->runAndGetOutputData<Image>();
         }
-        // TODO Make normalization/clipping optional
-        auto imageClip = IntensityClipping::create(0.0f, 1.0f)->connect(image);
-        image = imageClip->runAndGetOutputData<Image>();
+        // Make normalization/clipping optional
+        if(m_normalizationMethod == Normalization::CLIP_0_1) {
+            auto imageClip = IntensityClipping::create(0.0f, 1.0f)->connect(image);
+            image = imageClip->runAndGetOutputData<Image>();
+        } else if(m_normalizationMethod == Normalization::CLIP_0_SQUEEZE) {
+            float max = image->calculateMaximumIntensity();
+            auto imageClip = IntensityClipping::create(0.0f, max)->connect(image);
+            auto imageNorm = IntensityNormalization::create(0.0f, 1.0f, 0, std::max(1.0f, max))->connect(imageClip);
+            image = imageNorm->runAndGetOutputData<Image>();
+        }
         inputImage = image;
     }
 
@@ -192,6 +199,11 @@ void ImageToImageNetwork::setCastOutput(bool castOutput) {
 
 void ImageToImageNetwork::setChannels(std::vector<int> channels) {
     m_channelsToExtract = channels;
+    setModified(true);
+}
+
+void ImageToImageNetwork::setNormalization(ImageToImageNetwork::Normalization norm) {
+    m_normalizationMethod = norm;
     setModified(true);
 }
 
