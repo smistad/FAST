@@ -4,6 +4,8 @@
 
 namespace fast {
 
+class Image;
+
 /**
  * @brief Resample an image to a given spatial resolution
  */
@@ -27,11 +29,13 @@ public:
     void setOutputSpacing(float spacingX, float spacingY, float spacingZ);
     void setInterpolation(bool useInterpolation);
     void loadAttributes();
-private:
+protected:
+    std::shared_ptr<Image> processImage(std::shared_ptr<Image> input);
     ImageResampler();
+    Vector3f mSpacing;
+private:
     void execute();
 
-    Vector3f mSpacing;
     bool mInterpolationSet, mInterpolation;
 };
 

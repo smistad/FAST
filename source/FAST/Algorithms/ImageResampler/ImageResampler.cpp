@@ -45,12 +45,7 @@ void ImageResampler::setOutputSpacing(float spacingX, float spacingY, float spac
     setModified(true);
 }
 
-void ImageResampler::execute() {
-    if(mSpacing.x() < 0)
-        throw Exception("You must set output spacing with setOutputSpacing before executing the ImageResampler");
-
-    auto input = getInputData<Image>();
-
+Image::pointer ImageResampler::processImage(Image::pointer input) {
     Vector3f inputSpacing = input->getSpacing();
 
     Vector3f scale = inputSpacing.cwiseQuotient(mSpacing);
@@ -119,7 +114,16 @@ void ImageResampler::execute() {
                 cl::NullRange
         );
     }
-    addOutputData(0, output);
+    return output;
+}
+
+void ImageResampler::execute() {
+    if(mSpacing.x() < 0)
+        throw Exception("You must set output spacing with setOutputSpacing before executing the ImageResampler");
+
+    auto input = getInputData<Image>();
+
+    addOutputData(0, processImage(input));
 }
 
 void ImageResampler::setInterpolation(bool useInterpolation) {
