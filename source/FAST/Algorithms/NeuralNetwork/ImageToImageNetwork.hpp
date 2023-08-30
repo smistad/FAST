@@ -19,6 +19,13 @@ class TensorToImage;
 class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
     FAST_PROCESS_OBJECT(ImageToImageNetwork)
     public:
+        /** @brief Normalization method of image after each iteration
+         */
+        enum class Normalization {
+            CLIP_0_1 = 0, // Clip image intensities at 0 and 1
+            CLIP_0_SQUEEZE, // Clip image intensities at 0 and squeeze intensity range if max is above 1.0
+            NONE, // No normalization
+        };
         /**
          * @brief Create instance
          *
@@ -32,6 +39,7 @@ class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
          * @param castBackToOriginalType Whether to cast the output image to its input image type
          * @param channelsToExtract Which channels to extract from the output tensor.
          *      Default (empty list) is to extract all channels.
+         * @param normalizationMethod Specify normalization method to be applied to image after each iteration.
          * @param meanIntensity Mean intensity to subtract from each pixel of the input image
          * @param standardDeviationIntensity Standard deviation to divide each pixel of the input image by
          * @param inputNodes Specify names, and potentially shapes, of input nodes.
@@ -52,6 +60,7 @@ class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
                          bool, resizeBackToOriginalSize, = false,
                          bool, castBackToOriginalType, = true,
                          std::vector<int>, channelsToExtract, = std::vector<int>(),
+                         Normalization, normalization, = Normalization::CLIP_0_1,
                          float, meanIntensity, = 0.0f,
                          float, standardDeviationIntensity, = 1.0f,
                          std::vector<NeuralNetworkNode>, inputNodes, = std::vector<NeuralNetworkNode>(),
@@ -89,11 +98,7 @@ class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
         void setResizeOutput(bool resizeOutput);
         void setCastOutput(bool castOutput);
         void setChannels(std::vector<int> channels);
-        enum class Normalization {
-            CLIP_0_1 = 0,
-            CLIP_0_SQUEEZE,
-            NONE
-        };
+
         /**
          * @brief Specify normalization to be performed after each iteration
          * @sa ImageToImageNetwork::Normalization

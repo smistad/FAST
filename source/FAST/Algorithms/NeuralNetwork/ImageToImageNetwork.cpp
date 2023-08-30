@@ -41,6 +41,7 @@ ImageToImageNetwork::ImageToImageNetwork(std::string modelFilename,
                                          bool resizeBackToOriginalSize,
                                          bool castBackToOriginalType,
                                          std::vector<int> channelsToExtract,
+                                         Normalization normalization,
                                          float meanIntensity,
                                          float stanardDeviationIntensity, std::vector<NeuralNetworkNode> inputNodes,
                                          std::vector<NeuralNetworkNode> outputNodes, std::string inferenceEngine,
@@ -54,6 +55,7 @@ ImageToImageNetwork::ImageToImageNetwork(std::string modelFilename,
     setResizeOutput(resizeBackToOriginalSize);
     setCastOutput(castBackToOriginalType);
     setChannels(channelsToExtract);
+    setNormalization(normalization);
 }
 
 ImageToImageNetwork::ImageToImageNetwork(std::string modelFilename, std::vector<NeuralNetworkNode> inputNodes,
