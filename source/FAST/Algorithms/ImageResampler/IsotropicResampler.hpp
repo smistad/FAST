@@ -27,11 +27,11 @@ public:
      * @brief Which spacing to select
      */
     enum class SpacingSelector {
-        SMALLEST = 0,   // Select smallest spacing
-        LARGEST,        // Select largest spacing
-        X,              // Select X spacing always
-        Y,              // Select Y spacing always
-        Z               // Select Z spacing always
+        SMALLEST = 0,   /**< Select smallest spacing */
+        LARGEST,        /**< Select largest spacing */
+        X,              /**< Select X spacing always */
+        Y,              /**< Select Y spacing always */
+        Z               /**< Select Z spacing always */
     };
     /**
      * @brief Create instance

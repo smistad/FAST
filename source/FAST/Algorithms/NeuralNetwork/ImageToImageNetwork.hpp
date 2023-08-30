@@ -22,9 +22,9 @@ class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
         /** @brief Normalization method of image after each iteration
          */
         enum class Normalization {
-            CLIP_0_1 = 0, // Clip image intensities at 0 and 1
-            CLIP_0_SQUEEZE, // Clip image intensities at 0 and squeeze intensity range if max is above 1.0
-            NONE, // No normalization
+            CLIP_0_1 = 0,      /**< Clip image intensities at 0 and 1 */
+            CLIP_0_SQUEEZE,    /**< Clip image intensities at 0 and squeeze intensity range if max is above 1.0 */
+            NONE,              /**< No normalization */
         };
         /**
          * @brief Create instance
