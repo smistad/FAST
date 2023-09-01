@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
 
     // Setup window
     auto window = SimpleWindow2D::create()->connect(renderer);
+    window->getView()->setScalebar(true);
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
