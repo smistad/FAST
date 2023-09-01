@@ -11,6 +11,9 @@
 #include <QCursor>
 #include <QApplication>
 #include <FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp>
+#include <FAST/Visualization/TextRenderer/TextRenderer.hpp>
+#include <FAST/Data/Text.hpp>
+#include <FAST/Visualization/LineRenderer/LineRenderer.hpp>
 
 namespace fast {
 
@@ -82,6 +85,8 @@ View::View() {
     timer->setSingleShot(false);
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 
+    m_textRenderer = TextRenderer::create(42, Color::Black(), TextRenderer::STYLE_NORMAL, TextRenderer::POSITION_BOTTOM_LEFT);
+    m_lineRenderer = LineRenderer::create();
     if(QThread::currentThread() != QApplication::instance()->thread()) {
         throw Exception("FAST View must be created in the main thread");
     }
@@ -548,6 +553,10 @@ void View::paintGL() {
                 renderer->postDraw();
             }
         }
+
+        if(m_showScalebar)
+            drawScalebar();
+
         mRuntimeManager->stopRegularTimer("draw2D");
     } else {
         if(getNrOfInputConnections() > 0) {
@@ -844,5 +853,57 @@ bool View::eventFilter(QObject *object, QEvent *event) {
 void View::changeEvent(QEvent *event) {
 }
 
+void View::drawScalebar() {
+    Vector4f bottom_left = (mPerspectiveMatrix*m3DViewingTransformation).inverse()*Vector4f(-1,-1,0,1);
+    Vector4f top_right = (mPerspectiveMatrix*m3DViewingTransformation).inverse()*Vector4f(1,1,0,1);
+    const float physicalWidth = top_right.x() - bottom_left.x();
+    const float physicalHeight = std::fabs(top_right.y() - bottom_left.y());
+    float barWidth;
+    int decimals = 0;
+    if(physicalWidth*1000.0f/10.0f > 1) {
+        int digits = roundToString(physicalWidth*1000/10.0f).size();
+        barWidth = std::floor((physicalWidth*1000/10.0f)/(std::pow(10, digits-1)))*std::pow(10, digits-1);
+    } else {
+        // Count number of digits until non-zero
+        float current = physicalWidth*1000/10.0f;
+        int counter = 0;
+        while(current < 1) {
+            current *= 10;
+            ++counter;
+        }
+        barWidth = std::floor((physicalWidth*1000/10.0f)*(std::pow(10, counter)))/std::pow(10, counter);
+        decimals = counter;
+    }
+    bottom_left = (mPerspectiveMatrix*m3DViewingTransformation).inverse()*Vector4f(-1,-1,0,1);
+    //bottom_left = (mPerspectiveMatrix*m3DViewingTransformation).inverse()*Vector4f(-0.98,-0.92,0,1);
+    Vector4f right = bottom_left;
+    right.x() += barWidth/1000.0f;
+
+    // Draw line
+    auto mesh = Mesh::create({MeshVertex(bottom_left.head(3)), MeshVertex(right.head(3))}, {MeshLine(0, 1)});
+    m_lineRenderer->setDefaultLineWidth(1.5);
+    m_lineRenderer->setDrawJoints(false);
+    m_lineRenderer->connect(mesh);
+    m_lineRenderer->run();
+    m_lineRenderer->setView(this);
+    m_lineRenderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true, width(), height());
+    m_lineRenderer->postDraw();
+
+    // Draw text
+    auto text = Text::create(
+            roundToString(barWidth, decimals) + " μm", //+ ": " + roundToString(physicalWidth*1000, 1) + " x " + roundToString(physicalHeight*1000, 1) + " micrometers",
+            Color::Black()
+            );
+    m_textRenderer->connect(text);
+    m_textRenderer->run();
+    m_textRenderer->setView(this);
+    m_textRenderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true, width(), height());
+    m_textRenderer->postDraw();
+
+}
+
+void View::setScalebar(float enable) {
+    m_showScalebar = enable;
+}
 
 } // end namespace fast

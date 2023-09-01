@@ -21,6 +21,7 @@
 #endif
 #include <zip/zip.h>
 #include <random>
+#include <iomanip>
 
 namespace fast {
 
@@ -1129,4 +1130,14 @@ std::string generateRandomString(int length) {
     return s;
 }
 
+std::string roundToString(double value, int decimals) {
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(decimals) << value;
+    return stream.str();
+}
+std::string roundToString(float value, int decimals) {
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(decimals) << value;
+    return stream.str();
+}
 } // end namespace fast

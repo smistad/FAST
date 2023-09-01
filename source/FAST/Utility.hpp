@@ -309,5 +309,18 @@ FAST_EXPORT std::string stringToUpper(std::string);
  */
 FAST_EXPORT std::string generateRandomString(int length);
 
+/**
+ * @brief Round double to a certain number of decimals, then convert to string
+ * @param value
+ * @return string
+ */
+FAST_EXPORT std::string roundToString(double value, int decimals = 0);
+/**
+ * @brief Round float to a certain number of decimals, then convert to string
+ * @param value
+ * @return string
+ */
+FAST_EXPORT std::string roundToString(float value, int decimals = 0);
+
 } // end namespace fast
 

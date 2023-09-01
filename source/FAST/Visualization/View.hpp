@@ -8,9 +8,11 @@
 #include <QTimer>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <FAST/Visualization/LineRenderer/LineRenderer.hpp>
 
 namespace fast {
 
+class TextRenderer;
 class ComputationThread;
 
 class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpenGLFunctions_3_3_Core {
@@ -56,6 +58,11 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
          */
         void setZoom(float zoom);
         QGLWidget* asQGLWidget() { return (QGLWidget*)this; }
+        /**
+         * @brief Enable or disable scalebar
+         * @param enable
+         */
+        void setScalebar(float enable);
     private:
         uint m_FBO = 0;
         uint m_textureColor = 0;
@@ -97,6 +104,12 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
 		float mCentroidZ;
 
         friend class ComputationThread;
+
+        // Scalebar
+        std::shared_ptr<TextRenderer> m_textRenderer;
+        std::shared_ptr<LineRenderer> m_lineRenderer;
+        bool m_showScalebar = false;
+        void drawScalebar();
     protected:
         void getMinMaxFromBoundingBoxes(bool transform, Vector3f& min, Vector3f& max);
         void initializeGL();

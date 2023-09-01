@@ -14,13 +14,14 @@ namespace fast {
 void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
                         int viewWidth,
                         int viewHeight) {
-
     std::string shaderName = mode2D ? "2D" : "3D";
     activateShader(shaderName);
     setShaderUniform("perspectiveTransform", perspectiveMatrix, shaderName);
     setShaderUniform("viewTransform", viewingMatrix, shaderName);
     // For all input data
     auto dataToRender = getDataToRender();
+    if(dataToRender.empty())
+        return;
     for(auto it : dataToRender) {
         Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
 
@@ -99,7 +100,7 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
             glEnable(GL_DEPTH_TEST);
     }
     deactivateShader();
-    if(mode2D) {
+    if(mode2D && m_drawJoints) {
         glEnable(GL_POINT_SPRITE); // Circles created in fragment shader will not work without this
         glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
         // Draw joints as points
@@ -228,6 +229,10 @@ void LineRenderer::setColor(uint nr, Color color) {
 
 void LineRenderer::setWidth(uint nr, float width) {
     mInputWidths[nr] = width;
+}
+
+void LineRenderer::setDrawJoints(bool draw) {
+    m_drawJoints = draw;
 }
 
 } // end namespace fast
