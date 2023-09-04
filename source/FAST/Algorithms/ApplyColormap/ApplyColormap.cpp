@@ -2,10 +2,12 @@
 #include <FAST/Data/Image.hpp>
 
 namespace fast {
-ApplyColormap::ApplyColormap(Colormap colormap) {
+ApplyColormap::ApplyColormap(Colormap colormap, float minValue, float maxValue) {
     createInputPort(0, "Image");
     createOutputPort(0, "Image");
     setColormap(colormap);
+    setMinValue(minValue);
+    setMaxValue(maxValue);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ApplyColormap/ApplyColormap.cl");
 }
 
@@ -28,7 +30,11 @@ void ApplyColormap::execute() {
     if(m_colormap.isGrayscale()) {
         output = Image::create(input->getSize(), TYPE_UINT8, 1);
     } else {
-        output = Image::create(input->getSize(), TYPE_UINT8, 3);
+        if(m_colormap.hasOpacity()) {
+            output = Image::create(input->getSize(), TYPE_UINT8, 4);
+        } else {
+            output = Image::create(input->getSize(), TYPE_UINT8, 3);
+        }
     }
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
@@ -44,12 +50,27 @@ void ApplyColormap::execute() {
 
     cl::Kernel kernel(getOpenCLProgram(device), "applyColormapGrayscale");
 
+    float minValue = m_minValue;
+    float maxValue = m_maxValue;
+    if(m_colormap.isIntensityInvariant()) {
+        if(std::isnan(m_minValue)) {
+            minValue = input->calculateMinimumIntensity();
+        }
+        if(std::isnan(m_maxValue)) {
+            maxValue = input->calculateMaximumIntensity();
+        }
+    }
+
     kernel.setArg(0, *inputAccess->get2DImage());
     kernel.setArg(1, *outputAccess->get2DImage());
     kernel.setArg(2, m_colormapBuffer);
     kernel.setArg(3, m_colormap.getSteps());
     kernel.setArg(4, (char)(m_colormap.isInterpolated() ? 1 : 0));
     kernel.setArg(5, (char)(m_colormap.isGrayscale() ? 1 : 0));
+    kernel.setArg(6, (char)(m_colormap.hasOpacity() ? 1 : 0));
+    kernel.setArg(7, (char)(m_colormap.isIntensityInvariant() ? 1 : 0));
+    kernel.setArg(8, minValue);
+    kernel.setArg(9, maxValue);
 
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,
@@ -65,6 +86,16 @@ ApplyColormap::ApplyColormap() {
 
 }
 
+void ApplyColormap::setMinValue(float minValue) {
+    m_minValue = minValue;
+    setModified(true);
+}
+
+void ApplyColormap::setMaxValue(float maxValue) {
+    m_maxValue = maxValue;
+    setModified(true);
+}
+
 bool Colormap::isGrayscale() const {
     return m_grayscale;
 }
@@ -73,24 +104,31 @@ Colormap::Colormap() {
 
 }
 
-Colormap::Colormap(const std::map<float, Color>& colormap, bool interpolate) {
+Colormap::Colormap(const std::map<float, Color>& colormap, bool interpolate, bool intensityInvariant) {
     for(auto item : colormap) {
         m_data.push_back(item.first);
         m_data.push_back(item.second.getRedValue()*255.0f);
         m_data.push_back(item.second.getGreenValue()*255.0f);
         m_data.push_back(item.second.getBlueValue()*255.0f);
+        if(item.second.hasOpacity()) {
+            // FIXME: what if not all have defined opacity?
+            m_hasOpacity = true;
+            m_data.push_back(item.second.getOpacity()*255.0f);
+        }
     }
     m_grayscale = false;
     m_interpolate = interpolate;
+    m_intensityInvariant = intensityInvariant;
 }
 
-Colormap::Colormap(const std::map<float, float>& colormap, bool interpolate) {
+Colormap::Colormap(const std::map<float, float>& colormap, bool interpolate, bool intensityInvariant) {
     for(auto item : colormap) {
         m_data.push_back(item.first);
         m_data.push_back(item.second);
     }
     m_grayscale = true;
     m_interpolate = interpolate;
+    m_intensityInvariant = intensityInvariant;
 }
 
 bool Colormap::isInterpolated() const {
@@ -99,11 +137,15 @@ bool Colormap::isInterpolated() const {
 
 void Colormap::checkData() const {
     int elements = 4;
-    if(m_grayscale)
+    if(m_grayscale) {
         elements = 2;
+    } else {
+        if(m_hasOpacity)
+            elements = 5;
+    }
     if(m_data.size() % elements != 0)
-        throw Exception("Number of float data points given to Colormap must be dividable by 4 (color) or 2 (grayscale)."
-                        "Each point in colormap must be 4 or 2 tuple: (intensity, red, green, blue) or (intensity, intensity)");
+        throw Exception("Number of float data points given to Colormap must be dividable by 4 (color), 2 (grayscale) or 5 (color + opacity)."
+                        "Each point in colormap must be 4, 2 or 5 tuple: (intensity, red, green, blue), (intensity, intensity) or (intensity, red, green, blue, opacity)");
 
     for(int i = elements; i < m_data.size(); i += elements) {
         if(m_data[i-elements] > m_data[i]) {
@@ -128,15 +170,20 @@ int Colormap::getSteps() const {
     if(m_grayscale) {
         return m_data.size()/2;
     } else {
-        return m_data.size()/4;
+        if(m_hasOpacity) {
+            return m_data.size()/5;
+        } else {
+            return m_data.size()/4;
+        }
     }
 }
 
-Colormap::Colormap(std::vector<float> values, bool grayscale, bool interpolate) {
+Colormap::Colormap(std::vector<float> values, bool grayscale, bool interpolate, bool intensityInvariant) {
     m_data = values;
     m_grayscale = grayscale;
     checkData();
     m_interpolate = interpolate;
+    m_intensityInvariant = intensityInvariant;
 }
 
 Colormap Colormap::Ultrasound(bool grayscale) {
@@ -168,6 +215,26 @@ Colormap Colormap::Ultrasound(bool grayscale) {
 
 std::vector<float> Colormap::getData() const {
     return m_data;
+}
+
+bool Colormap::hasOpacity() const {
+    return m_hasOpacity;
+}
+
+bool Colormap::isIntensityInvariant() const {
+    return m_intensityInvariant;
+}
+
+Colormap Colormap::Inferno(bool withOpacity) {
+    float enableOpacity = withOpacity ? 1.0f : -1.0f;
+    return Colormap({
+        {0, Color(0, 0, 0, withOpacity ? 0.0f : -1.0f)},
+        {0.1, Color(40.0f/255, 25.0f/255, 0, 0.05f*enableOpacity)},
+        {0.3, Color(80.0f/255, 35.0f/255, 0, 0.1f*enableOpacity)},
+        {0.4, Color(140.0f/255, 30.0f/255, 0, 0.3f*enableOpacity)},
+        {0.6, Color(200.0f/255, 160.0f/255, 0, 0.5f*enableOpacity)},
+        {0.85, Color(255.0f/255, 255.0f/255, 255.0f/255, 0.8f*enableOpacity)},
+        }, true, true);
 }
 
 }

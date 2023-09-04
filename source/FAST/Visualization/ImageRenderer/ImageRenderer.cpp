@@ -83,6 +83,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
                          int viewWidth,
                          int viewHeight) {
     auto dataToRender = getDataToRender();
+    bool transparentImage = false;
     for(auto it : dataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
@@ -123,14 +124,15 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
         mDataTimestamp[inputNr] = input->getTimestamp();
+        if(input->getNrOfChannels() == 4)
+            transparentImage = true;
     }
-
-    if(m_opacity >= 0.0f) {
+    if(m_opacity >= 0.0f || transparentImage) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
     drawTextures(dataToRender, perspectiveMatrix, viewingMatrix, mode2D);
-    if(m_opacity >= 0.0f) {
+    if(m_opacity >= 0.0f || transparentImage) {
         glDisable(GL_BLEND);
     }
 }

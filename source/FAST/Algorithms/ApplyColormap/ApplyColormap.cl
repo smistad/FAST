@@ -39,6 +39,10 @@ float4 vload4_at_pos(int position, __constant float* data) {
     return (float4)(data[position], data[position+1], data[position+2], 1.0f);
 }
 
+float4 vload4_at_pos_opacity(int position, __constant float* data) {
+    return (float4)(data[position], data[position+1], data[position+2], data[position+3]);
+}
+
 float getIntensityFromColormap(float intensity, __constant float* colormap, int steps, char interpolate) {
     float first = colormap[1];
     float firstIntensity = colormap[0];
@@ -67,16 +71,30 @@ float getIntensityFromColormap(float intensity, __constant float* colormap, int 
     return first;
 }
 
-float4 getColorFromColormap(float intensity, __constant float* colormap, int steps, char interpolate) {
-    float4 first = vload4_at_pos(1, colormap);
+float4 getColorFromColormap(float intensity, __constant float* colormap, int steps, char interpolate, char hasOpacity) {
+    float4 first;
+    if(hasOpacity == 1) {
+        first = vload4_at_pos_opacity(1, colormap);
+    } else {
+        first = vload4_at_pos(1, colormap);
+    }
     float firstIntensity = colormap[0];
+
+    int values = 4;
+    if(hasOpacity == 1)
+        values = 5;
 
     if(intensity <= firstIntensity)
         return first;
 
     for(int i = 1; i < steps; ++i) {
-        float4 second = vload4_at_pos(i*4 + 1, colormap);
-        float secondIntensity = colormap[i*4];
+        float4 second;
+        if(hasOpacity == 1) {
+            second = vload4_at_pos_opacity(i*values + 1, colormap);
+        } else {
+            second = vload4_at_pos(i*values + 1, colormap);
+        }
+        float secondIntensity = colormap[i*values];
         if(intensity <= secondIntensity) {
             if(interpolate == 1) {
                 return mix(first, second, (intensity - firstIntensity)/(secondIntensity - firstIntensity));
@@ -101,15 +119,23 @@ __kernel void applyColormapGrayscale(
             __constant float* colormap,
             __private int steps,
             __private char interpolate,
-            __private char grayscale
+            __private char grayscale,
+            __private char hasOpacity,
+            __private char isIntensityInvariant,
+            __private float minValue,
+            __private float maxValue
     ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
 
     float4 value = readImageAsFloat2D(input, sampler, pos);
 
+    if(isIntensityInvariant == 1) {
+        value.x = clamp((value.x - minValue) / (maxValue - minValue), 0.0f, 1.0f);
+    }
+
     if(grayscale == 1) {
         writeImageAsFloat2D(output, pos, getIntensityFromColormap(value.x, colormap, steps, interpolate));
     } else {
-        writeImageAsFloat42D(output, pos, getColorFromColormap(value.x, colormap, steps, interpolate));
+        writeImageAsFloat42D(output, pos, getColorFromColormap(value.x, colormap, steps, interpolate, hasOpacity));
     }
 }

@@ -23,13 +23,13 @@ class FAST_EXPORT Colormap {
          * @param colormap
          * @param interpolate
          */
-        explicit Colormap(const std::map<float, float>& colormap, bool interpolate = true);
+        explicit Colormap(const std::map<float, float>& colormap, bool interpolate = true, bool intensityInvariant = false);
         /**
          * @brief Creates an RGB colormap
          * @param colormap
          * @param interpolate
          */
-        explicit Colormap(const std::map<float, Color>& colormap, bool interpolate = true);
+        explicit Colormap(const std::map<float, Color>& colormap, bool interpolate = true, bool intensityInvariant = false);
         /**
          * @brief Creates a colormap directly from a list of floats.
          *
@@ -41,15 +41,17 @@ class FAST_EXPORT Colormap {
          * @param grayscale
          * @param interpolate
          */
-        Colormap(std::vector<float> values, bool grayscale, bool interpolate = true);
+        Colormap(std::vector<float> values, bool grayscale, bool interpolate = true, bool intensityInvariant = false);
         /**
          * @brief Create an OpenCL buffer from the colormap data.
          * @param device OpenCL device to transfer data to
          * @return OpenCL buffer
          */
         cl::Buffer getAsOpenCLBuffer(OpenCLDevice::pointer device) const;
+        bool hasOpacity() const;
         bool isGrayscale() const;
         bool isInterpolated() const;
+        bool isIntensityInvariant() const;
         int getSteps() const;
         /**
          * @brief Get data values of the colormap as a list of floats
@@ -58,10 +60,13 @@ class FAST_EXPORT Colormap {
         std::vector<float> getData() const;
 
         static Colormap Ultrasound(bool grayscale = false);
+        static Colormap Inferno(bool withOpacity = false);
     private:
         std::vector<float> m_data;
+        bool m_hasOpacity = false;
         bool m_grayscale;
         bool m_interpolate;
+        bool m_intensityInvariant = false;
         void checkData() const;
 };
 
@@ -86,15 +91,23 @@ class FAST_EXPORT ApplyColormap : public ProcessObject {
          * @param colormap Colormap to apply
          * @return instance
          */
-        FAST_CONSTRUCTOR(ApplyColormap, Colormap, colormap,)
+        FAST_CONSTRUCTOR(ApplyColormap,
+                         Colormap, colormap,,
+                         float, minValue, = std::nanf(""),
+                         float, maxValue, = std::nanf("")
+        );
         void setColormap(Colormap colormap);
         Colormap getColormap() const;
+        void setMinValue(float minValue);
+        void setMaxValue(float maxValue);
     protected:
         ApplyColormap();
         void execute() override;
         Colormap m_colormap;
         bool m_bufferUpToDate = false;
         cl::Buffer m_colormapBuffer;
+        float m_minValue;
+        float m_maxValue;
 };
 
 } // end namespace

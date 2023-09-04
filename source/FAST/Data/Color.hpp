@@ -11,10 +11,11 @@ class FAST_EXPORT  Color {
         Vector3f mColorVector;
         bool m_null = false;
         std::string m_name;
+        float m_alpha = -1.0f;
     public:
         Color() : mColorVector(Vector3f(0, 0, 0)), m_null(true) {};
 
-        Color(float red, float green, float blue, std::string name = "") : mColorVector(Vector3f(red, green, blue)), m_null(false), m_name(name) {};
+        Color(float red, float green, float blue, float opacity = -1.0f, std::string name = "") : mColorVector(Vector3f(red, green, blue)), m_null(false), m_name(name), m_alpha(opacity) {};
 
         /**
          * Whether the color is set or not
@@ -22,6 +23,10 @@ class FAST_EXPORT  Color {
          */
         bool isNull() const {
             return m_null;
+        }
+
+        bool hasOpacity() const {
+            return m_alpha >= 0.0f;
         }
 
         static Color fromString(std::string str) {
@@ -67,6 +72,9 @@ class FAST_EXPORT  Color {
         float getBlueValue() const {
             return mColorVector.z();
         }
+        float getOpacity() const {
+            return m_alpha;
+        }
         std::string getName() const {
             if(m_name.empty()) {
                 Vector3i intVector = (mColorVector*255).cast<int>();
@@ -84,31 +92,31 @@ class FAST_EXPORT  Color {
             return Color();
         }
         static Color Red() {
-            return Color(1,0,0, "red");
+            return Color(1,0,0, -1, "red");
         }
         static Color Green() {
-            return Color(0,1,0, "green");
+            return Color(0,1,0, -1, "green");
         }
         static Color Blue() {
-            return Color(0,0,1, "blue");
+            return Color(0,0,1, -1, "blue");
         }
         static Color White() {
-            return Color(1,1,1, "white");
+            return Color(1,1,1, -1, "white");
         }
         static Color Black() {
-            return Color(0,0,0, "black");
+            return Color(0,0,0, -1, "black");
         }
         static Color Yellow() {
-            return Color(1, 1, 0, "yellow");
+            return Color(1, 1, 0, -1, "yellow");
         }
         static Color Magenta() {
-            return Color(1, 0, 1, "magenta");
+            return Color(1, 0, 1, -1, "magenta");
         }
         static Color Cyan() {
-            return Color(0, 1, 1, "cyan");
+            return Color(0, 1, 1, -1, "cyan");
         }
         static Color Brown() {
-            return Color(1, 0.6, 0.2, "brown");
+            return Color(1, 0.6, 0.2, -1, "brown");
         }
 
 };
