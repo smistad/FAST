@@ -261,10 +261,24 @@ Colormap Colormap::Inferno(bool withOpacity) {
     float enableOpacity = withOpacity ? 1.0f : -1.0f;
     return Colormap({
         {0, Color(0, 0, 0, withOpacity ? 0.0f : -1.0f)},
+        {0.2, Color(92.0f/255, 7.0f/255, 111.0f/255.0f, 0.15f*enableOpacity)},
+        {0.4, Color(196.0f/255, 27.0f/255.0f, 85.0f/255.0f, 0.3f*enableOpacity)},
+        {0.6, Color(255.0f/255, 160.0f/255, 0, 0.5f*enableOpacity)},
+        {0.9, Color(252.0f/255, 252.0f/255, 160.0f/255, 0.75f*enableOpacity)},
+        {1.0, Color(255.0f/255, 255.0f/255, 255.0f/255, 0.8f*enableOpacity)},
+        }, true, true);
+}
+
+
+Colormap Colormap::Fire(bool withOpacity) {
+    float enableOpacity = withOpacity ? 1.0f : -1.0f;
+      return Colormap({
+        {0, Color(0, 0, 0, withOpacity ? 0.0f : -1.0f)},
         {0.1, Color(40.0f/255, 25.0f/255, 0, 0.05f*enableOpacity)},
         {0.3, Color(80.0f/255, 35.0f/255, 0, 0.1f*enableOpacity)},
         {0.4, Color(140.0f/255, 30.0f/255, 0, 0.3f*enableOpacity)},
         {0.6, Color(200.0f/255, 160.0f/255, 0, 0.5f*enableOpacity)},
+        {0.9, Color(252.0f/255, 252.0f/255, 160.0f/255, 0.75f*enableOpacity)},
         {1.0, Color(255.0f/255, 255.0f/255, 255.0f/255, 0.8f*enableOpacity)},
         }, true, true);
 }

@@ -84,12 +84,19 @@ class FAST_EXPORT Colormap {
          */
         static Colormap Ultrasound(bool grayscale = false);
         /**
-         * @brief Inferno heatmap
+         * @brief Inferno heatmap (like fire, but with some blue and purple in it)
          * @param withOpacity Create inferno heatmap with custom opacity.
          *      If you will use this heatmap as an overlay you should enable this.
          * @return inferno heatmap
          */
         static Colormap Inferno(bool withOpacity = false);
+        /**
+          * @brief Fire heatmap (no blue/purple)
+          * @param withOpacity Create fire heatmap with custom opacity.
+          *      If you will use this heatmap as an overlay you should enable this.
+          * @return fire heatmap
+          */
+        static Colormap Fire(bool withOpacity = false);
     private:
         std::vector<float> m_data;
         bool m_hasOpacity = false;
