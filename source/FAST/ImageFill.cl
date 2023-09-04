@@ -8,7 +8,7 @@ __kernel void fillImage2D(
 		write_imagef(image, pos, (float4)(value, value, value, value));
 	} else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16) {
 		write_imagei(image, pos, (int4)(value, value, value, value));
-	} else {
+	} else {
 		write_imageui(image, pos, (uint4)(value, value, value, value));
 	}
 }
@@ -23,7 +23,7 @@ __kernel void fillImage3D(
 		write_imagef(image, pos, (float4)(value, value, value, value));
 	} else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16) {
 		write_imagei(image, pos, (int4)(value, value, value, value));
-	} else {
+	} else {
 		write_imageui(image, pos, (uint4)(value, value, value, value));
 	}
 }
