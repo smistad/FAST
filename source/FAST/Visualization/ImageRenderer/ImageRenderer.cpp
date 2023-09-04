@@ -88,6 +88,9 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
 
+        if(input->getNrOfChannels() == 4)
+            transparentImage = true;
+
         if(input->getDimensions() != 2)
             throw Exception("ImageRenderer only supports 2D images. Use ImageSlicer to extract a 2D slice from a 3D image.");
 
@@ -124,8 +127,6 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
         mDataTimestamp[inputNr] = input->getTimestamp();
-        if(input->getNrOfChannels() == 4)
-            transparentImage = true;
     }
     if(m_opacity >= 0.0f || transparentImage) {
         glEnable(GL_BLEND);

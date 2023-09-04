@@ -49,7 +49,7 @@ void ApplyColormap::execute() {
         m_bufferUpToDate = true;
     }
 
-    cl::Kernel kernel(getOpenCLProgram(device), "applyColormapGrayscale");
+    cl::Kernel kernel(getOpenCLProgram(device), "applyColormap");
 
     float minValue = m_minValue;
     float maxValue = m_maxValue;
@@ -68,7 +68,7 @@ void ApplyColormap::execute() {
     kernel.setArg(3, m_colormap.getSteps());
     kernel.setArg(4, (char)(m_colormap.isInterpolated() ? 1 : 0));
     kernel.setArg(5, (char)(m_colormap.isGrayscale() ? 1 : 0));
-    kernel.setArg(6, (char)(m_colormap.hasOpacity() ? 1 : 0));
+    kernel.setArg(6, (char)((m_colormap.hasOpacity() || m_opacity < 1.0f) ? 1 : 0));
     kernel.setArg(7, (char)(m_colormap.isIntensityInvariant() ? 1 : 0));
     kernel.setArg(8, minValue);
     kernel.setArg(9, maxValue);
@@ -102,6 +102,7 @@ void ApplyColormap::setOpacity(float opacity) {
         throw Exception("Opacity must be within range [0, 1] in ApplyColormap");
 
     m_opacity = opacity;
+    m_bufferUpToDate = false;
     setModified(true);
 }
 
@@ -181,7 +182,7 @@ cl::Buffer Colormap::getAsOpenCLBuffer(OpenCLDevice::pointer device, float opaci
             for(int i = 0; i < m_data.size(); ++i) {
                 dataToTransfer.push_back(m_data[i]);
                 if((i+1) % elements == 0)
-                    dataToTransfer.push_back(opacity);
+                    dataToTransfer.push_back(opacity*255.0f);
             }
         } else {
             for(int i = elements-1; i < m_data.size(); i += elements) {
@@ -274,10 +275,10 @@ Colormap Colormap::Fire(bool withOpacity) {
     float enableOpacity = withOpacity ? 1.0f : -1.0f;
       return Colormap({
         {0, Color(0, 0, 0, withOpacity ? 0.0f : -1.0f)},
-        {0.1, Color(40.0f/255, 25.0f/255, 0, 0.05f*enableOpacity)},
-        {0.3, Color(80.0f/255, 35.0f/255, 0, 0.1f*enableOpacity)},
-        {0.4, Color(140.0f/255, 30.0f/255, 0, 0.3f*enableOpacity)},
-        {0.6, Color(200.0f/255, 160.0f/255, 0, 0.5f*enableOpacity)},
+        {0.1, Color(40.0f/255, 25.0f/255, 0, 0.1f*enableOpacity)},
+        {0.3, Color(80.0f/255, 35.0f/255, 0, 0.2f*enableOpacity)},
+        {0.4, Color(140.0f/255, 30.0f/255, 0, 0.4f*enableOpacity)},
+        {0.6, Color(200.0f/255, 160.0f/255, 0, 0.6f*enableOpacity)},
         {0.9, Color(252.0f/255, 252.0f/255, 160.0f/255, 0.75f*enableOpacity)},
         {1.0, Color(255.0f/255, 255.0f/255, 255.0f/255, 0.8f*enableOpacity)},
         }, true, true);
