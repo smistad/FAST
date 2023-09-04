@@ -45,12 +45,30 @@ class FAST_EXPORT Colormap {
         /**
          * @brief Create an OpenCL buffer from the colormap data.
          * @param device OpenCL device to transfer data to
+         * @param opacity Opacity to apply to colormap. If lower than 1 opacity will be added to the colormap.
+         *      If the colormap already has opacity, this opacity will be multiplied with the existing opacity.
          * @return OpenCL buffer
          */
-        cl::Buffer getAsOpenCLBuffer(OpenCLDevice::pointer device) const;
+        cl::Buffer getAsOpenCLBuffer(OpenCLDevice::pointer device, float opacity = 1.0f) const;
+        /**
+         * @brief Has this colormap opacity defined
+         * @return
+         */
         bool hasOpacity() const;
+        /**
+         * @brief Is this colormap grayscale
+         * @return
+         */
         bool isGrayscale() const;
+        /**
+         * @brief Is this colormap grayscale
+         * @return
+         */
         bool isInterpolated() const;
+        /**
+         * @brief Is this colormap intensity invariant
+         * @return
+         */
         bool isIntensityInvariant() const;
         int getSteps() const;
         /**
@@ -59,7 +77,18 @@ class FAST_EXPORT Colormap {
          */
         std::vector<float> getData() const;
 
+        /**
+         * @brief Ultrasound S-curve colormap (grayscale and color (with a hint of blue))
+         * @param grayscale
+         * @return ultrasound colormap
+         */
         static Colormap Ultrasound(bool grayscale = false);
+        /**
+         * @brief Inferno heatmap
+         * @param withOpacity Create inferno heatmap with custom opacity.
+         *      If you will use this heatmap as an overlay you should enable this.
+         * @return inferno heatmap
+         */
         static Colormap Inferno(bool withOpacity = false);
     private:
         std::vector<float> m_data;
@@ -89,10 +118,17 @@ class FAST_EXPORT ApplyColormap : public ProcessObject {
         /**
          * @brief Create instance
          * @param colormap Colormap to apply
+         * @param opacity Apply colormap with an opacity.
+         *      If the colormap already has opacity, this opacity will be multiplied with the existing opacity.
+         * @param minValue Set the minimum value of the input data to scale the colormap to. This is only used
+         *      on intensity invariant colormaps. If not set, the true minimum value of the input data is used.
+         * @param maxValue Set the maximum value of the input data to scale the colormap to. This is only used
+         *      on intensity invariant colormaps. If not set, the true maximum value of the input data is used.
          * @return instance
          */
         FAST_CONSTRUCTOR(ApplyColormap,
                          Colormap, colormap,,
+                         float, opacity, = 1.0f,
                          float, minValue, = std::nanf(""),
                          float, maxValue, = std::nanf("")
         );
@@ -100,6 +136,7 @@ class FAST_EXPORT ApplyColormap : public ProcessObject {
         Colormap getColormap() const;
         void setMinValue(float minValue);
         void setMaxValue(float maxValue);
+        void setOpacity(float opacity);
     protected:
         ApplyColormap();
         void execute() override;
@@ -108,6 +145,7 @@ class FAST_EXPORT ApplyColormap : public ProcessObject {
         cl::Buffer m_colormapBuffer;
         float m_minValue;
         float m_maxValue;
+        float m_opacity = 1.0f;
 };
 
 } // end namespace

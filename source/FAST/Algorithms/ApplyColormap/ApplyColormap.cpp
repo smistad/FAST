@@ -2,12 +2,13 @@
 #include <FAST/Data/Image.hpp>
 
 namespace fast {
-ApplyColormap::ApplyColormap(Colormap colormap, float minValue, float maxValue) {
+ApplyColormap::ApplyColormap(Colormap colormap, float opacity, float minValue, float maxValue) {
     createInputPort(0, "Image");
     createOutputPort(0, "Image");
     setColormap(colormap);
     setMinValue(minValue);
     setMaxValue(maxValue);
+    setOpacity(opacity);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ApplyColormap/ApplyColormap.cl");
 }
 
@@ -30,7 +31,7 @@ void ApplyColormap::execute() {
     if(m_colormap.isGrayscale()) {
         output = Image::create(input->getSize(), TYPE_UINT8, 1);
     } else {
-        if(m_colormap.hasOpacity()) {
+        if(m_colormap.hasOpacity() || m_opacity < 1.0f) {
             output = Image::create(input->getSize(), TYPE_UINT8, 4);
         } else {
             output = Image::create(input->getSize(), TYPE_UINT8, 3);
@@ -44,7 +45,7 @@ void ApplyColormap::execute() {
     auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
     if(!m_bufferUpToDate) {
-        m_colormapBuffer = m_colormap.getAsOpenCLBuffer(device);
+        m_colormapBuffer = m_colormap.getAsOpenCLBuffer(device, m_opacity);
         m_bufferUpToDate = true;
     }
 
@@ -93,6 +94,14 @@ void ApplyColormap::setMinValue(float minValue) {
 
 void ApplyColormap::setMaxValue(float maxValue) {
     m_maxValue = maxValue;
+    setModified(true);
+}
+
+void ApplyColormap::setOpacity(float opacity) {
+    if(opacity < 0.0f || opacity > 1.0f)
+        throw Exception("Opacity must be within range [0, 1] in ApplyColormap");
+
+    m_opacity = opacity;
     setModified(true);
 }
 
@@ -154,15 +163,38 @@ void Colormap::checkData() const {
     }
 }
 
-cl::Buffer Colormap::getAsOpenCLBuffer(OpenCLDevice::pointer device) const {
+cl::Buffer Colormap::getAsOpenCLBuffer(OpenCLDevice::pointer device, float opacity) const {
     if(m_data.empty())
         throw Exception("Trying to get OpenCL buffer of empty Colormap");
     checkData();
+    auto dataToTransfer = m_data;
+    if(opacity < 1.0f) {
+        int elements = 4;
+        if(m_grayscale) {
+            elements = 2;
+        } else {
+            if(m_hasOpacity)
+                elements = 5;
+        if(!hasOpacity()) {
+            // Have to add opacity channel
+            dataToTransfer = {};
+            for(int i = 0; i < m_data.size(); ++i) {
+                dataToTransfer.push_back(m_data[i]);
+                if((i+1) % elements == 0)
+                    dataToTransfer.push_back(opacity);
+            }
+        } else {
+            for(int i = elements-1; i < m_data.size(); i += elements) {
+                dataToTransfer[i] *= opacity;
+            }
+        }
+    }
+    }
     return cl::Buffer(
             device->getContext(),
             CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-            m_data.size()*sizeof(float),
-            (void*)m_data.data()
+            dataToTransfer.size()*sizeof(float),
+            (void*)dataToTransfer.data()
     );
 }
 
@@ -233,7 +265,7 @@ Colormap Colormap::Inferno(bool withOpacity) {
         {0.3, Color(80.0f/255, 35.0f/255, 0, 0.1f*enableOpacity)},
         {0.4, Color(140.0f/255, 30.0f/255, 0, 0.3f*enableOpacity)},
         {0.6, Color(200.0f/255, 160.0f/255, 0, 0.5f*enableOpacity)},
-        {0.85, Color(255.0f/255, 255.0f/255, 255.0f/255, 0.8f*enableOpacity)},
+        {1.0, Color(255.0f/255, 255.0f/255, 255.0f/255, 0.8f*enableOpacity)},
         }, true, true);
 }
 
