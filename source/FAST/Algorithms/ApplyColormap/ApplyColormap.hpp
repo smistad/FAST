@@ -22,14 +22,16 @@ class FAST_EXPORT Colormap {
          *
          * @param colormap
          * @param interpolate
+         * @param diverging
          */
-        explicit Colormap(const std::map<float, float>& colormap, bool interpolate = true, bool intensityInvariant = false);
+        explicit Colormap(const std::map<float, float>& colormap, bool interpolate = true, bool intensityInvariant = false, bool diverging = false);
         /**
          * @brief Creates an RGB colormap
          * @param colormap
          * @param interpolate
+         * @param diverging
          */
-        explicit Colormap(const std::map<float, Color>& colormap, bool interpolate = true, bool intensityInvariant = false);
+        explicit Colormap(const std::map<float, Color>& colormap, bool interpolate = true, bool intensityInvariant = false, bool diverging = false);
         /**
          * @brief Creates a colormap directly from a list of floats.
          *
@@ -40,8 +42,9 @@ class FAST_EXPORT Colormap {
          * @param values
          * @param grayscale
          * @param interpolate
+         * @param diverging
          */
-        Colormap(std::vector<float> values, bool grayscale, bool interpolate = true, bool intensityInvariant = false);
+        Colormap(std::vector<float> values, bool grayscale, bool interpolate = true, bool intensityInvariant = false, bool diverging = false);
         /**
          * @brief Create an OpenCL buffer from the colormap data.
          * @param device OpenCL device to transfer data to
@@ -70,6 +73,15 @@ class FAST_EXPORT Colormap {
          * @return
          */
         bool isIntensityInvariant() const;
+        /**
+         * @brief Is this colormap diverging
+         * @return
+         */
+        bool isDiverging() const;
+        /**
+         * @brief Get nr of steps (defined points) in colormap
+         * @return
+         */
         int getSteps() const;
         /**
          * @brief Get data values of the colormap as a list of floats
@@ -97,12 +109,19 @@ class FAST_EXPORT Colormap {
           * @return fire heatmap
           */
         static Colormap Fire(bool withOpacity = false);
+
+        /**
+         * @brief Cool-Warm (Blue-Red) diverging colormap
+         * @return
+         */
+        static Colormap CoolWarm();
     private:
         std::vector<float> m_data;
         bool m_hasOpacity = false;
         bool m_grayscale;
         bool m_interpolate;
         bool m_intensityInvariant = false;
+        bool m_diverging = false;
         void checkData() const;
 };
 

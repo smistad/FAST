@@ -70,8 +70,9 @@ void ApplyColormap::execute() {
     kernel.setArg(5, (char)(m_colormap.isGrayscale() ? 1 : 0));
     kernel.setArg(6, (char)((m_colormap.hasOpacity() || m_opacity < 1.0f) ? 1 : 0));
     kernel.setArg(7, (char)(m_colormap.isIntensityInvariant() ? 1 : 0));
-    kernel.setArg(8, minValue);
-    kernel.setArg(9, maxValue);
+    kernel.setArg(8, (char)(m_colormap.isDiverging() ? 1 : 0));
+    kernel.setArg(9, minValue);
+    kernel.setArg(10, maxValue);
 
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,
@@ -114,7 +115,7 @@ Colormap::Colormap() {
 
 }
 
-Colormap::Colormap(const std::map<float, Color>& colormap, bool interpolate, bool intensityInvariant) {
+Colormap::Colormap(const std::map<float, Color>& colormap, bool interpolate, bool intensityInvariant, bool diverging) {
     for(auto item : colormap) {
         m_data.push_back(item.first);
         m_data.push_back(item.second.getRedValue()*255.0f);
@@ -129,9 +130,10 @@ Colormap::Colormap(const std::map<float, Color>& colormap, bool interpolate, boo
     m_grayscale = false;
     m_interpolate = interpolate;
     m_intensityInvariant = intensityInvariant;
+    m_diverging = diverging;
 }
 
-Colormap::Colormap(const std::map<float, float>& colormap, bool interpolate, bool intensityInvariant) {
+Colormap::Colormap(const std::map<float, float>& colormap, bool interpolate, bool intensityInvariant, bool diverging) {
     for(auto item : colormap) {
         m_data.push_back(item.first);
         m_data.push_back(item.second);
@@ -139,6 +141,7 @@ Colormap::Colormap(const std::map<float, float>& colormap, bool interpolate, boo
     m_grayscale = true;
     m_interpolate = interpolate;
     m_intensityInvariant = intensityInvariant;
+    m_diverging = diverging;
 }
 
 bool Colormap::isInterpolated() const {
@@ -211,12 +214,13 @@ int Colormap::getSteps() const {
     }
 }
 
-Colormap::Colormap(std::vector<float> values, bool grayscale, bool interpolate, bool intensityInvariant) {
+Colormap::Colormap(std::vector<float> values, bool grayscale, bool interpolate, bool intensityInvariant, bool diverging) {
     m_data = values;
     m_grayscale = grayscale;
     checkData();
     m_interpolate = interpolate;
     m_intensityInvariant = intensityInvariant;
+    m_diverging = diverging;
 }
 
 Colormap Colormap::Ultrasound(bool grayscale) {
@@ -282,6 +286,18 @@ Colormap Colormap::Fire(bool withOpacity) {
         {0.9, Color(252.0f/255, 252.0f/255, 160.0f/255, 0.75f*enableOpacity)},
         {1.0, Color(255.0f/255, 255.0f/255, 255.0f/255, 0.8f*enableOpacity)},
         }, true, true);
+}
+
+Colormap Colormap::CoolWarm() {
+    return Colormap({
+        {-1.0, Color(0, 0, 1.0)},
+        {0.0, Color(1, 1, 1.0)},
+        {1.0, Color(1, 0, 0.0)},
+    }, true, true, true);
+}
+
+bool Colormap::isDiverging() const {
+    return m_diverging;
 }
 
 }

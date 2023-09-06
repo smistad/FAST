@@ -122,6 +122,7 @@ __kernel void applyColormap(
             __private char grayscale,
             __private char hasOpacity,
             __private char isIntensityInvariant,
+            __private char isDiverging,
             __private float minValue,
             __private float maxValue
     ) {
@@ -130,7 +131,11 @@ __kernel void applyColormap(
     float4 value = readImageAsFloat2D(input, sampler, pos);
 
     if(isIntensityInvariant == 1) {
-        value.x = clamp((value.x - minValue) / (maxValue - minValue), 0.0f, 1.0f);
+        if(isDiverging == 1) {
+            value.x = clamp(value.x / max(fabs(minValue), fabs(maxValue)), -1.0f, 1.0f);
+        } else {
+            value.x = clamp((value.x - minValue) / (maxValue - minValue), 0.0f, 1.0f);
+        }
     }
 
     if(grayscale == 1) {
