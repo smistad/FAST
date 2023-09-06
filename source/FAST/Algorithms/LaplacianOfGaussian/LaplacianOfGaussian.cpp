@@ -212,6 +212,7 @@ void LaplacianOfGaussian::execute() {
             TYPE_FLOAT,
             1
     );
+    output->setSpacing(input->getSpacing());
 
     createMask(input, maskSize);
 
