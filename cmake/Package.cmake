@@ -57,10 +57,15 @@ else()
 
     # Get distro name and version
     find_program(LSB_RELEASE_EXEC lsb_release)
-    execute_process(COMMAND ${LSB_RELEASE_EXEC} -is
-        OUTPUT_VARIABLE DISTRO_NAME
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
+    if(LSB_RELEASE_EXEC)
+        execute_process(COMMAND ${LSB_RELEASE_EXEC} -is
+            OUTPUT_VARIABLE DISTRO_NAME
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+    else()
+        set(DISTRO_NAME "Unknown")
+        message(WARNING "lsb_release not found. DISTRO_NAME set to Unknown")
+    endif()
     string(TOLOWER ${DISTRO_NAME} DISTRO_NAME)
     execute_process(COMMAND ${LSB_RELEASE_EXEC} -rs
         OUTPUT_VARIABLE DISTRO_VERSION
