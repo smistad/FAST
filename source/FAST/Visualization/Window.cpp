@@ -277,6 +277,9 @@ void Window::start() {
 	int screenWidth = getScreenWidth();
 
     if(mFullscreen) {
+        mWidth = screenWidth;
+        mHeight = screenHeight;
+        mWidget->resize(mWidth, mHeight);
         mWidget->showFullScreen();
     } else if(mMaximized) {
         mWidth = screenWidth;
