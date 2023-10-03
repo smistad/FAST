@@ -78,6 +78,10 @@ void ImageToImageNetwork::execute() {
         m_tensorToImage->setChannels(m_channelsToExtract);
 
     // Assumes one input and one output
+    if(m_disabled) {
+        addOutputData(0, getInputData<Image>(0));
+        return;
+    }
 
     // Prepare input data
     auto inputTensors = processInputData();
@@ -207,6 +211,15 @@ void ImageToImageNetwork::setChannels(std::vector<int> channels) {
 void ImageToImageNetwork::setNormalization(ImageToImageNetwork::Normalization norm) {
     m_normalizationMethod = norm;
     setModified(true);
+}
+
+void ImageToImageNetwork::setDisabled(bool disabled) {
+    m_disabled = disabled;
+    setModified(true);
+}
+
+bool ImageToImageNetwork::isDisabled() const {
+    return m_disabled;
 }
 
 }

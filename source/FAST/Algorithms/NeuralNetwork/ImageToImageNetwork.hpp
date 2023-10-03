@@ -105,6 +105,19 @@ class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
          * @param norm
          */
         void setNormalization(Normalization norm);
+
+        /**
+         * @brief Set disabled state
+         * When disabled, this PO will just forward the input image instead of processing it
+         * @param disabled
+         */
+        void setDisabled(bool disabled);
+        /**
+         * @brief Check if disabled
+         * @sa ImageToImageNetwork::setDisabled
+         * @return
+         */
+        bool isDisabled() const;
     private:
         ImageToImageNetwork();
         void execute();
@@ -118,6 +131,7 @@ class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
         std::vector<int> m_channelsToExtract;
         float mScaleFactor2 = 1.0f;
         Normalization m_normalizationMethod = Normalization::CLIP_0_1;
+        bool m_disabled = false;
 
 };
 
