@@ -50,7 +50,8 @@ class FAST_EXPORT DualViewWindow : public Window {
         std::shared_ptr<DualViewWindow> connectTop(std::vector<std::shared_ptr<Renderer>> renderers);
         std::shared_ptr<DualViewWindow> connectBottom(std::shared_ptr<Renderer> renderer);
         std::shared_ptr<DualViewWindow> connectBottom(std::vector<std::shared_ptr<Renderer>> renderers);
-        std::shared_ptr<DualViewWindow> connect(QWidget* widget);
+        std::shared_ptr<DualViewWindow> connect(QWidget* widget, WidgetPosition position = WidgetPosition::BOTTOM);
+        std::shared_ptr<DualViewWindow> connect(std::vector<QWidget*> widgets, WidgetPosition position = WidgetPosition::BOTTOM);
         std::shared_ptr<Window> connect(uint id, std::shared_ptr<DataObject> data) override;
         std::shared_ptr<Window> connect(uint id, std::shared_ptr<ProcessObject> PO, uint portID = 0) override;
     protected:

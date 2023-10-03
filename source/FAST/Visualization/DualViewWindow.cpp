@@ -136,9 +136,11 @@ void DualViewWindow::addWidget(QWidget *widget) {
     Window::connect(widget);
 }
 
-std::shared_ptr<DualViewWindow> DualViewWindow::connect(QWidget *widget) {
-    addWidget(widget);
-    return std::dynamic_pointer_cast<DualViewWindow>(mPtr.lock());
+std::shared_ptr<DualViewWindow> DualViewWindow::connect(QWidget* widget, WidgetPosition position) {
+    return std::dynamic_pointer_cast<DualViewWindow>(Window::connect(widget, position));
+}
+std::shared_ptr<DualViewWindow> DualViewWindow::connect(std::vector<QWidget*> widgets, WidgetPosition position) {
+    return std::dynamic_pointer_cast<DualViewWindow>(Window::connect(widgets, position));
 }
 
 std::shared_ptr<Window> DualViewWindow::connect(uint id, std::shared_ptr<DataObject> data) {
