@@ -114,6 +114,8 @@ void UltrasoundImageCropper::execute() {
     outputImage->setCreationTimestamp(image->getCreationTimestamp());
 	outputImage->setFrameData("original-width", std::to_string(outputImage->getWidth()));
 	outputImage->setFrameData("original-height", std::to_string(outputImage->getHeight()));
+	outputImage->setTransform(Transform::create(Vector3f(m_offsetX*m_spacing.x(), m_offsetY*m_spacing.y(), 0.0f)));
+	SceneGraph::setParentNode(outputImage, image);
 
     OpenCLImageAccess::pointer outputAccess = outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
