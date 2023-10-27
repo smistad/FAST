@@ -14,6 +14,9 @@ namespace fast {
  * For instance if exported using the TIFFImagePyramidExporter.
  * This exporter uses libtiff.
  *
+ * Outputs:
+ * - 0: ImagePyramid
+ *
  * @sa WholeSlideImageImporter TIFFImagePyramidExporter
  * @ingroup importers
  */

@@ -25,7 +25,7 @@ namespace fast {
 
 int ImagePyramid::m_counter = 0;
 
-ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, int patchHeight) {
+ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, int patchHeight, ImageCompression compression) {
     if(channels <= 0 || channels > 4)
         throw Exception("Nr of channels must be between 1 and 4");
 
@@ -62,14 +62,19 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
     auto tiff = m_tiffHandle;
     m_counter += 1;
 
-    ImageCompression compression = ImageCompression::LZW;
-
-    uint photometric = PHOTOMETRIC_RGB;
+    uint photometric;
     uint bitsPerSample = 8;
-    uint samplesPerPixel = 3; // RGBA image pyramid is converted to RGB with getPatchAsImage
+    uint samplesPerPixel;
     if(channels == 1) {
         photometric = PHOTOMETRIC_MINISBLACK; // Photometric mask causes crash..
         samplesPerPixel = 1;
+        if(compression == ImageCompression::UNSPECIFIED)
+            compression = ImageCompression::LZW;
+    } else {
+        if(compression == ImageCompression::UNSPECIFIED)
+            compression = ImageCompression::JPEG;
+        photometric = PHOTOMETRIC_RGB;
+        samplesPerPixel = 3; // RGBA image pyramid is converted to RGB with getPatchAsImage
     }
 
     while(true) {
