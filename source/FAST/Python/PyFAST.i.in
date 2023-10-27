@@ -226,6 +226,9 @@ public
 %template(SequenceT) fast::SimpleDataObject<fast::InferenceDataList>;
 %template(FloatScalarT) fast::SimpleDataObject<float>;
 %template(FloatPointT) fast::SimpleDataObject<Vector2f>;
+%shared_ptr(fast::SimpleDataObject<std::string>)
+%shared_ptr(fast::String)
+%template(StringT) fast::SimpleDataObject<std::string>;
 %template(ClassificationSimpleDataType) fast::SimpleDataObject<std::map<std::string, float>>;
 
 @PYFAST_INTERFACE_INCLUDES@
