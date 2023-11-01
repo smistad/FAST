@@ -181,7 +181,6 @@ inline double solveQuadratic(const std::vector<double>& G, const std::unique_ptr
 
 	if(f == 0) {
 		std::cout << "speed is zero!" << std::endl;
-		exit(0);
 	}
 
 	double u = c + 1.0 / f;
