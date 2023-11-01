@@ -4,6 +4,7 @@
 #include <FAST/Visualization/Window.hpp>
 #include <FAST/Data/Image.hpp>
 #include <QGLContext>
+#include <FAST/Algorithms/ImageFlipper/ImageFlipper.hpp>
 
 namespace fast {
 
@@ -13,8 +14,11 @@ RenderToImage::RenderToImage(Color bgcolor, int width, int height) {
     m_height = height;
     zNear = 0.1;
     zFar = 1000;
+    fieldOfViewY = 45;
     m_zoom = 1.0;
     mIsIn2DMode = true;
+    mCameraSet = false;
+    mAutoUpdateCamera = false;
     createOutputPort(0);
 
     if(QThread::currentThread() == QApplication::instance()->thread()) { // Is main thread?
@@ -101,6 +105,19 @@ void RenderToImage::execute() {
         glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, m_width, m_height);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
         glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf);
+        if(!mNonVolumeRenderers.empty() && !mVolumeRenderers.empty()) {
+            glGenTextures(1, &m_textureColor);
+            glGenTextures(1, &m_textureDepth);
+            glBindTexture(GL_TEXTURE_2D, m_textureColor);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glBindTexture(GL_TEXTURE_2D, m_textureDepth);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, m_width, m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+            // Assign textures to FBO
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureColor, 0);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_textureDepth, 0);
+
+        }
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         initializeGL();
     }
@@ -122,6 +139,7 @@ void RenderToImage::execute() {
                  GL_UNSIGNED_BYTE,
                  data.get());
     auto image = Image::create(m_width, m_height, TYPE_UINT8, 3, std::move(data));
+    image = ImageFlipper::create(false, true)->connect(image)->runAndGetOutputData<Image>();
     if(!doContinue)
         image->setLastFrame("RenderToImage");
     //std::chrono::duration<float, std::milli> duration = std::chrono::high_resolution_clock::now() - start;
@@ -261,31 +279,33 @@ void RenderToImage::recalculateCamera() {
         mCameraPosition[2] += -minimumTranslationToSeeEntireObject
                 - boundingBoxDepth * 0.5; // half of the depth of the bounding box
                 //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
-                zFar = 10;//(minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
-                zNear = -10;//std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
-                mCameraPosition[2] = 0;
-                aspect = (float)m_width / m_height;
-                float orthoAspect = z_width / z_height;
-                float scalingWidth = 1;
-                float scalingHeight = 1;
-                if(aspect > orthoAspect) {
-                    scalingWidth = aspect / orthoAspect;
-                } else {
-                    scalingHeight = orthoAspect / aspect;
-                }
-                mLeft = (min[xDirection] / m_zoom) * scalingWidth;
-                mRight = (max[xDirection] / m_zoom) * scalingWidth;
-                mBottom = (min[yDirection] / m_zoom) * scalingHeight;
-                mTop = (max[yDirection] / m_zoom) * scalingHeight;
+        zFar = 10;//(minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
+        zNear = -10;//std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
+        mCameraPosition[2] = 0;
+        aspect = (float)m_width / m_height;
+        float orthoAspect = z_width / z_height;
+        float scalingWidth = 1;
+        float scalingHeight = 1;
+        if(aspect > orthoAspect) {
+            scalingWidth = aspect / orthoAspect;
+        } else {
+            scalingHeight = orthoAspect / aspect;
+        }
+        mLeft = (min[xDirection] / m_zoom) * scalingWidth;
+        mRight = (max[xDirection] / m_zoom) * scalingWidth;
+        mBottom = (min[yDirection] / m_zoom) * scalingHeight;
+        mTop = (max[yDirection] / m_zoom) * scalingHeight;
 
-                mCameraPosition[0] = mLeft + (mRight - mLeft) * 0.5f - centroid[0]; // center camera
-                mCameraPosition[1] = mBottom + (mTop - mBottom) * 0.5f - centroid[1]; // center camera
+        mCameraPosition[0] = mLeft + (mRight - mLeft) * 0.5f - centroid[0]; // center camera
+        mCameraPosition[1] = mBottom + (mTop - mBottom) * 0.5f - centroid[1]; // center camera
+        mCameraPosition[1] =
+                        mCameraPosition[1] - 2.0f * (mBottom + (mTop - mBottom) * 0.5f); // Compensate for Y flipping
 
                         m3DViewingTransformation = Affine3f::Identity();
                         //m3DRenderToImageingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
                         //m3DRenderToImageingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
                         //m3DRenderToImageingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
-                        m3DViewingTransformation.scale(Vector3f(1, 1, 1));
+                        m3DViewingTransformation.scale(Vector3f(1, -1, 1));
                         m3DViewingTransformation.translate(mCameraPosition);
                         /*
                         std::cout << "Centroid: " << centroid.transpose() << std::endl;
@@ -299,8 +319,6 @@ void RenderToImage::recalculateCamera() {
                         mPerspectiveMatrix = loadOrthographicMatrix(mLeft, mRight, mBottom, mTop, zNear, zFar);
     } else {
         // 3D Mode
-        aspect = (float) m_width / m_height;
-        fieldOfViewX = aspect * fieldOfViewY;
         // Initialize camera
         // Get bounding boxes of all objects
         Vector3f min, max;
@@ -359,6 +377,19 @@ void RenderToImage::recalculateCamera() {
         Eigen::Quaternionf Qy;
         Qy = Eigen::AngleAxisf(angleY * M_PI / 180.0f, Vector3f::UnitY());
         Eigen::Quaternionf Q = Qx * Qy;
+
+        //float dataAspect = (max[xDirection] - min[xDirection])/(max[yDirection] - min[yDirection]);
+        if(m_width < 0 && m_height < 0)
+            throw Exception("Width and height in RenderToImage can't both be below 0");
+        // Not sure how to do this properly. So just copy missing
+        if(m_height < 0) {
+            m_height = m_width;
+        }
+        if(m_width < 0) {
+            m_width = m_height;
+        }
+        aspect = (float)m_width / m_height;
+        fieldOfViewX = aspect * fieldOfViewY;
 
         //reportInfo() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Reporter::end();
         // Initialize rotation point to centroid of object
@@ -419,26 +450,6 @@ void RenderToImage::initializeGL() {
         recalculateCamera();
     } else {
         glEnable(GL_DEPTH_TEST);
-
-        if(m_FBO == 0 && !mVolumeRenderers.empty()) {
-            // Create framebuffer to render to
-            glGenFramebuffers(1, &m_FBO);
-
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
-            // Create textures which are to be assigned to framebuffer
-            glGenTextures(1, &m_textureColor);
-            glGenTextures(1, &m_textureDepth);
-            glBindTexture(GL_TEXTURE_2D, m_textureColor);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_FLOAT, NULL);
-            glBindTexture(GL_TEXTURE_2D, m_textureDepth);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, m_width, m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-
-            // Assign textures to FBO
-            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureColor, 0);
-            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_textureDepth, 0);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-        }
 
         // 3D mode
         if(!mCameraSet && getNrOfInputConnections() == 0) {
@@ -503,7 +514,6 @@ void RenderToImage::paintGL() {
             }
 
             if(!mVolumeRenderers.empty()) {
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
                 for(auto& renderer : mVolumeRenderers) {
                     if(!renderer->isDisabled()) {
                         renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false, m_width, m_height);
@@ -512,11 +522,13 @@ void RenderToImage::paintGL() {
                 }
 
                 // Blit/copy the framebuffer to the default framebuffer (window)
+                /*
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
                 glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height,
                                   GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
+                 */
             }
 
             mRuntimeManager->stopRegularTimer("draw");
@@ -538,4 +550,17 @@ void RenderToImage::removeAllRenderers() {
     mNonVolumeRenderers.clear();
     mVolumeRenderers.clear();
 }
+
+void RenderToImage::set2DMode() {
+    mIsIn2DMode = true;
+}
+
+void RenderToImage::set3DMode() {
+    mIsIn2DMode = false;
+}
+
+void RenderToImage::setAutoUpdateCamera(bool autoUpdate) {
+    mAutoUpdateCamera = autoUpdate;
+}
+
 }

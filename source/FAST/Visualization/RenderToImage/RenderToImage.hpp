@@ -39,6 +39,9 @@ class FAST_EXPORT RenderToImage : public ProcessObject, protected QOpenGLFunctio
         std::shared_ptr<RenderToImage> connect(std::vector<std::shared_ptr<Renderer>> renderers);
         void reset();
         void removeAllRenderers();
+        void set2DMode();
+        void set3DMode();
+        void setAutoUpdateCamera(bool autoUpdate);
     private:
         void execute() override;
     private:

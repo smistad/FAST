@@ -7,6 +7,9 @@
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Exporters/ImageExporter.hpp>
 #include <FAST/Streamers/ImageFileStreamer.hpp>
+#include <FAST/Visualization/VolumeRenderer/MaximumIntensityProjection.hpp>
+#include <FAST/Visualization/SliceRenderer/SliceRenderer.hpp>
+#include <FAST/Visualization/VolumeRenderer/ThresholdVolumeRenderer.hpp>
 
 using namespace fast;
 
@@ -47,4 +50,36 @@ TEST_CASE("RenderToImage on stream", "[fast][RenderToImage]") {
         //if(timestep == 4)
         //    break;
     }
+}
+
+TEST_CASE("RenderToImage 3D", "[fast][RenderToImage]") {
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
+
+    auto renderer = MaximumIntensityProjection::create()->connect(importer);
+
+    //SimpleWindow3D::create()->connect(renderer)->run();
+    auto toImage = RenderToImage::create(Color::White(), 1024 )->connect(renderer);
+    ImageExporter::create("test_render_to_image_3d_volume.png")->connect(toImage)->run();
+}
+
+TEST_CASE("RenderToImage 3D volume + geom", "[fast][RenderToImage]") {
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
+
+    auto renderer = ThresholdVolumeRenderer::create(300)->connect(importer);
+
+    auto renderer2 = SliceRenderer::create(PLANE_Z)->connect(importer);
+
+    //SimpleWindow3D::create()->connect({renderer, renderer2})->run();
+    auto toImage = RenderToImage::create(Color::White(), 1024 )->connect({renderer, renderer2});
+    ImageExporter::create("test_render_to_image_3d_geom_volume.png")->connect(toImage)->run();
+}
+
+TEST_CASE("RenderToImage 3D geom", "[fast][RenderToImage]") {
+    auto importer = ImageFileImporter::create(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
+
+    auto renderer2 = SliceRenderer::create(PLANE_Z)->connect(importer);
+
+    //SimpleWindow3D::create()->connect(renderer2)->run();
+    auto toImage = RenderToImage::create(Color::White(), 1024 )->connect(renderer2);
+    ImageExporter::create("test_render_to_image_3d_geom.png")->connect(toImage)->run();
 }
