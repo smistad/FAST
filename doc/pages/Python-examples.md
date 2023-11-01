@@ -20,6 +20,7 @@ You can also find many examples in the [python tutorials](@ref python-tutorials)
 |[Stream images from webcamera and apply edge detection](@ref stream_from_webcamera.py)| @image html images/examples/python/webcamera.jpg width=350px; |
 |[Stream images from Clarius ultrasound scanner and apply a non-local means (NLM) filter](@ref stream_from_clarius_ultrasound_scanner.py)| @image html images/examples/python/clarius_streaming.jpg width=350px; |
 |[Extract surface mesh from CT volume and render using GPU-based Marching Cubes algorithm](@ref extract_surface_mesh.py)| @image html images/examples/python/extract_surface_and_render.jpg width=350px; |
+|[Create a rotating GIF of a 3D volume](@ref create_rotating_3D_gif.py)| @image html images/examples/python/rotating_3D.gif width=350px; |
 |[Inject Python code into a FAST pipeline by creating a custom Python process object](@ref python_process_object.py)| @image html images/examples/python/python_process_object.jpg width=350px; |
 |[Create a custom data streamer in Python](@ref python_streamer.py)| @image html images/examples/python/left_ventricle.jpg width=350px; |
 |[Create a custom random access streamer with playback GUI in Python](@ref python_random_access_streamer.py)| @image html images/examples/python/python_random_access_streamer.jpg width=350px; |
