@@ -67,6 +67,13 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         // Override
         DataBoundingBox getTransformedBoundingBox() const override;
         DataBoundingBox getBoundingBox() const override;
+        ImageCompression getCompression() const;
+        void setCompressionModels(std::shared_ptr<NeuralNetwork> compressionModel, std::shared_ptr<NeuralNetwork> decompressionModel, float outputScaleFactor = 1.0f);
+        void setCompressionModel(std::shared_ptr<NeuralNetwork> compressionModel);
+        void setDecompressionModel(std::shared_ptr<NeuralNetwork> decompressionModel, float outputScaleFactor = 1.0f);
+        std::shared_ptr<NeuralNetwork> getCompressionModel() const;
+        std::shared_ptr<NeuralNetwork> getDecompressionModel() const;
+        float getDecompressionOutputScaleFactor() const;
     private:
         ImagePyramid();
         std::vector<ImagePyramidLevel> m_levels;
@@ -98,6 +105,10 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
 
         // A mutex needed to control multi-threaded reading of VSI and TIFF files
         std::mutex m_readMutex;
+
+        std::shared_ptr<NeuralNetwork> m_compressionModel;
+        std::shared_ptr<NeuralNetwork> m_decompressionModel;
+        float m_decompressionOutputScaleFactor = 1.0f;
 };
 
 }

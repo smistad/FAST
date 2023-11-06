@@ -71,6 +71,7 @@ void OpenVINOEngine::load() {
         int outputCount = 0;
         bool dynamicInputShapes = false;
         int index = 0;
+        bool imageOrderingFoundOnInput = false;
         for(auto inputNode : model->inputs()) {
             auto name = inputNode.get_any_name();
             reportInfo() << "Found input node " << inputNode.get_any_name() << " with shape " << inputNode.get_partial_shape().to_string() << " and index " << inputNode.get_index() << reportEnd();
@@ -88,8 +89,10 @@ void OpenVINOEngine::load() {
             m_inputIndices[name] = index;// inputNode.get_index(); // get_index always return 0 for some reason?
             ++index;
             NodeType type = detectNodeType(shape);
-            if(type == NodeType::IMAGE)
+            if(type == NodeType::IMAGE) {
                 m_imageOrdering = detectImageOrdering(shape);
+                imageOrderingFoundOnInput = true;
+            }
             if(inputsDefined) {
                 if(mInputNodes.count(name) > 0) {
                     reportInfo() << "Node was defined by user at id " << mInputNodes[name].id  << reportEnd();
@@ -150,6 +153,8 @@ void OpenVINOEngine::load() {
             m_outputIndices[name] = index;// outputNode.get_index(); // get_index always returns 0 for some reason..
             ++index;
             NodeType type = detectNodeType(shape);
+            if(!imageOrderingFoundOnInput && type == NodeType::IMAGE)
+                m_imageOrdering = detectImageOrdering(shape);
             if(outputsDefined) {
                 if(mOutputNodes.count(name) > 0) {
                     reportInfo() << "Node was defined by user at id " << mOutputNodes[name].id  << reportEnd();

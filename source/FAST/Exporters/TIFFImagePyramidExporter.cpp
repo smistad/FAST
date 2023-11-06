@@ -104,6 +104,9 @@ void TIFFImagePyramidExporter::execute() {
                 throw NotImplementedException();
                 TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JP2000);
                 break;
+            case ImageCompression::NEURAL_NETWORK:
+                TIFFSetField(tiff, TIFFTAG_COMPRESSION, 34666); // TODO What should the value be?
+                break;
         }
 
         TIFFSetField(tiff, TIFFTAG_TILEWIDTH, imagePyramid->getLevelTileWidth(level));

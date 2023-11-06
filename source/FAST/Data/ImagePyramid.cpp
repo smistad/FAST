@@ -76,6 +76,7 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
         photometric = PHOTOMETRIC_RGB;
         samplesPerPixel = 3; // RGBA image pyramid is converted to RGB with getPatchAsImage
     }
+    m_compressionFormat = compression;
 
     while(true) {
 		currentWidth = width / std::pow(2, currentLevel);
@@ -126,6 +127,9 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
                 // TODO NOT IMPLEMENTED
                 throw NotImplementedException();
                 TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JP2000);
+                break;
+            case ImageCompression::NEURAL_NETWORK:
+                TIFFSetField(tiff, TIFFTAG_COMPRESSION, 34666); // TODO What should the value be?
                 break;
         }
 
@@ -365,6 +369,30 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
         m_levels[i].tilesX = std::ceil((float)m_levels[i].width / m_levels[i].tileWidth);
         m_levels[i].tilesY = std::ceil((float)m_levels[i].height / m_levels[i].tileHeight);
     }
+    // Get compression
+    uint compressionTag;
+    TIFFGetField(fileHandle, TIFFTAG_COMPRESSION, &compressionTag);
+    ImageCompression compression;
+    switch(compressionTag) {
+        case COMPRESSION_NONE:
+            compression = ImageCompression::RAW;
+            break;
+        case COMPRESSION_JPEG:
+            compression = ImageCompression::JPEG;
+            break;
+        case COMPRESSION_LZW:
+            compression = ImageCompression::LZW;
+            break;
+        case COMPRESSION_JP2000:
+            throw Exception("JPEG 2000 TIFF not supported yet");
+            break;
+        case 34666:
+            compression = ImageCompression::NEURAL_NETWORK;
+            break;
+        default:
+            reportWarning() << "Unrecognized compression in TIFF: " << compressionTag << reportEnd();
+    }
+    m_compressionFormat = compression;
     // Get spacing from TIFF
     float spacingX;
     float spacingY;
@@ -468,6 +496,40 @@ int ImagePyramid::getLevelForMagnification(int magnification, float slackPercent
 
 bool ImagePyramid::isOMETIFF() const {
     return m_isOMETIFF;
+}
+
+ImageCompression ImagePyramid::getCompression() const {
+    return m_compressionFormat;
+}
+
+void ImagePyramid::setCompressionModels(std::shared_ptr<NeuralNetwork> compressionModel, std::shared_ptr<NeuralNetwork> decompressionModel, float decompressionOutputScaleFactor) {
+    setCompressionModel(compressionModel);
+    setDecompressionModel(decompressionModel, decompressionOutputScaleFactor);
+}
+
+std::shared_ptr<NeuralNetwork> ImagePyramid::getCompressionModel() const {
+    if(!m_compressionModel)
+        throw Exception("Image pyramid has no compression model");
+    return m_compressionModel;
+}
+
+std::shared_ptr<NeuralNetwork> ImagePyramid::getDecompressionModel() const {
+    if(!m_decompressionModel)
+        throw Exception("Image pyramid has no decompression model");
+    return m_decompressionModel;
+}
+
+void ImagePyramid::setCompressionModel(std::shared_ptr<NeuralNetwork> compressionModel) {
+    m_compressionModel = compressionModel;
+}
+
+void ImagePyramid::setDecompressionModel(std::shared_ptr<NeuralNetwork> decompressionModel, float outputScaleFactor) {
+    m_decompressionModel = decompressionModel;
+    m_decompressionOutputScaleFactor = outputScaleFactor;
+}
+
+float ImagePyramid::getDecompressionOutputScaleFactor() const {
+    return m_decompressionOutputScaleFactor;
 }
 
 }

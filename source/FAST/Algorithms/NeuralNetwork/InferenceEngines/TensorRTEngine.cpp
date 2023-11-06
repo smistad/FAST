@@ -395,13 +395,16 @@ void TensorRTEngine::load() {
     if(filename.substr(filename.size()-4) != ".uff") {
         int inputCount = 0;
         int outputCount = 0;
+        bool imageOrderingFoundOnInput = false;
         for(auto binding : bindings) {
             auto name = binding.first;
             int i = binding.second;
             auto shape = getTensorShape(m_engine->getBindingDimensions(i));
             NodeType type = detectNodeType(shape);
-            if(type == NodeType::IMAGE && m_engine->bindingIsInput(i))
+            if(type == NodeType::IMAGE && m_engine->bindingIsInput(i)) {
                 m_imageOrdering = detectImageOrdering(shape);
+                imageOrderingFoundOnInput = true;
+            }
             if(m_engine->bindingIsInput(i)) {
                 reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
                 auto dims = m_engine->getBindingDimensions(i);
@@ -443,6 +446,17 @@ void TensorRTEngine::load() {
                     NeuralNetworkNode node(name, type, shape, outputCount);
                     addOutputNode(node);
                     ++outputCount;
+                }
+            }
+        }
+        if(!imageOrderingFoundOnInput) {
+            for(auto binding : bindings) {
+                auto name = binding.first;
+                int i = binding.second;
+                auto shape = getTensorShape(m_engine->getBindingDimensions(i));
+                NodeType type = detectNodeType(shape);
+                if(type == NodeType::IMAGE) {
+                    m_imageOrdering = detectImageOrdering(shape);
                 }
             }
         }

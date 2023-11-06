@@ -10,6 +10,9 @@
 #include <tiffio.h>
 #include <FAST/Data/Image.hpp>
 #include <jpeglib.h>
+#include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
+#include <FAST/Algorithms/NeuralNetwork/TensorToImage.hpp>
+#include <FAST/Algorithms/ImageCaster/ImageCaster.hpp>
 
 namespace fast {
 
@@ -147,13 +150,13 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
         }
         if(width == tileWidth && height == tileHeight && x % tileWidth == 0 && y % tileHeight == 0) {
             // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
-            int bytesRead = TIFFReadTile(m_tiffHandle, (void *) data.get(), x, y, 0, 0);
+            int bytesRead = readTileFromTIFF((void *) data.get(), x, y);
         } else if((width < tileWidth || height < tileHeight) && x % tileWidth == 0 && y % tileHeight == 0) {
             auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
             {
                 // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
                 // In TIFF all tiles have the same size, thus they are padded..
-                int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), x, y, 0, 0);
+                int bytesRead = readTileFromTIFF((void *) tileData.get(), x, y);
             }
             // Remove extra
             for(int dy = 0; dy < height; ++dy) {
@@ -188,7 +191,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
                     auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
                     int tileX = i*tileWidth;
                     int tileY = j*tileHeight;
-                    int bytesRead = TIFFReadTile(m_tiffHandle, (void *) tileData.get(), firstTileX*tileWidth+tileX, firstTileY*tileHeight+tileY, 0, 0);
+                    int bytesRead = readTileFromTIFF((void *) tileData.get(), firstTileX*tileWidth+tileX, firstTileY*tileHeight+tileY);
                     // Stitch tile into full buffer
                     for(int cy = 0; cy < tileHeight; ++cy) {
                         for(int cx = 0; cx < tileWidth; ++cx) {
@@ -427,7 +430,55 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     }
 }
 
-void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch) {
+uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *data, int width, int height, int channels) {
+    if(m_image->getCompression() == ImageCompression::NEURAL_NETWORK) {
+        auto image = Image::create(width, height, TYPE_UINT8, channels, data); // TODO this seems unnecessary
+        return writeTileToTIFF(level, x, y, image);
+    } else {
+        return writeTileToTIFF(level, x, y, data);
+    }
+}
+
+uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, Image::pointer image) {
+    if(m_image->getCompression() == ImageCompression::NEURAL_NETWORK) {
+        return writeTileToTIFFNeuralNetwork(level, x, y, image);
+    } else {
+        auto access = image->getImageAccess(ACCESS_READ);
+        return writeTileToTIFF(level, x, y, (uchar*)access->get());
+    }
+}
+
+uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *data) {
+    std::lock_guard<std::mutex> lock(m_readMutex);
+    TIFFSetDirectory(m_tiffHandle, level);
+    TIFFWriteTile(m_tiffHandle, (void *) data, x, y, 0, 0);
+    TIFFCheckpointDirectory(m_tiffHandle);
+    uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    return tile_id;
+}
+
+uint32_t ImagePyramidAccess::writeTileToTIFFNeuralNetwork(int level, int x, int y, Image::pointer image) {
+    std::lock_guard<std::mutex> lock(m_readMutex);
+    TIFFSetDirectory(m_tiffHandle, level);
+    uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    if(m_image->getCompression() != ImageCompression::NEURAL_NETWORK)
+        throw Exception("Compression is not neural network type");
+
+    auto compressionModel = m_image->getCompressionModel();
+    compressionModel->connect(image);
+    auto tensor = compressionModel->runAndGetOutputData<Tensor>();
+    auto access = tensor->getAccess(ACCESS_READ);
+    float* data = access->getRawData();
+    uint32_t size = tensor->getShape().getTotalSize()*4;
+    TIFFSetWriteOffset(m_tiffHandle, 0); // Set write offset to 0, so that we dont appen data
+    TIFFWriteRawTile(m_tiffHandle, tile_id, (void *) data, size); // This appends data..
+    //TIFFWriteTile(m_tiffHandle, (void *) data, x, y, 0,0); // This does not append, but tries to compress data
+
+    TIFFCheckpointDirectory(m_tiffHandle);
+    return tile_id;
+}
+
+void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch, bool propagate) {
     if(m_tiffHandle == nullptr)
         throw Exception("setPatch only available for TIFF backend ImagePyramids");
 
@@ -452,16 +503,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
     }
 
     // Write tile to this level
-    auto patchAccess = patch->getImageAccess(ACCESS_READ);
-    auto data = (uchar*)patchAccess->get();
-    uint32_t tile_id;
-    {
-        std::lock_guard<std::mutex> lock(m_readMutex);
-        TIFFSetDirectory(m_tiffHandle, level);
-        TIFFWriteTile(m_tiffHandle, (void *) data, x, y, 0, 0);
-        TIFFCheckpointDirectory(m_tiffHandle);
-        tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
-    }
+    uint32_t tile_id = writeTileToTIFF(level, x, y, patch);
     m_initializedPatchList.insert(std::to_string(level) + "-" + std::to_string(tile_id));
 
     // Add patch to list of dirty patches, so the renderer can update it if needed
@@ -474,7 +516,11 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
     m_image->setDirtyPatch(level, patchIdX, patchIdY);
 
     // Propagate upwards
+    if(!propagate)
+        return;
     auto previousData = std::make_unique<uchar[]>(patch->getNrOfVoxels()*patch->getNrOfChannels());
+    auto patchAccess = patch->getImageAccess(ACCESS_READ);
+    auto data = (uchar*)patchAccess->get();
     std::memcpy(previousData.get(), data, patch->getNrOfVoxels()*patch->getNrOfChannels());
     const auto channels = m_image->getNrOfChannels();
     while(level < m_image->getNrOfLevels()-1) {
@@ -540,13 +586,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch)
                 }
             }
         }
-        {
-            std::lock_guard<std::mutex> lock(m_readMutex);
-            TIFFSetDirectory(m_tiffHandle, level);
-            TIFFWriteTile(m_tiffHandle, (void *) newData.get(), x, y, 0, 0);
-            TIFFCheckpointDirectory(m_tiffHandle);
-            tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
-        }
+        tile_id = writeTileToTIFF(level, x, y, newData.get(), tileWidth, tileHeight, channels);
         previousData = std::move(newData);
 
         int levelWidth = m_image->getLevelWidth(level);
@@ -568,5 +608,35 @@ bool ImagePyramidAccess::isPatchInitialized(uint level, uint x, uint y) {
     auto tile = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
     return m_initializedPatchList.count(std::to_string(level) + "-" + std::to_string(tile)) > 0;
 }
+
+int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y) {
+    // Assumes level (directory is already set)
+    if(m_compressionFormat == ImageCompression::NEURAL_NETWORK) {
+        auto decompressionModel = m_image->getDecompressionModel();
+        // TODO The logic here must be improved
+        // TODO this assumes fixed size code
+        auto shape = decompressionModel->getInputNodes().begin()->second.shape;
+        shape[0] = 1;
+        int64_t size = shape.getTotalSize()*4;
+        float* buffer = new float[shape.getTotalSize()];
+        uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+        int bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer, size);
+        auto tensor = Tensor::create(buffer, shape);
+        decompressionModel->connect(tensor);
+        // TODO TensorToImage not really needed..
+        auto outputTensor = decompressionModel->runAndGetOutputData<Tensor>();
+        auto tensorToImage = TensorToImage::create()->connect(outputTensor);
+        auto image = tensorToImage->runAndGetOutputData<Image>();
+        // Have to go from float image to uint8 image
+        image = ImageCaster::create(TYPE_UINT8, m_image->getDecompressionOutputScaleFactor())->connect(image)->runAndGetOutputData<Image>();
+        auto access = image->getImageAccess(ACCESS_READ);
+        std::memcpy(data, access->get(), image->getNrOfVoxels()*image->getNrOfChannels());
+        return bytesRead;
+    } else {
+        int bytesRead = TIFFReadTile(m_tiffHandle, data, x, y, 0, 0);
+        return bytesRead;
+    }
+}
+
 
 }

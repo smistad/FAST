@@ -13,6 +13,7 @@ namespace fast {
 
 class Image;
 class ImagePyramid;
+class NeuralNetwork;
 
 
 /**
@@ -26,6 +27,7 @@ enum class ImageCompression {
     JPEG,
     JPEG2000,
     LZW, // Lossless compression
+    NEURAL_NETWORK, // Use neural network to do the compression and decompression. See ImagePyramid::setCompressionModels
 };
 
 struct vsi_tile_header {
@@ -68,7 +70,7 @@ class FAST_EXPORT ImagePyramidAccess : Object {
 public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
 	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::ifstream* stream, std::vector<vsi_tile_header>& vsiTiles, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat);
-	void setPatch(int level, int x, int y, std::shared_ptr<Image> patch);
+	void setPatch(int level, int x, int y, std::shared_ptr<Image> patch, bool propagate = true);
 	bool isPatchInitialized(uint level, uint x, uint y);
 	std::unique_ptr<uchar[]> getPatchData(int level, int x, int y, int width, int height);
 	ImagePyramidPatch getPatch(std::string tile);
@@ -90,6 +92,11 @@ private:
     ImageCompression m_compressionFormat;
     std::vector<vsi_tile_header> m_vsiTiles;
     void readVSITileToBuffer(vsi_tile_header tile, uchar* data);
+    uint32_t writeTileToTIFF(int level, int x, int y, std::shared_ptr<Image> image);
+    uint32_t writeTileToTIFF(int level, int x, int y, uchar* data, int width, int height, int channels);
+    uint32_t writeTileToTIFF(int level, int x, int y, uchar* data);
+    uint32_t writeTileToTIFFNeuralNetwork(int level, int x, int y, std::shared_ptr<Image> image);
+    int readTileFromTIFF(void* data, int x, int y);
 };
 
 }

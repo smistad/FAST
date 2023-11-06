@@ -129,6 +129,7 @@ void ONNXRuntimeEngine::load() {
     const bool outputsDefined = !mOutputNodes.empty();
     int inputCount = 0;
     int outputCount = 0;
+    bool imageOrderingFoundOnInput = false;
 	for (size_t i = 0; i < m_session->GetInputCount(); i++) {
         std::string name = m_session->GetInputNameAllocated(i, allocator).get();
 		reportInfo() << "Found input node: " << name << " : " << print_shape(m_session->GetInputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape()) << reportEnd();
@@ -138,8 +139,10 @@ void ONNXRuntimeEngine::load() {
 		}
 
 		NodeType type = detectNodeType(shape);
-		if(type == NodeType::IMAGE)
+		if(type == NodeType::IMAGE) {
 		    m_imageOrdering = detectImageOrdering(shape);
+		    imageOrderingFoundOnInput = true;
+		}
 		if(inputsDefined) {
 			if(mInputNodes.count(name) > 0) {
 				reportInfo() << "Node was defined by user at id " << mInputNodes[name].id  << reportEnd();
@@ -162,6 +165,8 @@ void ONNXRuntimeEngine::load() {
 			shape.addDimension(x);
 		}
 		NodeType type = detectNodeType(shape);
+        if(!imageOrderingFoundOnInput && type == NodeType::IMAGE)
+            m_imageOrdering = detectImageOrdering(shape);
 		if(outputsDefined) {
 			if(mOutputNodes.count(name) > 0) {
 				reportInfo() << "Node was defined by user at id " << mOutputNodes[name].id  << reportEnd();
