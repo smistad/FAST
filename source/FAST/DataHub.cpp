@@ -61,9 +61,11 @@ static QJsonDocument getJSONFromURL(const std::string& url) {
         auto res = reply->readAll();
         //std::cout << "Response: " << res.toStdString() << std::endl;
         result = QJsonDocument::fromJson(res);
+    } else if (reply->error() == QNetworkReply::ContentNotFoundError) {
+        throw Exception("FAST DataHub content not found. Please check spelling.");
     } else {
         //failure
-        throw Exception("Error getting JSON data from URL");
+        throw Exception("Failed to retrieve data from FAST DataHub.\nServer could be down, or you may have no internet access.\nPlease try again later.");
     }
     return result;
 }
@@ -91,9 +93,11 @@ void DataHub::downloadTextFile(const std::string& url, const std::string& destin
         file << result["text"].toString().toStdString();
         file.close();
         emit progress(fileNr, 100);
+    } else if (reply->error() == QNetworkReply::ContentNotFoundError) {
+        throw Exception("FAST DataHub item " + name + " not found. Please check spelling.");
     } else {
         //failure
-        throw Exception("Error getting JSON data and pipeline text from URL");
+        throw Exception("Failed to retrieve data from FAST DataHub.\nServer could be down, or you may have no internet access.\nPlease try again later.");
     }
 }
 
@@ -314,7 +318,7 @@ DataHub::Download DataHub::download(std::string itemID, bool force) {
     try {
         json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
     } catch(Exception &e) {
-        throw Exception("Unable to get DataHub item with ID " + itemID);
+        throw e;
     }
 
     std::stack<DataHub::Item> toDownload;
@@ -358,6 +362,7 @@ DataHub::Download DataHub::download(std::string itemID, bool force) {
             downloadTextFile(itemObject.downloadURL, folder, downloadName, counter);
         } else {
             std::cout << "License: " << itemObject.license << std::endl;
+            std::cout << "Copyright: " << itemObject.copyright << " - " << itemObject.author << std::endl;
             if(!itemObject.licenseCustom.empty()) {
                 std::cout << "Additional license information: " << itemObject.licenseCustom << std::endl;
             }
@@ -377,7 +382,7 @@ bool DataHub::isDownloaded(std::string itemID) {
     try {
         json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
     } catch(Exception &e) {
-        throw Exception("Unable to get DataHub item with ID " + itemID);
+        throw e;
     }
 
     bool isDownloaded = true;
@@ -410,7 +415,7 @@ DataHub::Item DataHub::getItem(std::string itemID) {
     try {
         json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
     } catch(Exception &e) {
-        throw Exception("Unable to get DataHub item with ID " + itemID);
+        throw e;
     }
 
     return DataHub::Item::fromJSON(json.object());
