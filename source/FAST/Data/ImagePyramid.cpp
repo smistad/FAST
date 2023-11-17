@@ -36,16 +36,13 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
     m_channels = channels;
     m_tempFile = true;
 
-    std::cout << "Creating tiff path.." << std::endl;
     do {
         std::string randomString = generateRandomString(32);
-        std::cout << "random string: " << randomString << std::endl;
 #ifdef WIN32
         m_tiffPath = "C:/windows/temp/fast_image_pyramid_" + randomString + ".tiff";
 #else
         m_tiffPath = "/tmp/fast_image_pyramid_" + randomString + ".tiff";
 #endif
-        std::cout << "TIFF path: " << m_tiffPath << std::endl;
     } while(fileExists(m_tiffPath));
 
     TIFFSetErrorHandler([](const char* module, const char* fmt, va_list ap) {
