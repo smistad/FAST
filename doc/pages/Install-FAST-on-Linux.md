@@ -5,6 +5,7 @@ Requirements
 ==================
 **Make sure you have all the necessary requirements before installing FAST**:
 - Ubuntu Linux 18.04 or newer.
+- You need the package libxcb-xinerama0: `sudo apt install libxcb-xinerama0`
 - OpenGL: Usually installed along with your graphics driver.
 - OpenCL: To install OpenCL on Linux, download an implementation depending on the CPU/GPU you have:    
     - **NVIDIA** - Install [CUDA](https://developer.nvidia.com/cuda-downloads)  
@@ -96,6 +97,9 @@ Troubleshoot {#troubleshoot-linux}
     Then reinstall numpy: `pip install numpy`
 * C++
   * If the installer fails you can download .tar.xz file instead, and just extract it to anywhere on your drive.
+* If you get an error saying "qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.", you are probably missing some xcb libraries, like xinerama:
+  * `sudo apt install libxcb-xinerama0`
+  * You can debug what is failing by setting environment variable QT_DEBUG_PLGINS before running fast: `export QT_DEBUG_PLUGINS=1`
 
 Uninstall {#uninstall-linux}
 ==============
