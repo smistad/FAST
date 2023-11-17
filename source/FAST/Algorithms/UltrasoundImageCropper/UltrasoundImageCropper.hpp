@@ -11,6 +11,9 @@ namespace fast {
  * ultrasound image is often included.
  * This algorithm tries to extract the ultrasound image from the entire scanner GUI image using two thresholds.
  * It does this by counting the number of non-zero pixels in every row and column of the image.
+ * To find the min x and max x positions, it starts from the middle and stops at the first x position which has a
+ * number of pixels equal to 0 above the thresholdVertical. It does this both in the left and right direction.
+ * Then this is repeated for the vertical direction, y using thresholdHorizontal.
  * Works best on linear array images.
  *
  * Inputs:
@@ -25,12 +28,12 @@ class FAST_EXPORT  UltrasoundImageCropper : public ProcessObject {
     FAST_PROCESS_OBJECT(UltrasoundImageCropper)
     public:
         /**
-         *
+         * @brief Create instance
          * @param physicalWidth The physical width of the scanning region. This is used to set the pixel spacing correctly.
          * @param staticCropping Estimate the cropping parameters (offset, size) on the first frame only, then use these for all subsequent frames
-         * @param thresholdVertical
-         * @param thresholdHorizontal
-         * @return
+         * @param thresholdVertical Number of pixels that have to be above 0 to accept an image column to be outside of ultrasound sector
+         * @param thresholdHorizontal Number of pixels that have to be above 0 to accept an image row to be outside of ultrasound sector
+         * @return instance
          */
         FAST_CONSTRUCTOR(UltrasoundImageCropper,
                          float, physicalWidth, = 0,

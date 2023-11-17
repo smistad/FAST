@@ -23,6 +23,7 @@ UltrasoundImageCropper::UltrasoundImageCropper(float physicalWidth, bool staticC
 void UltrasoundImageCropper::setThresholds(float threshold1, float threshold2) {
     m_threshold1 = threshold1;
     m_threshold2 = threshold2;
+    setModified(true);
 }
 
 void UltrasoundImageCropper::execute() {
@@ -134,10 +135,12 @@ void UltrasoundImageCropper::setPhysicalWidth(float width) {
     if(width <= 0)
         throw Exception("Physical width must be > 0");
     m_physicalWidth = width;
+    setModified(true);
 }
 
 void UltrasoundImageCropper::setStaticCropping(bool staticCropping) {
     m_staticCropping = staticCropping;
+    setModified(true);
 }
 
 
