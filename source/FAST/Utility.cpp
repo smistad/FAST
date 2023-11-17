@@ -17,6 +17,8 @@
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 #endif
 #endif
 #include <zip/zip.h>
@@ -1140,4 +1142,80 @@ std::string roundToString(float value, int decimals) {
     stream << std::fixed << std::setprecision(decimals) << value;
     return stream.str();
 }
+
+Progress::Progress(uint64_t max, bool print, bool autoStart) {
+    m_max = max;
+    m_print = print;
+    if(autoStart)
+        start();
+}
+
+void Progress::start() {
+    m_startTime = std::chrono::high_resolution_clock::now();
+    m_started = true;
+}
+
+static int getConsoleWidth() {
+#ifdef WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    int columns, rows;
+
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    return columns;
+#else
+        struct winsize w;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        return w.ws_col;
+#endif
+    }
+
+void Progress::update(uint64_t current) {
+    if(!m_started)
+        start();
+    m_current = current;
+
+    const float percent = getPercent();
+    std::chrono::duration<float, std::milli> duration = std::chrono::high_resolution_clock::now() - m_startTime;
+    const float speed = (duration.count() / 1000.0f)/percent;
+    const float ETA = (speed * (1.0f - percent) / 60.0f);
+    if(m_print) {
+        std::cout << "\r"; // Replace line
+        std::stringstream ss;
+        ss << std::setprecision(1)
+        << std::fixed;
+        //ss << "] " << (int)(percent * 100.0f) << "% | " << m_current/(1024*1024) << "MB / " << m_max/(1024*1024) << "MB | ETA " << ETA << " mins";
+        ss << "] " << (int)(percent * 100.0f) << "% | ETA " << ETA << " mins";
+        std::string startString = m_text + (m_text.empty() ? "" : " ") + "[";
+        const int totalWidth = getConsoleWidth();
+        const int progressbarWidth = totalWidth - ss.str().size() - startString.size() - 1; // have to leave last line open to avoid jumping to next line (windows)
+        std::cout << startString;
+        int pos = progressbarWidth * percent;
+        for (int i = 0; i < progressbarWidth; ++i) {
+            if (i < pos) std::cout << "=";
+            else if (i == pos) std::cout << ">";
+            else std::cout << " ";
+        }
+        std::cout << ss.str();
+        std::cout.flush();
+        if(percent == 1.0f) {
+            std::cout << "\n";
+            std::cout.flush();
+        }
+    }
+}
+
+float Progress::getPercent() const {
+    return (float)m_current / m_max;
+}
+
+uint64_t Progress::getCurrent() const {
+    return m_current;
+}
+
+void Progress::setText(std::string text) {
+    m_text = text;
+}
+
 } // end namespace fast

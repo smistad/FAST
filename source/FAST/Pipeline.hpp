@@ -112,6 +112,8 @@ class FAST_EXPORT  Pipeline {
          * @return
          */
         std::map<std::string, std::string> getRequiredPipelineInputData() const;
+
+#ifndef SWIG
         /**
          * @brief Get all data objects which has been declared as output data in this pipeline
          *
@@ -121,7 +123,19 @@ class FAST_EXPORT  Pipeline {
          * @param progressFunction
          * @return map of pipeline output data
          */
-        std::map<std::string, DataObject::pointer> getAllPipelineOutputData(std::function<void(float)> progressFunction = nullptr);
+        std::map<std::string, DataObject::pointer> getAllPipelineOutputData(std::function<void(float)> progressFunction);
+#endif
+        /**
+         * @brief Get all data objects which has been declared as output data in this pipeline
+         *
+         * Pipeline output data is declared using "PipelineOutputData <name> <process object> <output port id>"
+         * This function will block until done.
+         *
+         * @return map of pipeline output data
+        */
+        std::map<std::string, DataObject::pointer> getAllPipelineOutputData();
+
+#ifndef SWIG
         /**
           * @brief Get data object which has been declared as output data in this pipeline with a given name.
           *
@@ -131,7 +145,17 @@ class FAST_EXPORT  Pipeline {
           * @param progressFunction
           * @return pipeline output data object
           */
-        DataObject::pointer getPipelineOutputData(std::string name, std::function<void(float)> progressFunction = nullptr);
+        DataObject::pointer getPipelineOutputData(std::string name, std::function<void(float)> progressFunction);
+#endif
+        /**
+         * @brief Get data object which has been declared as output data in this pipeline with a given name.
+         *
+         * Pipeline output data is declared using "PipelineOutputData <name> <process object> <output port id>"
+         * This function will block until done.
+         *
+         * @return pipeline output data object
+        */
+        DataObject::pointer getPipelineOutputData(std::string name);
 
         /**
          * @brief Check whether pipeline has a window specified or not

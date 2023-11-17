@@ -322,5 +322,24 @@ FAST_EXPORT std::string roundToString(double value, int decimals = 0);
  */
 FAST_EXPORT std::string roundToString(float value, int decimals = 0);
 
+/**
+ * @brief A utility class for keeping track of progress and printing progress to the console.
+ */
+class FAST_EXPORT Progress {
+    public:
+        explicit Progress(uint64_t max, bool print = true, bool autoStart = false);
+        void start();
+        void update(uint64_t current);
+        float getPercent() const;
+        void setText(std::string text);
+        uint64_t getCurrent() const;
+    private:
+        std::chrono::high_resolution_clock::time_point m_startTime;
+        bool m_print = true;
+        bool m_started = false;
+        uint64_t m_max;
+        uint64_t m_current;
+        std::string m_text = "";
+};
 } // end namespace fast
 

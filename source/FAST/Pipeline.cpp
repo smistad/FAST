@@ -615,6 +615,24 @@ std::shared_ptr<Window> Pipeline::getWindow() {
     return m_window;
 }
 
+DataObject::pointer Pipeline::getPipelineOutputData(std::string name) {
+    Progress progress(1000);
+    progress.setText("Running pipeline");
+    return getPipelineOutputData(name, [&](float x) {
+        // x is between 0 and 1
+        progress.update(round(x*1000));
+    });
+}
+
+std::map<std::string, DataObject::pointer> Pipeline::getAllPipelineOutputData() {
+    Progress progress(1000);
+    progress.setText("Running pipeline");
+    return getAllPipelineOutputData([&](float x) {
+        // x is between 0 and 1
+        progress.update(round(x*1000));
+    });
+}
+
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {
     auto processObjects = pipeline.getProcessObjects();
     for(auto object : processObjects) {
