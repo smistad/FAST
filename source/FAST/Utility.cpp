@@ -13,12 +13,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h> // needed for DIR
+#include <unistd.h>
+#include <sys/ioctl.h>
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 #endif
 #endif
 #include <zip/zip.h>
