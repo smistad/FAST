@@ -129,8 +129,17 @@ void ONNXRuntimeEngine::load() {
     const bool outputsDefined = !mOutputNodes.empty();
     int inputCount = 0;
     int outputCount = 0;
-    bool imageOrderingFoundOnInput = false;
+ 
+    // Sort nodes by name to be consistent
+    std::map<std::string, size_t> sortedInputNodes; // Map is sorted by key
 	for (size_t i = 0; i < m_session->GetInputCount(); i++) {
+        std::string name = m_session->GetInputNameAllocated(i, allocator).get();
+        sortedInputNodes[name] = i;
+    }
+
+   bool imageOrderingFoundOnInput = false;
+   for(auto node : sortedInputNodes) {
+		auto i = node.second;
         std::string name = m_session->GetInputNameAllocated(i, allocator).get();
 		reportInfo() << "Found input node: " << name << " : " << print_shape(m_session->GetInputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape()) << reportEnd();
 		auto shape = TensorShape();
@@ -157,7 +166,15 @@ void ONNXRuntimeEngine::load() {
 		}
 	}
 
+    // Sort nodes by name to be consistent
+    std::map<std::string, size_t> sortedOutputNodes; // Map is sorted by key
 	for (size_t i = 0; i < m_session->GetOutputCount(); i++) {
+        std::string name = m_session->GetOutputNameAllocated(i, allocator).get();
+        sortedOutputNodes[name] = i;
+    }
+
+	for (auto node : sortedOutputNodes) {
+        auto i = node.second;
         std::string name = m_session->GetOutputNameAllocated(i, allocator).get();
 		reportInfo() << "Found output node: " << name << " : " << print_shape(m_session->GetOutputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape()) << reportEnd();
 		auto shape = TensorShape();
