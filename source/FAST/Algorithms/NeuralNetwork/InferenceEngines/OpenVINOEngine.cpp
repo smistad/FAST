@@ -72,8 +72,16 @@ void OpenVINOEngine::load() {
         bool dynamicInputShapes = false;
         int index = 0;
         bool imageOrderingFoundOnInput = false;
+        // Sort nodes for consistency
+        std::map<std::string, std::pair<int, ov::Output<ov::Node>>> inputNodes;
         for(auto inputNode : model->inputs()) {
             auto name = inputNode.get_any_name();
+            inputNodes[name] = {index, inputNode};
+            ++index;
+        }
+        for(auto node : inputNodes) {
+            auto name = node.first;
+            auto inputNode = node.second.second;
             reportInfo() << "Found input node " << inputNode.get_any_name() << " with shape " << inputNode.get_partial_shape().to_string() << " and index " << inputNode.get_index() << reportEnd();
             if(inputNode.get_partial_shape().is_dynamic()) {
                 dynamicInputShapes = true;
@@ -86,7 +94,7 @@ void OpenVINOEngine::load() {
                     shape.addDimension(x.get_length());
                 }
             }
-            m_inputIndices[name] = index;// inputNode.get_index(); // get_index always return 0 for some reason?
+            m_inputIndices[name] = node.second.first;// inputNode.get_index(); // get_index always return 0 for some reason?
             ++index;
             NodeType type = detectNodeType(shape);
             if(type == NodeType::IMAGE) {
@@ -138,9 +146,17 @@ void OpenVINOEngine::load() {
             }
         }
         // Go through output nodes
+        // Sort nodes for consistency
+        std::map<std::string, std::pair<int, ov::Output<ov::Node>>> outputNodes;
         index = 0;
         for(auto outputNode : model->outputs()) {
             auto name = outputNode.get_any_name();
+            outputNodes[name] = {index, outputNode};
+            ++index;
+        }
+        for(auto node : outputNodes) {
+            auto name = node.first;
+            auto outputNode = node.second.second;
             reportInfo() << "Found output node " << name << " with shape " << outputNode.get_partial_shape().to_string() << reportEnd();
             auto shape = TensorShape();
             for(auto x : outputNode.get_partial_shape()) {
@@ -150,8 +166,7 @@ void OpenVINOEngine::load() {
                     shape.addDimension(x.get_length());
                 }
             }
-            m_outputIndices[name] = index;// outputNode.get_index(); // get_index always returns 0 for some reason..
-            ++index;
+            m_outputIndices[name] = node.second.first;// outputNode.get_index(); // get_index always returns 0 for some reason..
             NodeType type = detectNodeType(shape);
             if(!imageOrderingFoundOnInput && type == NodeType::IMAGE)
                 m_imageOrdering = detectImageOrdering(shape);
