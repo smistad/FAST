@@ -365,7 +365,7 @@ namespace fast {
 			std::cout << "Progress: " << std::endl;
 			Window::initializeQtApp();
 			QNetworkAccessManager manager;
-			QUrl url("http://fast.eriksmistad.no/download/FAST_Test_Data.zip");
+			QUrl url("https://folk.ntnu.no/smistad/fast/FAST_Test_Data.zip");
 			QNetworkRequest request(url);
 			auto timer = new QElapsedTimer;
 			timer->start();
