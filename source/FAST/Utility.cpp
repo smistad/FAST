@@ -910,7 +910,7 @@ void createDirectories(std::string path) {
     std::string currentPath = "";
 #ifdef WIN32
 #else
-    if(path[0] == "/")
+    if(path[0] == '/')
         currentPath = "/";
 #endif
     // Create each directory needed
