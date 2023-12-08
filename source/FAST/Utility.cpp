@@ -888,6 +888,8 @@ void createDirectory(std::string path) {
 
 
 void createDirectories(std::string path) {
+    if(path.empty())
+        return;
     // Replace \ with / so that this will work on windows
     path = replace(path, "\\", "/");
     std::vector<std::string> directories = split(path, "/");
@@ -906,6 +908,11 @@ void createDirectories(std::string path) {
 
     directories = filteredDirectories;
     std::string currentPath = "";
+#ifdef WIN32
+#else
+    if(path[0] == "/")
+        currentPath = "/";
+#endif
     // Create each directory needed
     for(int i = 0; i < directories.size(); ++i) {
         currentPath += directories[i] + "/";
