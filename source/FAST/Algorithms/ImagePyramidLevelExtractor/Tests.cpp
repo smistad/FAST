@@ -7,7 +7,7 @@
 using namespace fast;
 
 TEST_CASE("Image pyramid level extractor", "[fast][ImagePyramidLevelExtractor]") {
-    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
     auto pyramid = importer->runAndGetOutputData<ImagePyramid>();
 
     auto extractor = ImagePyramidLevelExtractor::create(-1)->connect(pyramid);

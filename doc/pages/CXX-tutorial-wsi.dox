@@ -31,7 +31,7 @@ Displaying a WSI is done with the ImagePyramidRenderer. The example below shows 
 in the test dataset.
 
 @code{.cpp}
-auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
+auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
 
 auto renderer = ImagePyramidRenderer::create()->connect(importer);
 

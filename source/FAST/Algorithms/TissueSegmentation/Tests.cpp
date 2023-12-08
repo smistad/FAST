@@ -12,7 +12,7 @@ using namespace fast;
 
 TEST_CASE("Tissue segmentation", "[fast][wsi][TissueSegmentation][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/CMU-1.svs");
 
     auto segmentation = TissueSegmentation::New();
     segmentation->setInputConnection(importer->getOutputPort());

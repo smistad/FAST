@@ -10,7 +10,7 @@ using namespace fast;
 
 TEST_CASE("ImagePyramidPatchExporter", "[fast][ImagePyramidPatchExporter]") {
     std::string path = "patch_export_test";
-    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
     auto exporter = ImagePyramidPatchExporter::create(path, 2, 512, 512);
     exporter->connect(importer)->run();
 
@@ -27,7 +27,7 @@ TEST_CASE("ImagePyramidPatchExporter", "[fast][ImagePyramidPatchExporter]") {
 /*
 TEST_CASE("ImagePyramidPatchExporter streaming", "[fast][ImagePyramidPatchExporter]") {
     std::string path = "C:/data/patch_export_test_stream";
-    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
 
     auto generator = PatchGenerator::create(512, 512, 2)->connect(importer);
     auto segment = BinaryThresholding::create()->connect(generator);

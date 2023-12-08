@@ -15,7 +15,7 @@
 using namespace fast;
 
 TEST_CASE("TIFFImagePyramidExporter", "[fast][TIFFImagePyramidExporter][wsi][visual]") {
-    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
 
     auto exporter = TIFFImagePyramidExporter::create("image-pyramid-test.tiff")
             ->connect(importer);
@@ -33,7 +33,7 @@ TEST_CASE("TIFFImagePyramidExporter", "[fast][TIFFImagePyramidExporter][wsi][vis
 }
 
 TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExporter][wsi][visual]") {
-    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
     //importer->setFilename("/home/smistad/Downloads/OS-1.tiff");
 
     auto tissue = TissueSegmentation::create()->connect(importer);
@@ -60,6 +60,7 @@ TEST_CASE("TIFFImagePyramidExporter segmentation2", "[fast][TIFFImagePyramidExpo
         window->addRenderer(renderer1);
         window->addRenderer(renderer);
         window->set2DMode();
+        window->setTimeout(2000);
         window->start();
     }/*
     // Wait until finished..

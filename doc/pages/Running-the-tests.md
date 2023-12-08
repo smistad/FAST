@@ -2,11 +2,7 @@ After the framework has been compiled you can download the test data and run the
 
 Download and install test data
 ----------------------------------------------------------
-To be able to run all the tests you must download the public test data from:
-
-[http://www.idi.ntnu.no/~smistad/FAST_Test_Data.zip](http://www.idi.ntnu.no/~smistad/FAST_Test_Data.zip)
-
-CMake will download the test data automatically on configure unless FAST_DOWNLOAD_TEST_DATA is set to OFF/FALSE.
+To be able to run all the tests you must download the test data set.
 
 Running the tests
 -----------------------------------------------------------------------

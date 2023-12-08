@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
             "Which neural network inference engine to use");
     parser.addPositionVariable(1,
             "filename",
-            Config::getTestDataPath() + "/WSI/A05.svs",
+            Config::getTestDataPath() + "/WSI/CMU-1.svs",
             "WSI to process");
     parser.parse(argc, argv);
 

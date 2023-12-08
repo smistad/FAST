@@ -11,11 +11,12 @@
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.hpp>
+#include <FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp>
 
 using namespace fast;
 
 TEST_CASE("Patch generator for WSI", "[fast][wsi][PatchGenerator]") {
-    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
     auto wsi = importer->runAndGetOutputData<ImagePyramid>();
 
     const int level = 2;
@@ -25,8 +26,8 @@ TEST_CASE("Patch generator for WSI", "[fast][wsi][PatchGenerator]") {
             ->connect(wsi);
     auto stream = DataStream(generator);
     const int nrOfPatches = std::ceil((float)wsi->getLevelWidth(level)/width)*std::ceil((float)wsi->getLevelHeight(level)/height);
-    REQUIRE(wsi->getLevelTileWidth(level) == 240);
-    REQUIRE(wsi->getLevelTileHeight(level) == 240);
+    REQUIRE(wsi->getLevelTileWidth(level) == 256);
+    REQUIRE(wsi->getLevelTileHeight(level) == 256);
     int counter = 0;
     while(!stream.isDone()) {
         auto image = stream.getNextFrame<Image>();
@@ -121,7 +122,7 @@ TEST_CASE("Patch generator and stitcher for volumes", "[fast][volume][patchgener
 
 TEST_CASE("Patch generator and stitcher for WSI", "[fast][wsi][PatchStitcher][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/CMU-1.svs");
     auto pyramid = importer->runAndGetOutputData<ImagePyramid>();
     auto level2Image = pyramid->getAccess(ACCESS_READ)->getLevelAsImage(2);
 
@@ -148,7 +149,7 @@ TEST_CASE("Patch generator and stitcher for WSI", "[fast][wsi][PatchStitcher][vi
 }
 
 TEST_CASE("Patch generator, sticher and image to batch generator for WSI", "[fast][wsi][ImageToBatchGenerator]") {
-    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/A05.svs");
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
 
     auto generator = PatchGenerator::create(512, 512, 1, 2)
             ->connect(importer);

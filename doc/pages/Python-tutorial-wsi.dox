@@ -32,7 +32,7 @@ in the test dataset.
 import fast
 
 importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
 renderer = fast.ImagePyramidRenderer.create()\
     .connect(importer)
@@ -55,7 +55,7 @@ a TissueSegmentation algorithm for this purpose:
 import fast
 
 importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
 tissueSegmentation = fast.TissueSegmentation.create()\
     .connect(importer)
@@ -85,7 +85,7 @@ import numpy as np
 
 # Run importer and get data
 imagePyramid = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")\
+    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")\
     .runAndGetOutputData()
 
 # Extract specific patch at highest resolution
@@ -119,7 +119,7 @@ import numpy as np
 
 # Run importer and get data
 imagePyramid = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")\
+    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")\
     .runAndGetOutputData()
 
 # Extract specific level as FAST image
@@ -151,7 +151,7 @@ import fast
 import matplotlib.pyplot as plt
 
 importer = fast.WholeSlideImageImporter.create(
-    fast.Config.getTestDataPath() + 'WSI/A05.svs')
+    fast.Config.getTestDataPath() + 'WSI/CMU-1.svs')
 
 # Do tissue segmentation to select patches from tissue only
 tissueSegmentation = fast.TissueSegmentation.create()\
@@ -207,7 +207,7 @@ import fast
 model = fast.DataHub().download('nuclei-segmentation-model')
 
 importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
 tissueSegmentation = fast.TissueSegmentation.create()\
     .connect(importer)
@@ -259,15 +259,16 @@ import fast
 model = fast.DataHub().download('nuclei-segmentation-model')
 
 importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
 tissueSegmentation = fast.TissueSegmentation.create()\
     .connect(importer)
 
-# Reduced magnification and overlap to speed up the processing time of this example
+# Generate 256x256 patches at 20X magnification
+# Reduced overlap to speed up the processing time of this example
 generator = fast.PatchGenerator.create(
         256, 256,
-        magnification=10,
+        magnification=20,
         overlapPercent=0
     ).connect(importer)\
     .connect(1, tissueSegmentation)
@@ -316,7 +317,7 @@ using the ImagePyramidPatchExporter:
 import fast
 
 importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
 # Store patches from level 2
 exporter = fast.ImagePyramidPatchExporter.create('/home/smistad/wsi-export-folder/', 2, 512, 512)\
@@ -331,7 +332,7 @@ You can also do this manually using the PatchGenerator which gives you some more
 import fast
 
 importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/A05.svs")
+    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
 # Do tissue segmentation to select patches from tissue only
 tissueSegmentation = fast.TissueSegmentation.create()\

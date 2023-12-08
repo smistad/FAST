@@ -1,6 +1,7 @@
 ## @example generate_tissue_patches_from_wsi.py
 # This example loads a whole slide image (WSI), and generates a stream of
 # patches of tissue in the WSI, and finally displays it using matplotlib
+# @image html images/examples/python/wsi_patches.jpg
 import fast
 import matplotlib.pyplot as plt
 
@@ -8,7 +9,7 @@ import matplotlib.pyplot as plt
 fast.downloadTestDataIfNotExists()
 
 importer = fast.WholeSlideImageImporter.create(
-    fast.Config.getTestDataPath() + 'WSI/A05.svs')
+    fast.Config.getTestDataPath() + 'WSI/CMU-1.svs')
 
 tissueSegmentation = fast.TissueSegmentation.create().connect(importer)
 

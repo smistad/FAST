@@ -11,7 +11,7 @@ using namespace fast;
 
 TEST_CASE("Image sharpen", "[fast][ImageSharpening][visual]") {
 	auto importer = WholeSlideImageImporter::New();
-	importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+	importer->setFilename(Config::getTestDataPath() + "/WSI/CMU-1.svs");
 
 	auto tissueSegmentation = TissueSegmentation::New();
 	tissueSegmentation->setInputConnection(importer->getOutputPort());
@@ -40,5 +40,4 @@ TEST_CASE("Image sharpen", "[fast][ImageSharpening][visual]") {
 	window->setTimeout(2000);
 	window->run();
 	filter->getRuntime()->print();
-
 }

@@ -4,7 +4,7 @@ PipelineDescription "asd"
 ### Processing chain
 
 ProcessObject importer WholeSlideImageImporter
-Attribute filename $TEST_DATA_PATH$/WSI/A05.svs
+Attribute filename $TEST_DATA_PATH$/WSI/CMU-1.svs
 
 ProcessObject tissueSeg TissueSegmentation
 Input 0 importer 0

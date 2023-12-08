@@ -9,7 +9,7 @@ using namespace fast;
 
 TEST_CASE("Import whole slide image", "[fast][WholeSlideImageImporter][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/CMU-1.svs");
 
     auto renderer = ImagePyramidRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
@@ -22,7 +22,7 @@ TEST_CASE("Import whole slide image", "[fast][WholeSlideImageImporter][wsi][visu
 
 TEST_CASE("Import whole slide image and display highest level", "[fast][WholeSlideImageImporter][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/CMU-1.svs");
     auto port = importer->getOutputPort();
     importer->update();
     auto WSI = port->getNextFrame<ImagePyramid>();
@@ -41,7 +41,7 @@ TEST_CASE("Import whole slide image and display highest level", "[fast][WholeSli
 
 TEST_CASE("Import whole slide image and display a tile at level 0", "[fast][WholeSlideImageImporter][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/CMU-1.svs");
     auto port = importer->getOutputPort();
     importer->update();
     auto WSI = port->getNextFrame<ImagePyramid>();
