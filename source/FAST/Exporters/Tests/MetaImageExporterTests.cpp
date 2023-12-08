@@ -19,6 +19,20 @@ TEST_CASE("No input given to the MetaImageExporter", "[fast][MetaImageExporter]"
     CHECK_THROWS(exporter->update());
 }
 
+
+#ifdef WIN32
+TEST_CASE("Windows path slashes used in MetaImageExporter", "[fast][MetaImageExporter]") {
+    auto image = Image::create(32, 32, TYPE_UINT8, 1); // Create dummy image
+    createDirectories("mhd_test");
+    auto exporter = MetaImageExporter::create("mhd_test\\image.mhd")
+            ->connect(image);
+    CHECK_NOTHROW(exporter->run());
+
+    auto importer = MetaImageImporter::create("mhd_test/image.mhd");
+    CHECK_NOTHROW(importer->run());
+}
+#endif
+
 TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExporter]") {
     // Create some metadata
     Vector3f spacing;
