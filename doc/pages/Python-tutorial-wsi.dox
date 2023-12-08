@@ -25,7 +25,7 @@ which are visible in the viewport are loaded into memory.
 Open and display a WSI
 ---------------------
 To open a WSI, use the WholeSlideImageImporter process object which uses the [OpenSlide](https://openslide.org) library.
-Displaying a WSI is done with the ImagePyramidRenderer. The example below shows how to load the A05 WSI included
+Displaying a WSI is done with the ImagePyramidRenderer. The example below shows how to load the CMU-1 WSI included
 in the test dataset.
 
 @code{.py}
