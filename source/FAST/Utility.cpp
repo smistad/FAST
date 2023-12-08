@@ -905,14 +905,10 @@ void createDirectories(std::string path) {
     }
 
     directories = filteredDirectories;
-#ifdef _WIN32
-    std::string currentPath = directories[0];
-#else
-    std::string currentPath = "/" + directories[0];
-#endif
+    std::string currentPath = "";
     // Create each directory needed
-    for(int i = 1; i < directories.size(); ++i) {
-        currentPath += "/" + directories[i];
+    for(int i = 0; i < directories.size(); ++i) {
+        currentPath += directories[i] + "/";
         try {
             createDirectory(currentPath);
         } catch(ExistException &e) {

@@ -34,6 +34,10 @@ TEST_CASE("Split", "[split][utility]") {
     CHECK(parts[0] == "\"Wee sad");
     CHECK(parts[1] == "asd asd ");
     CHECK(parts[2] == "asdasd\"");
+
+    parts = split("test", "/");
+    REQUIRE(parts.size() == 1);
+    CHECK(parts[0] == "test");
 }
 
 TEST_CASE("Replace", "[replace][utility]") {
@@ -65,4 +69,24 @@ TEST_CASE("getFileName", "[getFileName][utility][fast]") {
     CHECK(getFileName(str) == "asd_asd.txt");
     str = "asd asd.txt";
     CHECK(getFileName(str) == "asd asd.txt");
+}
+
+TEST_CASE("createDirectories", "[createDirectories][utility][fast]") {
+    std::string name = "create_directories_test";
+    CHECK_NOTHROW(createDirectories(name));
+    CHECK(isDir(name));
+
+    std::string name2 = "create_directories_test2/test2/";
+    CHECK_NOTHROW(createDirectories(name2));
+    CHECK(isDir(name2));
+
+    std::string name3 = "create_directories_test3/test3/test3/";
+    CHECK_NOTHROW(createDirectories(name3));
+    CHECK(isDir(name3));
+
+#ifdef WIN32
+    std::string name4 = "create_directories_test4\\test4\\";
+    CHECK_NOTHROW(createDirectories(name4));
+    CHECK(isDir(name4));
+#endif
 }
