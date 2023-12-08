@@ -3,7 +3,11 @@
 namespace fast {
 
 void FileExporter::setFilename(std::string filename) {
+#ifdef WIN32
+    m_filename = replace(filename, "\\", "/");
+#else
     m_filename = filename;
+#endif
     setModified(true);
 }
 
