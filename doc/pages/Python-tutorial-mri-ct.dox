@@ -299,6 +299,12 @@ fast.SlicerWindow.create()\
 Brain segmentation of MRI using a neural network
 ---------------------
 In this example we will download an MRI brain scan and a brain segmentation network created by David Bouget (https://github.com/dbouget) from the FAST data hub.
+The MRI brain scan is from the The Cancer Imaging Archive (TCIA) - License <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>:
+<i>
+<small>
+Bakas, S., Sako, C., Akbari, H., Bilello, M., Sotiras, A., Shukla, G., Rudie, J. D., Flores Santamaria, N., Fathi Kazerooni, A., Pati, S., Rathore, S., Mamourian, E., Ha, S. M., Parker, W., Doshi, J., Baid, U., Bergman, M., Binder, Z. A., Verma, R., … Davatzikos, C. (2021). Multi-parametric magnetic resonance imaging (mpMRI) scans for de novo Glioblastoma (GBM) patients from the University of Pennsylvania Health System (UPENN-GBM) (Version 2) [Data set]. The Cancer Imaging Archive. https://doi.org/10.7937/TCIA.709X-DN49
+</small>
+</i>
 @code{.py}
 import fast
 
@@ -344,6 +350,13 @@ fast.SlicerWindow.create()\
 Skull stripping of MRI brain using a neural network
 ---------------------
 In this example we will download an MRI brain scan and a brain segmentation network created by David Bouget (https://github.com/dbouget) from the FAST data hub.
+The MRI brain scan is from the The Cancer Imaging Archive (TCIA) - License <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>:
+<i>
+<small>
+Bakas, S., Sako, C., Akbari, H., Bilello, M., Sotiras, A., Shukla, G., Rudie, J. D., Flores Santamaria, N., Fathi Kazerooni, A., Pati, S., Rathore, S., Mamourian, E., Ha, S. M., Parker, W., Doshi, J., Baid, U., Bergman, M., Binder, Z. A., Verma, R., … Davatzikos, C. (2021). Multi-parametric magnetic resonance imaging (mpMRI) scans for de novo Glioblastoma (GBM) patients from the University of Pennsylvania Health System (UPENN-GBM) (Version 2) [Data set]. The Cancer Imaging Archive. https://doi.org/10.7937/TCIA.709X-DN49
+</small>
+</i>
+
 The brain segmentation is multiplied with the original image to effectively do skull stripping. Finally, alpha blending volume rendering is used to display the skull
 stripped MRI volume.
 @code{.py}

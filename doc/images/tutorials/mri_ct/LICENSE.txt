@@ -1,0 +1,6 @@
+The data used to create the example images in the files brain-segmentation.jpg and skull_strip.jpg is from The Cancer Imaging Archive (TCIA).
+It is licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/):
+Bakas, S., Sako, C., Akbari, H., Bilello, M., Sotiras, A., Shukla, G., Rudie, J. D., Flores Santamaria, N., Fathi Kazerooni, A., Pati, S., Rathore, S., Mamourian, E., Ha, S. M., Parker, W., Doshi, J., Baid, U., Bergman, M., Binder, Z. A., Verma, R., … Davatzikos, C. (2021).
+Multi-parametric magnetic resonance imaging (mpMRI) scans for de novo Glioblastoma (GBM) patients from the University of Pennsylvania Health System (UPENN-GBM) (Version 2) [Data set].
+The Cancer Imaging Archive.
+https://doi.org/10.7937/TCIA.709X-DN49

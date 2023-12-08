@@ -391,8 +391,6 @@ for i, core in enumerate(fast.DataStream(extractor)):
         f'y: {core.getTransform().getTranslation()[1]}')
 @endcode
 
-@image html images/tutorials/wsi/tma_extractor.jpg
-
 Next steps
 ---------------------
 
