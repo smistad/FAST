@@ -21,23 +21,23 @@ TEST_CASE("Image sharpen", "[fast][ImageSharpening][visual]") {
 	generator->setInputConnection(importer->getOutputPort());
 	generator->setInputConnection(1, tissueSegmentation->getOutputPort());
 
-	auto port =	generator->getOutputPort();
-	generator->update();
-	auto image = port->getNextFrame<Image>();
-	generator->stop();
+	auto stream = DataStream(generator);
+	while(!stream.isDone()) {
+	    auto patch = stream.getNextFrame<Image>();
+	    auto filter = ImageSharpening::create(1.0f, 1.5f)->connect(patch);
+	    filter->enableRuntimeMeasurements();
 
-	auto filter = ImageSharpening::create(1.0f, 1.5f)->connect(image);
-	filter->enableRuntimeMeasurements();
+	    auto renderer = ImageRenderer::create()->connect(patch);
 
-	auto renderer = ImageRenderer::create()->connect(image);
+	    auto renderer2 = ImageRenderer::create()->connect(filter);
 
-	auto renderer2 = ImageRenderer::create()->connect(filter);
-
-	auto window = DualViewWindow::create()
-	        ->connectLeft(renderer)
-	        ->connectRight(renderer2);
-	window->set2DMode();
-	window->setTimeout(2000);
-	window->run();
-	filter->getRuntime()->print();
+	    auto window = DualViewWindow::create()
+	            ->connectLeft(renderer)
+	            ->connectRight(renderer2);
+	    window->set2DMode();
+	    window->setTimeout(2000);
+	    window->run();
+	    filter->getRuntime()->print();
+	    break; // Stop after one
+	}
 }
