@@ -8,12 +8,12 @@ namespace fast {
  * @brief Segment tissue from a WSI
  *
  * Uses the GPU to perform a simple threshold-based tissue/glass segmentation of a WSI.
- * Since glass is almost white, the thresold is the distance from the pixels color
+ * Since glass is almost white, the threshold is the distance from the pixels color
  * to white (255,255,255).
  * A morphological closing (dilation+erosion) is performed after thresholding.
  *
  * Inputs:
- * - 0: ImagePyramid WSI
+ * - 0: ImagePyramid WSI or Image patch
  *
  * Outputs:
  * - 0: Segmentation tissue mask

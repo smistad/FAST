@@ -62,9 +62,17 @@ bool TissueSegmentation::getFilterZeros() const {
 }
 
 void TissueSegmentation::execute() {
-    auto wsi = getInputData<ImagePyramid>();
-    auto access = wsi->getAccess(ACCESS_READ);
-    auto input = access->getLevelAsImage(wsi->getNrOfLevels()-1);
+    auto image = getInputData<SpatialDataObject>();
+
+    Image::pointer input;
+    if(auto wsi = std::dynamic_pointer_cast<ImagePyramid>(image)) {
+        auto access = wsi->getAccess(ACCESS_READ);
+        input = access->getLevelAsImage(wsi->getNrOfLevels()-1);
+    } else if(auto patch = std::dynamic_pointer_cast<Image>(image)) {
+        input = patch;
+    } else {
+        throw Exception("TissueSegmentation requires an Image or ImagePyramid data object.");
+    }
 
     auto output = Image::createSegmentationFromImage(input);
 
