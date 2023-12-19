@@ -179,7 +179,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 
                 if(m_batchSize == -1) {
                     m_batchSize = dataList.getSize();
-                } else {
+                } else if(m_batchSize != dataList.getSize()) {
                     throw Exception("Inconsistent batch size accross input nodes");
                 }
             } else {

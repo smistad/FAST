@@ -152,6 +152,31 @@ TEST_CASE("Multi input single output network", "[fast][neuralnetwork]") {
     }
 }
 
+TEST_CASE("Multi input single output network with batch", "[fast][neuralnetwork]") {
+    for(auto& engine : InferenceEngineManager::getEngineList()) {
+        auto importer = ImageFileImporter::New();
+        importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
+        auto image = importer->runAndGetOutputData<Image>();
+        auto batch1 = Batch::create({image, image});
+        auto batch2 = Batch::create({image, image});
+
+        auto network = NeuralNetwork::New();
+        network->setInferenceEngine(engine);
+        network->load(join(Config::getTestDataPath(),
+                           "NeuralNetworkModels/multi_input_single_output." +
+                           getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat())));
+        network->connect(0, batch1);
+        network->connect(1, batch2);
+        auto batch = network->runAndGetOutputData<Batch>();
+        auto list = batch->get().getTensors();
+        REQUIRE(list.size() == 2);
+        auto data = list[0];
+        // We are expecting a tensor output with dimensions (6)
+        REQUIRE(data->getShape().getDimensions() == 1);
+        CHECK(data->getShape()[0] == 6);
+    }
+}
+
 TEST_CASE("Single input multi output network", "[fast][neuralnetwork]") {
     for(auto& engine : InferenceEngineManager::getEngineList()) {
 #ifdef WIN32
