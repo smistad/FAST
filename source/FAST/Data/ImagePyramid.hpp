@@ -41,7 +41,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
          *      If distance between closest level and target magnification is larger than this, an exception is thrown.
          * @return level
          */
-        int getLevelForMagnification(int magnification, float slackPercentage = 0.5f);
+        int getLevelForMagnification(float magnification, float slackPercentage = 0.5f);
         int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;

@@ -451,7 +451,7 @@ DataBoundingBox ImagePyramid::getBoundingBox() const {
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
-int ImagePyramid::getLevelForMagnification(int magnification, float slackPercentage) {
+int ImagePyramid::getLevelForMagnification(float magnification, float slackPercentage) {
     if(magnification <= 0)
         throw Exception("Magnification must be larger than 0 in getLevleForMagnification");
     const Vector3f spacing = getSpacing();

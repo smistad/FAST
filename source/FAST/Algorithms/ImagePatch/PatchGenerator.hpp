@@ -31,8 +31,9 @@ class FAST_EXPORT PatchGenerator : public Streamer {
          * @param level Which level of an ImagePyramid to generate patches from.
          * @param magnification Which magnification to extract patches from.
          *      Setting this value for instance to 20, will trigger a search through all levels
-         *      to find the image pyramid level which is closest to 20X magnification, 0.0005 mm pixel spacing.
-         *      If no such level exist an exception is thrown.
+         *      to find an image pyramid level which is close to 20X magnification (0.0005 mm pixel spacing).
+         *      If such a level doesn't exist, FAST will look for a higher magnification level (e.g. 40X) and then
+         *      resize 40X patches to create 20X patches. This will off course come at an increased runtime cost.
          *      This parameter overrides the level parameter.
          * @param overlapPercent Amount of patch overlap in percent.
          * @param maskThreshold Threshold to accept a patch if the additional mask is provided.
@@ -45,7 +46,7 @@ class FAST_EXPORT PatchGenerator : public Streamer {
                          int, height,,
                          int, depth, = 1,
                          int, level, = 0,
-                         int, magnification, = -1,
+                         float, magnification, = -1,
                          float, overlapPercent, = 0.0f,
                          float, maskThreshold, = 0.5f,
                          int, paddingValue, = -1
@@ -57,7 +58,7 @@ class FAST_EXPORT PatchGenerator : public Streamer {
          */
         void setOverlap(float percent);
         void setPatchLevel(int level);
-        void setPatchMagnification(int magnification);
+        void setPatchMagnification(float magnification);
         void setMaskThreshold(float percent);
         void setPaddingValue(int paddingValue);
         ~PatchGenerator();
@@ -72,7 +73,7 @@ class FAST_EXPORT PatchGenerator : public Streamer {
         float m_overlapPercent = 0;
         float m_maskThreshold = 0.5;
         int m_paddingValue = -1;
-        int m_magnification = -1;
+        float m_magnification = -1;
         float m_progress = 0.0f;
 
         std::shared_ptr<ImagePyramid> m_inputImagePyramid;

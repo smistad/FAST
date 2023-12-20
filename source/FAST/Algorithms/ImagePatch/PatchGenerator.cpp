@@ -1,5 +1,6 @@
 #include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Data/Image.hpp>
+#include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include "PatchGenerator.hpp"
 
 namespace fast {
@@ -20,13 +21,13 @@ PatchGenerator::PatchGenerator() {
 
     createIntegerAttribute("patch-size", "Patch size", "", 0);
     createIntegerAttribute("patch-level", "Patch level", "Patch level used for image pyramid inputs", m_level);
-    createIntegerAttribute("patch-magnification", "Patch magnification", "Patch magnification to be used for image pyramid inputs", m_magnification);
+    createFloatAttribute("patch-magnification", "Patch magnification", "Patch magnification to be used for image pyramid inputs", m_magnification);
     createFloatAttribute("patch-overlap", "Patch overlap", "Patch overlap in percent", m_overlapPercent);
     createFloatAttribute("mask-threshold", "Mask threshold", "Threshold, in percent, for how much of the candidate patch must be inside the mask to be accepted", m_maskThreshold);
     createIntegerAttribute("padding-value", "Padding value", "Value to pad patches with when out-of-bounds. Default is negative, meaning it will use (white)255 for color images, and (black)0 for grayscale images", m_paddingValue);
 }
 
-PatchGenerator::PatchGenerator(int width, int height, int depth, int level, int magnification, float percent, float maskThreshold, int paddingValue) : PatchGenerator() {
+PatchGenerator::PatchGenerator(int width, int height, int depth, int level, float magnification, float percent, float maskThreshold, int paddingValue) : PatchGenerator() {
     setPatchSize(width, height, depth);
     setPatchLevel(level);
     setOverlap(percent);
@@ -82,9 +83,34 @@ void PatchGenerator::generateStream() {
                 throw Exception("Patch size must be dividable by 2");
 
             int level = m_level;
+            float resampleFactor = 1.0f;
             if(m_magnification > 0) {
-                level = m_inputImagePyramid->getLevelForMagnification(m_magnification);
-                reportInfo() << "Choose level " << level << " for image pyramid for magnification " << m_magnification << reportEnd();
+                try {
+                    level = m_inputImagePyramid->getLevelForMagnification(m_magnification);
+                    reportInfo() << "Choose level " << level << " for image pyramid for magnification " << m_magnification << reportEnd();
+                } catch(Exception &e) {
+                    // Magnification level not available
+                    // Have to sample for a higher level if possible
+                    reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
+                                        "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
+                    // First find level which is larger than request magnification
+                    float targetSpacing = 0.00025f * (40.0f / (float)m_magnification);
+                    level = 0;
+                    float level0spacing = m_inputImagePyramid->getSpacing().x();
+                    for(int i = 0; i < m_inputImagePyramid->getNrOfLevels(); ++i) {
+                        float levelSpacing = m_inputImagePyramid->getLevelScale(i)*level0spacing;
+                        level = i;
+                        resampleFactor = targetSpacing / levelSpacing; // Scale between level and the magnification level we want
+                        if(i+1 < m_inputImagePyramid->getNrOfLevels() &&
+                                m_inputImagePyramid->getLevelScale(i+1)*level0spacing > targetSpacing) {
+                            break;
+                        }
+                    }
+                    if(level < 0)
+                        throw Exception("Unable to generate patches for magnification level " +
+                            std::to_string(m_magnification) + " because level 0 was at a lower magnification ");
+                    reportInfo() << "Sampling patches from level " << level << " and using a resampling factor of " << resampleFactor << reportEnd();
+                }
             }
 
             const int levelWidth = m_inputImagePyramid->getLevelWidth(level);
@@ -106,19 +132,19 @@ void PatchGenerator::generateStream() {
             for(int patchY = 0; patchY < patchesY; ++patchY) {
                 for(int patchX = 0; patchX < patchesX; ++patchX) {
                     mRuntimeManager->startRegularTimer("create patch");
-                    int patchWidth = m_width;
-                    if(patchX*patchWidthWithoutOverlap + patchWidth - overlapInPixelsX >= levelWidth) {
-                        patchWidth = levelWidth - patchX * patchWidthWithoutOverlap + overlapInPixelsX;
+                    int patchWidth = m_width*resampleFactor;
+                    if(patchWidth + (patchX*patchWidthWithoutOverlap - overlapInPixelsX)*resampleFactor >= levelWidth) {
+                        patchWidth = levelWidth - (patchX * patchWidthWithoutOverlap - overlapInPixelsX)*resampleFactor;
                     }
-                    int patchHeight = m_height;
-                    if(patchY*patchHeightWithoutOverlap + patchHeight - overlapInPixelsY >= levelHeight) {
-                        patchHeight = levelHeight - patchY * patchHeightWithoutOverlap + overlapInPixelsY;
+                    int patchHeight = m_height*resampleFactor;
+                    if(patchHeight + (patchY*patchHeightWithoutOverlap - overlapInPixelsY)*resampleFactor >= levelHeight) {
+                        patchHeight = levelHeight - (patchY * patchHeightWithoutOverlap - overlapInPixelsY)*resampleFactor;
                     }
-                    int patchOffsetX = patchX * patchWidthWithoutOverlap - overlapInPixelsX;
+                    int patchOffsetX = (patchX * patchWidthWithoutOverlap - overlapInPixelsX)*resampleFactor;
                     if(patchX == 0 && overlapInPixelsX > 0) {
                         patchOffsetX = 0;
                     }
-                    int patchOffsetY = patchY * patchHeightWithoutOverlap - overlapInPixelsY;
+                    int patchOffsetY = (patchY * patchHeightWithoutOverlap - overlapInPixelsY)*resampleFactor;
                     if(patchY == 0 && overlapInPixelsY > 0) {
                         patchOffsetY = 0;
                     }
@@ -165,8 +191,12 @@ void PatchGenerator::generateStream() {
                             paddingValue = 0;
                         }
                     }
-                    if(patch->getWidth() != m_width || patch->getHeight() != m_height) {
-                        patch = patch->crop(Vector2i(0, 0), Vector2i(m_width, m_height), true, paddingValue);
+                    if(patch->getWidth() != (int)(m_width*resampleFactor) || patch->getHeight() != (int)(m_height*resampleFactor)) {
+                        // Edge cases, patches may not be the target patch size. Need to pad.
+                        patch = patch->crop(Vector2i(0, 0), Vector2i(m_width*resampleFactor, m_height*resampleFactor), true, paddingValue);
+                    }
+                    if(resampleFactor > 1.0f) {
+                        patch = ImageResizer::create(m_width, m_height)->connect(patch)->runAndGetOutputData<Image>();
                     }
                     if(m_overlapPercent > 0.0f && (patchX == 0 || patchY == 0)) {
                         int offsetX = patchX == 0 ? -overlapInPixelsX : 0;
@@ -369,7 +399,7 @@ void PatchGenerator::setPaddingValue(int paddingValue) {
     setModified(true);
 }
 
-void PatchGenerator::setPatchMagnification(int magnification) {
+void PatchGenerator::setPatchMagnification(float magnification) {
     m_magnification = magnification;
     setModified(true);
 }

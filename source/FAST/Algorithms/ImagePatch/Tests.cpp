@@ -165,3 +165,56 @@ TEST_CASE("Patch generator, sticher and image to batch generator for WSI", "[fas
     }
     std::cout << "Done" << std::endl;
 }
+
+/*
+TEST_CASE("Patch generator for WSI wrong magnification", "[fast][wsi][PatchGenerator]") {
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
+    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+
+    auto generator = PatchGenerator::create(512, 512, 1, 0, 40)
+            ->connect(wsi);
+    // TODO Exception is thrown in thread..
+    //REQUIRE_THROWS(generator->run());
+}
+ */
+
+TEST_CASE("Patch generator for WSI at specific magnification 2.5x", "[fast][wsi][PatchGenerator]") {
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
+    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+
+    int width = 512;
+    int height = 512;
+    const int nrOfPatches = std::ceil((float)wsi->getLevelWidth(1)/width/2.0f)*std::ceil((float)wsi->getLevelHeight(1)/height/2.0f);
+    auto generator = PatchGenerator::create(width, height, 1, 0, 2.5f)
+            ->connect(wsi);
+    auto stream = DataStream(generator);
+    int counter = 0;
+    while(!stream.isDone()) {
+        auto image = stream.getNextFrame<Image>();
+        REQUIRE(image->getWidth() == width);
+        REQUIRE(image->getHeight() == height);
+        ++counter;
+    }
+    REQUIRE(counter == nrOfPatches);
+}
+
+TEST_CASE("Patch generator for WSI at specific magnification 1.25x", "[fast][wsi][PatchGenerator]") {
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
+    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+
+    int width = 512;
+    int height = 512;
+    auto generator = PatchGenerator::create(width, height, 1, 0, 1.25f)
+            ->connect(wsi);
+    auto stream = DataStream(generator);
+    int counter = 0;
+    int level = 2;
+    const int nrOfPatches = std::ceil((float)wsi->getLevelWidth(level)/width)*std::ceil((float)wsi->getLevelHeight(level)/height);
+    while(!stream.isDone()) {
+        auto image = stream.getNextFrame<Image>();
+        REQUIRE(image->getWidth() == width);
+        REQUIRE(image->getHeight() == height);
+        ++counter;
+    }
+    REQUIRE(counter == nrOfPatches);
+}
