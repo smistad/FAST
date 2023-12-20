@@ -76,15 +76,88 @@ void ImagePyramidRenderer::loadAttributes() {
     setSharpening(getBooleanAttribute("sharpening"));
 }
 
-void
-ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
-                           int viewWidth,
-                           int viewHeight) {
+int ImagePyramidRenderer::loadTileTexture(std::string tileID) {
+    // Check if tile has been processed before
+    if(mTexturesToRender.count(tileID) > 0)
+        return -1;
+
+    //std::cout << "Loading tile " << tileID << " queue size: " << m_tileQueue.size() << std::endl;
+
+    // Create texture
+    auto parts = split(tileID, "_");
+    if(parts.size() != 3)
+        throw Exception("incorrect tile format");
+
+    int level = std::stoi(parts[0]);
+    int tile_x = std::stoi(parts[1]);
+    int tile_y = std::stoi(parts[2]);
+    //std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
+    Image::pointer tile;
+    {
+        auto access = m_input->getAccess(ACCESS_READ);
+        try {
+            tile = access->getPatchAsImage(level, tile_x, tile_y, false);
+        } catch(Exception &e) {
+            //reportWarning() << "Error occured while trying to open patch " << tile_x << " " << tile_y << reportEnd();
+            // Tile was missing, just skip it..
+            std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+            mTexturesToRender[tileID] = 0;
+            return -1;
+        }
+        if(m_postProcessingSharpening) {
+            m_sharpening->setInputData(tile);
+            tile = m_sharpening->updateAndGetOutputData<Image>();
+        }
+    }
+    auto tileAccess = tile->getImageAccess(ACCESS_READ);
+    // Copy data from CPU to GL texture
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    // TODO Why is this needed:
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    // WSI data from openslide is stored as ARGB, need to handle this here: BGRA and reverse
+    if(m_input->isBGRA()) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile->getWidth(), tile->getHeight(), 0, GL_BGRA,
+                     GL_UNSIGNED_BYTE,
+                     tileAccess->get());
+    } else {
+        if(tile->getNrOfChannels() == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB, tile->getWidth(), tile->getHeight(), 0, GL_RGB,
+                         GL_UNSIGNED_BYTE,
+                         tileAccess->get());
+        } else if(tile->getNrOfChannels() == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile->getWidth(), tile->getHeight(), 0, GL_RGBA,
+                         GL_UNSIGNED_BYTE,
+                         tileAccess->get());
+        }
+    }
+    GLint compressedImageSize = 0;
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glFinish(); // Make sure texture is done before adding it
+
+    {
+        std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+        mTexturesToRender[tileID] = textureID;
+    }
+    return compressedImageSize;
+}
+
+void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D,
+                               int viewWidth,
+                               int viewHeight) {
     auto dataToRender = getDataToRender();
     if(dataToRender.empty())
         return;
 
-    if(!m_bufferThread) {
+    if(!m_bufferThread && m_view != nullptr) {
         // Create thread to load patches
         // Create a GL context for the thread which is sharing with the context of the view
         auto context = new QGLContext(View::getGLFormat(), m_view);
@@ -139,77 +212,7 @@ ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
                     m_tileQueue.pop_back();
                 }
 
-                // Check if tile has been processed before
-                if(mTexturesToRender.count(tileID) > 0)
-                    continue;
-
-                //std::cout << "Loading tile " << tileID << " queue size: " << m_tileQueue.size() << std::endl;
-
-                // Create texture
-                auto parts = split(tileID, "_");
-                if(parts.size() != 3)
-                    throw Exception("incorrect tile format");
-
-                int level = std::stoi(parts[0]);
-                int tile_x = std::stoi(parts[1]);
-                int tile_y = std::stoi(parts[2]);
-                //std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
-                Image::pointer tile;
-                {
-                    auto access = m_input->getAccess(ACCESS_READ);
-                    try {
-                        tile = access->getPatchAsImage(level, tile_x, tile_y, false);
-                    } catch(Exception &e) {
-                        //reportWarning() << "Error occured while trying to open patch " << tile_x << " " << tile_y << reportEnd();
-                        // Tile was missing, just skip it..
-                        std::lock_guard<std::mutex> lock(m_tileQueueMutex);
-                        mTexturesToRender[tileID] = 0;
-                        continue;
-                    }
-                    if(m_postProcessingSharpening) {
-                        m_sharpening->setInputData(tile);
-                        tile = m_sharpening->updateAndGetOutputData<Image>();
-                    }
-                }
-                auto tileAccess = tile->getImageAccess(ACCESS_READ);
-                // Copy data from CPU to GL texture
-                GLuint textureID;
-                glGenTextures(1, &textureID);
-                glBindTexture(GL_TEXTURE_2D, textureID);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-                // TODO Why is this needed:
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-                // WSI data from openslide is stored as ARGB, need to handle this here: BGRA and reverse
-                if(m_input->isBGRA()) {
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile->getWidth(), tile->getHeight(), 0, GL_BGRA,
-                                 GL_UNSIGNED_BYTE,
-                                 tileAccess->get());
-                } else {
-                    if(tile->getNrOfChannels() == 3) {
-                        glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB, tile->getWidth(), tile->getHeight(), 0, GL_RGB,
-                                     GL_UNSIGNED_BYTE,
-                                     tileAccess->get());
-                    } else if(tile->getNrOfChannels() == 4) {
-                        glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile->getWidth(), tile->getHeight(), 0, GL_RGBA,
-                                     GL_UNSIGNED_BYTE,
-                                     tileAccess->get());
-                    }
-                }
-                GLint compressedImageSize = 0;
-                glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
-                glBindTexture(GL_TEXTURE_2D, 0);
-                glFinish(); // Make sure texture is done before adding it
-
-                {
-                    std::lock_guard<std::mutex> lock(m_tileQueueMutex);
-					mTexturesToRender[tileID] = textureID;
-                }
-                memoryUsage += compressedImageSize;
+                memoryUsage += loadTileTexture(tileID);
                 //std::cout << "Texture cache in ImagePyramidRenderer using " << (float)memoryUsage / (1024 * 1024) << " MB" << std::endl;
             }
         });
@@ -251,7 +254,7 @@ ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
         float percentageShownX = (float)width / fullWidth;
         float percentageShownY = (float)height / fullHeight;
         // With current level, do we have have enough pixels to fill the view?
-        if(percentageShownX * levelWidth > m_view->width() && percentageShownY * levelHeight > m_view->height()) {
+        if(percentageShownX * levelWidth > viewWidth && percentageShownY * levelHeight > viewHeight) {
             // If yes, stop here
             levelToUse = level;
             break;
@@ -337,26 +340,30 @@ ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
                 ))
                     continue;
 
-
-                // Is patch in cache?
-                bool textureReady = false;
                 uint textureID;
-                {
-					std::lock_guard<std::mutex> lock(m_tileQueueMutex);
-                    textureReady = mTexturesToRender.count(tileString) > 0;
-                }
-                if(!textureReady) {
-                    // Add to queue if not in cache
+                if(m_view != nullptr) {
+                    // Is patch in cache?
+                    bool textureReady = false;
                     {
                         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
-                        // Remove any duplicates first
-                        m_tileQueue.remove(tileString); // O(n) time complexity..
-						m_tileQueue.push_back(tileString);
-                        //std::cout << "Added tile " << tileString << " to queue" << std::endl;
+                        textureReady = mTexturesToRender.count(tileString) > 0;
                     }
-                    m_queueEmptyCondition.notify_one();
-                    continue;
+                    if(!textureReady) {
+                        // Add to queue if not in cache
+                        {
+                            std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+                            // Remove any duplicates first
+                            m_tileQueue.remove(tileString); // O(n) time complexity..
+                            m_tileQueue.push_back(tileString);
+                            //std::cout << "Added tile " << tileString << " to queue" << std::endl;
+                        }
+                        m_queueEmptyCondition.notify_one();
+                        continue;
+                    } else {
+                        textureID = mTexturesToRender[tileString];
+                    }
                 } else {
+                    int bytes = loadTileTexture(tileString);
                     textureID = mTexturesToRender[tileString];
                 }
 

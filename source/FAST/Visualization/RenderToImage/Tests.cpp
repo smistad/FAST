@@ -10,6 +10,12 @@
 #include <FAST/Visualization/VolumeRenderer/MaximumIntensityProjection.hpp>
 #include <FAST/Visualization/SliceRenderer/SliceRenderer.hpp>
 #include <FAST/Visualization/VolumeRenderer/ThresholdVolumeRenderer.hpp>
+#include <FAST/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.hpp>
+#include <FAST/Importers/WholeSlideImageImporter.hpp>
+#include <FAST/Algorithms/ImagePatch/PatchGenerator.hpp>
+#include <FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp>
+#include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>
+#include <FAST/Algorithms/RunUntilFinished/RunUntilFinished.hpp>
 
 using namespace fast;
 
@@ -82,4 +88,41 @@ TEST_CASE("RenderToImage 3D geom", "[fast][RenderToImage]") {
     //SimpleWindow3D::create()->connect(renderer2)->run();
     auto toImage = RenderToImage::create(Color::White(), 1024 )->connect(renderer2);
     ImageExporter::create("test_render_to_image_3d_geom.png")->connect(toImage)->run();
+}
+TEST_CASE("RenderToImage image pyramid", "[fast][RenderToImage]") {
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
+
+    auto renderer = ImagePyramidRenderer::create()->connect(importer);
+
+    auto toImage = RenderToImage::create()->connect(renderer);
+    auto image = toImage->runAndGetOutputData<Image>();
+
+    //auto renderer2 = ImageRenderer::create()->connect(image);
+    //SimpleWindow2D::create()->connect(renderer2)->run();
+
+    ImageExporter::create("test_render_to_image_image_pyramid.png")->connect(image)->run();
+}
+
+TEST_CASE("RenderToImage image pyramid + segmentation", "[fast][RenderToImage]") {
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
+
+    auto generator = PatchGenerator::create(512, 512, 1, 1)->connect(importer);
+
+    auto segmentation = TissueSegmentation::create()->connect(generator);
+
+    auto stitcher = PatchStitcher::create()->connect(segmentation);
+
+    auto finish = RunUntilFinished::create()->connect(stitcher);
+
+    auto renderer = ImagePyramidRenderer::create()->connect(importer);
+
+    auto renderer2 = SegmentationRenderer::create()->connect(finish);
+
+    auto toImage = RenderToImage::create()->connect({renderer, renderer2});
+    auto image = toImage->runAndGetOutputData<Image>();
+
+    //auto renderer3 = ImageRenderer::create()->connect(image);
+    //SimpleWindow2D::create()->connect(renderer3)->run();
+
+    ImageExporter::create("test_render_to_image_image_pyramid_and_segmentation.png")->connect(image)->run();
 }
