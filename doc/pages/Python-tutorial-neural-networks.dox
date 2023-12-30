@@ -21,7 +21,7 @@ importer = fast.ImageFileImporter\
 
 # Load neural network from a file and connect it to the importer
 network = fast.NeuralNetwork\
-    .create(fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_vein_segmentation.onnx')
+    .create(fast.Config.getTestDataPath() + 'NeuralNetworkModels/jugular_vein_segmentation.onnx')\
     .connect(importer)
 
 # Run the pipeline and get the resulting tensor
