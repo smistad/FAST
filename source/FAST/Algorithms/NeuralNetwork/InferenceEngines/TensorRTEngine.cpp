@@ -92,9 +92,10 @@ void TensorRTEngine::run() {
 
     // Get batch size
     const int batchSize = mInputNodes.begin()->second.data->getShape()[0];
+    /*
     if(batchSize > m_maxBatchSize) {
         reportWarning() << "Batch is larger than the max batch size" << reportEnd();
-    }
+    }*/
 
     bool reshapeNeeded = false;
     if(m_dynamicInputShapes) {
@@ -340,11 +341,43 @@ void TensorRTEngine::load() {
                     profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, shapeToDims(optShape));
                     profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, shapeToDims(maxShape));
                 } else {
-                    dims.d[0] = 1;
-                    profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, dims);
-                    profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);
-                    dims.d[0] = m_maxBatchSize;
-                    profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, dims);
+                    if(dynamicBatchDim) {
+                        TensorShape minShape, maxShape, optShape;
+                        bool found = false;
+                        for(auto node : mInputNodes) {
+                            if(node.first == input->getName()) {
+                                // Check that all shapes are present
+                                if(!node.second.minShape.empty() && node.second.minShape.getUnknownDimensions() == 0 &&
+                                !node.second.maxShape.empty() && node.second.maxShape.getUnknownDimensions() == 0 &&
+                                !node.second.optShape.empty() && node.second.optShape.getUnknownDimensions() == 0) {
+                                    maxShape = node.second.maxShape;
+                                    minShape = node.second.minShape;
+                                    optShape = node.second.optShape;
+                                    found = true;
+                                }
+                            }
+                        }
+                        if(found) {
+                            m_maxBatchSize = maxShape[0];
+                            // Dynamic batch dim and user has specified range
+                            profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, shapeToDims(minShape));
+                            profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, shapeToDims(optShape));
+                            profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, shapeToDims(maxShape));
+                        } else {
+                            // Dynamic batch dim but user has not specified range
+                            dims.d[0] = 1;
+                            profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, dims);
+                            profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);
+                            dims.d[0] = m_maxBatchSize;
+                            profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, dims);
+                        }
+                    } else {
+                        // Dynamic batch dim is not dynamic, use the dims specified in the network
+                        m_maxBatchSize = dims.d[0];
+                        profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, dims);
+                        profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);
+                        profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, dims);
+                    }
                 }
             }
             config->addOptimizationProfile(profile);

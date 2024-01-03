@@ -162,9 +162,12 @@ TEST_CASE("Multi input single output network with batch", "[fast][neuralnetwork]
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
+        auto extension = getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat());
+        if(engine == "OpenVINO")
+            extension = "onnx";
         network->load(join(Config::getTestDataPath(),
-                           "NeuralNetworkModels/multi_input_single_output." +
-                           getModelFileExtension(network->getInferenceEngine()->getPreferredModelFormat())));
+                           "NeuralNetworkModels/multi_input_single_output." + extension));
+
         network->connect(0, batch1);
         network->connect(1, batch2);
         auto batch = network->runAndGetOutputData<Batch>();
