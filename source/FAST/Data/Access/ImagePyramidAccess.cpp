@@ -48,18 +48,6 @@ ImagePyramidAccess::~ImagePyramidAccess() {
 	release();
 }
 
-ImagePyramidPatch ImagePyramidAccess::getPatch(std::string tile) {
-    auto parts = split(tile, "_");
-    if(parts.size() != 3)
-        throw Exception("incorrect tile format");
-
-    int level = std::stoi(parts[0]);
-    int tile_x = std::stoi(parts[1]);
-    int tile_y = std::stoi(parts[2]);
-
-    return getPatch(level, tile_x, tile_y);
-}
-
 void jpegErrorExit(j_common_ptr cinfo) {
     char jpegLastErrorMsg[JMSG_LENGTH_MAX];
     // Create message
@@ -123,13 +111,15 @@ void ImagePyramidAccess::readVSITileToBuffer(vsi_tile_header tile, uchar* data) 
     }
 }
 
-std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int y, int width, int height) {
+std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, int y, int width, int height) {
     const int levelWidth = m_image->getLevelWidth(level);
     const int levelHeight = m_image->getLevelHeight(level);
     const int channels = m_image->getNrOfChannels();
     const int tileWidth = m_image->getLevelTileWidth(level);
     const int tileHeight = m_image->getLevelTileHeight(level);
-    auto data = std::make_unique<uchar[]>(width*height*channels);
+    const int bytesPerPixel = getSizeOfDataType(m_image->getDataType(), channels);
+    // Store as uchar even though it might be something else
+    auto data = std::make_unique<uchar[]>(width*height*bytesPerPixel);
     if(m_tiffHandle != nullptr) {
         // Read all tiles within region, then crop
         if(!isPatchInitialized(level, x, y)) {
@@ -152,7 +142,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
             int bytesRead = readTileFromTIFF((void *) data.get(), x, y);
         } else if((width < tileWidth || height < tileHeight) && x % tileWidth == 0 && y % tileHeight == 0) {
-            auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
+            auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*bytesPerPixel);
             {
                 // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
                 // In TIFF all tiles have the same size, thus they are padded..
@@ -173,7 +163,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             if(x % tileWidth != 0) totalTilesX += 1;
             if(y % tileHeight != 0) totalTilesY += 1;
             const int targetNumberOfTiles = totalTilesX*totalTilesY;
-            auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*targetNumberOfTiles*channels);
+            auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*targetNumberOfTiles*bytesPerPixel);
             // Does the buffer need to be initialized/padded?
             if(x+width >= levelWidth || x+height >= levelHeight) { // Some tiles are outside, fill it
                 if(channels > 1) {
@@ -188,7 +178,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             const int fullTileBufferWidth = totalTilesX*tileWidth;
             for(int i = 0; i < totalTilesX; ++i) {
                 for(int j = 0; j < totalTilesY; ++j) {
-                    auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*channels);
+                    auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*bytesPerPixel);
                     int tileX = i*tileWidth;
                     int tileY = j*tileHeight;
                     int bytesRead = readTileFromTIFF((void *) tileData.get(), firstTileX*tileWidth+tileX, firstTileY*tileHeight+tileY);
@@ -196,7 +186,9 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
                     for(int cy = 0; cy < tileHeight; ++cy) {
                         for(int cx = 0; cx < tileWidth; ++cx) {
                             for(int channel = 0; channel < channels; ++channel) {
-                                fullTileBuffer[(tileX + cx + (tileY + cy)*fullTileBufferWidth)*channels + channel] = tileData[(cx + cy*tileWidth)*channels + channel];
+                                for(int byte = 0; byte < bytesPerPixel; ++byte) {
+                                    fullTileBuffer[((tileX + cx + (tileY + cy)*fullTileBufferWidth)*channels + channel)*bytesPerPixel + byte] = tileData[((cx + cy*tileWidth)*channels + channel)*bytesPerPixel + byte];
+                                }
                             }
                         }
                     }
@@ -208,7 +200,9 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
             for(int cy = offsetY; cy < offsetY + height; ++cy) {
                 for(int cx = offsetX; cx < offsetX + width; ++cx) {
                     for(int channel = 0; channel < channels; ++channel) {
-                        data[(cx - offsetX + (cy - offsetY) * width)*channels + channel] = fullTileBuffer[(cx + cy * fullTileBufferWidth)*channels + channel];
+                        for(int byte = 0; byte < bytesPerPixel; ++byte) {
+                            data[((cx - offsetX + (cy - offsetY) * width)*channels + channel)*bytesPerPixel + byte] = fullTileBuffer[((cx + cy * fullTileBufferWidth)*channels + channel)*bytesPerPixel + byte];
+                        }
                     }
                 }
             }
@@ -313,31 +307,6 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
     return data;
 }
 
-ImagePyramidPatch ImagePyramidAccess::getPatch(int level, int tile_x, int tile_y) {
-    // Create patch
-    int levelWidth = m_image->getLevelWidth(level);
-    int levelHeight = m_image->getLevelHeight(level);
-    int levelTileWidth = m_image->getLevelTileWidth(level);
-    int levelTileHeight = m_image->getLevelTileHeight(level);
-    int tilesX = m_image->getLevelTilesX(level);
-    int tilesY = m_image->getLevelTilesY(level);
-    ImagePyramidPatch tile;
-    tile.offsetX = tile_x * levelTileWidth;
-    tile.offsetY = tile_y * levelTileHeight;
-
-    tile.width = levelTileWidth;
-    if(tile_x == tilesX - 1)
-        tile.width = levelWidth - tile.offsetX;
-    tile.height = levelTileHeight;
-    if(tile_y == tilesY - 1)
-        tile.height = levelHeight - tile.offsetY;
-
-    // Read the actual data
-    tile.data = getPatchData(level, tile.offsetX, tile.offsetY, tile.width, tile.height);
-
-    return tile;
-}
-
 std::shared_ptr<Image> ImagePyramidAccess::getLevelAsImage(int level) {
     if(level < 0 || level >= m_image->getNrOfLevels())
         throw Exception("Incorrect level given to getLevelAsImage" + std::to_string(level));
@@ -360,10 +329,41 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
     if(offsetX + width > m_image->getLevelWidth(level) || offsetY + height > m_image->getLevelHeight(level))
         throw Exception("offset + size exceeds level size");
 
-    auto data = getPatchData(level, offsetX, offsetY, width, height);
+    Image::pointer image;
+    switch(m_image->getDataType()) {
+        case TYPE_UINT8:
+            {
+                auto data = getPatchData<uchar>(level, offsetX, offsetY, width, height);
+                image = Image::create(width, height, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+            }
+            break;
+        case TYPE_UINT16:
+            {
+                auto data = getPatchData<ushort>(level, offsetX, offsetY, width, height);
+                image = Image::create(width, height, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+            }
+            break;
+        case TYPE_INT8:
+            {
+                auto data = getPatchData<char>(level, offsetX, offsetY, width, height);
+                image = Image::create(width, height, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+            }
+            break;
+        case TYPE_INT16:
+            {
+                auto data = getPatchData<short>(level, offsetX, offsetY, width, height);
+                image = Image::create(width, height, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+            }
+            break;
+        case TYPE_FLOAT:
+            {
+                auto data = getPatchData<float>(level, offsetX, offsetY, width, height);
+                image = Image::create(width, height, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+            }
+            break;
+    }
     float scale = m_image->getLevelScale(level);
     auto spacing = m_image->getSpacing();
-    auto image = Image::create(width, height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
     image->setSpacing(Vector3f(
             spacing.x()*scale,
             spacing.y()*scale,
@@ -403,31 +403,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     if(tileY == tilesY - 1)
         tile.height = levelHeight - tile.offsetY;
 
-    // Read the actual data
-    auto data = getPatchData(level, tile.offsetX, tile.offsetY, tile.width, tile.height);
-
-    float scale = m_image->getLevelScale(level);
-    Vector3f spacing = m_image->getSpacing();
-    auto image = Image::create(tile.width, tile.height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
-    image->setSpacing(Vector3f(
-            scale*spacing.x(),
-            scale*spacing.y(),
-            1.0f
-    ));
-    // TODO Set transformation
-    SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
-
-    if(m_fileHandle != nullptr && convertToRGB) {
-        // Data is stored as BGRA, need to delete alpha channel and reverse it
-        auto channelConverter = ImageChannelConverter::New();
-        channelConverter->setChannelsToRemove(false, false, false, true);
-        channelConverter->setReverseChannels(true);
-        channelConverter->setInputData(image);
-
-        return channelConverter->updateAndGetOutputData<Image>();
-    } else {
-        return image;
-    }
+    return getPatchAsImage(level, tile.offsetX, tile.offsetY, tile.width, tile.height, convertToRGB);
 }
 
 uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *data, int width, int height, int channels) {
@@ -537,7 +513,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch,
         y -= offsetY*tileHeight/2;
 
         // Get existing tile. This gets the tile in which x, y is contained in, not where it starts..
-        auto newData = getPatchData(level, x, y, tileWidth, tileHeight);
+        auto newData = getPatchData<uchar>(level, x, y, tileWidth, tileHeight);
 
         // Downsample tile from previous level and add it to existing tile
         if(m_image->getNrOfChannels() >= 3) {

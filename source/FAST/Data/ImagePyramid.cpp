@@ -25,7 +25,7 @@ namespace fast {
 
 int ImagePyramid::m_counter = 0;
 
-ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, int patchHeight, ImageCompression compression) {
+ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, int patchHeight, ImageCompression compression, DataType dataType) {
     if(channels <= 0 || channels > 4)
         throw Exception("Nr of channels must be between 1 and 4");
 
@@ -60,7 +60,8 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
     m_counter += 1;
 
     uint photometric;
-    uint bitsPerSample = 8;
+    uint bitsPerSample = getSizeOfDataType(dataType, 1) * 8;
+    m_dataType = dataType;
     uint samplesPerPixel;
     if(channels == 1) {
         photometric = PHOTOMETRIC_MINISBLACK; // Photometric mask causes crash..
@@ -366,10 +367,46 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
         m_levels[i].tilesX = std::ceil((float)m_levels[i].width / m_levels[i].tileWidth);
         m_levels[i].tilesY = std::ceil((float)m_levels[i].height / m_levels[i].tileHeight);
     }
+    TIFFSetDirectory(fileHandle, 0);
+    // Get data type
+    uint16_t bitsPerSample;
+    TIFFGetField(fileHandle, TIFFTAG_BITSPERSAMPLE, &bitsPerSample);
+    uint16_t sampleFormat;
+    TIFFGetField(fileHandle, TIFFTAG_SAMPLEFORMAT, &sampleFormat);
+    std::cout << "bits per sample: " << bitsPerSample << std::endl;
+    if(sampleFormat == SAMPLEFORMAT_IEEEFP) {
+        if(bitsPerSample == 32) {
+            m_dataType = TYPE_FLOAT;
+        } else {
+            throw Exception("Unsupported TIFF data type, float with " + std::to_string(bitsPerSample) + " bits");
+        }
+    } else if(sampleFormat == SAMPLEFORMAT_UINT) {
+        std::map<uint16_t, DataType> bitsPerSampleMap = {
+                {8, TYPE_UINT8},
+                {16, TYPE_UINT16},
+                };
+        if(bitsPerSampleMap.count(bitsPerSample) > 0) {
+            m_dataType = bitsPerSampleMap[bitsPerSample];
+        } else {
+            throw Exception("Unsupported TIFF data type, unsigned integer with " + std::to_string(bitsPerSample) + " bits");
+        }
+    } else if(sampleFormat == SAMPLEFORMAT_INT) {
+        std::map<uint16_t, DataType> bitsPerSampleMap = {
+                {8, TYPE_INT8},
+                {16, TYPE_INT16},
+                };
+        if(bitsPerSampleMap.count(bitsPerSample) > 0) {
+            m_dataType = bitsPerSampleMap[bitsPerSample];
+        } else {
+            throw Exception("Unsupported TIFF data type, signed integer with " + std::to_string(bitsPerSample) + " bits");
+        }
+    } else {
+        throw Exception("Unsupported TIFF data type: " + std::to_string(sampleFormat) + " " + std::to_string(bitsPerSample) + " bits");
+    }
     // Get compression
-    uint compressionTag;
+    uint16_t compressionTag;
     TIFFGetField(fileHandle, TIFFTAG_COMPRESSION, &compressionTag);
-    ImageCompression compression;
+    ImageCompression compression = ImageCompression::UNSPECIFIED;
     switch(compressionTag) {
         case COMPRESSION_NONE:
             compression = ImageCompression::RAW;
@@ -383,6 +420,10 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
         case COMPRESSION_JP2000:
             throw Exception("JPEG 2000 TIFF not supported yet");
             break;
+        case COMPRESSION_ADOBE_DEFLATE:
+        case COMPRESSION_DEFLATE:
+            compression = ImageCompression::DEFLATE;
+            break;
         case 34666:
             compression = ImageCompression::NEURAL_NETWORK;
             break;
@@ -393,7 +434,6 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
     // Get spacing from TIFF
     float spacingX;
     float spacingY;
-    TIFFSetDirectory(fileHandle, 0);
     int resX = TIFFGetField(fileHandle, TIFFTAG_XRESOLUTION, &spacingX);
     int resY = TIFFGetField(fileHandle, TIFFTAG_YRESOLUTION, &spacingY);
     if(resX == 1 && resY == 1) {
@@ -527,6 +567,10 @@ void ImagePyramid::setDecompressionModel(std::shared_ptr<NeuralNetwork> decompre
 
 float ImagePyramid::getDecompressionOutputScaleFactor() const {
     return m_decompressionOutputScaleFactor;
+}
+
+DataType ImagePyramid::getDataType() const {
+    return m_dataType;
 }
 
 }

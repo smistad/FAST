@@ -28,6 +28,7 @@ enum class ImageCompression {
     JPEG2000,
     LZW, // Lossless compression
     NEURAL_NETWORK, // Use neural network to do the compression and decompression. See ImagePyramid::setCompressionModels
+    DEFLATE, // Zlib lossless
 };
 
 struct vsi_tile_header {
@@ -72,15 +73,15 @@ public:
 	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::ifstream* stream, std::vector<vsi_tile_header>& vsiTiles, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat);
 	void setPatch(int level, int x, int y, std::shared_ptr<Image> patch, bool propagate = true);
 	bool isPatchInitialized(uint level, uint x, uint y);
-	std::unique_ptr<uchar[]> getPatchData(int level, int x, int y, int width, int height);
-	ImagePyramidPatch getPatch(std::string tile);
-	ImagePyramidPatch getPatch(int level, int patchX, int patchY);
+	template <class T>
+	std::unique_ptr<T[]> getPatchData(int level, int x, int y, int width, int height);
 	std::shared_ptr<Image> getLevelAsImage(int level);
 	std::shared_ptr<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height, bool convertToRGB = true);
 	std::shared_ptr<Image> getPatchAsImage(int level, int patchIdX, int patchIdY, bool convertToRGB = true);
 	void release();
 	~ImagePyramidAccess();
 private:
+    std::unique_ptr<uchar[]> getPatchDataChar(int level, int x, int y, int width, int height);
 	std::shared_ptr<ImagePyramid> m_image;
 	std::vector<ImagePyramidLevel> m_levels;
 	bool m_write;
@@ -98,5 +99,12 @@ private:
     uint32_t writeTileToTIFFNeuralNetwork(int level, int x, int y, std::shared_ptr<Image> image);
     int readTileFromTIFF(void* data, int x, int y);
 };
+
+template <class T>
+std::unique_ptr<T[]> ImagePyramidAccess::getPatchData(int level, int x, int y, int width, int height) {
+    auto data = getPatchDataChar(level, x, y, width, height);
+    std::unique_ptr<T[]> data2(reinterpret_cast<T*>(data.release())); // Cast to correct type
+    return data2;
+}
 
 }
