@@ -50,7 +50,7 @@ void PatchGenerator::loadAttributes() {
     setOverlap(getFloatAttribute("patch-overlap"));
     setMaskThreshold(getFloatAttribute("mask-threshold"));
     setPaddingValue(getIntegerAttribute("padding-value"));
-    setPatchMagnification(getIntegerAttribute("patch-magnification"));
+    setPatchMagnification(getFloatAttribute("patch-magnification"));
 }
 
 PatchGenerator::~PatchGenerator() {
