@@ -429,65 +429,13 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImageForMagnification(float
 
     const int patchWidth = width*resampleFactor;
     const int patchHeight = height*resampleFactor;
-    if(offsetX + patchWidth >= m_image->getLevelWidth(level) || offsetY + patchHeight >= m_image->getLevelHeight(level))
-        throw Exception("offset + size exceeds level size");
 
-    Image::pointer image;
-    switch(m_image->getDataType()) {
-        case TYPE_UINT8:
-        {
-            auto data = getPatchData<uchar>(level, offsetX, offsetY, patchWidth, patchHeight);
-            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
-        }
-            break;
-        case TYPE_UINT16:
-        {
-            auto data = getPatchData<ushort>(level, offsetX, offsetY, patchWidth, patchHeight);
-            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
-        }
-            break;
-        case TYPE_INT8:
-        {
-            auto data = getPatchData<char>(level, offsetX, offsetY, patchWidth, patchHeight);
-            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
-        }
-            break;
-        case TYPE_INT16:
-        {
-            auto data = getPatchData<short>(level, offsetX, offsetY, patchWidth, patchHeight);
-            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
-        }
-            break;
-        case TYPE_FLOAT:
-        {
-            auto data = getPatchData<float>(level, offsetX, offsetY, patchWidth, patchHeight);
-            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
-        }
-            break;
-    }
+    auto image = getPatchAsImage(level, offsetX, offsetY, patchWidth, patchHeight, convertToRGB);
+
     if(resampleFactor > 1.0f) {
         image = ImageResizer::create(width, height)->connect(image)->runAndGetOutputData<Image>();
     }
-    float scale = m_image->getLevelScale(level);
-    auto spacing = m_image->getSpacing();
-    image->setSpacing(Vector3f(
-            spacing.x()*scale,
-            spacing.y()*scale,
-            1.0f
-    ));
-    // Set transformation
-    auto T = Transform::create(Vector3f(offsetX*scale, offsetY*scale, 0.0f));
-    image->setTransform(T);
-    SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
 
-    if(m_fileHandle != nullptr && convertToRGB) {
-        // Data is stored as BGRA, need to delete alpha channel and reverse it
-        auto channelConverter = ImageChannelConverter::New();
-        channelConverter->setChannelsToRemove(false, false, false, true);
-        channelConverter->setReverseChannels(true);
-        channelConverter->setInputData(image);
-        image = channelConverter->updateAndGetOutputData<Image>();
-    }
     return image;
 }
 
