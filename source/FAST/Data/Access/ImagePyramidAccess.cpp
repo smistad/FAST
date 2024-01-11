@@ -13,6 +13,7 @@
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
 #include <FAST/Algorithms/NeuralNetwork/TensorToImage.hpp>
 #include <FAST/Algorithms/ImageCaster/ImageCaster.hpp>
+#include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 
 namespace fast {
 
@@ -361,6 +362,111 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int offset
                 image = Image::create(width, height, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
             }
             break;
+    }
+    float scale = m_image->getLevelScale(level);
+    auto spacing = m_image->getSpacing();
+    image->setSpacing(Vector3f(
+            spacing.x()*scale,
+            spacing.y()*scale,
+            1.0f
+    ));
+    // Set transformation
+    auto T = Transform::create(Vector3f(offsetX*scale, offsetY*scale, 0.0f));
+    image->setTransform(T);
+    SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
+
+    if(m_fileHandle != nullptr && convertToRGB) {
+        // Data is stored as BGRA, need to delete alpha channel and reverse it
+        auto channelConverter = ImageChannelConverter::New();
+        channelConverter->setChannelsToRemove(false, false, false, true);
+        channelConverter->setReverseChannels(true);
+        channelConverter->setInputData(image);
+        image = channelConverter->updateAndGetOutputData<Image>();
+    }
+    return image;
+}
+
+std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImageForMagnification(float magnification, float offsetX, float offsetY, int width, int height, bool convertToRGB) {
+    if(width > 16384 || height > 16384)
+        throw Exception("Image level is too large to convert into a FAST image");
+
+    if(offsetX < 0 || offsetY < 0 || width <= 0 || height <= 0)
+        throw Exception("Offset and size must be positive");
+
+    int level;
+    float resampleFactor = 1.0f;
+    try {
+        level = m_image->getLevelForMagnification(magnification);
+        reportInfo() << "Choose level " << level << " for image pyramid for magnification " << magnification << reportEnd();
+    } catch(Exception &e) {
+        // Magnification level not available
+        // Have to sample for a higher level if possible
+        reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
+                        "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
+        // First find level which is larger than request magnification
+        float targetSpacing = 0.00025f * (40.0f / (float)magnification);
+        level = 0;
+        float level0spacing = m_image->getSpacing().x();
+        for(int i = 0; i < m_image->getNrOfLevels(); ++i) {
+            float levelSpacing = m_image->getLevelScale(i)*level0spacing;
+            level = i;
+            resampleFactor = targetSpacing / levelSpacing; // Scale between level and the magnification level we want
+            if(i+1 < m_image->getNrOfLevels() &&
+               m_image->getLevelScale(i+1)*level0spacing > targetSpacing) {
+                break;
+            }
+        }
+        if(level < 0)
+            throw Exception("Unable to get patch for magnification level " +
+                            std::to_string(magnification) + " because level 0 was at a lower magnification ");
+    }
+    reportInfo() << "Extracting patch from level " << level << " and using a resampling factor of " << resampleFactor << reportEnd();
+
+    // Convert offset from physical float position to pixel position in level
+    offsetX = round((offsetX / m_image->getSpacing().x())/m_image->getLevelScale(level));
+    offsetY = round((offsetY / m_image->getSpacing().y())/m_image->getLevelScale(level));
+    std::cout << "Pixel offset " << offsetX << " " << offsetY << std::endl;
+
+    const int patchWidth = width*resampleFactor;
+    const int patchHeight = height*resampleFactor;
+    if(offsetX + patchWidth >= m_image->getLevelWidth(level) || offsetY + patchHeight >= m_image->getLevelHeight(level))
+        throw Exception("offset + size exceeds level size");
+
+    Image::pointer image;
+    switch(m_image->getDataType()) {
+        case TYPE_UINT8:
+        {
+            auto data = getPatchData<uchar>(level, offsetX, offsetY, patchWidth, patchHeight);
+            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+        }
+            break;
+        case TYPE_UINT16:
+        {
+            auto data = getPatchData<ushort>(level, offsetX, offsetY, patchWidth, patchHeight);
+            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+        }
+            break;
+        case TYPE_INT8:
+        {
+            auto data = getPatchData<char>(level, offsetX, offsetY, patchWidth, patchHeight);
+            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+        }
+            break;
+        case TYPE_INT16:
+        {
+            auto data = getPatchData<short>(level, offsetX, offsetY, patchWidth, patchHeight);
+            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+        }
+            break;
+        case TYPE_FLOAT:
+        {
+            auto data = getPatchData<float>(level, offsetX, offsetY, patchWidth, patchHeight);
+            image = Image::create(patchWidth, patchHeight, m_image->getDataType(), m_image->getNrOfChannels(), std::move(data));
+        }
+            break;
+    }
+    if(resampleFactor > 1.0f) {
+        image = ImageResizer::create(width, height)->connect(image)->runAndGetOutputData<Image>();
     }
     float scale = m_image->getLevelScale(level);
     auto spacing = m_image->getSpacing();

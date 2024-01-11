@@ -78,6 +78,17 @@ public:
 	std::shared_ptr<Image> getLevelAsImage(int level);
 	std::shared_ptr<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height, bool convertToRGB = true);
 	std::shared_ptr<Image> getPatchAsImage(int level, int patchIdX, int patchIdY, bool convertToRGB = true);
+	/**
+	 * @brief Get patch as Image at a specific magnification
+	 * @param magnification Magnification. Example: for 20X this value should be 20
+	 * @param offsetX Physical offset x position of patch
+	 * @param offsetY Physical offset y position of patch
+	 * @param width Width of patch in pixels
+	 * @param height Height of patch in pixels
+	 * @param convertToRGB Convert from BGR to RGB if needed
+	 * @return patch as Image object
+	 */
+    std::shared_ptr<Image> getPatchAsImageForMagnification(float magnification, float offsetX, float offsetY, int width, int height, bool convertToRGB = true);
 	void release();
 	~ImagePyramidAccess();
 private:
