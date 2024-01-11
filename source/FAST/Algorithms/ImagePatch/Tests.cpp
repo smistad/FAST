@@ -180,11 +180,16 @@ TEST_CASE("Patch generator for WSI wrong magnification", "[fast][wsi][PatchGener
 
 TEST_CASE("Patch generator for WSI at specific magnification 2.5x", "[fast][wsi][PatchGenerator]") {
     auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
+    // This pyramid has:
+    // 0 -> 20X
+    // 1 -> 5X
+    // 2 -> 1.25X
+    // Thus to get 2.5X, it should extract patches of size (512x2,512x2) at level 1, and then resie them to (512,512)
     auto wsi = importer->runAndGetOutputData<ImagePyramid>();
 
     int width = 512;
     int height = 512;
-    const int nrOfPatches = std::ceil((float)wsi->getLevelWidth(1)/width/2.0f)*std::ceil((float)wsi->getLevelHeight(1)/height/2.0f);
+    const int nrOfPatches = std::ceil((float)wsi->getLevelWidth(1)/(width*2.0f))*std::ceil((float)wsi->getLevelHeight(1)/(height*2.0f));
     auto generator = PatchGenerator::create(width, height, 1, 0, 2.5f)
             ->connect(wsi);
     auto stream = DataStream(generator);

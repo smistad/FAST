@@ -126,8 +126,8 @@ void PatchGenerator::generateStream() {
                 if(patchWidthWithoutOverlap % TIFFmultiplumCriteria > 0 || patchHeightWithoutOverlap % TIFFmultiplumCriteria > 0)
                     throw Exception("Error in compensation of patch size..");
             }
-            const int patchesX = std::ceil((float) levelWidth / (float) patchWidthWithoutOverlap);
-            const int patchesY = std::ceil((float) levelHeight / (float) patchHeightWithoutOverlap);
+            const int patchesX = std::ceil((float) levelWidth / (float) (patchWidthWithoutOverlap*resampleFactor));
+            const int patchesY = std::ceil((float) levelHeight / (float) (patchHeightWithoutOverlap*resampleFactor));
 
             for(int patchY = 0; patchY < patchesY; ++patchY) {
                 for(int patchX = 0; patchX < patchesX; ++patchX) {
