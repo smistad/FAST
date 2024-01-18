@@ -413,11 +413,11 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImageForMagnification(float
     if(level < 0)
         throw Exception("Unable to get patch for magnification level " +
                 std::to_string(magnification) + " because level 0 was at a lower magnification ");
-    if(std::fabs(resampleFactor - 1.0f) < 0.1)// If within 1.1 - 0.9 resampleFactor, we just sample from the specific level
+    if(std::fabs(resampleFactor - 1.0f) < 0.1) { // If within 1.1 - 0.9 resampleFactor, we just sample from the specific level
         resampleFactor = 1.0f;
-    if(resampleFactor != 1.0f) {
-        reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
-                "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
+    } else {
+        reportInfo() << "Requested magnification level does not exist in image pyramid. " <<
+        "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
     }
     reportInfo() << "Extracting patch from level " << level << " and using a resampling factor of " << resampleFactor << reportEnd();
 

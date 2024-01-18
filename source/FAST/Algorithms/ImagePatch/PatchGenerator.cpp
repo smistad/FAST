@@ -85,10 +85,7 @@ void PatchGenerator::generateStream() {
             int level = m_level;
             float resampleFactor = 1.0f;
             if(m_magnification > 0) {
-                // Magnification level not available
                 // Have to sample for a higher level if possible
-                reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
-                                    "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
                 // First find level which is larger than request magnification
                 float targetSpacing = 0.00025f * (40.0f / (float)m_magnification);
                 level = 0;
@@ -105,9 +102,9 @@ void PatchGenerator::generateStream() {
                 if(level < 0)
                     throw Exception("Unable to generate patches for magnification level " +
                         std::to_string(m_magnification) + " because level 0 was at a lower magnification ");
-                if(std::fabs(resampleFactor - 1.0f) < 0.1) // If within 1.1 - 0.9 resampleFactor, we just sample from the specific level
+                if(std::fabs(resampleFactor - 1.0f) < 0.1) { // If within 1.1 - 0.9 resampleFactor, we just sample from the specific level
                     resampleFactor = 1.0f;
-                if(resampleFactor != 1.0f) {
+                } else {
                     reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
                                 "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
                 }
