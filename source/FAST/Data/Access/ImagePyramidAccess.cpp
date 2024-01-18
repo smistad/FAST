@@ -395,37 +395,35 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImageForMagnification(float
 
     int level;
     float resampleFactor = 1.0f;
-    try {
-        level = m_image->getLevelForMagnification(magnification);
-        reportInfo() << "Choose level " << level << " for image pyramid for magnification " << magnification << reportEnd();
-    } catch(Exception &e) {
-        // Magnification level not available
-        // Have to sample for a higher level if possible
-        reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
-                        "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
-        // First find level which is larger than request magnification
-        float targetSpacing = 0.00025f * (40.0f / (float)magnification);
-        level = 0;
-        float level0spacing = m_image->getSpacing().x();
-        for(int i = 0; i < m_image->getNrOfLevels(); ++i) {
-            float levelSpacing = m_image->getLevelScale(i)*level0spacing;
-            level = i;
-            resampleFactor = targetSpacing / levelSpacing; // Scale between level and the magnification level we want
-            if(i+1 < m_image->getNrOfLevels() &&
-               m_image->getLevelScale(i+1)*level0spacing > targetSpacing) {
-                break;
-            }
+    // Magnification level not available
+    // Have to sample for a higher level if possible
+    // First find level which is larger than request magnification
+    float targetSpacing = 0.00025f * (40.0f / (float)magnification);
+    level = 0;
+    float level0spacing = m_image->getSpacing().x();
+    for(int i = 0; i < m_image->getNrOfLevels(); ++i) {
+        float levelSpacing = m_image->getLevelScale(i)*level0spacing;
+        level = i;
+        resampleFactor = targetSpacing / levelSpacing; // Scale between level and the magnification level we want
+        if(i+1 < m_image->getNrOfLevels() &&
+           m_image->getLevelScale(i+1)*level0spacing > targetSpacing) {
+            break;
         }
-        if(level < 0)
-            throw Exception("Unable to get patch for magnification level " +
-                            std::to_string(magnification) + " because level 0 was at a lower magnification ");
+    }
+    if(level < 0)
+        throw Exception("Unable to get patch for magnification level " +
+                std::to_string(magnification) + " because level 0 was at a lower magnification ");
+    if(std::fabs(resampleFactor - 1.0f) < 0.1)// If within 1.1 - 0.9 resampleFactor, we just sample from the specific level
+        resampleFactor = 1.0f;
+    if(resampleFactor != 1.0f) {
+        reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
+                "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
     }
     reportInfo() << "Extracting patch from level " << level << " and using a resampling factor of " << resampleFactor << reportEnd();
 
     // Convert offset from physical float position to pixel position in level
     offsetX = round((offsetX / m_image->getSpacing().x())/m_image->getLevelScale(level));
     offsetY = round((offsetY / m_image->getSpacing().y())/m_image->getLevelScale(level));
-    std::cout << "Pixel offset " << offsetX << " " << offsetY << std::endl;
 
     const int patchWidth = width*resampleFactor;
     const int patchHeight = height*resampleFactor;
@@ -433,7 +431,7 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImageForMagnification(float
     auto image = getPatchAsImage(level, offsetX, offsetY, patchWidth, patchHeight, convertToRGB);
 
     if(resampleFactor > 1.0f) {
-        image = ImageResizer::create(width, height)->connect(image)->runAndGetOutputData<Image>();
+        image = ImageResizer::create(width, height, 1, m_image->getNrOfChannels() > 1)->connect(image)->runAndGetOutputData<Image>();
     }
 
     return image;

@@ -85,32 +85,33 @@ void PatchGenerator::generateStream() {
             int level = m_level;
             float resampleFactor = 1.0f;
             if(m_magnification > 0) {
-                try {
-                    level = m_inputImagePyramid->getLevelForMagnification(m_magnification);
-                    reportInfo() << "Choose level " << level << " for image pyramid for magnification " << m_magnification << reportEnd();
-                } catch(Exception &e) {
-                    // Magnification level not available
-                    // Have to sample for a higher level if possible
-                    reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
-                                        "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
-                    // First find level which is larger than request magnification
-                    float targetSpacing = 0.00025f * (40.0f / (float)m_magnification);
-                    level = 0;
-                    float level0spacing = m_inputImagePyramid->getSpacing().x();
-                    for(int i = 0; i < m_inputImagePyramid->getNrOfLevels(); ++i) {
-                        float levelSpacing = m_inputImagePyramid->getLevelScale(i)*level0spacing;
-                        level = i;
-                        resampleFactor = targetSpacing / levelSpacing; // Scale between level and the magnification level we want
-                        if(i+1 < m_inputImagePyramid->getNrOfLevels() &&
-                                m_inputImagePyramid->getLevelScale(i+1)*level0spacing > targetSpacing) {
-                            break;
-                        }
+                // Magnification level not available
+                // Have to sample for a higher level if possible
+                reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
+                                    "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
+                // First find level which is larger than request magnification
+                float targetSpacing = 0.00025f * (40.0f / (float)m_magnification);
+                level = 0;
+                float level0spacing = m_inputImagePyramid->getSpacing().x();
+                for(int i = 0; i < m_inputImagePyramid->getNrOfLevels(); ++i) {
+                    float levelSpacing = m_inputImagePyramid->getLevelScale(i)*level0spacing;
+                    level = i;
+                    resampleFactor = targetSpacing / levelSpacing; // Scale between level and the magnification level we want
+                    if(i+1 < m_inputImagePyramid->getNrOfLevels() &&
+                            m_inputImagePyramid->getLevelScale(i+1)*level0spacing > targetSpacing) {
+                        break;
                     }
-                    if(level < 0)
-                        throw Exception("Unable to generate patches for magnification level " +
-                            std::to_string(m_magnification) + " because level 0 was at a lower magnification ");
-                    reportInfo() << "Sampling patches from level " << level << " and using a resampling factor of " << resampleFactor << reportEnd();
                 }
+                if(level < 0)
+                    throw Exception("Unable to generate patches for magnification level " +
+                        std::to_string(m_magnification) + " because level 0 was at a lower magnification ");
+                if(std::fabs(resampleFactor - 1.0f) < 0.1) // If within 1.1 - 0.9 resampleFactor, we just sample from the specific level
+                    resampleFactor = 1.0f;
+                if(resampleFactor != 1.0f) {
+                    reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
+                                "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
+                }
+                reportInfo() << "Sampling patches from level " << level << " and using a resampling factor of " << resampleFactor << reportEnd();
             }
 
             const int levelWidth = m_inputImagePyramid->getLevelWidth(level);
@@ -196,7 +197,7 @@ void PatchGenerator::generateStream() {
                         patch = patch->crop(Vector2i(0, 0), Vector2i(m_width*resampleFactor, m_height*resampleFactor), true, paddingValue);
                     }
                     if(resampleFactor > 1.0f) {
-                        patch = ImageResizer::create(m_width, m_height)->connect(patch)->runAndGetOutputData<Image>();
+                        patch = ImageResizer::create(m_width, m_height, 1, m_inputImagePyramid->getNrOfChannels() > 1)->connect(patch)->runAndGetOutputData<Image>();
                     }
                     if(m_overlapPercent > 0.0f && (patchX == 0 || patchY == 0)) {
                         int offsetX = patchX == 0 ? -overlapInPixelsX : 0;
