@@ -94,6 +94,7 @@ void ImageResizer::execute() {
 				input->getNrOfChannels()
         );
     }
+    SceneGraph::setParentNode(output, input);
 
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");
