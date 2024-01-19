@@ -1255,7 +1255,11 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     	if(offset.x() < 0 || offset.y() < 0 || (getDimensions() == 3 && offset.z() < 0)) {
     		throw Exception("Out of bounds cropping not allowed, but offset was below 0.");
     	}
-    	// TODO validate size
+    	if(offset.x() + size.x() > getWidth() || offset.y() + size.y() > getHeight())
+    	    throw Exception("Trying to crop an image outside of its border and allow out of bounds cropping is set to false: " +
+    	    std::to_string(offset.x()) + " " + std::to_string(size.x()) + " " + std::to_string(getWidth()) + " " +
+            std::to_string(offset.y()) + " " + std::to_string(size.y()) + " " + std::to_string(getHeight())
+    	    );
     } else {
     	// Calculate offsets and sizes
     	for(int i = 0; i < offset.size(); ++i) {

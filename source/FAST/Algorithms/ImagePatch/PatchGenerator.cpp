@@ -156,19 +156,22 @@ void PatchGenerator::generateStream() {
                         float y = patchOffsetY * m_inputImagePyramid->getLevelScale(level) * m_inputImagePyramid->getSpacing().y();
                         float width = patchWidth * m_inputImagePyramid->getLevelScale(level) * m_inputImagePyramid->getSpacing().x();
                         float height = patchHeight * m_inputImagePyramid->getLevelScale(level) * m_inputImagePyramid->getSpacing().y();
-                        auto croppedMask = m_inputMask->crop(
-                                Vector2i(
-                                        round(x/m_inputMask->getSpacing().x()),
-                                        round(y/m_inputMask->getSpacing().y())
-                                        ),
-                                        Vector2i(
-                                                std::max(1, (int)std::floor(width/m_inputMask->getSpacing().x())),
-                                                std::max(1, (int)std::floor(height/m_inputMask->getSpacing().y()))
-                                                )
-                                                );
-                        float average = croppedMask->calculateAverageIntensity();
-                        if(average < m_maskThreshold)  // A specific percentage of the mask has to be foreground to be assessed
+                        try {
+                            int cropSizeX = std::max((int)std::floor(width/m_inputMask->getSpacing().x()), 1);
+                            int cropSizeY = std::max((int)std::floor(height/m_inputMask->getSpacing().y()), 1);
+                            int offsetX = std::floor(x/m_inputMask->getSpacing().x());
+                            int offsetY = std::floor(y/m_inputMask->getSpacing().x());
+                            auto croppedMask = m_inputMask->crop(
+                                    Vector2i(offsetX, offsetY),
+                                    Vector2i(cropSizeX, cropSizeY)
+                            );
+                            float average = croppedMask->calculateAverageIntensity();
+                            if(average < m_maskThreshold)  // A specific percentage of the mask has to be foreground to be assessed
+                                continue;
+                        } catch(Exception &e) {
+                            reportInfo() << "Skipped patch because mask cropping gave error: " << e.what() << reportEnd();
                             continue;
+                        }
                     }
                     reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
                     auto access = m_inputImagePyramid->getAccess(ACCESS_READ);
