@@ -1248,6 +1248,8 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     VectorXi copySourceOffset = offset;
     VectorXi copyDestinationOffset = VectorXi::Zero(offset.size());
     VectorXi copySize = size;
+    if(size.x() < 1 || size.y() < 1)
+        throw Exception("Invalid crop size (< 1) given to Image::crop");
     if(!allowOutOfBoundsCropping) {
     	// Validate offset
     	if(offset.x() < 0 || offset.y() < 0 || (getDimensions() == 3 && offset.z() < 0)) {
