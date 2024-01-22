@@ -185,6 +185,8 @@ ImagePyramid::ImagePyramid(std::ifstream* stream, std::vector<vsi_tile_header> t
     m_initialized = true;
     m_pyramidFullyInitialized = true;
     m_compressionFormat = compressionFormat;
+    reportWarning() << "Loaded a CellSense VSI file. FAST is unable to get spacing information and therefore assumes it is at 40X magnification. If this is not correct you should set the pixel spacing on the image object manually with ImagePyramid::setSpacing()." << reportEnd();
+    setSpacing(Vector3f(0.00025, 0.00025, 1.0));
 }
 
 ImagePyramid::ImagePyramid() {
