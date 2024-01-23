@@ -375,7 +375,6 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
     TIFFGetField(fileHandle, TIFFTAG_BITSPERSAMPLE, &bitsPerSample);
     uint16_t sampleFormat;
     TIFFGetField(fileHandle, TIFFTAG_SAMPLEFORMAT, &sampleFormat);
-    std::cout << "bits per sample: " << bitsPerSample << std::endl;
     if(sampleFormat == SAMPLEFORMAT_IEEEFP) {
         if(bitsPerSample == 32) {
             m_dataType = TYPE_FLOAT;
