@@ -35,7 +35,7 @@ jobs:
         LDFLAGS: "-L/usr/local/opt/zlib/lib"
         CPPFLAGS: "-I/usr/local/opt/zlib/include"
         PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
-      uses: "gabrielfalcao/pyenv-action@v17"
+      uses: "gabrielfalcao/pyenv-action@v18"
       with:
           default: 3.6.15
         
