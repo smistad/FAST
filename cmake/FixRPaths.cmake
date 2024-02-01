@@ -7,7 +7,7 @@ if(APPLE)
             message("-- Setting runtime path of ${SO}")
             execute_process(COMMAND codesign -v ${SO} OUTPUT_VARIABLE RESULT ERROR_VARIABLE ERROR_RESULT)
             message("-- output of result variable: ${RESULT} ${ERROR_RESULT}")
-            if("${RESULT}" STREQUAL "")
+            if(NOT "${RESULT}" STREQUAL "")
                 message("-- Removing signature for ${SO}")
                 execute_process(COMMAND codesign --remove-signature ${SO}) # adding rpath makes any signed binaries invalid which will make macos complain
             endif()
