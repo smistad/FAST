@@ -257,9 +257,10 @@ setup(name='pyFAST',    # Distribution name
           'runPipeline=fast.entry_points:runRunPipeline',
       ]},
       classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS :: MacOS X',
         'Programming Language :: C++',
         'Programming Language :: Python :: 3 :: Only',
         'Environment :: GPU',
