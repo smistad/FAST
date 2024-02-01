@@ -5,7 +5,12 @@ if(APPLE)
     foreach(SO ${installedSOs})
         if(NOT IS_SYMLINK ${SO})
             message("-- Setting runtime path of ${SO}")
-            execute_process(COMMAND codesign --remove-signature ${SO}) # adding rpath makes any signed binaries invalid which will make macos complain
+            execute_process(COMMAND codesign -v ${SO} OUTPUT_VARIABLE RESULT ERROR_VARIABLE ERROR_RESULT)
+            message("-- output of result variable: ${RESULT} ${ERROR_RESULT}")
+            if(NOT "${RESULT}" STREQUAL "")
+                message("-- Removing signature for ${SO}")
+                execute_process(COMMAND codesign --remove-signature ${SO}) # adding rpath makes any signed binaries invalid which will make macos complain
+            endif()
             execute_process(COMMAND install_name_tool -add_rpath "@loader_path/../lib" ${SO})
         endif()
     endforeach()

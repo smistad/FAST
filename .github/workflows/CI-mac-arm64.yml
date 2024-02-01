@@ -1,4 +1,4 @@
-name: CI macOS 11 arm64
+name: CI macOS 14 arm64
 
 on:
   push:
@@ -11,46 +11,50 @@ on:
 
 env:
   BUILD_TYPE: Release
-  MACOSX_DEPLOYMENT_TARGET: 10.13
+  MACOSX_DEPLOYMENT_TARGET: 11.0
 
 jobs:
   build:
-    runs-on: macos-11
+    runs-on: macos-14
     steps:
     - uses: actions/checkout@v2   
     
     - name: Install dependencies
       run: |
-        arch -arm64 brew reinstall zlib
-        arch -arm64 brew install openslide pcre
+        brew reinstall zlib
+        brew install openslide pcre libomp
         # Install a specific version of libomp (14.0.6) since newer versions fail with cmake
-        arch -arm64 brew extract --version=14.0.6 libomp homebrew/cask
-        arch -arm64 brew install libomp@14.0.6
-
+        #curl https://raw.githubusercontent.com/Homebrew/homebrew-core/c87d6a0c8360c4684e3375ce6c4576214acdd71b/Formula/libomp.rb > $(find $(brew --repository) -name libomp.rb) && brew reinstall libomp
+    
     - name: Setup pyenv
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-        MACOSX_DEPLOYMENT_TARGET: 10.13
+        MACOSX_DEPLOYMENT_TARGET: 11.0
         PYTHON_CONFIGURE_OPTS: "--enable-framework"
         CFLAGS: "-Wno-implicit-function-declaration"
         LDFLAGS: "-L/usr/local/opt/zlib/lib"
         CPPFLAGS: "-I/usr/local/opt/zlib/include"
         PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
-      uses: "gabrielfalcao/pyenv-action@v5"
+      uses: "gabrielfalcao/pyenv-action@v18"
       with:
-          default: 3.6.9
+          default: 3.8.18
         
     - name: Install pip dependencies
       run: |
         pip3 install --upgrade pip
-        pip3 install numpy==1.19.5 twine wheel==0.37.1
+        pip3 install numpy==1.21.6 twine wheel==0.37.1
+
+    - name: Debug
+      run: |
+        echo "$(dirname $(pyenv which python))"
+        echo $(ls "$(dirname $(pyenv which python))/../include/")
 
     - name: Configure CMake
       run: |
         cmake -B ${{github.workspace}}/build \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
-            -DFAST_MODULE_OpenVINO=OFF \
             -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" \
+            -DFAST_MODULE_OpenVINO=OFF \
             -DFAST_MODULE_Dicom=ON \
             -DFAST_MODULE_WholeSlideImaging=ON \
             -DFAST_MODULE_OpenIGTLink=ON \
@@ -59,9 +63,9 @@ jobs:
             -DFAST_MODULE_HDF5=ON \
             -DFAST_MODULE_Plotting=ON \
             -DFAST_MODULE_Python=ON \
-            -DFAST_Python_Version="3.6" \
-            -DFAST_Python_Include="$(dirname $(pyenv which python))/../include/python3.6m/" \
-            -DFAST_Python_Library="$(dirname $(pyenv which python))/../lib/libpython3.6.dylib" \
+            -DFAST_Python_Version="3.8" \
+            -DFAST_Python_Include="$(dirname $(pyenv which python))/../include/python3.8/" \
+            -DFAST_Python_Library="$(dirname $(pyenv which python))/../lib/libpython3.8.dylib" \
             -DFAST_MODULE_RealSense=OFF \
             -DFAST_BUILD_EXAMPLES=ON
 
@@ -70,7 +74,7 @@ jobs:
 
     - name: Build Python wheel
       env:
-        MACOSX_DEPLOYMENT_TARGET: 10.13
+        MACOSX_DEPLOYMENT_TARGET: 11.0
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
 
     - name: Package
