@@ -44,6 +44,11 @@ jobs:
         pip3 install --upgrade pip
         pip3 install numpy==1.21.6 twine wheel==0.37.1
 
+    - name: Debug
+      run: |
+        echo "$(dirname $(pyenv which python))"
+        ls "$(dirname $(pyenv which python))/../include/"
+
     - name: Configure CMake
       run: |
         cmake -B ${{github.workspace}}/build \
