@@ -47,7 +47,7 @@ jobs:
     - name: Debug
       run: |
         echo "$(dirname $(pyenv which python))"
-        ls "$(dirname $(pyenv which python))/../include/"
+        echo $(ls "$(dirname $(pyenv which python))/../include/")
 
     - name: Configure CMake
       run: |
@@ -64,7 +64,7 @@ jobs:
             -DFAST_MODULE_Plotting=ON \
             -DFAST_MODULE_Python=ON \
             -DFAST_Python_Version="3.8" \
-            -DFAST_Python_Include="$(dirname $(pyenv which python))/../include/python3.8m/" \
+            -DFAST_Python_Include="$(dirname $(pyenv which python))/../include/python3.8/" \
             -DFAST_Python_Library="$(dirname $(pyenv which python))/../lib/libpython3.8.dylib" \
             -DFAST_MODULE_RealSense=OFF \
             -DFAST_BUILD_EXAMPLES=ON
