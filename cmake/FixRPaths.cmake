@@ -6,7 +6,7 @@ if(APPLE)
         if(NOT IS_SYMLINK ${SO})
             message("-- Setting runtime path of ${SO}")
             execute_process(COMMAND codesign -v ${SO} OUTPUT_VARIABLE RESULT)
-            if(${RESULT} STREQUAL "")
+            if("${RESULT}" STREQUAL "")
                 message("-- Removing signature for ${SO}")
                 execute_process(COMMAND codesign --remove-signature ${SO}) # adding rpath makes any signed binaries invalid which will make macos complain
             endif()
