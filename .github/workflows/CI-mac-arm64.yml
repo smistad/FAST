@@ -37,7 +37,7 @@ jobs:
         PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
       uses: "gabrielfalcao/pyenv-action@v18"
       with:
-          default: 3.6.15
+          default: 3.8.18
         
     - name: Install pip dependencies
       run: |
@@ -58,9 +58,9 @@ jobs:
             -DFAST_MODULE_HDF5=ON \
             -DFAST_MODULE_Plotting=ON \
             -DFAST_MODULE_Python=ON \
-            -DFAST_Python_Version="3.6" \
-            -DFAST_Python_Include="$(dirname $(pyenv which python))/../include/python3.6m/" \
-            -DFAST_Python_Library="$(dirname $(pyenv which python))/../lib/libpython3.6.dylib" \
+            -DFAST_Python_Version="3.8" \
+            -DFAST_Python_Include="$(dirname $(pyenv which python))/../include/python3.8m/" \
+            -DFAST_Python_Library="$(dirname $(pyenv which python))/../lib/libpython3.8.dylib" \
             -DFAST_MODULE_RealSense=OFF \
             -DFAST_BUILD_EXAMPLES=ON
 
