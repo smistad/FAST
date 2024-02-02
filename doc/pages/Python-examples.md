@@ -31,3 +31,4 @@ You can also find many examples in the [python tutorials](@ref python-tutorials)
 |[Stream ultrasound file format (UFF) data, apply non-local means and display](@ref stream_uff_ultrasound_file_format_data.py)| @image html images/examples/python/stream_uff_data_and_filter.jpg width=350px;|
 |[Stream ultrasound file format (UFF) data and display with matplotlib](@ref display_ultrasound_file_format_data_with_matplotlib.py)| @image html images/examples/python/display_uff_data.jpg width=350px;|
 |[Perform envelope detection, log compression and scan conversion on ultrasound IQ data](@ref scan_convert_iq_data.py)| @image html images/examples/python/scan_convert_iq_data.jpg width=350px;|
+|[Beamform ultrasound file format (UFF) data with VBeam and process & visualize with FAST](@ref vbeam.py) | @image html images/examples/python/vbeam_example.jpg width=350px; |
