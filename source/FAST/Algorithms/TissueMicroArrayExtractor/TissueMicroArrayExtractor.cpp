@@ -8,20 +8,23 @@
 
 namespace fast {
 
-TissueMicroArrayExtractor::TissueMicroArrayExtractor(int level, float areaThreshold) {
+TissueMicroArrayExtractor::TissueMicroArrayExtractor(int level, float areaThreshold, int tissueThreshold, int dilationSize, int erosionSize) {
     createInputPort(0, "WSI");
     createOutputPort(0, "TMA");
     //createOutputPort(1, "Mesh");
     //createOutputPort(2, "BB");
     setLevel(level);
     setAreaThreshold(areaThreshold);
+    m_tissueThreshold = tissueThreshold;
+    m_dilationSize = dilationSize;
+    m_erosionSize = erosionSize;
 }
 
 void TissueMicroArrayExtractor::execute() {
     m_input = getInputData<ImagePyramid>();
     if(!m_streamIsStarted) {
         m_streamIsStarted = true;
-        m_tissue = TissueSegmentation::create()->connect(m_input)->runAndGetOutputData<Image>();
+        m_tissue = TissueSegmentation::create(m_tissueThreshold, m_dilationSize, m_erosionSize)->connect(m_input)->runAndGetOutputData<Image>();
         m_regions = RegionProperties::create()->connect(m_tissue)->runAndGetOutputData<RegionList>();
         m_thread = std::make_unique<std::thread>(std::bind(&TissueMicroArrayExtractor::generateStream, this));
     }
@@ -143,6 +146,14 @@ void TissueMicroArrayExtractor::setAreaThreshold(float threshold) {
 
 float TissueMicroArrayExtractor::getAreaThreshold() const {
     return m_areaThreshold;
+}
+
+void TissueMicroArrayExtractor::setTissueThreshold(int threshold) {
+    m_tissueThreshold = threshold;
+}
+
+int TissueMicroArrayExtractor::getTissueThreshold() const {
+    return m_tissueThreshold;
 }
 
 }
