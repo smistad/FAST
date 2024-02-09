@@ -143,8 +143,7 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
     std::string etsFilename = "";
     for(auto folder : getDirectoryList(directoryName, false, true)) {
         if(fileExists(join(directoryName, folder, "frame_t.ets"))) {
-            if(!etsFilename.empty()) {
-                // If multiple files: use the one which have correct compression.. (normal lossy JPEG)
+            if(!etsFilename.empty()) { // Multiple files
                 auto stream = new std::ifstream(join(directoryName, folder, "frame_t.ets"), std::ifstream::binary | std::ifstream::in);
                 if(!stream->is_open())
                     continue;
@@ -177,8 +176,11 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
                 READ(ets_header.dimy)
                 READ(ets_header.dimz)
 
-                if(ets_header.compression == 2 || ets_header.compression == 0)
-                    etsFilename = join(directoryName, folder, "frame_t.ets");
+                if(ets_header.compression == 2 || ets_header.compression == 0) { // Correct compression?
+                    auto newFilename = join(directoryName, folder, "frame_t.ets");
+                    if(fileSize(etsFilename) < fileSize(newFilename)) // If multiple files, select biggest one..
+                        etsFilename = newFilename;
+                }
                 stream->close();
                 delete stream;
             } else {
@@ -187,7 +189,7 @@ void WholeSlideImageImporter::readVSI(std::string filename) {
         }
     }
     if(etsFilename.empty())
-        throw Exception("Could not find frame_t.ets file under " + directoryName + " while importing " + filename);
+        throw Exception("Could not find frame_t.ets file with valid compression under " + directoryName + " while importing " + filename);
 
     std::ifstream* stream = new std::ifstream(etsFilename.c_str(), std::ifstream::binary | std::ifstream::in);
     if(!stream->is_open())
