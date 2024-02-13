@@ -29,7 +29,7 @@ __kernel void flip3D(
 		output[(targetPos.x + targetPos.y*size.x + targetPos.z*size.x*size.y)*channels+2] = value.z;
         if(channels > 3)
 		output[(targetPos.x + targetPos.y*size.x + targetPos.z*size.x*size.y)*channels+3] = value.w;
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         uint4 value = read_imageui(input, sampler, posInput);
         output[(targetPos.x + targetPos.y*size.x + targetPos.z*size.x*size.y)*channels] = value.x;
         if(channels > 1)

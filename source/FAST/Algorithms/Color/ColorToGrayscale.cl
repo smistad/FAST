@@ -6,7 +6,7 @@ __kernel void convert(
     ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
     int dataType = get_image_channel_data_type(input);
-    if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         uint4 value = read_imageui(input, sampler, pos);
         uint average = round(((float)(value.x + value.y + value.z))/3.0f);
         write_imageui(output, pos, average);

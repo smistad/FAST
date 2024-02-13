@@ -6,7 +6,7 @@ __kernel void convert(
     ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
     int dataType = get_image_channel_data_type(input);
-    if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         uint value = read_imageui(input, sampler, pos).x;
         write_imageui(output, pos, (uint4)(value, value, value, 255));
     } else if(dataType == CLK_FLOAT) {

@@ -830,6 +830,12 @@ void Image::calculateMaxAndMinIntensity() {
             case TYPE_UINT16:
                 getMaxAndMinFromData<ushort>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
                 break;
+            case TYPE_INT32:
+                getMaxAndMinFromData<int>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
+                break;
+            case TYPE_UINT32:
+                getMaxAndMinFromData<uint>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
+                break;
             }
         } else {
             // TODO the logic here can be improved. For instance choose the best device
@@ -907,6 +913,12 @@ float Image::calculateSumIntensity() {
                     break;
                 case TYPE_UINT16:
                     mSumIntensity = getSumFromData<ushort>(data,nrOfElements);
+                    break;
+                case TYPE_INT32:
+                    mSumIntensity = getSumFromData<int>(data,nrOfElements);
+                    break;
+                case TYPE_UINT32:
+                    mSumIntensity = getSumFromData<uint>(data,nrOfElements);
                     break;
             }
         } else {
@@ -987,6 +999,12 @@ float Image::calculateStandardDeviationIntensity() {
                     break;
                 case TYPE_UINT16:
                     mStdDevIntensity = getStandardDeviationFromData<ushort>(data,nrOfElements);
+                    break;
+                case TYPE_INT32:
+                    mStdDevIntensity = getStandardDeviationFromData<int>(data,nrOfElements);
+                    break;
+                case TYPE_UINT32:
+                    mStdDevIntensity = getStandardDeviationFromData<uint>(data,nrOfElements);
                     break;
             }
         } else {
@@ -1433,10 +1451,26 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
                                 {4, {GL_RGBA16I, GL_RGBA_INTEGER}}
                         }
                 },
+                {TYPE_UINT32,
+                 {
+                    {1, {GL_R32UI, GL_RED_INTEGER}},
+                    {2, {GL_RG32UI, GL_RG_INTEGER}},
+                    {3, {GL_RGB32UI, GL_RGB_INTEGER}},
+                    {4, {GL_RGBA32UI, GL_RGBA_INTEGER}}
+                 }
+                 },
+                 {TYPE_INT32,
+                  {
+                     {1, {GL_R32I, GL_RED_INTEGER}},
+                     {2, {GL_RG32I, GL_RG_INTEGER}},
+                     {3, {GL_RGB32I, GL_RGB_INTEGER}},
+                     {4, {GL_RGBA32I, GL_RGBA_INTEGER}}
+                  }
+                  },
                 {TYPE_FLOAT,
                         {
                                 {1, {GL_R32F, GL_RED}},
-                                {2, {GL_RG32F, GL_RG}},
+                                {1, {GL_RG32F, GL_RG}},
                                 {3, {GL_RGB32F, GL_RGB}},
                                 {4, {GL_RGBA32F, GL_RGBA}}
                         }
@@ -1447,6 +1481,8 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
                 {TYPE_INT8, GL_BYTE},
                 {TYPE_UINT16, GL_UNSIGNED_SHORT},
                 {TYPE_INT16, GL_SHORT},
+                {TYPE_UINT32, GL_UNSIGNED_INT},
+                {TYPE_INT32, GL_INT},
                 {TYPE_FLOAT, GL_FLOAT},
         };
         GLint internalFormat = mChannelsToFormat[mType][mChannels].first;

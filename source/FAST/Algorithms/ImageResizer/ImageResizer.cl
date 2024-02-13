@@ -5,7 +5,7 @@ void writeToImage(__write_only image2d_t input, int2 position, float4 value) {
     int dataType = get_image_channel_data_type(input);
 	if(dataType == CLK_FLOAT) {
 		write_imagef(input, position, value);
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
 		write_imageui(input, position, convert_uint4(value));
 	} else {
 		write_imagei(input, position, convert_int4(value));
@@ -16,7 +16,7 @@ float4 readFromImage(__read_only image2d_t input, sampler_t sampler, float2 posi
     int dataType = get_image_channel_data_type(input);
 	if(dataType == CLK_FLOAT) {
 		return read_imagef(input, sampler, position);
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         return convert_float4(read_imageui(input, sampler, position));
 	} else {
         return convert_float4(read_imagei(input, sampler, position));
@@ -68,7 +68,7 @@ void writeToImage3D(__write_only image3d_t input, int4 position, float4 value) {
     int dataType = get_image_channel_data_type(input);
 	if(dataType == CLK_FLOAT) {
 		write_imagef(input, position, value);
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
 		write_imageui(input, position, convert_uint4(value));
 	} else {
 		write_imagei(input, position, convert_int4(value));
@@ -80,7 +80,7 @@ float4 readFromImage3D(__read_only image3d_t input, sampler_t sampler, float4 po
     int dataType = get_image_channel_data_type(input);
 	if(dataType == CLK_FLOAT) {
 		return read_imagef(input, sampler, position);
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         return convert_float4(read_imageui(input, sampler, position));
 	} else {
         return convert_float4(read_imagei(input, sampler, position));
@@ -123,6 +123,10 @@ __kernel void resize3D(
         ((__global ushort*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
     } else if(dataType == CLK_SIGNED_INT16) {
         ((__global short*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
+    } else if(dataType == CLK_UNSIGNED_INT32) {
+        ((__global uint*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
+    } else if(dataType == CLK_SIGNED_INT32) {
+        ((__global int*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
     } else if(dataType == CLK_FLOAT) {
         ((__global float*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
     }

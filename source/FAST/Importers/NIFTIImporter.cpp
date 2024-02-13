@@ -85,11 +85,13 @@ void NIFTIImporter::execute() {
 
     // See table at https://brainder.org/2012/09/23/the-nifti-file-format/
     std::map<int16_t, DataType> imageTypeMap = {
+            {2, TYPE_UINT8},
             {4, TYPE_INT16},
-            {8, TYPE_UINT8},
+            {8, TYPE_INT32},
             {16, TYPE_FLOAT},
             {256, TYPE_INT8},
             {512, TYPE_UINT16},
+            {1024, TYPE_UINT32},
     };
 
     if(headerSize == 348) {

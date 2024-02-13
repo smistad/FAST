@@ -12,7 +12,7 @@ __kernel void applyPatch2Dto3D(
     int dataType = get_image_channel_data_type(image);
     if(dataType == CLK_FLOAT) {
 		write_imagef(image, pos, read_imagef(patch, sampler, pos.xy - (int2)(startX, startY)));
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
 		write_imageui(image, pos, read_imageui(patch, sampler, pos.xy - (int2)(startX, startY)));
 	} else {
 		write_imagei(image, pos, read_imagei(patch, sampler, pos.xy - (int2)(startX, startY)));
@@ -29,7 +29,7 @@ __kernel void applyPatch3D(
     int dataType = get_image_channel_data_type(image);
     if(dataType == CLK_FLOAT) {
 		write_imagef(image, pos, read_imagef(patch, sampler, pos - (int4)(startX, startY, startZ, 0)));
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
 		write_imageui(image, pos, read_imageui(patch, sampler, pos - (int4)(startX, startY, startZ, 0)));
 	} else {
 		write_imagei(image, pos, read_imagei(patch, sampler, pos - (int4)(startX, startY, startZ, 0)));
@@ -51,7 +51,7 @@ __kernel void applyPatch2Dto3D(
     float4 value;
     if(dataType == CLK_FLOAT) {
 		value = read_imagef(patch, sampler, pos.xy - (int2)(startX, startY));
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
 		value = convert_float4(read_imageui(patch, sampler, pos.xy - (int2)(startX, startY)));
 	} else {
 		value = convert_float4(read_imagei(patch, sampler, pos.xy - (int2)(startX, startY)));
@@ -79,7 +79,7 @@ __kernel void applyPatch3D(
     float4 value;
     if(dataType == CLK_FLOAT) {
 		value = read_imagef(patch, sampler, pos - (int4)(startX, startY, startZ, 0));
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
 		value = convert_float4(read_imageui(patch, sampler, pos - (int4)(startX, startY, startZ, 0)));
 	} else {
 		value = convert_float4(read_imagei(patch, sampler, pos - (int4)(startX, startY, startZ, 0)));

@@ -10,9 +10,9 @@ import jax
 from vbeam.beamformers import get_das_beamformer
 
 
-class VBeamStreamer(fast.PythonRandomAccessStreamer):
+class VbeamStreamer(fast.PythonRandomAccessStreamer):
     """
-    Stream data from VBeam beamformer
+    Stream data from vbeam beamformer
     """
     def __init__(self, uff_file: str, grid_width: int = 256, grid_depth: int = 512, framerate: int = 2,
                  scan: Union[vbeam.scan.Scan, None] = None, max_depth: Union[float, None] = None, is_sector_scan: Union[bool, None] = None):

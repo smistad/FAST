@@ -10,7 +10,9 @@ std::string getCTypeAsString(DataType type) {
             {TYPE_INT16, "short"},
             {TYPE_SNORM_INT16, "short"},
             {TYPE_UINT16, "ushort"},
-            {TYPE_UNORM_INT16, "ushort"}
+            {TYPE_UNORM_INT16, "ushort"},
+            {TYPE_INT32, "int"},
+            {TYPE_UINT32, "uint"},
     };
 
     return defines.at(type);
@@ -41,6 +43,12 @@ cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_object
         break;
     case TYPE_SNORM_INT16:
         channelType = CL_SNORM_INT16;
+        break;
+    case TYPE_INT32:
+        channelType = CL_SIGNED_INT32;
+        break;
+    case TYPE_UINT32:
+        channelType = CL_UNSIGNED_INT32;
         break;
     }
 
@@ -80,19 +88,23 @@ size_t getSizeOfDataType(DataType type, unsigned int nrOfComponents) {
     size_t bytes;
     switch(type) {
     case TYPE_FLOAT:
-        bytes = sizeof(float);
+        bytes = 4;
         break;
     case TYPE_UINT8:
     case TYPE_INT8:
-        bytes = sizeof(char);
+        bytes = 1;
         break;
     case TYPE_UINT16:
     case TYPE_INT16:
-        bytes = sizeof(short);
+        bytes = 2;
+        break;
+    case TYPE_UINT32:
+    case TYPE_INT32:
+        bytes = 4;
         break;
     case TYPE_SNORM_INT16:
     case TYPE_UNORM_INT16:
-        bytes = sizeof(short);
+        bytes = 2;
         break;
     }
 
@@ -115,6 +127,12 @@ float getDefaultIntensityLevel(DataType type) {
         level = 128;
         break;
     case TYPE_INT16:
+        level = 0;
+        break;
+    case TYPE_UINT32:
+        level = 128;
+        break;
+    case TYPE_INT32:
         level = 0;
         break;
     case TYPE_UNORM_INT16:
@@ -145,6 +163,12 @@ float getDefaultIntensityWindow(DataType type) {
     case TYPE_INT16:
         window = 255;
         break;
+    case TYPE_UINT32:
+        window = 255;
+        break;
+    case TYPE_INT32:
+        window = 255;
+        break;
     case TYPE_UNORM_INT16:
         window = 1;
         break;
@@ -173,6 +197,10 @@ void deleteArray(void * data, DataType type) {
         case TYPE_INT16:
         case TYPE_SNORM_INT16:
             delete[] (short*)data;
+            break;
+        case TYPE_INT32:
+        case TYPE_UINT32:
+            delete[] (int32_t*)data;
             break;
     }
 }

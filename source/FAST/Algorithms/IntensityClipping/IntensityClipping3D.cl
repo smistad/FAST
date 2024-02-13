@@ -12,7 +12,7 @@ __kernel void clip3D(
 
     if(dataType == CLK_FLOAT) {
         output[pos.x + pos.y*size.x + pos.z*size.x*size.y] = clamp(read_imagef(input, sampler, pos).x, min, max);
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         output[pos.x + pos.y*size.x + pos.z*size.x*size.y] = clamp(read_imageui(input, sampler, pos).x, (uint)min, (uint)max);
     } else {
         output[pos.x + pos.y*size.x + pos.z*size.x*size.y] = clamp(read_imagei(input, sampler, pos).x, (int)min, (int)max);

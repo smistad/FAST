@@ -358,34 +358,17 @@ void MetaImageImporter::execute() {
     std::size_t voxels = size.x()*size.y();
     if(size.size() == 3)
         voxels *= size.z();
-    if(typeName == "MET_SHORT" || typeName == "MET_INT") {
-        std::unique_ptr<short[]> data;
-        if(typeName == "MET_SHORT") {
-            data = std::move(readRawData<short>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize));
-        } else {
-            reportWarning() << "Converting original dataset of type MET_INT (32 bit) to short (16 bit) overflow may occur." << reportEnd();
-            auto tmp = readRawData<int>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
-            auto tmp2 = make_uninitialized_unique<short[]>(voxels*nrOfComponents);
-            for(int i = 0; i < voxels*nrOfComponents; ++i)
-                tmp2[i] = (short)tmp[i];
-
-            data = std::move(tmp2);
-        }
+    if(typeName == "MET_INT") {
+        auto data = readRawData<int32_t>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
+        output = Image::create(size,TYPE_INT32,nrOfComponents,getMainDevice(),std::move(data));
+    } else if(typeName == "MET_UINT") {
+        auto data = readRawData<uint32_t>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
+        output = Image::create(size,TYPE_UINT32,nrOfComponents,getMainDevice(),std::move(data));
+    } else if(typeName == "MET_SHORT") {
+        auto data = readRawData<short>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
         output = Image::create(size,TYPE_INT16,nrOfComponents,getMainDevice(),std::move(data));
-
-    } else if(typeName == "MET_USHORT" || typeName == "MET_UINT") {
-        std::unique_ptr<ushort[]> data;
-        if(typeName == "MET_USHORT") {
-            data = std::move(readRawData<unsigned short>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize));
-        } else {
-            reportWarning() << "Converting original dataset of type MET_UINT (32 bit) to unsigned short (16 bit) overflow may occur." << reportEnd();
-            auto tmp = readRawData<unsigned int>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
-            auto tmp2 = make_uninitialized_unique<ushort[]>(voxels*nrOfComponents);
-            for(int i = 0; i < voxels*nrOfComponents; ++i)
-                tmp2[i] = (unsigned short)tmp[i];
-
-            data = std::move(tmp2);
-        }
+    } else if(typeName == "MET_USHORT") {
+        auto data = readRawData<ushort>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
         output = Image::create(size,TYPE_UINT16,nrOfComponents,getMainDevice(),std::move(data));
     } else if(typeName == "MET_CHAR") {
         auto data = readRawData<char>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);

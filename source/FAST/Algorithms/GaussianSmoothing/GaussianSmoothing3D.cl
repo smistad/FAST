@@ -26,7 +26,7 @@ __kernel void gaussianSmoothing(
         const uchar maskOffset = halfSize + i;
         if(dataType == CLK_FLOAT) {
             sum += mask[maskOffset]*read_imagef(input, sampler, pos+offset).x;
-        } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+        } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
             sum += mask[maskOffset]*read_imageui(input, sampler, pos+offset).x;
         } else {
             sum += mask[maskOffset]*read_imagei(input, sampler, pos+offset).x;
@@ -36,7 +36,7 @@ __kernel void gaussianSmoothing(
     int outputDataType = get_image_channel_data_type(output);
     if(outputDataType == CLK_FLOAT) {
         write_imagef(output, pos, sum);
-    } else if(outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
+    } else if(outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16 || outputDataType == CLK_UNSIGNED_INT32) {
         write_imageui(output, pos, round(sum));
     } else {
         write_imagei(output, pos, round(sum));
@@ -63,7 +63,7 @@ __kernel void gaussianSmoothing(
         const uint maskOffset = x+halfSize+(y+halfSize)*maskSize+(z+halfSize)*maskSize*maskSize;
         if(dataType == CLK_FLOAT) {
             sum += mask[maskOffset]*read_imagef(input, sampler, pos+offset).x;
-        } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+        } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
             sum += mask[maskOffset]*read_imageui(input, sampler, pos+offset).x;
         } else {
             sum += mask[maskOffset]*read_imagei(input, sampler, pos+offset).x;

@@ -191,9 +191,9 @@ void ImageRenderer::drawTextures(std::unordered_map<uint, std::shared_ptr<Spatia
     for(auto it : mImageUsed) {
         const auto type = it.second->getDataType();
         std::string shaderName;
-        if(type == TYPE_UINT8 || type == TYPE_UINT16) {
+        if(type == TYPE_UINT8 || type == TYPE_UINT16 || type == TYPE_UINT32) {
             shaderName = "unsigned-integer";
-        } else if(type == TYPE_INT8 || type == TYPE_INT16) {
+        } else if(type == TYPE_INT8 || type == TYPE_INT16 || type == TYPE_INT32) {
             shaderName = "signed-integer";
         } else {
             shaderName = "float";

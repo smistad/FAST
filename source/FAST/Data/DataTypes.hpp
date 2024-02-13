@@ -1,5 +1,4 @@
-#ifndef DATA_TYPES_HPP
-#define DATA_TYPES_HPP
+#pragma once
 
 #define NOMINMAX // Removes windows min and max macros
 #define _USE_MATH_DEFINES
@@ -43,7 +42,9 @@ enum DataType {
     TYPE_UINT16,
     TYPE_INT16,
     TYPE_UNORM_INT16, // Unsigned normalized 16 bit integer. A 16 bit int interpreted as a float between 0 and 1.
-    TYPE_SNORM_INT16 // Signed normalized 16 bit integer. A 16 bit int interpreted as a float between -1 and 1.
+    TYPE_SNORM_INT16, // Signed normalized 16 bit integer. A 16 bit int interpreted as a float between -1 and 1.
+    TYPE_UINT32,
+    TYPE_INT32
 };
 
 enum PlaneType {PLANE_X, PLANE_Y, PLANE_Z};
@@ -59,6 +60,8 @@ FAST_EXPORT std::string getCTypeAsString(DataType type);
         fastCaseTypeMacro(TYPE_UINT8, uchar, call) \
         fastCaseTypeMacro(TYPE_INT16, short, call) \
         fastCaseTypeMacro(TYPE_UINT16, ushort, call) \
+        fastCaseTypeMacro(TYPE_INT32, int, call) \
+        fastCaseTypeMacro(TYPE_UINT32, uint, call) \
         fastCaseTypeMacro(TYPE_SNORM_INT16, short, call) \
         fastCaseTypeMacro(TYPE_UNORM_INT16, ushort, call) \
 
@@ -72,4 +75,3 @@ FAST_EXPORT float getDefaultIntensityWindow(DataType type);
 FAST_EXPORT void deleteArray(void * data, DataType type);
 
 } // end namespace
-#endif

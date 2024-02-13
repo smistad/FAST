@@ -59,6 +59,12 @@ std::shared_ptr<SlicerWindow> SlicerWindow::connectImage(std::shared_ptr<Process
                 m_sliderWidgets[i]->setRange(0, image->getDepth());
                 m_sliderWidgets[i]->setSliderPosition(image->getDepth()/2);
             }
+            for(auto renderer : m_imageRenderers) {
+                if(renderer) {
+                    renderer->setIntensityWindow(finalWindow);
+                    renderer->setIntensityLevel(finalLevel);
+                }
+            }
             return DataList(data);
         })->connect(processObject, outputPortID);
         auto slicer = ImageSlicer::create(m_slicePlanes[i]);

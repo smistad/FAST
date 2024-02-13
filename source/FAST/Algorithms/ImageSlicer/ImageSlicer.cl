@@ -22,7 +22,7 @@ __kernel void orthogonalSlicing(
     if(dataType == CLK_FLOAT) {
 		float4 value = read_imagef(input, sampler, pos);
 		write_imagef(output, (int2)(x,y), value);
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
 		uint4 value = read_imageui(input, sampler, pos);
 		write_imageui(output, (int2)(x,y), value);
 	} else {
@@ -67,7 +67,7 @@ __kernel void arbitrarySlicing(
     if(dataType == CLK_FLOAT) {
 		float4 value = read_imagef(input, sampler, imagePosition);
 		write_imagef(output, position, value);
-	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
 		uint4 value = read_imageui(input, sampler, imagePosition);
 		write_imageui(output, position, value);
 	} else {

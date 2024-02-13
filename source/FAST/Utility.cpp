@@ -105,6 +105,12 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D im
     case TYPE_INT16:
         buildOptions = "-DTYPE_INT16";
         break;
+    case TYPE_UINT32:
+        buildOptions = "-DTYPE_UINT32";
+        break;
+    case TYPE_INT32:
+        buildOptions = "-DTYPE_INT32";
+            break;
     }
     std::string sourceFilename = Config::getKernelSourcePath() + "/ImageSum.cl";
     std::string programName = sourceFilename + buildOptions;
@@ -186,6 +192,12 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D im
             break;
         case TYPE_INT16:
             buildOptions = "-DTYPE_INT16";
+            break;
+        case TYPE_UINT32:
+            buildOptions = "-DTYPE_UINT32";
+            break;
+        case TYPE_INT32:
+            buildOptions = "-DTYPE_INT32";
             break;
     }
     std::string sourceFilename = Config::getKernelSourcePath() + "/ImageSum.cl";
@@ -269,6 +281,12 @@ void getIntensityStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D
         case TYPE_INT16:
             buildOptions = "-DTYPE_INT16";
             break;
+        case TYPE_UINT32:
+            buildOptions = "-DTYPE_UINT32";
+            break;
+        case TYPE_INT32:
+            buildOptions = "-DTYPE_INT32";
+            break;
     }
     std::string sourceFilename = Config::getKernelSourcePath() + "/ImageSum.cl";
     std::string programName = sourceFilename + buildOptions;
@@ -350,6 +368,12 @@ void getIntensityStdDevFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D
         break;
     case TYPE_INT16:
         buildOptions = "-DTYPE_INT16";
+        break;
+    case TYPE_UINT32:
+        buildOptions = "-DTYPE_UINT32";
+        break;
+    case TYPE_INT32:
+        buildOptions = "-DTYPE_INT32";
         break;
     }
     std::string sourceFilename = Config::getKernelSourcePath() + "/ImageSum.cl";
@@ -434,6 +458,12 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image
     case TYPE_INT16:
         buildOptions = "-DTYPE_INT16";
         break;
+    case TYPE_UINT32:
+        buildOptions = "-DTYPE_UINT32";
+        break;
+    case TYPE_INT32:
+        buildOptions = "-DTYPE_INT32";
+        break;
     }
     std::string sourceFilename = Config::getKernelSourcePath() + "/ImageMinMax.cl";
     std::string programName = sourceFilename + buildOptions;
@@ -494,6 +524,12 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image
     case TYPE_UINT16:
         getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, nrOfComponents, min, max);
         break;
+    case TYPE_INT32:
+        getMaxAndMinFromOpenCLImageResult<int>(result, nrOfElements, nrOfComponents, min, max);
+        break;
+    case TYPE_UINT32:
+        getMaxAndMinFromOpenCLImageResult<uint>(result, nrOfElements, nrOfComponents, min, max);
+        break;
     }
     deleteArray(result, type);
 }
@@ -534,6 +570,12 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image
         break;
     case TYPE_INT16:
         buildOptions = "-DTYPE_INT16";
+        break;
+    case TYPE_UINT32:
+        buildOptions = "-DTYPE_UINT32";
+        break;
+    case TYPE_INT32:
+        buildOptions = "-DTYPE_INT32";
         break;
     }
     // Add fast_3d_image_writes flag if it is supported
@@ -601,6 +643,12 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image
     case TYPE_UINT16:
         getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, nrOfComponents, min, max);
         break;
+    case TYPE_INT32:
+        getMaxAndMinFromOpenCLImageResult<int>(result, nrOfElements, nrOfComponents, min, max);
+        break;
+    case TYPE_UINT32:
+        getMaxAndMinFromOpenCLImageResult<uint>(result, nrOfElements, nrOfComponents, min, max);
+        break;
     }
     deleteArray(result, type);
 
@@ -625,6 +673,12 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
     case TYPE_INT16:
         buildOptions = "-DTYPE_INT16";
         break;
+    case TYPE_UINT32:
+        buildOptions = "-DTYPE_UINT32";
+        break;
+    case TYPE_INT32:
+        buildOptions = "-DTYPE_INT32";
+            break;
     }
     std::string sourceFilename = Config::getKernelSourcePath() + "/ImageMinMax.cl";
     std::string programName = sourceFilename + buildOptions;
@@ -679,6 +733,12 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
         break;
     case TYPE_UINT16:
         getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, 2, min, max);
+        break;
+    case TYPE_INT32:
+        getMaxAndMinFromOpenCLImageResult<int>(result, nrOfElements, 2, min, max);
+        break;
+    case TYPE_UINT32:
+        getMaxAndMinFromOpenCLImageResult<uint>(result, nrOfElements, 2, min, max);
         break;
     }
     deleteArray(result, type);

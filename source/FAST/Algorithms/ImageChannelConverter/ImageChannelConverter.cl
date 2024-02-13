@@ -32,7 +32,7 @@ __kernel void channelConvert2D(
         }
 
         write_imagef(output, pos, (float4)(result[0], result[1], result[2], result[3]));
-    } else if(type == CLK_UNSIGNED_INT8 || type == CLK_UNSIGNED_INT16) {
+    } else if(type == CLK_UNSIGNED_INT8 || type == CLK_UNSIGNED_INT16 || type == CLK_UNSIGNED_INT32) {
         uint4 tmp = read_imageui(input, sampler, pos);
         uint* pixel = (uint*)&tmp;
         uint result[4];
@@ -91,7 +91,7 @@ __kernel void channelConvert3D(
         }
 
         write_imagef(output, pos, (float4)(result[0], result[1], result[2], result[3]));
-    } else if(type == CLK_UNSIGNED_INT8 || type == CLK_UNSIGNED_INT16) {
+    } else if(type == CLK_UNSIGNED_INT8 || type == CLK_UNSIGNED_INT16 || type == CLK_UNSIGNED_INT32) {
         uint4 tmp = read_imageui(input, sampler, pos);
         uint* pixel = (uint*)&tmp;
         uint result[4];

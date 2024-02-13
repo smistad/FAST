@@ -19,7 +19,7 @@ __kernel void sharpen(
         gaussianSum += gaussian;
         if(dataType == CLK_FLOAT) {
             sum += gaussian*read_imagef(input, sampler, pos+offset);
-        } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+        } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
             sum += gaussian*convert_float4(read_imageui(input, sampler, pos+offset));
         } else {
             sum += gaussian*convert_float4(read_imagei(input, sampler, pos+offset));
@@ -28,7 +28,7 @@ __kernel void sharpen(
     float4 pixel;
     if(dataType == CLK_FLOAT) {
         pixel = read_imagef(input, sampler, pos);
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         pixel = convert_float4(read_imageui(input, sampler, pos));
     } else {
         pixel = convert_float4(read_imagei(input, sampler, pos));
@@ -39,7 +39,7 @@ __kernel void sharpen(
     const int outputDataType = get_image_channel_data_type(output);
     if(outputDataType == CLK_FLOAT) {
         write_imagef(output, pos, result);
-    } else if(outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
+    } else if(outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16 || outputDataType == CLK_UNSIGNED_INT32) {
         write_imageui(output, pos, convert_uint4(round(result)));
     } else {
         write_imagei(output, pos, convert_int4(round(result)));

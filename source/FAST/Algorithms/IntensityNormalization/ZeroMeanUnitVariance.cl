@@ -12,7 +12,7 @@ __kernel void normalize2D(
     float4 value;
     if(dataType == CLK_FLOAT) {
         value = read_imagef(input, sampler, pos);
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         value = convert_float4(read_imageui(input, sampler, pos));
     } else {
         value = convert_float4(read_imagei(input, sampler, pos));
@@ -35,7 +35,7 @@ __kernel void normalize3D(
     float4 value;
     if(dataType == CLK_FLOAT) {
         value = read_imagef(input, sampler, pos);
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         value = convert_float4(read_imageui(input, sampler, pos));
     } else {
         value = convert_float4(read_imagei(input, sampler, pos));
@@ -58,7 +58,7 @@ __kernel void normalize3D(
     float4 value;
     if(dataType == CLK_FLOAT) {
         value = read_imagef(input, sampler, pos);
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         value = convert_float4(read_imageui(input, sampler, pos));
     } else {
         value = convert_float4(read_imagei(input, sampler, pos));

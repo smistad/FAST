@@ -5,7 +5,7 @@ float4 readImageAsFloat2D(__read_only image2d_t image, sampler_t sampler, float2
     int dataType = get_image_channel_data_type(image);
     if(dataType == CLK_FLOAT || dataType == CLK_SNORM_INT16 || dataType == CLK_UNORM_INT16) {
         return read_imagef(image, sampler, position);
-    } else if(dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT8) {
+    } else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT32) {
         return convert_float4(read_imagei(image, sampler, position));
     } else {
         return convert_float4(read_imageui(image, sampler, position));
@@ -32,7 +32,7 @@ __kernel void resample2D(
     }
     if(dataType == CLK_FLOAT || dataType == CLK_SNORM_INT16 || dataType == CLK_UNORM_INT16) {
         write_imagef(output, outputPosition, value);
-    } else if(dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT8) {
+    } else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT32) {
         write_imagei(output, outputPosition, convert_int4(round(value)));
     } else {
         write_imageui(output, outputPosition, convert_uint4(round(value)));

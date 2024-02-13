@@ -8,7 +8,7 @@ __kernel void transpose2D(
     int dataType = get_image_channel_data_type(input);
     if(dataType == CLK_FLOAT) {
         write_imagef(output, pos.yx, read_imagef(input, sampler, pos));
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         write_imageui(output, pos.yx, read_imageui(input, sampler, pos));
     } else {
         write_imagei(output, pos.yx, read_imagei(input, sampler, pos));

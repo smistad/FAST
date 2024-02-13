@@ -5,7 +5,7 @@ float getIntensity(__read_only image3d_t image, int4 pos) {
     int dataType = get_image_channel_data_type(image);
     if(dataType == CLK_FLOAT) {
         value = read_imagef(image, sampler, pos).x;
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         value = read_imageui(image, sampler, pos).x;
     } else {
         value = read_imagei(image, sampler, pos).x;

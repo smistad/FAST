@@ -255,6 +255,8 @@ static void* _intToVoidPointer(std::size_t intPointer) {
     TYPE_INT8: 'i1',
     TYPE_UINT16: 'u2',
     TYPE_INT16: 'i2',
+    TYPE_UINT32: 'u4',
+    TYPE_INT32: 'i4',
     TYPE_FLOAT: 'f4',
   }
   _str_to_data_type = {value : key for (key, value) in _data_type_to_str.items()}

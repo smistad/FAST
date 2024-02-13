@@ -19,9 +19,19 @@
 #define BUFFER_TYPE ushort
 #define READ_IMAGE read_imageui
 #define WRITE_IMAGE write_imageui
-#else
+#elif TYPE_INT16
 #define TYPE int4
 #define BUFFER_TYPE short
+#define READ_IMAGE read_imagei
+#define WRITE_IMAGE write_imagei
+#elif TYPE_UINT32
+#define TYPE uint4
+#define BUFFER_TYPE uint
+#define READ_IMAGE read_imageui
+#define WRITE_IMAGE write_imageui
+#else
+#define TYPE int4
+#define BUFFER_TYPE int
 #define READ_IMAGE read_imagei
 #define WRITE_IMAGE write_imagei
 #endif

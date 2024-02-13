@@ -23,7 +23,7 @@ __kernel void transpose3D(
             output[(pos[axes1] + pos[axes2]*size[axes1] + pos[axes3]*size[axes1]*size[axes2])*channels + 2] = value.z;
         if(channels > 3)
             output[(pos[axes1] + pos[axes2]*size[axes1] + pos[axes3]*size[axes1]*size[axes2])*channels + 3] = value.w;
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         uint4 value = read_imageui(input, sampler, posInput);
         output[(pos[axes1] + pos[axes2]*size[axes1] + pos[axes3]*size[axes1]*size[axes2])*channels] = value.x;
         if(channels > 1)

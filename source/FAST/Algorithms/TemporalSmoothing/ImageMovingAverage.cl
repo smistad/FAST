@@ -5,7 +5,7 @@ float getPixelAsFloat(__read_only image2d_t image, int2 pos) {
     int dataType = get_image_channel_data_type(image);
     if(dataType == CLK_FLOAT) {
         value = read_imagef(image, sampler, pos).x;
-    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
         value = read_imageui(image, sampler, pos).x;
     } else {
         value = read_imagei(image, sampler, pos).x;
@@ -28,7 +28,7 @@ __kernel void MAinitialize(
         write_imagef(output, pos, value);
     } else {
         // output image is of integer type, have to apply rounding
-        if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+        if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
             write_imageui(output, pos, (uint)value);
         } else {
             write_imagei(output, pos, (int)value);
@@ -57,7 +57,7 @@ __kernel void MAiteration(
         write_imagef(output, pos, result);
     } else {
         // output image is of integer type, have to apply rounding
-        if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+        if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16 || dataType == CLK_UNSIGNED_INT32) {
             write_imageui(output, pos, (uint)round(result));
         } else {
             write_imagei(output, pos, (int)round(result));

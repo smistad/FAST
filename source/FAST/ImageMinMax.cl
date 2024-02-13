@@ -27,13 +27,27 @@
 #define WRITE_IMAGE write_imageui
 #define MAX_VALUE USHRT_MAX
 #define MIN_VALUE 0
-#else
+#elif TYPE_INT16
 #define TYPE int4
 #define BUFFER_TYPE short
 #define READ_IMAGE read_imagei
 #define WRITE_IMAGE write_imagei
 #define MAX_VALUE SHRT_MAX
 #define MIN_VALUE SHRT_MIN
+#elif TYPE_UINT32
+#define TYPE uint4
+#define BUFFER_TYPE uint
+#define READ_IMAGE read_imageui
+#define WRITE_IMAGE write_imageui
+#define MAX_VALUE UINT_MAX
+#define MIN_VALUE 0
+#else
+#define TYPE int4
+#define BUFFER_TYPE int
+#define READ_IMAGE read_imagei
+#define WRITE_IMAGE write_imagei
+#define MAX_VALUE INT_MAX
+#define MIN_VALUE INT_MIN
 #endif
 
 __constant int2 offset2D[4] = {

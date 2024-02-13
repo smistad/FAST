@@ -5,7 +5,7 @@ float readImageAsFloat3D(__read_only image3d_t image, sampler_t sampler, float4 
     int dataType = get_image_channel_data_type(image);
     if(dataType == CLK_FLOAT || dataType == CLK_SNORM_INT16 || dataType == CLK_UNORM_INT16) {
         return read_imagef(image, sampler, position).x;
-    } else if(dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT8) {
+    } else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT32) {
         return (float)read_imagei(image, sampler, position).x;
     } else {
         return (float)read_imageui(image, sampler, position).x;

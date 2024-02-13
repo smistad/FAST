@@ -32,7 +32,7 @@ float4 readImageToFloat(
     float4 value;
     if(dataType == CLK_FLOAT) {
         value = read_imagef(volume, sampler, position).x; 
-    } else if(dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT8) {
+    } else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT32) {
         value = convert_float4(read_imagei(volume, sampler, position)); 
     } else {
         value = convert_float4(read_imageui(volume, sampler, position)); 

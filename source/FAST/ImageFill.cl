@@ -6,7 +6,7 @@ __kernel void fillImage2D(
 	int dataType = get_image_channel_data_type(image);
 	if(dataType == CLK_FLOAT) {
 		write_imagef(image, pos, (float4)(value, value, value, value));
-	} else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16) {
+	} else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT32) {
 		write_imagei(image, pos, (int4)(value, value, value, value));
 	} else {
 		write_imageui(image, pos, (uint4)(value, value, value, value));
@@ -21,7 +21,7 @@ __kernel void fillImage3D(
 	int dataType = get_image_channel_data_type(image);
 	if(dataType == CLK_FLOAT) {
 		write_imagef(image, pos, (float4)(value, value, value, value));
-	} else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16) {
+	} else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT32) {
 		write_imagei(image, pos, (int4)(value, value, value, value));
 	} else {
 		write_imageui(image, pos, (uint4)(value, value, value, value));
