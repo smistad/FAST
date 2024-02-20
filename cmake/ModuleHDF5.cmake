@@ -2,9 +2,9 @@ if(FAST_MODULE_HDF5)
     message("-- Enabling HDF5 module")
     if(WIN32)
         fast_download_dependency(hdf5
-                1.10.6
-                495df6df0b742341ee385908a1a43558173a73f4b837e2457e7a9985d205f2c4
-                hdf5.lib hdf5_cpp.lib
+                1.10.11
+                affbe4c3ad9f5467ac8940f53da0d5196450fd1def46ef2cc4d009cd1834d5ce
+                libhdf5.lib libhdf5_cpp.lib
         )
     elseif(APPLE)
         if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")

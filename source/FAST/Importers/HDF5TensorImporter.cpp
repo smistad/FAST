@@ -1,6 +1,5 @@
 #include "HDF5TensorImporter.hpp"
 #include <FAST/Data/Tensor.hpp>
-#define H5_BUILT_AS_DYNAMIC_LIB
 #include <H5Cpp.h>
 
 namespace fast {

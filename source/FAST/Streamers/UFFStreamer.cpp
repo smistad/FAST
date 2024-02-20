@@ -1,8 +1,6 @@
 #include "UFFStreamer.hpp"
 #include <FAST/Data/Image.hpp>
 #include <FAST/Reporter.hpp>
-
-#define H5_BUILT_AS_DYNAMIC_LIB
 #include <H5Cpp.h>
 #include <FAST/Algorithms/Ultrasound/ScanConverter.hpp>
 #include <FAST/Algorithms/Ultrasound/EnvelopeAndLogCompressor.hpp>
