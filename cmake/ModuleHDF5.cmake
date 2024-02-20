@@ -16,9 +16,9 @@ if(FAST_MODULE_HDF5)
 
 	else()
         fast_download_dependency(hdf5
-                1.10.6
-                3dfeab5a3143c6f3452629936935810297eba010f706d047ce4da837193ccd2b
-                libhdf5.dylib libhdf5_cpp.dylib
+                1.10.11
+		97b7fe90182293ad137a8f0b9e7a9c3752ba910966f931da163698de60acffad
+                libhdf5.a libhdf5_cpp.a
         )
 endif()
     else()
