@@ -14,10 +14,10 @@ class DataList {
         DataList(std::map<int, DataObject::pointer> list) {
             m_data = list;
         }
-        DataList(DataObject::pointer data) {
+        explicit DataList(DataObject::pointer data) {
             m_data[0] = data;
         }
-        DataList() {
+        explicit DataList() {
         }
         template <class DataType>
         std::shared_ptr<DataType> getInputData(int portID = 0) {
