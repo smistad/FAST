@@ -474,8 +474,6 @@ void View::initializeGL() {
     initializeOpenGLFunctions();
     glViewport(0, 0, this->width(), this->height());
     glEnable(GL_TEXTURE_2D);
-    // Enable transparency
-    glEnable(GL_BLEND);
     // Update all renderes, so that getBoundingBox works
     std::vector<Renderer::pointer> renderers = getRenderers();
     for(int i = 0; i < renderers.size(); i++) {

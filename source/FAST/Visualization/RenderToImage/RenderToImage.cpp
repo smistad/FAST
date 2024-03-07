@@ -23,8 +23,7 @@ RenderToImage::RenderToImage(Color bgcolor, int width, int height) {
 
     if(QThread::currentThread() == QApplication::instance()->thread()) { // Is main thread?
         // Main thread..
-        QGLWidget* widget = new QGLWidget;
-        QGLContext *context = new QGLContext(View::getGLFormat(), widget);
+        QGLContext *context = new QGLContext(View::getGLFormat(), fast::Window::getSecondaryGLContext()->device());
         context->create(fast::Window::getSecondaryGLContext());
         if(!context->isValid() || !context->isSharing()) {
             throw Exception("The custom Qt GL context in fast::View is invalid!");
@@ -32,14 +31,15 @@ RenderToImage::RenderToImage(Color bgcolor, int width, int height) {
         m_context = context;
     } else {
         // Computation thread
-        QGLWidget* widget = new QGLWidget;
-        QGLContext *context = new QGLContext(View::getGLFormat(), widget);
+        QGLContext *context = new QGLContext(View::getGLFormat(), fast::Window::getMainGLContext()->device());
         context->create(fast::Window::getMainGLContext());
         if(!context->isValid() || !context->isSharing()) {
             throw Exception("The custom Qt GL context in fast::View is invalid!");
         }
         m_context = context;
     }
+    m_context->makeCurrent();
+    initializeOpenGLFunctions();
 }
 
 
@@ -82,8 +82,6 @@ std::vector<Renderer::pointer> RenderToImage::getRenderers() {
 
 void RenderToImage::execute() {
     m_context->makeCurrent();
-    initializeOpenGLFunctions();
-
     bool doContinue = true;
     for(auto renderer : getRenderers()) {
         renderer->update(m_executeToken);
@@ -99,12 +97,11 @@ void RenderToImage::execute() {
         recalculateCamera();
         // Create framebuffer to render to
         glGenFramebuffers(1, &m_FBO);
-        GLuint render_buf;
-        glGenRenderbuffers(1, &render_buf);
-        glBindRenderbuffer(GL_RENDERBUFFER, render_buf);
+        glGenRenderbuffers(1, &m_renderBuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_renderBuffer);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, m_width, m_height);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
-        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf);
+        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_renderBuffer);
         if(!mNonVolumeRenderers.empty() && !mVolumeRenderers.empty()) {
             glGenTextures(1, &m_textureColor);
             glGenTextures(1, &m_textureDepth);
@@ -116,7 +113,6 @@ void RenderToImage::execute() {
             // Assign textures to FBO
             glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureColor, 0);
             glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_textureDepth, 0);
-
         }
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         initializeGL();
@@ -443,8 +439,6 @@ void RenderToImage::initializeGL() {
     initializeOpenGLFunctions();
     glViewport(0, 0, m_width, m_height);
     glEnable(GL_TEXTURE_2D);
-    // Enable transparency
-    glEnable(GL_BLEND);
     if(mIsIn2DMode) {
         glDisable(GL_DEPTH_TEST);
         recalculateCamera();
@@ -542,6 +536,11 @@ void RenderToImage::reset() {
     std::lock_guard<std::mutex> lock(m_mutex);
     mNonVolumeRenderers.clear();
     mVolumeRenderers.clear();
+    // Cleanup GL resources
+    glDeleteFramebuffers(1, &m_FBO);
+    glDeleteTextures(1, &m_textureColor);
+    glDeleteTextures(1, &m_textureDepth);
+    glDeleteRenderbuffers(1, &m_renderBuffer);
     m_initialized = false;
 }
 
@@ -561,6 +560,10 @@ void RenderToImage::set3DMode() {
 
 void RenderToImage::setAutoUpdateCamera(bool autoUpdate) {
     mAutoUpdateCamera = autoUpdate;
+}
+
+RenderToImage::~RenderToImage() {
+    reset();
 }
 
 }

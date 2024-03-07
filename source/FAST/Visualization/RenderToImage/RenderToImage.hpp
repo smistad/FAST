@@ -42,12 +42,14 @@ class FAST_EXPORT RenderToImage : public ProcessObject, protected QOpenGLFunctio
         void set2DMode();
         void set3DMode();
         void setAutoUpdateCamera(bool autoUpdate);
+        ~RenderToImage();
     private:
         void execute() override;
     private:
         uint m_FBO = 0;
         uint m_textureColor = 0;
         uint m_textureDepth = 0;
+        uint m_renderBuffer = 0;
         std::vector<Renderer::pointer> mNonVolumeRenderers;
         std::vector<Renderer::pointer> mVolumeRenderers;
 
