@@ -62,7 +62,7 @@ SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
     createColorUniformBufferObject();
 #ifdef FAST_MODULE_WSI
     if(std::dynamic_pointer_cast<ImagePyramid>(dataToRender.begin()->second)) {
-        drawPyramid(dataToRender.begin()->second, perspectiveMatrix, viewingMatrix, zNear, zFar);
+        drawPyramid(dataToRender.begin()->second, perspectiveMatrix, viewingMatrix, zNear, zFar, viewWidth, viewHeight);
     } else {
         drawNormal(dataToRender, perspectiveMatrix, viewingMatrix, zNear, zFar, mode2D);
     }
@@ -123,8 +123,57 @@ void SegmentationRenderer::drawNormal(std::unordered_map<uint, std::shared_ptr<S
     glDisable(GL_BLEND);
 }
 
+int SegmentationRenderer::loadTileTexture(std::string tileID) {
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
+    // Create texture
+    auto parts = split(tileID, "_");
+    if(parts.size() != 3)
+        throw Exception("incorrect tile format");
 
-void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar) {
+    int level = std::stoi(parts[0]);
+    int tile_x = std::stoi(parts[1]);
+    int tile_y = std::stoi(parts[2]);
+    //std::cout << "Segmentation creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
+
+    Image::pointer patch;
+    {
+        auto access = m_input->getAccess(ACCESS_READ);
+        //if(!access->isPatchInitialized(level, tile_x*m_input->getLevelTileWidth(level), tile_y*m_input->getLevelTileHeight(level)))
+        //    continue;
+        m_input->clearDirtyPatches({tileID}); // Have to clear this here to avoid clearing a dirty patch prematurely
+        patch = access->getPatchAsImage(level, tile_x, tile_y);
+    }
+    auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, true, true);
+    GLuint textureID = patchAccess->get();
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    GLint compressedImageSize = 0;
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glFinish(); // Make sure texture is done before adding it
+
+    if(mPyramidTexturesToRender.count(tileID) > 0) {
+        // Delete old texture
+        GLuint oldTextureID = mPyramidTexturesToRender[tileID];
+        glBindTexture(GL_TEXTURE_2D, oldTextureID);
+        GLint compressedImageSizeOld = 0;
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSizeOld);
+        m_memoryUsage -= compressedImageSizeOld;
+        glBindTexture(GL_TEXTURE_2D, 0);
+        {
+            std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+            mPyramidTexturesToRender[tileID] = textureID;
+            glDeleteTextures(1, &oldTextureID);
+        }
+    } else {
+        std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+        mPyramidTexturesToRender[tileID] = textureID;
+    }
+
+    return compressedImageSize;
+}
+
+void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataToRender, Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, int viewWidth, int viewHeight) {
 #ifdef FAST_MODULE_WSI
         GLuint filterMethod = GL_NEAREST;
 
@@ -133,7 +182,7 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
         glUniformBlockBinding(getShaderProgram(), colorsIndex, 0);
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_colorsUBO);
 
-        if(!m_bufferThread) {
+        if(!m_bufferThread && m_view != nullptr) {
             // Create thread to load patches
             // Create a GL context for the thread which is sharing with the context of the view
             auto context = new QGLContext(View::getGLFormat(), m_view);
@@ -171,7 +220,6 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
             m_bufferThread = std::make_unique<std::thread>([this, display, drawable, nativeContextHandle]() {
                 glXMakeCurrent(display, drawable, nativeContextHandle);
 #endif
-                OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
                 m_memoryUsage = 0;
                 while(true) {
@@ -190,52 +238,8 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
                         m_tileQueue.pop_back();
                     }
 
-                    // Create texture
-                    auto parts = split(tileID, "_");
-                    if(parts.size() != 3)
-                        throw Exception("incorrect tile format");
 
-                    int level = std::stoi(parts[0]);
-                    int tile_x = std::stoi(parts[1]);
-                    int tile_y = std::stoi(parts[2]);
-                    //std::cout << "Segmentation creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
-
-                    Image::pointer patch;
-                    {
-                        auto access = m_input->getAccess(ACCESS_READ);
-                        //if(!access->isPatchInitialized(level, tile_x*m_input->getLevelTileWidth(level), tile_y*m_input->getLevelTileHeight(level)))
-                        //    continue;
-                        m_input->clearDirtyPatches({tileID}); // Have to clear this here to avoid clearing a dirty patch prematurely
-                        patch = access->getPatchAsImage(level, tile_x, tile_y);
-                    }
-                    auto patchAccess = patch->getOpenGLTextureAccess(ACCESS_READ, device, true, true);
-                    GLuint textureID = patchAccess->get();
-
-                    glBindTexture(GL_TEXTURE_2D, textureID);
-                    GLint compressedImageSize = 0;
-                    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                    glFinish(); // Make sure texture is done before adding it
-
-                    if(mPyramidTexturesToRender.count(tileID) > 0) {
-                        // Delete old texture
-                        GLuint oldTextureID = mPyramidTexturesToRender[tileID];
-                        glBindTexture(GL_TEXTURE_2D, oldTextureID);
-                        GLint compressedImageSizeOld = 0;
-                        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSizeOld);
-                        m_memoryUsage -= compressedImageSizeOld;
-                        glBindTexture(GL_TEXTURE_2D, 0);
-                        {
-                            std::lock_guard<std::mutex> lock(m_tileQueueMutex);
-                            mPyramidTexturesToRender[tileID] = textureID;
-                            glDeleteTextures(1, &oldTextureID);
-                        }
-                    } else {
-                        std::lock_guard<std::mutex> lock(m_tileQueueMutex);
-                        mPyramidTexturesToRender[tileID] = textureID;
-                    }
-
-                    m_memoryUsage += compressedImageSize;
+                    m_memoryUsage += loadTileTexture(tileID);
                     //std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
                 }
             });
@@ -275,7 +279,7 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
             float percentageShownX = (float)width / fullWidth;
             float percentageShownY = (float)height / fullHeight;
             // With current level, do we have have enough pixels to fill the view?
-            if(percentageShownX * levelWidth > m_view->width() && percentageShownY * levelHeight > m_view->height()) {
+            if(percentageShownX * levelWidth > viewWidth && percentageShownY * levelHeight > viewHeight) {
                 // If yes, stop here
                 levelToUse = level;
                 break;
@@ -386,27 +390,31 @@ void SegmentationRenderer::drawPyramid(std::shared_ptr<SpatialDataObject> dataTo
                     continue;
 
 
-                // Is patch in cache?
-                bool textureReady = false;
                 uint textureID;
-                {
-                    std::lock_guard<std::mutex> lock(m_tileQueueMutex);
-                    // Add to queue if texture is not loaded
-                    textureReady = mPyramidTexturesToRender.count(tileString) > 0;
-                }
-                if(!textureReady || m_input->isDirtyPatch(tileString)) {
-                    // Add to queue
+                if(m_view != nullptr) {
+                    // Is patch in cache?
+                    bool textureReady = false;
                     {
                         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
-                        // Remove any duplicates first
-                        m_tileQueue.remove(tileString); // O(n) time complexity..
-                        m_tileQueue.push_back(tileString);
-                        //std::cout << "Added tile " << tileString << " to queue" << std::endl;
+                        // Add to queue if texture is not loaded
+                        textureReady = mPyramidTexturesToRender.count(tileString) > 0;
                     }
-                    m_queueEmptyCondition.notify_one();
-                    if(!textureReady) {
-                        continue;
+                    if(!textureReady || m_input->isDirtyPatch(tileString)) {
+                        // Add to queue
+                        {
+                            std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+                            // Remove any duplicates first
+                            m_tileQueue.remove(tileString); // O(n) time complexity..
+                            m_tileQueue.push_back(tileString);
+                            //std::cout << "Added tile " << tileString << " to queue" << std::endl;
+                        }
+                        m_queueEmptyCondition.notify_one();
+                        if(!textureReady) {
+                            continue;
+                        }
                     }
+                } else {
+                    loadTileTexture(tileString);
                 }
                 textureID = mPyramidTexturesToRender[tileString];
 

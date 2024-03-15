@@ -52,6 +52,7 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         std::shared_ptr<ImagePyramid> m_input;
 
         void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);
+        int loadTileTexture(std::string tileID);
 };
 
 }
