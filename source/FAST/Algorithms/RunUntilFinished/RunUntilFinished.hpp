@@ -17,6 +17,7 @@ class FAST_EXPORT RunUntilFinished : public ProcessObject {
         FAST_CONSTRUCTOR(RunUntilFinished);
     private:
         void execute() override;
+        bool m_finished = false;
 };
 
 }
