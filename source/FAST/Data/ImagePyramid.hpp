@@ -24,7 +24,6 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     public:
         FAST_CONSTRUCTOR(ImagePyramid, int, width,, int, height,, int, channels,, int, patchWidth, = 256, int, patchHeight, = 256, ImageCompression, compression, = ImageCompression::UNSPECIFIED, DataType, dataType, = TYPE_UINT8);
         FAST_CONSTRUCTOR(ImagePyramid, openslide_t*, fileHandle,, std::vector<ImagePyramidLevel>, levels,);
-        FAST_CONSTRUCTOR(ImagePyramid, std::ifstream*, stream,, std::vector<vsi_tile_header>, tileHeaders,, std::vector<ImagePyramidLevel>, levels,, ImageCompression, compressionFormat,);
         FAST_CONSTRUCTOR(ImagePyramid, TIFF*, fileHandle,, std::vector<ImagePyramidLevel>, levels,, int, channels,,bool, isOMETIFF, = false);
         int getNrOfLevels();
         int getLevelWidth(int level);
@@ -100,12 +99,9 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         Vector3f m_spacing = Vector3f::Ones();
         std::unordered_set<std::string> m_initializedPatchList; // Keep a list of initialized patches, for tiff backend
 
-        // VSI stuff
-        std::ifstream* m_vsiFileHandle;
-        std::vector<vsi_tile_header> m_vsiTiles;
         ImageCompression m_compressionFormat;
 
-        // A mutex needed to control multi-threaded reading of VSI and TIFF files
+        // A mutex needed to control multi-threaded reading of TIFF files
         std::mutex m_readMutex;
 
         std::shared_ptr<NeuralNetwork> m_compressionModel;

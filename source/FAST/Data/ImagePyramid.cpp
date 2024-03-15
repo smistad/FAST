@@ -176,18 +176,6 @@ ImagePyramid::ImagePyramid(openslide_t *fileHandle, std::vector<ImagePyramidLeve
     m_pyramidFullyInitialized = true;
 	m_counter += 1;
 }
-ImagePyramid::ImagePyramid(std::ifstream* stream, std::vector<vsi_tile_header> tileHeaders, std::vector<ImagePyramidLevel> levels, ImageCompression compressionFormat) {
-    m_vsiFileHandle = stream;
-    m_levels = std::move(levels);
-    m_vsiTiles = std::move(tileHeaders);
-    m_channels = 3;
-    mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
-    m_initialized = true;
-    m_pyramidFullyInitialized = true;
-    m_compressionFormat = compressionFormat;
-    reportWarning() << "Loaded a CellSense VSI file. FAST is unable to get spacing information and therefore assumes it is at 40X magnification. If this is not correct you should set the pixel spacing on the image object manually with ImagePyramid::setSpacing()." << reportEnd();
-    setSpacing(Vector3f(0.00025, 0.00025, 1.0));
-}
 
 ImagePyramid::ImagePyramid() {
     m_initialized = false;
@@ -255,9 +243,6 @@ void ImagePyramid::freeAll() {
             // If this is a temp file created by FAST. Delete it.
             std::remove(m_tiffPath.c_str());
         }
-    } else if(!m_vsiTiles.empty()) {
-        m_vsiFileHandle->close();
-        delete m_vsiFileHandle;
     } else {
 		for(auto& item : m_levels) {
 			if(item.memoryMapped) {
@@ -307,7 +292,7 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, m_vsiFileHandle, m_vsiTiles, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat);
+    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat);
 }
 
 void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {
@@ -506,12 +491,6 @@ int ImagePyramid::getLevelForMagnification(float magnification, float slackPerce
     * 1X -> 0.01 mm
      */
     float level0spacing = spacing.x();
-    if(!m_vsiTiles.empty()) {
-        // For VSI format we assume that level 0 is 40X for now.
-        // Because we have now spacing information for this format.
-        level0spacing = 0.00025;
-        reportWarning() << "Assuming the image pyramid is 40X since not able to extract pixel spacing information from the Olympus CellSense format atm." << reportEnd();
-    }
     float targetSpacing = 0.00025f * (40.0f / (float)magnification);
     float minDistance = std::numeric_limits<float>::max();
     int levelResult = 0;
