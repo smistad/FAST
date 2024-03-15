@@ -149,8 +149,12 @@ void ONNXRuntimeEngine::load() {
 
 		NodeType type = detectNodeType(shape);
 		if(type == NodeType::IMAGE) {
-		    m_imageOrdering = detectImageOrdering(shape);
-		    imageOrderingFoundOnInput = true;
+		    try {
+		        m_imageOrdering = detectImageOrdering(shape);
+		        imageOrderingFoundOnInput = true;
+		    } catch(Exception &e) {
+		        // Unable to find ordering, try on output instead.
+		    }
 		}
 		if(inputsDefined) {
 			if(mInputNodes.count(name) > 0) {

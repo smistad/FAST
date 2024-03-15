@@ -435,8 +435,12 @@ void TensorRTEngine::load() {
             auto shape = getTensorShape(m_engine->getBindingDimensions(i));
             NodeType type = detectNodeType(shape);
             if(type == NodeType::IMAGE && m_engine->bindingIsInput(i)) {
-                m_imageOrdering = detectImageOrdering(shape);
-                imageOrderingFoundOnInput = true;
+                try {
+                    m_imageOrdering = detectImageOrdering(shape);
+                    imageOrderingFoundOnInput = true;
+                } catch(Exception &e) {
+                    // Unable to find ordering, try on output instead.
+                }
             }
             if(m_engine->bindingIsInput(i)) {
                 reportInfo() << "Found input node " << name << " with shape " << shape.toString() << reportEnd();
