@@ -2,10 +2,10 @@
 
 [![GitHub Discussions](https://img.shields.io/github/discussions/smistad/FAST?label=GitHub%20discussions&logo=github)](https://github.com/smistad/FAST/discussions)
 [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
-[![GitHub Downloads](https://img.shields.io/github/downloads/smistad/FAST/total?label=GitHub%20downloads&logo=github)](https://fast.eriksmistad.no/download-stats.html)
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://fast.eriksmistad.no/download-stats.html)
 
-FAST is an open-source framework with the main goal of making it easier to do high-performance processing, neural network inference, and visualization of medical images utilizing multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL, and neural network inference libraries such as TensorRT, OpenVINO, TensorFlow and ONNX Runtime.
+FAST is an open-source framework developed by researchers at the Norwegian University of Science and Technology and SINTEF. 
+The main goal of FAST is to make it easier to do high-performance processing, neural network inference, and visualization of medical images utilizing multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL, and neural network inference libraries such as TensorRT, OpenVINO, TensorFlow and ONNX Runtime.
 
 ### Get started
 See installation instructions for [Windows](https://fast.eriksmistad.no/install-windows.html), [Ubuntu Linux](https://fast.eriksmistad.no/install-ubuntu-linux.html) and [macOS](https://fast.eriksmistad.no/install-mac.html).
@@ -28,6 +28,10 @@ Need help? Post your questions on the [Discussions](https://github.com/smistad/F
 * **Fast concurrent visualization** – Rendering and computation are done in separate threads to ensure smooth responsive visualizations. Several types of visualizations are supported both 3D (mesh, point, line, image slice and volume rendering) and 2D (2D image, image slice and segmentation/label rendering, whole slide image (WSI) pyramids).
 * **Interoperability** – FAST can be used with Python and can also be easily integrated into existing Qt applications.
 
+### License
+
+The source code of FAST is licensed under the BSD 2-clause license, however the FAST binaries use and are linked with many third-party libraries which has a number of different open source licences (MIT, Apache 2.0, LGPL ++), see the licences folder in the release for more details.
+
 ### Research
 
 FAST has been described in the following research articles. If you use this framework for research please cite them:
@@ -47,9 +51,6 @@ To setup and build the framework, see the instructions for your operating system
 * [Windows](https://fast.eriksmistad.no/building-on-windows.html)
 * [macOS](https://fast.eriksmistad.no/building-on-mac.html)
 
-### License
-
-FAST itself is licenced under the permissive BSD 2-clause license, however the binary releases of FAST include several third-party libraries which use a number of different open source licences (MIT, Apache 2.0, LGPL ++), see the licences folder in the release for more details.
 
 ![Surface mesh extracted from a large abdominal CT scan.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Alpha blending ray casting rendering of a thorax CT image.](https://github.com/smistad/FAST/wiki/images/volume_renderer.jpg)
 
