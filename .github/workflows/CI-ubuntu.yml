@@ -130,7 +130,7 @@ jobs:
 
     - name: Upload Debian package to release
       if: ${{ github.event_name == 'release' }}
-      uses: svenstaro/upload-release-action@v2
+      uses: svenstaro/upload-release-action@v2.7
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}/build/fast_*.deb
@@ -140,7 +140,7 @@ jobs:
 
     - name: Upload archive package to release
       if: ${{ github.event_name == 'release' }}
-      uses: svenstaro/upload-release-action@v2
+      uses: svenstaro/upload-release-action@v2.7
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}/build/fast_*.tar.xz
@@ -150,7 +150,7 @@ jobs:
 
     - name: Upload Python wheel to release
       if: ${{ github.event_name == 'release' }}
-      uses: svenstaro/upload-release-action@v2
+      uses: svenstaro/upload-release-action@v2.7
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}/build/pyFAST-*.whl
