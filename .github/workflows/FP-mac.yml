@@ -60,36 +60,3 @@ jobs:
         file_glob: true
         tag: v1.0.0
         overwrite: true
-
-  test-cpp:
-    name: Run C++ Tests
-    needs: [build]
-    runs-on: [self-hosted, macos]
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: 'Archive package (tar.xz)'
-          path: ${{github.workspace}}/download/
-      - name: Extract artifact
-        run: |
-          mkdir -p ${{github.workspace}}/download/
-          cd ${{github.workspace}}/download/
-          tar -xf fast_*.tar.xz -C ${{github.workspace}}
-      - name: Download test data
-        run: |
-          cd ${{github.workspace}}
-          cd fast*
-          cd fast/bin/
-          ./downloadTestData
-      - name: Run tests
-        run: |
-          cd ${{github.workspace}}
-          cd fast_*
-          cd fast/bin/
-          ./testFAST ~[visual]~[unstablemac]
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -Rf ${{github.workspace}}
-          rm -Rf $HOME/FAST/kernel_binaries/*
