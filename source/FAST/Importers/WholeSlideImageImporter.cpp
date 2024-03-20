@@ -18,8 +18,7 @@ namespace fast {
 void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
     openslide_t* file = openslide_open(filename.c_str());
     if(file == nullptr) {
-        const char * message = openslide_get_error(file);
-        throw Exception("Unable to open file " + filename + ". OpenSlide error message: " + message);
+        throw Exception("OpenSlide was unable to open the file: " + filename);
     }
 
     // Read metainformation
