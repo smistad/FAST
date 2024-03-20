@@ -80,7 +80,7 @@ jobs:
         if-no-files-found: error
 
     - name: Upload package to external repo release
-      uses: svenstaro/upload-release-action@v2
+      uses: svenstaro/upload-release-action@v2.7.0
       with:
         repo_name: AICAN-Research/FAST-Pathology-dependencies
         repo_token: ${{ secrets.FAST_PATHOLOGY_PUSH_TOKEN }}
