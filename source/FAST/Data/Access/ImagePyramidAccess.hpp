@@ -95,7 +95,7 @@ private:
     uint32_t writeTileToTIFF(int level, int x, int y, uchar* data, int width, int height, int channels);
     uint32_t writeTileToTIFF(int level, int x, int y, uchar* data);
     uint32_t writeTileToTIFFNeuralNetwork(int level, int x, int y, std::shared_ptr<Image> image);
-    int readTileFromTIFF(void* data, int x, int y);
+    int readTileFromTIFF(void* data, int x, int y, int level);
 };
 
 template <class T>

@@ -184,6 +184,12 @@ ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
+                if(tile->getWidth()*tile->getNrOfChannels() % 4 != 0) {
+                    // By default OpenGL assumes that the start of each row of an image is aligned 4 bytes.
+                    // Thus we have to change this here
+                    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Fix alignment issues
+                }
+
                 // WSI data from openslide is stored as ARGB, need to handle this here: BGRA and reverse
                 if(m_input->isBGRA()) {
                     glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, tile->getWidth(), tile->getHeight(), 0, GL_BGRA,

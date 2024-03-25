@@ -7,9 +7,9 @@
 #else
 #include <openslide/openslide.h>
 #endif
+#include <jpeglib.h>
 #include <tiffio.h>
 #include <FAST/Data/Image.hpp>
-#include <jpeglib.h>
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
 #include <FAST/Algorithms/NeuralNetwork/TensorToImage.hpp>
 #include <FAST/Algorithms/ImageCaster/ImageCaster.hpp>
@@ -45,13 +45,6 @@ ImagePyramidAccess::~ImagePyramidAccess() {
 	release();
 }
 
-void jpegErrorExit(j_common_ptr cinfo) {
-    char jpegLastErrorMsg[JMSG_LENGTH_MAX];
-    // Create message
-    ( *( cinfo->err->format_message ) ) ( cinfo, jpegLastErrorMsg );
-    throw std::runtime_error( jpegLastErrorMsg );
-}
-
 std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, int y, int width, int height) {
     const int levelWidth = m_image->getLevelWidth(level);
     const int levelHeight = m_image->getLevelHeight(level);
@@ -81,20 +74,20 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
         }
         if(width == tileWidth && height == tileHeight && x % tileWidth == 0 && y % tileHeight == 0) {
             // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
-            int bytesRead = readTileFromTIFF((void *) data.get(), x, y);
+            int bytesRead = readTileFromTIFF((void *) data.get(), x, y, level);
         } else if((width < tileWidth || height < tileHeight) && x % tileWidth == 0 && y % tileHeight == 0) {
             auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*bytesPerPixel);
             {
                 // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
                 // In TIFF all tiles have the same size, thus they are padded..
-                int bytesRead = readTileFromTIFF((void *) tileData.get(), x, y);
+                int bytesRead = readTileFromTIFF((void *) tileData.get(), x, y, level);
             }
             // Remove extra
             for(int dy = 0; dy < height; ++dy) {
                 for(int dx = 0; dx < width; ++dx) {
-		    for(int channel = 0; channel < channels; ++channel) {
+                    for(int channel = 0; channel < channels; ++channel) {
                         data[(dx + dy*width)*channels + channel] = tileData[(dx + dy*tileWidth)*channels + channel];
-		    }
+                    }
                 }
             }
         } else {
@@ -122,7 +115,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
                     auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*bytesPerPixel);
                     int tileX = i*tileWidth;
                     int tileY = j*tileHeight;
-                    int bytesRead = readTileFromTIFF((void *) tileData.get(), firstTileX*tileWidth+tileX, firstTileY*tileHeight+tileY);
+                    int bytesRead = readTileFromTIFF((void *) tileData.get(), firstTileX*tileWidth+tileX, firstTileY*tileHeight+tileY, level);
                     // Stitch tile into full buffer
                     for(int cy = 0; cy < tileHeight; ++cy) {
                         for(int cx = 0; cx < tileWidth; ++cx) {
@@ -502,7 +495,14 @@ bool ImagePyramidAccess::isPatchInitialized(uint level, uint x, uint y) {
     return m_initializedPatchList.count(std::to_string(level) + "-" + std::to_string(tile)) > 0;
 }
 
-int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y) {
+void jpegErrorExit(j_common_ptr cinfo) {
+    char jpegLastErrorMsg[JMSG_LENGTH_MAX];
+    // Create message
+    ( *( cinfo->err->format_message ) ) ( cinfo, jpegLastErrorMsg );
+    throw std::runtime_error( jpegLastErrorMsg );
+}
+
+int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
     // Assumes level (directory is already set)
     if(m_compressionFormat == ImageCompression::NEURAL_NETWORK) {
         auto decompressionModel = m_image->getDecompressionModel();
@@ -526,7 +526,45 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y) {
         std::memcpy(data, access->get(), image->getNrOfVoxels()*image->getNrOfChannels());
         return bytesRead;
     } else {
-        int bytesRead = TIFFReadTile(m_tiffHandle, data, x, y, 0, 0);
+        int bytesRead = 0;
+        if(m_compressionFormat == ImageCompression::JPEG) {
+            // Use libjpeg for decompression, as ome-tiff files doesn't seem to like tiff's internal jpeg
+            auto tileWidth = m_image->getLevelTileWidth(level);
+            auto tileHeight = m_image->getLevelTileHeight(level);
+            const auto channels = m_image->getNrOfChannels();
+            auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
+            uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+            bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
+
+            jpeg_decompress_struct cinfo;
+            jpeg_error_mgr jerr; //error handling
+            jpeg_source_mgr src_mem;
+            jerr.error_exit = jpegErrorExit;
+            cinfo.err = jpeg_std_error(&jerr);
+            try {
+                jpeg_create_decompress(&cinfo);
+                jpeg_mem_src(&cinfo, (uchar*)buffer.get(), bytesRead);
+                int ret = jpeg_read_header(&cinfo, false);
+                if(ret != 1) {
+                    throw Exception("Jpeg error..");
+                }
+                //cinfo.jpeg_color_space = JCS_YCbCr;
+                //cinfo.jpeg_color_space = JCS_RGB;
+                jpeg_start_decompress(&cinfo);
+                unsigned char* line = (uchar*)data;
+                while (cinfo.output_scanline < cinfo.output_height) {
+                    jpeg_read_scanlines (&cinfo, &line, 1);
+                    line += channels*cinfo.output_width;
+                }
+                jpeg_finish_decompress(&cinfo);
+                jpeg_destroy_decompress(&cinfo);
+            } catch(std::exception &e) {
+                jpeg_destroy_decompress( &cinfo );
+                throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
+            }
+        } else {
+            bytesRead = TIFFReadTile(m_tiffHandle, data, x, y, 0, 0);
+        }
         return bytesRead;
     }
 }

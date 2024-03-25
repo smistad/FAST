@@ -7,8 +7,6 @@ namespace fast {
 /**
  * @brief Import image Pyramid stored as tiled multi-page TIFF
  *
- * To load a WSI image, use the WholeSlideImageImporter instead which
- * uses the openslide library.
  * This TIFFImagePyramidImporter is best used for important single channel
  * image pyramids such as high-res segmentations.
  * For instance if exported using the TIFFImagePyramidExporter.

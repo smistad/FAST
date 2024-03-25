@@ -11,9 +11,15 @@
 #include <openslide/openslide.h>
 #endif
 #include <FAST/Data/ImagePyramid.hpp>
+#include "TIFFImagePyramidImporter.hpp"
 
 
 namespace fast {
+
+void WholeSlideImageImporter::readWithTIFF(std::string filename) {
+    auto image = TIFFImagePyramidImporter::create(filename)->runAndGetOutputData<ImagePyramid>();
+    addOutputData(0, image);
+}
 
 void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
     openslide_t* file = openslide_open(filename.c_str());
@@ -103,8 +109,13 @@ void WholeSlideImageImporter::execute() {
     if(!fileExists(m_filename))
         throw FileNotFoundException(m_filename);
 
-    std::string extension = stringToLower(m_filename.substr(m_filename.rfind('.')));
-    readWithOpenSlide(m_filename);
+    std::string lf = stringToLower(m_filename);
+    if(lf.find(".ome.tiff") != std::string::npos || lf.find(".ome.tif") != std::string::npos || lf.find(".ome.btf") != std::string::npos) {
+        // OpenSlide doesn't support reading OME-TIFF, use FAST and lbitiff instead:
+        readWithTIFF(m_filename);
+    } else {
+        readWithOpenSlide(m_filename);
+    }
 }
 
 WholeSlideImageImporter::WholeSlideImageImporter() {
