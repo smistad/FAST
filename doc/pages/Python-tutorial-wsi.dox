@@ -343,7 +343,20 @@ patchGenerator = fast.PatchGenerator.create(512, 512, level=2)\
     .connect(1, tissueSegmentation)
 
 for i, patch in enumerate(fast.DataStream(patchGenerator)):
-    fast.ImageExporter.create(f'patch_{i}.jpg')\
+    patch_name = f"patch_{i}.jpg"
+
+    # Alternatively, if you want to keep track if the tile position and size, it is possible to emulate the filenames produced 
+    # by ImagePyramidPatchExporter as follows:
+    # level = int(patch.getFrameData("patch-level"))
+    # x_spacing, y_spacing = int(patch.getFrameData("patch-spacing-x")), int(patch.getFrameData("patch-spacing-y")) 
+    # total_width, total_height = int(patch.getFrameData("original-width")), int(patch.getFrameData("original-height"))
+    # patch_width, patch_height = int(patch.getFrameData("patch-width")), int(patch.getFrameData("patch-height"))
+    # patch_overlap_x, patch_overlap_y = int(patch.getFrameData("patch-overlap-x")), int(patch.getFrameData("patch-overlap-y"))
+    # x_pos = int(patch.getFrameData("patchid-x")) * (patch_width - patch_overlap_x * 2) + patch_overlap_x 
+    # y_pos = int(patch.getFrameData("patchid-y")) * (patch_height - patch_overlap_y * 2) + patch_overlap_y
+    # patch_name = f"patch_{total_width}_{total_height}_{level}_{x_pos}_{y_pos}_{x_spacing}_{y_spacing}.jpg"
+    
+    fast.ImageExporter.create(patch_name)\
         .connect(patch)\
         .run()
 @endcode
