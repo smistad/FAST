@@ -345,7 +345,7 @@ patchGenerator = fast.PatchGenerator.create(512, 512, level=2)\
 for i, patch in enumerate(fast.DataStream(patchGenerator)):
     patch_name = f"patch_{i}.jpg"
 
-    # Alternatively, if you want to keep track if the tile position and size, it is possible to emulate the filenames produced 
+    # Alternatively, if you want to keep track of the tile position and size, it is possible to emulate the filenames produced 
     # by ImagePyramidPatchExporter as follows:
     # level = int(patch.getFrameData("patch-level"))
     # x_spacing, y_spacing = int(patch.getFrameData("patch-spacing-x")), int(patch.getFrameData("patch-spacing-y")) 
