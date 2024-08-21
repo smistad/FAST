@@ -64,13 +64,17 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
         }
         std::lock_guard<std::mutex> lock(m_readMutex);
         if(m_image->isOMETIFF()) {
-            if(level == 0) {
-                TIFFSetDirectory(m_tiffHandle, level);
-            } else {
-                TIFFSetSubDirectory(m_tiffHandle, m_levels[level].offset);
+            if(TIFFCurrentDirOffset(m_tiffHandle) != m_levels[level].offset) {
+                if(level == 0) {
+                    TIFFSetDirectory(m_tiffHandle, level);
+                    TIFFSetSubDirectory(m_tiffHandle, 0);
+                } else {
+                    TIFFSetSubDirectory(m_tiffHandle, m_levels[level].offset);
+                }
             }
         } else {
-            TIFFSetDirectory(m_tiffHandle, level);
+            if(TIFFCurrentDirectory(m_tiffHandle) != level)
+                TIFFSetDirectory(m_tiffHandle, level);
         }
         if(width == tileWidth && height == tileHeight && x % tileWidth == 0 && y % tileHeight == 0) {
             // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
@@ -119,10 +123,8 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
                     // Stitch tile into full buffer
                     for(int cy = 0; cy < tileHeight; ++cy) {
                         for(int cx = 0; cx < tileWidth; ++cx) {
-                            for(int channel = 0; channel < channels; ++channel) {
-                                for(int byte = 0; byte < bytesPerPixel; ++byte) {
-                                    fullTileBuffer[((tileX + cx + (tileY + cy)*fullTileBufferWidth)*channels + channel)*bytesPerPixel + byte] = tileData[((cx + cy*tileWidth)*channels + channel)*bytesPerPixel + byte];
-                                }
+                            for(int byte = 0; byte < bytesPerPixel; ++byte) {
+                                fullTileBuffer[(tileX + cx + (tileY + cy)*fullTileBufferWidth)*bytesPerPixel + byte] = tileData[(cx + cy*tileWidth)*bytesPerPixel + byte];
                             }
                         }
                     }
@@ -133,10 +135,8 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
             const int offsetY = y - firstTileY*tileHeight;
             for(int cy = offsetY; cy < offsetY + height; ++cy) {
                 for(int cx = offsetX; cx < offsetX + width; ++cx) {
-                    for(int channel = 0; channel < channels; ++channel) {
-                        for(int byte = 0; byte < bytesPerPixel; ++byte) {
-                            data[((cx - offsetX + (cy - offsetY) * width)*channels + channel)*bytesPerPixel + byte] = fullTileBuffer[((cx + cy * fullTileBufferWidth)*channels + channel)*bytesPerPixel + byte];
-                        }
+                    for(int byte = 0; byte < bytesPerPixel; ++byte) {
+                        data[(cx - offsetX + (cy - offsetY) * width)*bytesPerPixel + byte] = fullTileBuffer[(cx + cy * fullTileBufferWidth)*bytesPerPixel + byte];
                     }
                 }
             }
