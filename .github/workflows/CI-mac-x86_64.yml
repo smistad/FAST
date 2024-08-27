@@ -35,9 +35,9 @@ jobs:
         LDFLAGS: "-L/usr/local/opt/zlib/lib"
         CPPFLAGS: "-I/usr/local/opt/zlib/include"
         PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
-      uses: "gabrielfalcao/pyenv-action@v5"
+      uses: "gabrielfalcao/pyenv-action@v18"
       with:
-          default: 3.8.18
+          default: 3.6.9
         
     - name: Install pip dependencies
       run: |
