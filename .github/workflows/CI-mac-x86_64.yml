@@ -37,7 +37,7 @@ jobs:
         PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
       uses: "gabrielfalcao/pyenv-action@v5"
       with:
-          default: 3.7.7
+          default: 3.8.18
         
     - name: Install pip dependencies
       run: |
