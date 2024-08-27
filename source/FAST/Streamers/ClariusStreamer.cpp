@@ -115,6 +115,7 @@ void ClariusStreamer::execute() {
                 CusNewProcessedImageFn newProcessedImage,
                 CusNewRawImageFn newRawImage,
                 CusNewSpectralImageFn newSpectralImage,
+                CusNewImuDataFn newImuData,
                 CusFreezeFn freeze,
                 CusButtonFn btn,
                 CusProgressFn progress,
@@ -129,7 +130,8 @@ void ClariusStreamer::execute() {
                 self->newImageFn(img, nfo, npos, pos);
             },
             nullptr/*pre-scanconverted image*/, 
-            nullptr/*spectral image*/, 
+            nullptr/*spectral image*/,
+            nullptr/*imu*/,
 		    nullptr/*freeze*/, 
 		    nullptr/*button*/, 
 		    nullptr/*progress*/, 
@@ -237,31 +239,31 @@ void ClariusStreamer::setConnectionPort(int port) {
 }
 
 void ClariusStreamer::toggleFreeze() {
-    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
     if(userFunc(Freeze, 0.0, nullptr) < 0)
         reportError() << "Error toggling freeze" << reportEnd();
 }
 
 void ClariusStreamer::increaseDepth() {
-    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
 	if(userFunc(DepthInc, 0.0, nullptr) < 0)
         reportError() << "Error increasing depth" << reportEnd();
 }
 
 void ClariusStreamer::decreaseDepth() {
-    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
 	if(userFunc(DepthDec, 0.0, nullptr) < 0)
         reportError() << "Error decreasing depth" << reportEnd();
 }
 
 void ClariusStreamer::setDepth(float depth) {
-    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
 	if(userFunc(SetDepth, depth, nullptr) < 0)
         reportError() << "Error setting depth to " << depth << reportEnd();
 }
 
 void ClariusStreamer::setGain(float gain) {
-    auto userFunc = (int (*)(int cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
 	if(userFunc(SetGain, gain, nullptr) < 0)
         reportError() << "Error setting gain to " << gain << reportEnd();
 }

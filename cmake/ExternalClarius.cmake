@@ -1,21 +1,16 @@
 # Download clarius cast API
 include(cmake/Externals.cmake)
 
-ExternalProject_Add(clarius_headers
-    PREFIX ${FAST_EXTERNAL_BUILD_DIR}/clarius
-    URL https://github.com/clariusdev/cast/archive/51fdeca99ed36669ade36d625a6e92a6ef9add37.zip
-    UPDATE_COMMAND ""
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius_headers/desktop/src/include ${FAST_EXTERNAL_INSTALL_DIR}/include/
-)
-
 if(WIN32)
-    set(URL "https://github.com/clariusdev/cast/releases/download/v10.3.0/cast-10.3.0-windows.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/v11.2.0/cast-11.2.0-windows.x86_64.zip")
 elseif(APPLE)
-    set(URL "https://github.com/clariusdev/cast/releases/download/v10.3.0/cast-10.3.0-macos.zip")
+    if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+        set(URL "https://github.com/clariusdev/cast/releases/download/v11.2.0/cast-11.2.0-macos.arm64.zip")
+    else()
+        set(URL "https://github.com/clariusdev/cast/releases/download/v11.2.0/cast-11.2.0-macos.x86_64.zip")
+    endif()
 else()
-    set(URL "https://github.com/clariusdev/cast/releases/download/v10.3.0/cast-10.3.0-linux.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/v11.2.0/cast-11.2.0-linux.x86_64-gcc_ubuntu_20.04.zip")
 endif()
 
 if(WIN32)
@@ -26,9 +21,8 @@ ExternalProject_Add(clarius
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/cast.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
-          ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/cast.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/
-        DEPENDS clarius_headers
-
+          ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/cast.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/ COMMAND
+          ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/include ${FAST_EXTERNAL_INSTALL_DIR}/include/
 )
 elseif(APPLE)
 if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
@@ -38,8 +32,8 @@ if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
           UPDATE_COMMAND ""
           CONFIGURE_COMMAND ""
           BUILD_COMMAND ""
-          INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/arm64/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/
-          DEPENDS clarius_headers
+          INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/arm64/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+              ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/include ${FAST_EXTERNAL_INSTALL_DIR}/include/
     )
 else()
     ExternalProject_Add(clarius
@@ -48,8 +42,8 @@ else()
             UPDATE_COMMAND ""
             CONFIGURE_COMMAND ""
             BUILD_COMMAND ""
-            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/x86/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/
-            DEPENDS clarius_headers
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+                ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/include ${FAST_EXTERNAL_INSTALL_DIR}/include/
     )
 endif()
 else()
@@ -59,8 +53,8 @@ ExternalProject_Add(clarius
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/20.04/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/
-        DEPENDS clarius_headers
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+            ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/include ${FAST_EXTERNAL_INSTALL_DIR}/include/
 )
 endif()
 list(APPEND FAST_EXTERNAL_DEPENDENCIES clarius)
