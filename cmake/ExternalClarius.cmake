@@ -1,6 +1,9 @@
 # Download clarius cast API
 include(cmake/Externals.cmake)
 
+# Download license
+file(DOWNLOAD https://raw.githubusercontent.com/clariusdev/cast/v11.2.0/LICENSE ${FAST_EXTERNAL_INSTALL_DIR}/licenses/clarius/LICENSE)
+
 if(WIN32)
     set(URL "https://github.com/clariusdev/cast/releases/download/v11.2.0/cast-11.2.0-windows.x86_64.zip")
 elseif(APPLE)

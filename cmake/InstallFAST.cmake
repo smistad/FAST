@@ -335,11 +335,3 @@ if(FAST_MODULE_OpenVINO)
 		)
 	endif()
 endif()
-
-if(FAST_MODULE_Clarius)
-	install(FILES
-		${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius_headers/LICENSE
-		DESTINATION fast/licenses/clarius/
-		COMPONENT fast
-	)
-endif()
