@@ -8,6 +8,8 @@
 #include <cctype>
 #include <algorithm>
 #include <utility>
+#include <FAST/Algorithms/Compression/JPEGXLCompression.hpp>
+#include <fstream>
 
 namespace fast {
 
@@ -15,56 +17,73 @@ void ImageImporter::execute() {
     if(m_filename.empty())
         throw Exception("No filename was supplied to the ImageImporter");
 
-    uchar* convertedPixelData;
-    // Load image from disk using Qt
-    QImage image;
-    reportInfo() << "Trying to load image..." << Reporter::end();
-    if(!image.load(m_filename.c_str())) {
-        throw FileNotFoundException(m_filename);
-    }
-    reportInfo() << "Loaded image with size " << image.width() << " "  << image.height() << Reporter::end();
+    size_t pos = m_filename.rfind(".", -5);
+    if(pos == std::string::npos)
+        throw Exception("ImageImporter filename had no extension");
 
-    QImage::Format format;
-    if(mGrayscale) {
-        format = QImage::Format_Grayscale8;
+    std::string ext = m_filename.substr(pos + 1);
+    if(stringToLower("jxl") == ext) {
+        std::ifstream file(m_filename, std::ios::in | std::ios::binary);
+        std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(file), {});
+        JPEGXLCompression jxl;
+        int width, height;
+        void* data = jxl.decompress(buffer.data(), buffer.size()*sizeof(uchar), &width, &height);
+        reportInfo() << "Decompressed JPEGXL image for size " << width << " " << height << Reporter::end();
+        std::unique_ptr<uchar[]> decompressedData((uchar*)data); // Use unique_ptr to avoid copy
+        auto image = Image::create(width, height, TYPE_UINT8, 3, std::move(decompressedData));
+        addOutputData(0, image);
     } else {
-        format = QImage::Format_RGB888;
-    }
-    QImage convertedImage = image.convertToFormat(format);
-
-    // Get pixel data
-    convertedPixelData = convertedImage.bits();
-
-    if(convertedImage.width()*convertedImage.depth()/8 != convertedImage.bytesPerLine()) {
-        const int bytesPerPixel = (convertedImage.depth()/8);
-        std::unique_ptr<uchar[]> fixedPixelData = std::make_unique<uchar[]>(image.width()*image.height()*bytesPerPixel);
-        // Misalignment
-        for(int scanline = 0; scanline < image.height(); ++scanline) {
-            std::memcpy(
-                    &fixedPixelData[scanline*image.width()*bytesPerPixel],
-                    &convertedPixelData[scanline*convertedImage.bytesPerLine()],
-                    image.width()*bytesPerPixel
-            );
+        uchar* convertedPixelData;
+        // Load image from disk using Qt
+        QImage image;
+        reportInfo() << "Trying to load image in ImageReporter" << Reporter::end();
+        if(!image.load(m_filename.c_str())) {
+            throw FileNotFoundException(m_filename);
         }
-        auto output = Image::create(
-            image.width(),
-            image.height(),
-            TYPE_UINT8,
-            mGrayscale ? 1 : 3,
-            getMainDevice(),
-            fixedPixelData.get()
-        );
-        addOutputData(0, output);
-    } else {
-        auto output = Image::create(
-            image.width(),
-            image.height(),
-            TYPE_UINT8,
-            mGrayscale ? 1 : 3,
-            getMainDevice(),
-            convertedPixelData
-        );
-        addOutputData(0, output);
+        reportInfo() << "Loaded image with size " << image.width() << " "  << image.height() << Reporter::end();
+
+        QImage::Format format;
+        if(mGrayscale) {
+            format = QImage::Format_Grayscale8;
+        } else {
+            format = QImage::Format_RGB888;
+        }
+        QImage convertedImage = image.convertToFormat(format);
+
+        // Get pixel data
+        convertedPixelData = convertedImage.bits();
+
+        if(convertedImage.width()*convertedImage.depth()/8 != convertedImage.bytesPerLine()) {
+            const int bytesPerPixel = (convertedImage.depth()/8);
+            std::unique_ptr<uchar[]> fixedPixelData = std::make_unique<uchar[]>(image.width()*image.height()*bytesPerPixel);
+            // Misalignment
+            for(int scanline = 0; scanline < image.height(); ++scanline) {
+                std::memcpy(
+                        &fixedPixelData[scanline*image.width()*bytesPerPixel],
+                        &convertedPixelData[scanline*convertedImage.bytesPerLine()],
+                        image.width()*bytesPerPixel
+                        );
+            }
+            auto output = Image::create(
+                    image.width(),
+                    image.height(),
+                    TYPE_UINT8,
+                    mGrayscale ? 1 : 3,
+                    getMainDevice(),
+                    fixedPixelData.get()
+                    );
+            addOutputData(0, output);
+        } else {
+            auto output = Image::create(
+                    image.width(),
+                    image.height(),
+                    TYPE_UINT8,
+                    mGrayscale ? 1 : 3,
+                    getMainDevice(),
+                    convertedPixelData
+                    );
+            addOutputData(0, output);
+        }
     }
 }
 

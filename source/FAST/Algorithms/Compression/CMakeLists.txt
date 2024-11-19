@@ -1,0 +1,10 @@
+if(FAST_MODULE_WholeSlideImaging)
+    fast_add_sources(
+        #JPEGCompression.cpp
+        #JPEGCompression.hpp
+        #JPEG2000Compression.cpp
+        #JPEG2000Compression.hpp
+        JPEGXLCompression.cpp
+        JPEGXLCompression.hpp
+    )
+endif()

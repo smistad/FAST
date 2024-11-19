@@ -43,6 +43,7 @@ void ImageFileExporter::execute() {
             exporter->run();
         } else if(matchExtension(ext, "jpg") ||
                   matchExtension(ext, "jpeg") ||
+                  matchExtension(ext, "jxl") ||
                   matchExtension(ext, "png") ||
                   matchExtension(ext, "bmp")) {
 #ifdef FAST_MODULE_VISUALIZATION

@@ -145,11 +145,12 @@ if(FAST_MODULE_Visualization)
     add_definitions("-DFAST_MODULE_VISUALIZATION")
 endif()
 
-## External depedencies
+## External dependencies
 include(cmake/ExternalEigen.cmake)
 add_definitions("-DEIGEN_MPL2_ONLY") # Avoid using LGPL code in eigen http://eigen.tuxfamily.org/index.php?title=Main_Page#License
 include(cmake/ExternalZlib.cmake)
 include(cmake/ExternalZip.cmake)
+include(cmake/ImageCompressionDependencies.cmake)
 
 # Optional modules
 include(cmake/ModuleVTK.cmake)
