@@ -17,19 +17,19 @@ JPEGXLCompression::JPEGXLCompression() {
 
 }
 
-void* JPEGXLCompression::decompress(uchar *compressedData, std::size_t bytes, int* widthOut, int* heightOut) {
+void* JPEGXLCompression::decompress(uchar *compressedData, std::size_t bytes, int* widthOut, int* heightOut, uchar* decompressedData) {
     auto runner = JxlResizableParallelRunnerMake(nullptr);
 
     auto decoder = JxlDecoderMake(nullptr);
     if(JXL_DEC_SUCCESS != JxlDecoderSubscribeEvents(decoder.get(),
-                                            JXL_DEC_BASIC_INFO |
-                                            JXL_DEC_COLOR_ENCODING |
-                                            JXL_DEC_FULL_IMAGE))
+                                                    JXL_DEC_BASIC_INFO |
+                                                    JXL_DEC_COLOR_ENCODING |
+                                                    JXL_DEC_FULL_IMAGE))
         throw Exception("JPEGXL: JxlDecoderSubscribeEvents failed");
 
     if(JXL_DEC_SUCCESS != JxlDecoderSetParallelRunner(decoder.get(),
-                                                       JxlResizableParallelRunner,
-                                                       runner.get()))
+                                                      JxlResizableParallelRunner,
+                                                      runner.get()))
         throw Exception( "JPEGXL: JxlDecoderSetParallelRunner failed");
 
     uint channels = 3;
@@ -39,7 +39,6 @@ void* JPEGXLCompression::decompress(uchar *compressedData, std::size_t bytes, in
     std::vector<uint8_t> ICCProfile;
     size_t width = 0;
     size_t height = 0;
-    void* decompressedData;
     JxlDecoderSetInput(decoder.get(), compressedData, bytes);
     JxlDecoderCloseInput(decoder.get());
 
@@ -62,9 +61,9 @@ void* JPEGXLCompression::decompress(uchar *compressedData, std::size_t bytes, in
         } else if(status == JXL_DEC_COLOR_ENCODING) {
             size_t ICCSize;
             if(JXL_DEC_SUCCESS != JxlDecoderGetICCProfileSize(
-                        decoder.get(),
-                        JXL_COLOR_PROFILE_TARGET_DATA,
-                        &ICCSize))
+                    decoder.get(),
+                    JXL_COLOR_PROFILE_TARGET_DATA,
+                    &ICCSize))
                 throw Exception("JPEGXL: JxlDecoderGetICCProfileSize failed");
 
             ICCProfile.resize(ICCSize);
@@ -76,10 +75,11 @@ void* JPEGXLCompression::decompress(uchar *compressedData, std::size_t bytes, in
             size_t bufferSize;
             if(JXL_DEC_SUCCESS != JxlDecoderImageOutBufferSize(decoder.get(), &format, &bufferSize))
                 throw Exception("JPEGXL: JxlDecoderImageOutBufferSize failed\n");
+            if(decompressedData == nullptr)
+                decompressedData = new uchar[width * height * channels];
             if(bufferSize != width * height * channels)
                 throw Exception("JPEGXL: Invalid out buffer size " + std::to_string(bufferSize) + " " +
-                                std::to_string(width * height * channels));
-            decompressedData = new uchar[width * height * channels];
+                std::to_string(width * height * channels));
             size_t pixelBufferSize = width * height * channels * sizeof(uchar);
             if(JXL_DEC_SUCCESS != JxlDecoderSetImageOutBuffer(decoder.get(), &format,
                                                               decompressedData,

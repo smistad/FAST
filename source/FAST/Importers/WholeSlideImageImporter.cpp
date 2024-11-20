@@ -110,9 +110,20 @@ void WholeSlideImageImporter::execute() {
         throw FileNotFoundException(m_filename);
 
     std::string lf = stringToLower(m_filename);
-    if(lf.find(".ome.tiff") != std::string::npos || lf.find(".ome.tif") != std::string::npos || lf.find(".ome.btf") != std::string::npos) {
-        // OpenSlide doesn't support reading OME-TIFF, use FAST and lbitiff instead:
-        readWithTIFF(m_filename);
+    if(
+            lf.find(".ome.tiff") != std::string::npos ||
+            lf.find(".ome.tif") != std::string::npos ||
+            lf.find(".ome.btf") != std::string::npos ||
+            lf.find(".tiff") != std::string::npos
+            ) {
+        // OpenSlide doesn't support reading OME-TIFF, use FAST and lbitiff instead.
+        // Also FAST supports more TIFF compression formats, thus use FAST and libtiff for regular TIFF files as well.
+        try {
+            readWithTIFF(m_filename);
+        } catch(Exception &e) {
+            // Failed to open with FAST and TIFF, try with OpenSlide instead
+            readWithOpenSlide(m_filename);
+        }
     } else {
         readWithOpenSlide(m_filename);
     }

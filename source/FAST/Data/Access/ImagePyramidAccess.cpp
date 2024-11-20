@@ -14,6 +14,7 @@
 #include <FAST/Algorithms/NeuralNetwork/TensorToImage.hpp>
 #include <FAST/Algorithms/ImageCaster/ImageCaster.hpp>
 #include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
+#include <FAST/Algorithms/Compression/JPEGXLCompression.hpp>
 
 namespace fast {
 
@@ -320,6 +321,8 @@ uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *dat
     if(m_image->getCompression() == ImageCompression::NEURAL_NETWORK) {
         auto image = Image::create(width, height, TYPE_UINT8, channels, data); // TODO this seems unnecessary
         return writeTileToTIFF(level, x, y, image);
+    } else if(m_image->getCompression() == ImageCompression::JPEGXL) {
+        return writeTileToTIFFJPEGXL(level, x, y, data);
     } else {
         return writeTileToTIFF(level, x, y, data);
     }
@@ -328,6 +331,9 @@ uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *dat
 uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, Image::pointer image) {
     if(m_image->getCompression() == ImageCompression::NEURAL_NETWORK) {
         return writeTileToTIFFNeuralNetwork(level, x, y, image);
+    } else if(m_image->getCompression() == ImageCompression::JPEGXL) {
+        auto access = image->getImageAccess(ACCESS_READ);
+        return writeTileToTIFFJPEGXL(level, x, y, (uchar*)access->get());
     } else {
         auto access = image->getImageAccess(ACCESS_READ);
         return writeTileToTIFF(level, x, y, (uchar*)access->get());
@@ -340,6 +346,19 @@ uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *dat
     TIFFWriteTile(m_tiffHandle, (void *) data, x, y, 0, 0);
     TIFFCheckpointDirectory(m_tiffHandle);
     uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    return tile_id;
+}
+
+uint32_t ImagePyramidAccess::writeTileToTIFFJPEGXL(int level, int x, int y, uchar *data) {
+    std::lock_guard<std::mutex> lock(m_readMutex);
+    setTIFFDirectory(level);
+    uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    JPEGXLCompression jxl;
+    std::vector<uchar> compressed;
+    jxl.compress(data, m_image->getLevelTileWidth(level), m_image->getLevelTileHeight(level), &compressed);
+    TIFFSetWriteOffset(m_tiffHandle, 0); // Set write offset to 0, so that we dont appen data
+    TIFFWriteRawTile(m_tiffHandle, tile_id, (void *) compressed.data(), compressed.size()); // This appends data..
+    TIFFCheckpointDirectory(m_tiffHandle);
     return tile_id;
 }
 
@@ -562,11 +581,27 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
                 jpeg_destroy_decompress( &cinfo );
                 throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
             }
+        } else if(m_compressionFormat == ImageCompression::JPEGXL) {
+            auto tileWidth = m_image->getLevelTileWidth(level);
+            auto tileHeight = m_image->getLevelTileHeight(level);
+            const auto channels = m_image->getNrOfChannels();
+            auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
+            uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+            bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
+
+            JPEGXLCompression jxl;
+            int width, height;
+            jxl.decompress((uchar*)buffer.get(), bytesRead, &width, &height, (uchar*)data);
         } else {
             bytesRead = TIFFReadTile(m_tiffHandle, data, x, y, 0, 0);
         }
         return bytesRead;
     }
+}
+
+void ImagePyramidAccess::setTIFFDirectory(int level) {
+    if(TIFFCurrentDirectory(m_tiffHandle) != level)
+        TIFFSetDirectory(m_tiffHandle, level);
 }
 
 
