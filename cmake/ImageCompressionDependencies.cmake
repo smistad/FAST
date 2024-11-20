@@ -6,6 +6,11 @@ if(WIN32)
         jxl.lib jxl_threads.lib
     )
 elseif(APPLE)
+    fast_download_dependency(jpegxl
+        0.11.0
+        fa5e66cf16cfb95b7ef10bf62a4df8d377fef7078ffdbd262a4eec805e4e9eac
+        jxl.dylib jxl_threads.dylib
+    )
 else()
     fast_download_dependency(jpegxl
         0.11.0
