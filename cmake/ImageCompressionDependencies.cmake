@@ -6,11 +6,19 @@ if(WIN32)
         jxl.lib jxl_threads.lib
     )
 elseif(APPLE)
-    fast_download_dependency(jpegxl
-        0.11.0
-        f743d0fb5cdb6b8d63028d14a633c5ae250dbeca8b4577ad9c55b98a024035b3
-        jxl.dylib jxl_threads.dylib
-    )
+    if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+        fast_download_dependency(jpegxl
+            0.11.0
+            dc05ced17948ed02e2c646e9480758ed439aa061d70c9d820df3e3239ea1dadd
+            jxl.dylib jxl_threads.dylib
+        )
+    else()
+        fast_download_dependency(jpegxl
+            0.11.0
+            f743d0fb5cdb6b8d63028d14a633c5ae250dbeca8b4577ad9c55b98a024035b3
+            jxl.dylib jxl_threads.dylib
+        )
+    endif()
 else()
     fast_download_dependency(jpegxl
         0.11.0
