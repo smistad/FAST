@@ -8,7 +8,7 @@ if(WIN32)
 elseif(APPLE)
     fast_download_dependency(jpegxl
         0.11.0
-        fa5e66cf16cfb95b7ef10bf62a4df8d377fef7078ffdbd262a4eec805e4e9eac
+        f743d0fb5cdb6b8d63028d14a633c5ae250dbeca8b4577ad9c55b98a024035b3
         jxl.dylib jxl_threads.dylib
     )
 else()
