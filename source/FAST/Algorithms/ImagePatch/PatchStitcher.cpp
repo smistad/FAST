@@ -7,7 +7,7 @@
 
 namespace fast {
 
-PatchStitcher::PatchStitcher(bool patchesAreCropped) {
+PatchStitcher::PatchStitcher(bool patchesAreCropped, bool forceImagePyramidOutput) {
     createInputPort<DataObject>(0); // Can be Image, Batch or Tensor
     createOutputPort<DataObject>(0); // Can be Image or Tensor
 
@@ -15,6 +15,7 @@ PatchStitcher::PatchStitcher(bool patchesAreCropped) {
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImagePatch/PatchStitcher3D.cl", "3D");
     createBooleanAttribute("patches-are-cropped", "Patches are cropped", "Indicate whether incomming patches are already cropped or not.", false);
     setPatchesAreCropped(patchesAreCropped);
+    setForceImagePyramidOutput(forceImagePyramidOutput);
 }
 
 void PatchStitcher::loadAttributes() {
@@ -122,7 +123,7 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         if(is3D) {
 			m_outputImage = Image::create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
         } else {
-            if(fullWidth < 8192 && fullHeight < 8192) {
+            if(fullWidth < 8192 && fullHeight < 8192 && !m_forceImagePyramidOutput) {
                 reportInfo() << "Patch stitcher creating image with size " << fullWidth << " " << fullHeight << reportEnd();
 				m_outputImage = Image::create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
             } else {
@@ -305,6 +306,15 @@ void PatchStitcher::setPatchesAreCropped(bool cropped) {
 
 bool PatchStitcher::getPatchesAreCropped() const {
     return m_patchesAreCropped;
+}
+
+void PatchStitcher::setForceImagePyramidOutput(bool force) {
+    m_forceImagePyramidOutput = force;
+    setModified(true);
+}
+
+bool PatchStitcher::getForceImagePyramidOutput() const {
+    return m_forceImagePyramidOutput;
 }
 
 

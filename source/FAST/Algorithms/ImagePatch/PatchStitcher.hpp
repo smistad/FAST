@@ -27,9 +27,12 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
     public:
         /**
          * @brief Create instance
+         * @param patchesAreCropped
+         * @param forceImagePyramidOutput Force output to always be an image pyramid, if source was an image pyramid,
+         *      even if output is small.
          * @return instance
          */
-        FAST_CONSTRUCTOR(PatchStitcher, bool, patchesAreCropped, = false);
+        FAST_CONSTRUCTOR(PatchStitcher, bool, patchesAreCropped, = false, bool, forceImagePyramidOutput, = false);
         void loadAttributes() override;
         /**
          * @brief Set whether incoming patches are cropped or not
@@ -41,6 +44,17 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
          * @param cropped
          */
         bool getPatchesAreCropped() const;
+        /**
+         * @brief Force output to always be an image pyramid, if source was an image pyramid,
+         *      even if output is small.
+         * @param force
+         */
+        void setForceImagePyramidOutput(bool force);
+        /**
+         * @brief Get whether output should be forced to be image pyramid
+         * @return
+         */
+        bool getForceImagePyramidOutput() const;
     protected:
         void execute() override;
 
@@ -52,6 +66,7 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
         void processImage(std::shared_ptr<Image> tensor);
     private:
         bool m_patchesAreCropped = false;
+        bool m_forceImagePyramidOutput = false;
 
 };
 
