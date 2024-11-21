@@ -74,3 +74,11 @@ TEST_CASE("Write anisotropic 2D image with the ImageExporter", "[fast][ImageExpo
     CHECK(width == image2->getWidth());
     CHECK(height*2 == image2->getHeight());
 }
+
+TEST_CASE("Export JXL image", "[fast][ImageExporter][JPEGXL]") {
+    auto importer = ImageImporter::create(Config::getTestDataPath() + "/US/US-2D.jpg");
+
+    auto exporter = ImageExporter::create("ImageExporterTest.jxl")
+            ->connect(importer);
+    exporter->run();
+}

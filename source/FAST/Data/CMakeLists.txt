@@ -42,6 +42,7 @@ if(FAST_MODULE_WholeSlideImaging)
     fast_add_sources(ImagePyramid.cpp ImagePyramid.hpp)
     fast_add_python_interfaces(ImagePyramid.hpp)
     fast_add_python_shared_pointers(ImagePyramid)
+    fast_add_test_sources(Tests/ImagePyramidTests.cpp)
 endif()
 
 

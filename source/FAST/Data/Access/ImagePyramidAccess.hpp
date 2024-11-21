@@ -25,6 +25,7 @@ enum class ImageCompression {
     RAW,
     JPEG,
     JPEG2000,
+    JPEGXL,
     LZW, // Lossless compression
     NEURAL_NETWORK, // Use neural network to do the compression and decompression. See ImagePyramid::setCompressionModels
     DEFLATE, // Zlib lossless
@@ -94,8 +95,10 @@ private:
     uint32_t writeTileToTIFF(int level, int x, int y, std::shared_ptr<Image> image);
     uint32_t writeTileToTIFF(int level, int x, int y, uchar* data, int width, int height, int channels);
     uint32_t writeTileToTIFF(int level, int x, int y, uchar* data);
+    uint32_t writeTileToTIFFJPEGXL(int level, int x, int y, uchar *data);
     uint32_t writeTileToTIFFNeuralNetwork(int level, int x, int y, std::shared_ptr<Image> image);
     int readTileFromTIFF(void* data, int x, int y, int level);
+    void setTIFFDirectory(int level);
 };
 
 template <class T>

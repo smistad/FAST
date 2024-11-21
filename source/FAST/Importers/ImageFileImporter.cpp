@@ -83,7 +83,8 @@ void ImageFileImporter::execute() {
                   matchExtension(m_filename, "png") ||
                   matchExtension(m_filename, "bmp") ||
                   matchExtension(m_filename, "tif") ||
-                  matchExtension(m_filename, "tiff")
+                  matchExtension(m_filename, "tiff") ||
+                  matchExtension(m_filename, "jxl")
                   ) {
 #ifdef FAST_MODULE_VISUALIZATION
             auto importer = ImageImporter::New();

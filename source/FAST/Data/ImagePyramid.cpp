@@ -21,6 +21,10 @@
 #include <unistd.h>
 #endif
 
+#ifndef COMPRESSION_JXL
+#define	COMPRESSION_JXL 50002
+#endif
+
 namespace fast {
 
 int ImagePyramid::m_counter = 0;
@@ -121,6 +125,9 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
             case ImageCompression::JPEG:
                 TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JPEG);
                 break;
+            case ImageCompression::JPEGXL:
+                TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JXL);
+                break;
             case ImageCompression::JPEG2000:
                 // TODO NOT IMPLEMENTED
                 throw NotImplementedException();
@@ -139,10 +146,17 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
 		m_levels.push_back(levelData);
 
         // TODO need to initialize somehow?
-		// We need to write the first tile for some reason... or we will get an error saying it is missing required
-		// TileOffsets
-		auto data = std::make_unique<uchar[]>(levelData.tileWidth*levelData.tileHeight*samplesPerPixel); // Is initialized to zeros
-        TIFFWriteTile(tiff, data.get(), 0, 0, 0, 0);
+        // We need to write the first tile for some reason... or we will get an error saying it is missing required
+        // TileOffsets
+        if(m_compressionFormat == ImageCompression::JPEGXL) {
+            auto data = std::make_unique<uchar[]>(samplesPerPixel); // Is initialized to zeros
+            auto tileID = TIFFComputeTile(tiff, 0, 0, 0, 0);
+            TIFFSetWriteOffset(tiff, 0); // Set write offset to 0, so that we dont appen data
+            TIFFWriteRawTile(tiff, tileID, data.get(), samplesPerPixel);
+        } else {
+            auto data = std::make_unique<uchar[]>(levelData.tileWidth*levelData.tileHeight*samplesPerPixel); // Is initialized to zeros
+            TIFFWriteTile(tiff, data.get(), 0, 0, 0, 0);
+        }
         /*
         // TODO Do we really need to inititalize all tiles? This takes time..
         for(int y = 0; y < levelData.tilesY; ++y) {
@@ -400,6 +414,9 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
         case COMPRESSION_JPEG:
             compression = ImageCompression::JPEG;
             break;
+        case COMPRESSION_JXL:
+            compression = ImageCompression::JPEGXL;
+            break;
         case COMPRESSION_LZW:
             compression = ImageCompression::LZW;
             break;
@@ -414,7 +431,7 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
             compression = ImageCompression::NEURAL_NETWORK;
             break;
         default:
-            reportWarning() << "Unrecognized compression in TIFF: " << compressionTag << reportEnd();
+            reportWarning() << "Unrecognized compression by FAST in TIFF: " << compressionTag << reportEnd();
     }
     m_compressionFormat = compression;
     // Get spacing from TIFF
