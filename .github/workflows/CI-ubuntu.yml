@@ -109,21 +109,21 @@ jobs:
         cmake --build build --config ${{env.BUILD_TYPE}} --target package -j 4
 
     - name: Upload Debian package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: Debian package
         path: ${{github.workspace}}/build/fast_*.deb
         if-no-files-found: error
 
     - name: Upload archive package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: Archive package (tar.xz)
         path: ${{github.workspace}}/build/fast_*.tar.xz
         if-no-files-found: error
 
     - name: Upload Python wheel
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: Python wheel
         path: ${{github.workspace}}/build/pyFAST-*.whl
