@@ -122,6 +122,7 @@ void WholeSlideImageImporter::execute() {
             readWithTIFF(m_filename);
         } catch(Exception &e) {
             // Failed to open with FAST and TIFF, try with OpenSlide instead
+            reportInfo() << "Failed to open TIFF with FAST, trying OpenSlide instead. Error message: " << e.what() << reportEnd();
             readWithOpenSlide(m_filename);
         }
     } else {
