@@ -21,6 +21,10 @@
 #include <unistd.h>
 #endif
 
+#ifndef COMPRESSION_JXL
+#define	COMPRESSION_JXL 50002
+#endif
+
 namespace fast {
 
 int ImagePyramid::m_counter = 0;
