@@ -14,7 +14,7 @@ elseif(APPLE)
 else()
     fast_download_dependency(jpegxl
         0.11.0
-        81bc657f986c274785ffbb19ecf0b207c6db20d2513569705bc31884b6fdc87f
+        a9bdb10ceddceb57892e9f6526cd8f62ad4a469e9f6941a687f8af6eb425b172
         libjxl.so libjxl_threads.so
     )
 endif()
