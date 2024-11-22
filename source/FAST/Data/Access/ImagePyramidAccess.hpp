@@ -63,6 +63,7 @@ public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
 	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat);
 	void setPatch(int level, int x, int y, std::shared_ptr<Image> patch, bool propagate = true);
+	void setBlankPatch(int level, int x, int y);
 	bool isPatchInitialized(uint level, uint x, uint y);
 	template <class T>
 	std::unique_ptr<T[]> getPatchData(int level, int x, int y, int width, int height);

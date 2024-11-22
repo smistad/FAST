@@ -148,6 +148,7 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
         // TODO need to initialize somehow?
         // We need to write the first tile for some reason... or we will get an error saying it is missing required
         // TileOffsets
+        TIFFCheckpointDirectory(m_tiffHandle); // Need to check in the tile width and length tags, before writing a tile
         if(m_compressionFormat == ImageCompression::JPEGXL) {
             auto data = std::make_unique<uchar[]>(samplesPerPixel); // Is initialized to zeros
             auto tileID = TIFFComputeTile(tiff, 0, 0, 0, 0);
@@ -166,9 +167,9 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
 		}*/
         // END
 
+        TIFFWriteDirectory(m_tiffHandle);
 		reportInfo() << "Done creating level " << currentLevel << reportEnd();
 		++currentLevel;
-		TIFFWriteDirectory(m_tiffHandle);
     }
 
     mBoundingBox = DataBoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));

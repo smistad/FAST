@@ -522,6 +522,19 @@ void jpegErrorExit(j_common_ptr cinfo) {
 }
 
 int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
+    const auto tileWidth = m_image->getLevelTileWidth(level);
+    const auto tileHeight = m_image->getLevelTileHeight(level);
+    const auto channels = m_image->getNrOfChannels();
+    TIFFSetDirectory(m_tiffHandle, level);
+    uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    if(TIFFGetStrileByteCount(m_tiffHandle, tile_id) == 1) { // Blank patch
+        if(channels == 1) {
+            std::memset(data, 0, tileWidth*tileHeight*channels);
+        } else {
+            std::memset(data, 255, tileWidth*tileHeight*channels);
+        }
+        return 0;
+    }
     // Assumes level (directory is already set)
     if(m_compressionFormat == ImageCompression::NEURAL_NETWORK) {
         auto decompressionModel = m_image->getDecompressionModel();
@@ -531,7 +544,6 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
         shape[0] = 1;
         int64_t size = shape.getTotalSize()*4;
         float* buffer = new float[shape.getTotalSize()];
-        uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
         int bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer, size);
         auto tensor = Tensor::create(buffer, shape);
         decompressionModel->connect(tensor);
@@ -548,11 +560,7 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
         int bytesRead = 0;
         if(m_compressionFormat == ImageCompression::JPEG) {
             // Use libjpeg for decompression, as ome-tiff files doesn't seem to like tiff's internal jpeg
-            auto tileWidth = m_image->getLevelTileWidth(level);
-            auto tileHeight = m_image->getLevelTileHeight(level);
-            const auto channels = m_image->getNrOfChannels();
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
-            uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
 
             jpeg_decompress_struct cinfo;
@@ -582,11 +590,7 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
                 throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
             }
         } else if(m_compressionFormat == ImageCompression::JPEGXL) {
-            auto tileWidth = m_image->getLevelTileWidth(level);
-            auto tileHeight = m_image->getLevelTileHeight(level);
-            const auto channels = m_image->getNrOfChannels();
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
-            uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
 
             JPEGXLCompression jxl;
@@ -602,6 +606,21 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
 void ImagePyramidAccess::setTIFFDirectory(int level) {
     if(TIFFCurrentDirectory(m_tiffHandle) != level)
         TIFFSetDirectory(m_tiffHandle, level);
+}
+
+void ImagePyramidAccess::setBlankPatch(int level, int x, int y) {
+    if(m_tiffHandle == nullptr)
+        throw Exception("setBlankPatch only available for TIFF backend ImagePyramids");
+
+    std::lock_guard<std::mutex> lock(m_readMutex);
+    TIFFSetDirectory(m_tiffHandle, level);
+    uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    TIFFSetWriteOffset(m_tiffHandle, 0); // Set write offset to 0, so that we dont appen data
+    // Writing zero bytes, will produce a warning, thus we write 1 byte
+    char data = 0;
+    TIFFWriteRawTile(m_tiffHandle, tile_id, &data, 1);
+    TIFFCheckpointDirectory(m_tiffHandle);
+    m_initializedPatchList.insert(std::to_string(level) + "-" + std::to_string(tile_id));
 }
 
 
