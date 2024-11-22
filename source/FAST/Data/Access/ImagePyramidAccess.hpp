@@ -62,7 +62,21 @@ class FAST_EXPORT ImagePyramidAccess : Object {
 public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
 	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat);
+	/**
+	 * @brief Write a patch to the pyramid
+	 * @param level
+	 * @param x
+	 * @param y
+	 * @param patch
+	 * @param propagate
+	 */
 	void setPatch(int level, int x, int y, std::shared_ptr<Image> patch, bool propagate = true);
+	/**
+	 * @brief Write patch/tile as empty. It will render as white/black
+	 * @param level
+	 * @param x
+	 * @param y
+	 */
 	void setBlankPatch(int level, int x, int y);
 	bool isPatchInitialized(uint level, uint x, uint y);
 	template <class T>
@@ -99,7 +113,6 @@ private:
     uint32_t writeTileToTIFFJPEGXL(int level, int x, int y, uchar *data);
     uint32_t writeTileToTIFFNeuralNetwork(int level, int x, int y, std::shared_ptr<Image> image);
     int readTileFromTIFF(void* data, int x, int y, int level);
-    void setTIFFDirectory(int level);
 };
 
 template <class T>

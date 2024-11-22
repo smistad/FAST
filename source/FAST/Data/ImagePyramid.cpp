@@ -150,10 +150,11 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
         // TileOffsets
         TIFFCheckpointDirectory(m_tiffHandle); // Need to check in the tile width and length tags, before writing a tile
         if(m_compressionFormat == ImageCompression::JPEGXL) {
-            auto data = std::make_unique<uchar[]>(samplesPerPixel); // Is initialized to zeros
-            auto tileID = TIFFComputeTile(tiff, 0, 0, 0, 0);
-            TIFFSetWriteOffset(tiff, 0); // Set write offset to 0, so that we dont appen data
-            TIFFWriteRawTile(tiff, tileID, data.get(), samplesPerPixel);
+            // TODO Not needed?
+            //auto data = std::make_unique<uchar[]>(samplesPerPixel); // Is initialized to zeros
+            //auto tileID = TIFFComputeTile(tiff, 0, 0, 0, 0);
+            //TIFFSetWriteOffset(tiff, 0); // Set write offset to 0, so that we dont appen data
+            //TIFFWriteRawTile(tiff, tileID, data.get(), samplesPerPixel);
         } else {
             auto data = std::make_unique<uchar[]>(levelData.tileWidth*levelData.tileHeight*samplesPerPixel); // Is initialized to zeros
             TIFFWriteTile(tiff, data.get(), 0, 0, 0, 0);

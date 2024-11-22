@@ -351,7 +351,7 @@ uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *dat
 
 uint32_t ImagePyramidAccess::writeTileToTIFFJPEGXL(int level, int x, int y, uchar *data) {
     std::lock_guard<std::mutex> lock(m_readMutex);
-    setTIFFDirectory(level);
+    TIFFSetDirectory(m_tiffHandle, level);
     uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
     JPEGXLCompression jxl;
     std::vector<uchar> compressed;
@@ -601,11 +601,6 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
         }
         return bytesRead;
     }
-}
-
-void ImagePyramidAccess::setTIFFDirectory(int level) {
-    if(TIFFCurrentDirectory(m_tiffHandle) != level)
-        TIFFSetDirectory(m_tiffHandle, level);
 }
 
 void ImagePyramidAccess::setBlankPatch(int level, int x, int y) {
