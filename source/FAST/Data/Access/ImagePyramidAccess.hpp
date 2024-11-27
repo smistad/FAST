@@ -78,7 +78,7 @@ public:
 	 * @param y
 	 */
 	void setBlankPatch(int level, int x, int y);
-	bool isPatchInitialized(uint level, uint x, uint y);
+	bool isPatchInitialized(int level, int x, int y);
 	template <class T>
 	std::unique_ptr<T[]> getPatchData(int level, int x, int y, int width, int height);
 	std::shared_ptr<Image> getLevelAsImage(int level);
@@ -113,6 +113,7 @@ private:
     uint32_t writeTileToTIFFJPEGXL(int level, int x, int y, uchar *data);
     uint32_t writeTileToTIFFNeuralNetwork(int level, int x, int y, std::shared_ptr<Image> image);
     int readTileFromTIFF(void* data, int x, int y, int level);
+    void propagatePatch(std::shared_ptr<Image> patch, int level, int x, int y);
 };
 
 template <class T>

@@ -60,7 +60,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
         if(!isPatchInitialized(level, x, y)) {
             // Tile has not be initialized, fill with zeros and return..
             // TODO Do not try render these patches..
-            std::memset(data.get(), 0, width*height*channels);
+            std::memset(data.get(), channels > 1 ? 255 : 0, width*height*channels);
             return data;
         }
         std::lock_guard<std::mutex> lock(m_readMutex);
@@ -117,7 +117,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
             const int fullTileBufferWidth = totalTilesX*tileWidth;
             for(int i = 0; i < totalTilesX; ++i) {
                 for(int j = 0; j < totalTilesY; ++j) {
-                    auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*bytesPerPixel);
+                    auto tileData = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*bytesPerPixel);
                     int tileX = i*tileWidth;
                     int tileY = j*tileHeight;
                     int bytesRead = readTileFromTIFF((void *) tileData.get(), firstTileX*tileWidth+tileX, firstTileY*tileHeight+tileY, level);
@@ -421,8 +421,11 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch,
     m_image->setDirtyPatch(level, patchIdX, patchIdY);
 
     // Propagate upwards
-    if(!propagate)
-        return;
+    if(propagate)
+        propagatePatch(patch, level, x, y);
+}
+
+void ImagePyramidAccess::propagatePatch(Image::pointer patch, int level, int x, int y) {
     auto previousData = std::make_unique<uchar[]>(patch->getNrOfVoxels()*patch->getNrOfChannels());
     auto patchAccess = patch->getImageAccess(ACCESS_READ);
     auto data = (uchar*)patchAccess->get();
@@ -452,12 +455,12 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch,
                 for(int dx = 0; dx < tileWidth/2; ++dx) {
                     for(int c = 0; c < channels; ++c) {
                         newData[c + channels*(dx + offsetX * tileWidth / 2 + (dy + offsetY * tileHeight / 2) * tileWidth)] =
-                            (uchar)round((float)(
-                                previousData[c + channels*(dx * 2 + dy * 2 * previousTileWidth)] +
-                                previousData[c + channels*(dx * 2 + 1 + dy * 2 * previousTileWidth)] +
-                                previousData[c + channels*(dx * 2 + 1 + (dy * 2 + 1) * previousTileWidth)] +
-                                previousData[c + channels*(dx * 2 + (dy * 2 + 1) * previousTileWidth)]
-                                ) / 4);
+                                (uchar)round((float)(
+                                        previousData[c + channels*(dx * 2 + dy * 2 * previousTileWidth)] +
+                                        previousData[c + channels*(dx * 2 + 1 + dy * 2 * previousTileWidth)] +
+                                        previousData[c + channels*(dx * 2 + 1 + (dy * 2 + 1) * previousTileWidth)] +
+                                        previousData[c + channels*(dx * 2 + (dy * 2 + 1) * previousTileWidth)]
+                                        ) / 4);
                     }
                 }
             }
@@ -491,7 +494,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch,
                 }
             }
         }
-        tile_id = writeTileToTIFF(level, x, y, newData.get(), tileWidth, tileHeight, channels);
+        auto tile_id = writeTileToTIFF(level, x, y, newData.get(), tileWidth, tileHeight, channels);
         previousData = std::move(newData);
 
         int levelWidth = m_image->getLevelWidth(level);
@@ -505,7 +508,7 @@ void ImagePyramidAccess::setPatch(int level, int x, int y, Image::pointer patch,
     }
 }
 
-bool ImagePyramidAccess::isPatchInitialized(uint level, uint x, uint y) {
+bool ImagePyramidAccess::isPatchInitialized(int level, int x, int y) {
     if(m_image->isPyramidFullyInitialized())
         return true;
     std::lock_guard<std::mutex> lock(m_readMutex);
@@ -614,6 +617,8 @@ void ImagePyramidAccess::setBlankPatch(int level, int x, int y) {
     TIFFWriteRawTile(m_tiffHandle, tile_id, &data, 1);
     TIFFCheckpointDirectory(m_tiffHandle);
     m_initializedPatchList.insert(std::to_string(level) + "-" + std::to_string(tile_id));
+
+    // TODO Propagate or not?
 }
 
 
