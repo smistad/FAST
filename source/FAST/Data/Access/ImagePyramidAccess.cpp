@@ -526,7 +526,7 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
     const auto tileHeight = m_image->getLevelTileHeight(level);
     const auto channels = m_image->getNrOfChannels();
     TIFFSetDirectory(m_tiffHandle, level);
-    uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    const uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
     if(TIFFGetStrileByteCount(m_tiffHandle, tile_id) == 1) { // Blank patch
         if(channels == 1) {
             std::memset(data, 0, tileWidth*tileHeight*channels);
@@ -558,7 +558,7 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
         return bytesRead;
     } else {
         int bytesRead = 0;
-        if(m_compressionFormat == ImageCompression::JPEG) {
+        if(m_compressionFormat == ImageCompression::JPEG && m_image->isOMETIFF()) {
             // Use libjpeg for decompression, as ome-tiff files doesn't seem to like tiff's internal jpeg
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
@@ -572,14 +572,12 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
                 jpeg_create_decompress(&cinfo);
                 jpeg_mem_src(&cinfo, (uchar*)buffer.get(), bytesRead);
                 int ret = jpeg_read_header(&cinfo, false);
-                if(ret != 1) {
-                    throw Exception("Jpeg error..");
+                if(ret != JPEG_HEADER_OK) {
+                    throw Exception("Unable to read JPEG header");
                 }
-                //cinfo.jpeg_color_space = JCS_YCbCr;
-                //cinfo.jpeg_color_space = JCS_RGB;
                 jpeg_start_decompress(&cinfo);
-                unsigned char* line = (uchar*)data;
-                while (cinfo.output_scanline < cinfo.output_height) {
+                uchar* line = (uchar*)data;
+                while(cinfo.output_scanline < cinfo.output_height) {
                     jpeg_read_scanlines (&cinfo, &line, 1);
                     line += channels*cinfo.output_width;
                 }

@@ -59,7 +59,7 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
         sprintf(str.get(), fmt, ap);
         Reporter::warning() << "TIFF: " << module << ": " << str.get() << Reporter::end();
     });
-    m_tiffHandle = TIFFOpen(m_tiffPath.c_str(), "w8");
+    m_tiffHandle = TIFFOpen(m_tiffPath.c_str(), "w8"); // 8 == Bigtiff (64 bit)
     auto tiff = m_tiffHandle;
     m_counter += 1;
 
