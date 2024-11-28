@@ -35,7 +35,7 @@ if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
           UPDATE_COMMAND ""
           CONFIGURE_COMMAND ""
           BUILD_COMMAND ""
-          INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/arm64/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
+          INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/libcast${CMAKE_SHARED_LIBRARY_SUFFIX} ${FAST_EXTERNAL_INSTALL_DIR}/lib/ COMMAND
               ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/clarius/src/clarius/include ${FAST_EXTERNAL_INSTALL_DIR}/include/
     )
 else()
