@@ -31,12 +31,6 @@ jobs:
       run: |
         df -h
 
-    - name: Fix?
-      run: |
-        cd ${{ runner.home }}/actions-runner/externals
-        mv node20 node20.bak
-        ln -s node16 node20
-
     - uses: actions/checkout@v2
 
     - name: Install dependencies
