@@ -101,6 +101,7 @@ if(FAST_MODULE_Visualization)
             # Copy an executable we know exist: cmake(.exe)
             file(COPY ${CMAKE_COMMAND}
                 DESTINATION "${PROJECT_BINARY_DIR}/bin/"
+                FOLLOW_SYMLINK_CHAIN
                 FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
             # Rename it to moc(.exe)
             file(RENAME ${PROJECT_BINARY_DIR}/bin/cmake${CMAKE_EXECUTABLE_SUFFIX} ${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX})
