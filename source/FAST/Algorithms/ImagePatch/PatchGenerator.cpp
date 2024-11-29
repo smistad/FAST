@@ -206,8 +206,8 @@ void PatchGenerator::generateStream() {
                     }
 
                     // Store some frame data useful for patch stitching
-                    patch->setFrameData("original-width", std::to_string(levelWidth));
-                    patch->setFrameData("original-height", std::to_string(levelHeight));
+                    patch->setFrameData("original-width", std::to_string(round(levelWidth/resampleFactor)));
+                    patch->setFrameData("original-height", std::to_string(round(levelHeight/resampleFactor)));
                     patch->setFrameData("patchid-x", std::to_string(patchX));
                     patch->setFrameData("patchid-y", std::to_string(patchY));
                     // Target width/height of patches

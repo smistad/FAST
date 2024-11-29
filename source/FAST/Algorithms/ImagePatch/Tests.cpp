@@ -12,6 +12,7 @@
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.hpp>
 #include <FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp>
+#include <FAST/Algorithms/RunUntilFinished/RunUntilFinished.hpp>
 
 using namespace fast;
 
@@ -222,4 +223,29 @@ TEST_CASE("Patch generator for WSI at specific magnification 1.25x", "[fast][wsi
         ++counter;
     }
     REQUIRE(counter == nrOfPatches);
+}
+
+TEST_CASE("Patch generator and stitcher at given magnification") {
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
+    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+
+    // This pyramid has:
+    // 0 -> 20X
+    // 1 -> 5X
+    // 2 -> 1.25X
+    // Thus to get 2.5X, it should extract patches of size (512x2,512x2) at level 1, and then resie them to (512,512)
+    int width = 512;
+    int height = 512;
+    float magnification = 2.5;
+    auto generator = PatchGenerator::create(width, height, 1, 0, magnification)
+            ->connect(wsi);
+
+    auto stitcher = PatchStitcher::create(false, true)->connect(generator);
+    auto finished = RunUntilFinished::create()->connect(stitcher);
+    auto image = finished->runAndGetOutputData<ImagePyramid>();
+    // New image should be roughly half the size of level 1
+    CHECK(image->getFullWidth() == fast::round(wsi->getLevelWidth(1)/2.00401));
+    CHECK(image->getFullHeight() == fast::round(wsi->getLevelHeight(1)/2.00401));
+    //auto renderer = ImagePyramidRenderer::create()->connect(image);
+    //SimpleWindow2D::create()->connect(renderer)->run();
 }
