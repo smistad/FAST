@@ -12,8 +12,7 @@ if(FAST_MODULE_WholeSlideImaging)
                 tiff.lib
         )
     elseif(APPLE)
-        set(CMAKE_IGNORE_PATH "/Library/Frameworks/Mono.framework/Headers") # Avoid wrong TIFF header being used
-        set(CMAKE_IGNORE_PREFIX_PATH "/Library/Frameworks/Mono.framework/Headers") # Avoid wrong TIFF header being used
+        set(CMAKE_FIND_FRAMEWORK LAST) # Avoid wrong TIFF header from Mono.framework being used
         # Get OpenSlide and TIFF from OS
         find_package(OpenSlide REQUIRED)
         find_package(TIFF REQUIRED)
