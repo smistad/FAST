@@ -27,6 +27,15 @@ jobs:
       image: ubuntu:18.04
 
     steps:
+    - name: Use node 16
+      run: |
+          apt update && apt -y install wget
+          touch "$HOME/.bashrc"
+          wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          nvm install 16.9.1
+          
     - name: Check free space
       run: |
         df -h
