@@ -22,9 +22,36 @@ class Image;
 class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     FAST_DATA_OBJECT(ImagePyramid)
     public:
-        FAST_CONSTRUCTOR(ImagePyramid, int, width,, int, height,, int, channels,, int, patchWidth, = 256, int, patchHeight, = 256, ImageCompression, compression, = ImageCompression::UNSPECIFIED, DataType, dataType, = TYPE_UINT8);
+    /**
+     * @brief Create a tiled image pyramid instance
+     *
+     * Create a tiled image pyramid using TIFF.
+     *
+     * @param width Full width of image pyramid
+     * @param height Full height of image pyramid
+     * @param channels Nr of channels of image pyramid (3 == color (RGB), 1 == grayscale)
+     * @param patchWidth Width of each patch
+     * @param patchHeight Height of each patch
+     * @param dataType Data type
+     * @param compression Compression type to use when storing the data in the TIFF.
+     * @param compressionQuality Quality of compression when using lossy compression like JPEG and JPEGXL.
+     *      100 = best, 0 = worst.
+     * @return instance
+     */
+    FAST_CONSTRUCTOR(ImagePyramid,
+                     int, width,,
+                     int, height,,
+                     int, channels,,
+                     int, patchWidth, = 256,
+                     int, patchHeight, = 256,
+                     DataType, dataType, = TYPE_UINT8,
+                     ImageCompression, compression, = ImageCompression::UNSPECIFIED,
+                     int, compressionQuality, = 90
+        );
+#ifndef SWIG
         FAST_CONSTRUCTOR(ImagePyramid, openslide_t*, fileHandle,, std::vector<ImagePyramidLevel>, levels,);
         FAST_CONSTRUCTOR(ImagePyramid, TIFF*, fileHandle,, std::vector<ImagePyramidLevel>, levels,, int, channels,,bool, isOMETIFF, = false);
+#endif
         int getNrOfLevels();
         int getLevelWidth(int level);
         int getLevelHeight(int level);
@@ -67,6 +94,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         DataBoundingBox getTransformedBoundingBox() const override;
         DataBoundingBox getBoundingBox() const override;
         ImageCompression getCompression() const;
+        int getCompressionQuality() const;
         void setCompressionModels(std::shared_ptr<NeuralNetwork> compressionModel, std::shared_ptr<NeuralNetwork> decompressionModel, float outputScaleFactor = 1.0f);
         void setCompressionModel(std::shared_ptr<NeuralNetwork> compressionModel);
         void setDecompressionModel(std::shared_ptr<NeuralNetwork> decompressionModel, float outputScaleFactor = 1.0f);
@@ -100,6 +128,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         std::unordered_set<std::string> m_initializedPatchList; // Keep a list of initialized patches, for tiff backend
 
         ImageCompression m_compressionFormat;
+        int m_compressionQuality = -1;
 
         // A mutex needed to control multi-threaded reading of TIFF files
         std::mutex m_readMutex;

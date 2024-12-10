@@ -25,6 +25,8 @@ class FAST_EXPORT ImageFileExporter : public FileExporter {
          *
          * @param filename Filename to export image to
          * @param compress Use lossless compression if possible (.mhd/.zraw)
+         * @param quality When lossy compression is used like JPEG or JPEGXL, this parameter controls the quality vs size.
+         *      100 = best, 0 = worst.
          * @param resampleIfNeeded If image is not isotropic and target format is standard image (jpg,gif,bmp etc),
          *      image will be resampled first to be isotropic.
          * @return instance
@@ -32,16 +34,19 @@ class FAST_EXPORT ImageFileExporter : public FileExporter {
         FAST_CONSTRUCTOR(ImageFileExporter,
                          std::string, filename,,
                          bool, compress, = false,
+                         int, quality, = 90,
                          bool, resampleIfNeeded, = true
         )
         void setCompression(bool compress);
         void setResampleIfNeeded(bool resample);
+        void setQuality(int quality);
     private:
         ImageFileExporter();
         void execute() override;
 
         bool mCompress = false;
         bool m_resample = true;
+        int m_quality = 90;
 };
 
 }

@@ -12,9 +12,10 @@ namespace fast {
 ImageFileExporter::ImageFileExporter() : ImageFileExporter("") {
 }
 
-ImageFileExporter::ImageFileExporter(std::string filename, bool compress, bool resample) : FileExporter(filename) {
+ImageFileExporter::ImageFileExporter(std::string filename, bool compress, int quality, bool resample) : FileExporter(filename) {
     createInputPort<Image>(0);
     setCompression(compress);
+    setQuality(quality);
     setResampleIfNeeded(resample);
 }
 
@@ -47,7 +48,7 @@ void ImageFileExporter::execute() {
                   matchExtension(ext, "png") ||
                   matchExtension(ext, "bmp")) {
 #ifdef FAST_MODULE_VISUALIZATION
-            auto exporter = ImageExporter::create(m_filename, m_resample)
+            auto exporter = ImageExporter::create(m_filename, m_quality, m_resample)
                     ->connect(input);
             exporter->setFilename(m_filename);
             exporter->setInputData(input);
@@ -68,6 +69,12 @@ void ImageFileExporter::setCompression(bool compress) {
 
 void ImageFileExporter::setResampleIfNeeded(bool resample) {
     m_resample = resample;
+}
+
+void ImageFileExporter::setQuality(int quality) {
+    if(quality < 0 || quality > 100)
+        throw Exception("Quality in ImageFileExporter must be between 0 and 100");
+    m_quality = quality;
 }
 
 }

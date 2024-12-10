@@ -12,7 +12,7 @@ namespace fast {
 class JPEGXLCompression {
     public:
         JPEGXLCompression();
-        void compress(void* data, int width, int height, std::vector<uint8_t>* compressedData);
+        void compress(void* data, int width, int height, std::vector<uint8_t>* compressedData, int quality = 90);
         /**
          * @brief Decompress
          * @param compressedData

@@ -29,7 +29,7 @@ namespace fast {
 
 int ImagePyramid::m_counter = 0;
 
-ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, int patchHeight, ImageCompression compression, DataType dataType) {
+ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, int patchHeight, DataType dataType, ImageCompression compression, int compressionQuality) {
     if(channels <= 0 || channels > 4)
         throw Exception("Nr of channels must be between 1 and 4");
 
@@ -79,6 +79,7 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
         samplesPerPixel = 3; // RGBA image pyramid is converted to RGB with getPatchAsImage
     }
     m_compressionFormat = compression;
+    m_compressionQuality = compressionQuality;
 
     while(true) {
 		currentWidth = width / std::pow(2, currentLevel);
@@ -124,6 +125,8 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
                 break;
             case ImageCompression::JPEG:
                 TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JPEG);
+                //TIFFSetField(tiff, TIFFTAG_JPEGTABLESMODE, JPEGTABLESMODE_QUANT);
+                //TIFFSetField(tiff, TIFFTAG_JPEGQUALITY, m_compressionQuality); // Must be set after previous line // FIXME not working, only 75 gives ok results
                 break;
             case ImageCompression::JPEGXL:
                 TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JXL);
@@ -415,6 +418,13 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
             break;
         case COMPRESSION_JPEG:
             compression = ImageCompression::JPEG;
+            {
+                int quality = -1;
+                int res = TIFFGetField(m_tiffHandle, TIFFTAG_JPEGQUALITY, &quality);
+                if(res != 1)
+                    throw Exception("Unable to get JPEG quality from TIFF");
+                m_compressionQuality = quality;
+            }
             break;
         case COMPRESSION_JXL:
             compression = ImageCompression::JPEGXL;
@@ -570,6 +580,10 @@ float ImagePyramid::getDecompressionOutputScaleFactor() const {
 
 DataType ImagePyramid::getDataType() const {
     return m_dataType;
+}
+
+int ImagePyramid::getCompressionQuality() const {
+    return m_compressionQuality;
 }
 
 }

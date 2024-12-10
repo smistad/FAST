@@ -355,7 +355,7 @@ uint32_t ImagePyramidAccess::writeTileToTIFFJPEGXL(int level, int x, int y, ucha
     uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
     JPEGXLCompression jxl;
     std::vector<uchar> compressed;
-    jxl.compress(data, m_image->getLevelTileWidth(level), m_image->getLevelTileHeight(level), &compressed);
+    jxl.compress(data, m_image->getLevelTileWidth(level), m_image->getLevelTileHeight(level), &compressed, m_image->getCompressionQuality());
     TIFFSetWriteOffset(m_tiffHandle, 0); // Set write offset to 0, so that we dont appen data
     TIFFWriteRawTile(m_tiffHandle, tile_id, (void *) compressed.data(), compressed.size()); // This appends data..
     TIFFCheckpointDirectory(m_tiffHandle);

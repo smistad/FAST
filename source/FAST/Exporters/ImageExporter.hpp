@@ -21,21 +21,26 @@ class FAST_EXPORT ImageExporter : public FileExporter {
     FAST_PROCESS_OBJECT(ImageExporter)
     public:
         /**
-         * Create instance
+         * @brief Create instance
          * @param filename
+         * @param quality When lossy compression is used like JPEG or JPEGXL, this parameter controls the quality vs size.
+         *      100 = best, 0 = worst.
          * @param resampleIfNeeded
-         * @return
+         * @return Instance
          */
         FAST_CONSTRUCTOR(ImageExporter,
                          std::string, filename,,
+                         int, quality, = 90,
                          bool, resampleIfNeeded, = true)
         void setResampleIfNeeded(bool resample);
+        void setQuality(int quality);
         void loadAttributes() override;
     private:
         ImageExporter();
         void execute() override;
 
         bool m_resample;
+        int m_quality = 90;
 };
 
 

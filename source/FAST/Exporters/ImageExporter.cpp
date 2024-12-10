@@ -1,5 +1,4 @@
 #include "FAST/Exporters/ImageExporter.hpp"
-#include <utility>
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/Data/Image.hpp"
@@ -18,10 +17,11 @@ void ImageExporter::loadAttributes() {
 ImageExporter::ImageExporter() : ImageExporter("") {
 }
 
-ImageExporter::ImageExporter(std::string filename, bool resample) : FileExporter(filename) {
+ImageExporter::ImageExporter(std::string filename, int quality, bool resample) : FileExporter(filename) {
     createInputPort<Image>(0);
     createStringAttribute("filename", "Filename", "Path to file to load", filename);
     m_resample = resample;
+    setQuality(quality);
 }
 
 void ImageExporter::execute() {
@@ -53,7 +53,7 @@ void ImageExporter::execute() {
         void * inputData = access->get();
         // Compress pixels with JPEG XL and store to binary file
         std::vector<uchar> compressedData;
-        jxl.compress(inputData, input->getWidth(), input->getHeight(), &compressedData);
+        jxl.compress(inputData, input->getWidth(), input->getHeight(), &compressedData, m_quality);
         std::ofstream file(m_filename, std::fstream::binary);
         std::copy(compressedData.begin(), compressedData.end(), std::ostreambuf_iterator<char>(file));
         file.close();
@@ -87,28 +87,28 @@ void ImageExporter::execute() {
         } else {
             // More complicated copy which supports more..
             const uint nrOfChannels = input->getNrOfChannels();
-            for (uint y = 0; y < input->getHeight(); ++y) {
-                for (uint x = 0; x < input->getWidth(); ++x) {
+            for(uint y = 0; y < input->getHeight(); ++y) {
+                for(uint x = 0; x < input->getWidth(); ++x) {
                     std::vector<uchar> channelData;
-                    for (uint channel = 0; channel < nrOfChannels; ++channel) {
+                    for(uint channel = 0; channel < nrOfChannels; ++channel) {
                         uchar data = 0;
-                        switch (input->getDataType()) {
+                        switch(input->getDataType()) {
                             case TYPE_FLOAT:
                                 data = round(((float *) inputData)[(x + y * input->getWidth()) * nrOfChannels + channel] *
                                         255.0f);
                                 break;
-                                case TYPE_UINT8:
-                                    data = ((uchar *) inputData)[(x + y * input->getWidth()) * nrOfChannels + channel];
-                                    break;
-                                    case TYPE_INT8:
-                                        data = ((char *) inputData)[(x + y * input->getWidth()) * nrOfChannels + channel] + 128;
-                                        break;
-                                        case TYPE_UINT16:
-                                            data = ((ushort *) inputData)[(x + y * input->getWidth()) * nrOfChannels + channel];
-                                            break;
-                                            case TYPE_INT16:
-                                                data = ((short *) inputData)[(x + y * input->getWidth()) * nrOfChannels + channel];
-                                                break;
+                            case TYPE_UINT8:
+                                data = ((uchar *) inputData)[(x + y * input->getWidth()) * nrOfChannels + channel];
+                                break;
+                            case TYPE_INT8:
+                                data = ((char *) inputData)[(x + y * input->getWidth()) * nrOfChannels + channel] + 128;
+                                break;
+                            case TYPE_UINT16:
+                                data = ((ushort *) inputData)[(x + y * input->getWidth()) * nrOfChannels + channel];
+                                break;
+                            case TYPE_INT16:
+                                data = ((short *) inputData)[(x + y * input->getWidth()) * nrOfChannels + channel];
+                                break;
                         }
                         channelData.push_back(data);
                     }
@@ -123,12 +123,18 @@ void ImageExporter::execute() {
             }
         }
 
-        image.save(QString(m_filename.c_str()));
+        image.save(QString(m_filename.c_str()), nullptr, m_quality);
     }
 }
 
 void ImageExporter::setResampleIfNeeded(bool resample) {
     m_resample = resample;
+}
+
+void ImageExporter::setQuality(int quality) {
+    if(quality < 0 || quality > 100)
+        throw Exception("Quality in ImageExporter must be between 0 and 100");
+    m_quality = quality;
 }
 
 }; // end namespace fast

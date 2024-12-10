@@ -99,7 +99,7 @@ void* JPEGXLCompression::decompress(uchar *compressedData, std::size_t bytes, in
     }
 }
 
-void JPEGXLCompression::compress(void *data, int width, int height, std::vector<uchar>* compressed) {
+void JPEGXLCompression::compress(void *data, int width, int height, std::vector<uchar>* compressed, int quality) {
     auto encoder = JxlEncoderMake(nullptr);
     auto runner = JxlThreadParallelRunnerMake(
             nullptr,
@@ -114,12 +114,17 @@ void JPEGXLCompression::compress(void *data, int width, int height, std::vector<
 
     JxlBasicInfo basicInfo;
     JxlEncoderInitBasicInfo(&basicInfo);
+    int channels = 3;
     basicInfo.xsize = width;
     basicInfo.ysize = height;
-    int channels = 3;
-    basicInfo.bits_per_sample = 32;
-    basicInfo.exponent_bits_per_sample = 8;
+    basicInfo.bits_per_sample = 8;
+    basicInfo.alpha_bits = 0;
+    basicInfo.num_color_channels = 3;
+    basicInfo.num_extra_channels = 0;
+    basicInfo.exponent_bits_per_sample = 0;
     basicInfo.uses_original_profile = JXL_FALSE;
+    basicInfo.have_animation = 0;
+    basicInfo.have_preview = 0;
     if(JXL_ENC_SUCCESS != JxlEncoderSetBasicInfo(encoder.get(), &basicInfo))
         throw Exception("JPEGXL: JxlEncoderSetBasicInfo failed");
 
@@ -130,11 +135,14 @@ void JPEGXLCompression::compress(void *data, int width, int height, std::vector<
         throw Exception("JPEGXL: JxlEncoderSetColorEncoding failed");
 
     auto frameSettings = JxlEncoderFrameSettingsCreate(encoder.get(), nullptr);
+    JxlEncoderSetFrameDistance(frameSettings, JxlEncoderDistanceFromQuality((float)quality));
+    JxlEncoderSetFrameLossless(frameSettings, JXL_FALSE);
 
     if(JXL_ENC_SUCCESS != JxlEncoderAddImageFrame(frameSettings, &pixelFormat,
                             static_cast<const void*>(data),
                             sizeof(uchar) * width*height*channels))
         throw Exception("JPEGXL: JxlEncoderAddImageFrame failed");
+
     JxlEncoderCloseInput(encoder.get());
 
     compressed->resize(64);
