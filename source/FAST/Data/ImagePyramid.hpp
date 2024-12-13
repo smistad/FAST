@@ -32,10 +32,10 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
      * @param channels Nr of channels of image pyramid (3 == color (RGB), 1 == grayscale)
      * @param patchWidth Width of each patch
      * @param patchHeight Height of each patch
-     * @param dataType Data type
      * @param compression Compression type to use when storing the data in the TIFF.
      * @param compressionQuality Quality of compression when using lossy compression like JPEG and JPEGXL.
      *      100 = best, 0 = worst.
+     * @param dataType Data type
      * @return instance
      */
     FAST_CONSTRUCTOR(ImagePyramid,
@@ -44,9 +44,9 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
                      int, channels,,
                      int, patchWidth, = 256,
                      int, patchHeight, = 256,
-                     DataType, dataType, = TYPE_UINT8,
                      ImageCompression, compression, = ImageCompression::UNSPECIFIED,
-                     int, compressionQuality, = 90
+                     int, compressionQuality, = 90,
+                     DataType, dataType, = TYPE_UINT8
         );
 #ifndef SWIG
         FAST_CONSTRUCTOR(ImagePyramid, openslide_t*, fileHandle,, std::vector<ImagePyramidLevel>, levels,);

@@ -10,6 +10,7 @@
 #include <utility>
 #include <FAST/Algorithms/Compression/JPEGXLCompression.hpp>
 #include <fstream>
+#include <FAST/Algorithms/Compression/JPEGCompression.hpp>
 
 namespace fast {
 
@@ -21,8 +22,8 @@ void ImageImporter::execute() {
     if(pos == std::string::npos)
         throw Exception("ImageImporter filename had no extension");
 
-    std::string ext = m_filename.substr(pos + 1);
-    if(stringToLower("jxl") == ext) {
+    std::string ext = stringToLower(m_filename.substr(pos + 1));
+    if(ext == "jxl") {
         std::ifstream file(m_filename, std::ios::in | std::ios::binary);
         std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(file), {});
         JPEGXLCompression jxl;
@@ -32,6 +33,15 @@ void ImageImporter::execute() {
         std::unique_ptr<uchar[]> decompressedData((uchar*)data); // Use unique_ptr to avoid copy
         auto image = Image::create(width, height, TYPE_UINT8, 3, std::move(decompressedData));
         addOutputData(0, image);
+    /*} else if(ext == "jpg" || ext == "jpeg") {
+        std::ifstream file(m_filename, std::ios::in | std::ios::binary);
+        std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(file), {});
+        JPEGCompression jpg;
+        int width, height;
+        void* data = jpg.decompress(buffer.data(), buffer.size()*sizeof(uchar), &width, &height);
+        std::unique_ptr<uchar[]> decompressedData((uchar*)data); // Use unique_ptr to avoid copy
+        auto image = Image::create(width, height, TYPE_UINT8, 3, std::move(decompressedData));
+        addOutputData(0, image);*/
     } else {
         uchar* convertedPixelData;
         // Load image from disk using Qt

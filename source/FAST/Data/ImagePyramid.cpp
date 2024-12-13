@@ -29,7 +29,7 @@ namespace fast {
 
 int ImagePyramid::m_counter = 0;
 
-ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, int patchHeight, DataType dataType, ImageCompression compression, int compressionQuality) {
+ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, int patchHeight, ImageCompression compression, int compressionQuality, DataType dataType) {
     if(channels <= 0 || channels > 4)
         throw Exception("Nr of channels must be between 1 and 4");
 
@@ -125,8 +125,11 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
                 break;
             case ImageCompression::JPEG:
                 TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JPEG);
-                //TIFFSetField(tiff, TIFFTAG_JPEGTABLESMODE, JPEGTABLESMODE_QUANT);
-                //TIFFSetField(tiff, TIFFTAG_JPEGQUALITY, m_compressionQuality); // Must be set after previous line // FIXME not working, only 75 gives ok results
+                /*
+                TIFFSetField(tiff, TIFFTAG_JPEGQUALITY, m_compressionQuality); // Must be set after previous line // FIXME not working, only 75 gives ok results
+                TIFFSetField(tiff, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB);
+                TIFFSetField(tiff, TIFFTAG_JPEGTABLESMODE, JPEGTABLESMODE_QUANT);
+                 */
                 break;
             case ImageCompression::JPEGXL:
                 TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_JXL);
@@ -152,7 +155,7 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
         // We need to write the first tile for some reason... or we will get an error saying it is missing required
         // TileOffsets
         TIFFCheckpointDirectory(m_tiffHandle); // Need to check in the tile width and length tags, before writing a tile
-        if(m_compressionFormat == ImageCompression::JPEGXL) {
+        if(m_compressionFormat == ImageCompression::JPEGXL || m_compressionFormat == ImageCompression::JPEG) {
             // TODO Not needed?
             //auto data = std::make_unique<uchar[]>(samplesPerPixel); // Is initialized to zeros
             //auto tileID = TIFFComputeTile(tiff, 0, 0, 0, 0);
@@ -407,6 +410,7 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
         }
     } else {
         throw Exception("Unsupported TIFF data type: " + std::to_string(sampleFormat) + " " + std::to_string(bitsPerSample) + " bits");
+        //m_dataType = TYPE_UINT8;
     }
     // Get compression
     uint16_t compressionTag;

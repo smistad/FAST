@@ -7,7 +7,6 @@
 #else
 #include <openslide/openslide.h>
 #endif
-#include <jpeglib.h>
 #include <tiffio.h>
 #include <FAST/Data/Image.hpp>
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
@@ -15,6 +14,7 @@
 #include <FAST/Algorithms/ImageCaster/ImageCaster.hpp>
 #include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include <FAST/Algorithms/Compression/JPEGXLCompression.hpp>
+#include <FAST/Algorithms/Compression/JPEGCompression.hpp>
 
 namespace fast {
 
@@ -321,6 +321,8 @@ uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *dat
     if(m_image->getCompression() == ImageCompression::NEURAL_NETWORK) {
         auto image = Image::create(width, height, TYPE_UINT8, channels, data); // TODO this seems unnecessary
         return writeTileToTIFF(level, x, y, image);
+    } else if(m_image->getCompression() == ImageCompression::JPEG) {
+        return writeTileToTIFFJPEG(level, x, y, data);
     } else if(m_image->getCompression() == ImageCompression::JPEGXL) {
         return writeTileToTIFFJPEGXL(level, x, y, data);
     } else {
@@ -334,6 +336,9 @@ uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, Image::poi
     } else if(m_image->getCompression() == ImageCompression::JPEGXL) {
         auto access = image->getImageAccess(ACCESS_READ);
         return writeTileToTIFFJPEGXL(level, x, y, (uchar*)access->get());
+    } else if(m_image->getCompression() == ImageCompression::JPEG) {
+        auto access = image->getImageAccess(ACCESS_READ);
+        return writeTileToTIFFJPEG(level, x, y, (uchar*)access->get());
     } else {
         auto access = image->getImageAccess(ACCESS_READ);
         return writeTileToTIFF(level, x, y, (uchar*)access->get());
@@ -356,6 +361,20 @@ uint32_t ImagePyramidAccess::writeTileToTIFFJPEGXL(int level, int x, int y, ucha
     JPEGXLCompression jxl;
     std::vector<uchar> compressed;
     jxl.compress(data, m_image->getLevelTileWidth(level), m_image->getLevelTileHeight(level), &compressed, m_image->getCompressionQuality());
+    TIFFSetWriteOffset(m_tiffHandle, 0); // Set write offset to 0, so that we dont appen data
+    TIFFWriteRawTile(m_tiffHandle, tile_id, (void *) compressed.data(), compressed.size()); // This appends data..
+    TIFFCheckpointDirectory(m_tiffHandle);
+    return tile_id;
+}
+
+
+uint32_t ImagePyramidAccess::writeTileToTIFFJPEG(int level, int x, int y, uchar *data) {
+    std::lock_guard<std::mutex> lock(m_readMutex);
+    TIFFSetDirectory(m_tiffHandle, level);
+    uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    JPEGCompression jpeg;
+    std::vector<uchar> compressed;
+    jpeg.compress(data, m_image->getLevelTileWidth(level), m_image->getLevelTileHeight(level), &compressed, m_image->getCompressionQuality());
     TIFFSetWriteOffset(m_tiffHandle, 0); // Set write offset to 0, so that we dont appen data
     TIFFWriteRawTile(m_tiffHandle, tile_id, (void *) compressed.data(), compressed.size()); // This appends data..
     TIFFCheckpointDirectory(m_tiffHandle);
@@ -517,13 +536,6 @@ bool ImagePyramidAccess::isPatchInitialized(int level, int x, int y) {
     return m_initializedPatchList.count(std::to_string(level) + "-" + std::to_string(tile)) > 0;
 }
 
-void jpegErrorExit(j_common_ptr cinfo) {
-    char jpegLastErrorMsg[JMSG_LENGTH_MAX];
-    // Create message
-    ( *( cinfo->err->format_message ) ) ( cinfo, jpegLastErrorMsg );
-    throw std::runtime_error( jpegLastErrorMsg );
-}
-
 int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
     const auto tileWidth = m_image->getLevelTileWidth(level);
     const auto tileHeight = m_image->getLevelTileHeight(level);
@@ -561,35 +573,14 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
         return bytesRead;
     } else {
         int bytesRead = 0;
-        if(m_compressionFormat == ImageCompression::JPEG && m_image->isOMETIFF()) {
+        if(m_compressionFormat == ImageCompression::JPEG /*&& m_image->isOMETIFF()*/) {
             // Use libjpeg for decompression, as ome-tiff files doesn't seem to like tiff's internal jpeg
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
 
-            jpeg_decompress_struct cinfo;
-            jpeg_error_mgr jerr; //error handling
-            jpeg_source_mgr src_mem;
-            jerr.error_exit = jpegErrorExit;
-            cinfo.err = jpeg_std_error(&jerr);
-            try {
-                jpeg_create_decompress(&cinfo);
-                jpeg_mem_src(&cinfo, (uchar*)buffer.get(), bytesRead);
-                int ret = jpeg_read_header(&cinfo, false);
-                if(ret != JPEG_HEADER_OK) {
-                    throw Exception("Unable to read JPEG header");
-                }
-                jpeg_start_decompress(&cinfo);
-                uchar* line = (uchar*)data;
-                while(cinfo.output_scanline < cinfo.output_height) {
-                    jpeg_read_scanlines (&cinfo, &line, 1);
-                    line += channels*cinfo.output_width;
-                }
-                jpeg_finish_decompress(&cinfo);
-                jpeg_destroy_decompress(&cinfo);
-            } catch(std::exception &e) {
-                jpeg_destroy_decompress( &cinfo );
-                throw Exception("JPEG error: " + std::string(e.what())); // or return an error code
-            }
+            JPEGCompression jpeg;
+            int width, height;
+            jpeg.decompress((uchar*)buffer.get(), bytesRead, &width, &height, (uchar*)data);
         } else if(m_compressionFormat == ImageCompression::JPEGXL) {
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);

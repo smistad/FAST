@@ -6,6 +6,7 @@
 #include <QImage>
 #include <FAST/Algorithms/Compression/JPEGXLCompression.hpp>
 #include <fstream>
+#include <FAST/Algorithms/Compression/JPEGCompression.hpp>
 
 namespace fast {
 
@@ -46,8 +47,8 @@ void ImageExporter::execute() {
     if(pos == std::string::npos)
         throw Exception("ImageExporter filename had no extension");
 
-    std::string ext = m_filename.substr(pos + 1);
-    if(stringToLower("jxl") == ext) {
+    std::string ext = stringToLower(m_filename.substr(pos + 1));
+    if(ext == "jxl") {
         JPEGXLCompression jxl;
         auto access = input->getImageAccess(ACCESS_READ);
         void * inputData = access->get();
@@ -57,6 +58,16 @@ void ImageExporter::execute() {
         std::ofstream file(m_filename, std::fstream::binary);
         std::copy(compressedData.begin(), compressedData.end(), std::ostreambuf_iterator<char>(file));
         file.close();
+    /*} else if(ext == "jpg" || ext == "jpeg") {
+        JPEGCompression jpg;
+        auto access = input->getImageAccess(ACCESS_READ);
+        void * inputData = access->get();
+        // Compress pixels with JPEG and store to binary file
+        std::vector<uchar> compressedData;
+        jpg.compress(inputData, input->getWidth(), input->getHeight(), &compressedData, m_quality);
+        std::ofstream file(m_filename, std::fstream::binary);
+        std::copy(compressedData.begin(), compressedData.end(), std::ostreambuf_iterator<char>(file));
+        file.close();*/
     } else {
         auto format = QImage::Format_RGBA8888;
         int Qchannels = 4;
