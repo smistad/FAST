@@ -333,6 +333,7 @@ class FAST_EXPORT Progress {
         float getPercent() const;
         void setText(std::string text);
         uint64_t getCurrent() const;
+        void setMax(uint64_t max);
     private:
         std::chrono::high_resolution_clock::time_point m_startTime;
         bool m_print = true;

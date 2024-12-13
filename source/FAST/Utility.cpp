@@ -1281,4 +1281,7 @@ void Progress::setText(std::string text) {
     m_text = text;
 }
 
+void Progress::setMax(uint64_t max) {
+    m_max = max;
+}
 } // end namespace fast

@@ -542,7 +542,7 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
     const auto channels = m_image->getNrOfChannels();
     TIFFSetDirectory(m_tiffHandle, level);
     const uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
-    if(TIFFGetStrileByteCount(m_tiffHandle, tile_id) == 1) { // Blank patch
+    if(TIFFGetStrileByteCount(m_tiffHandle, tile_id) == 0) { // Blank patch
         if(channels == 1) {
             std::memset(data, 0, tileWidth*tileHeight*channels);
         } else {
@@ -605,7 +605,7 @@ void ImagePyramidAccess::setBlankPatch(int level, int x, int y) {
     TIFFSetWriteOffset(m_tiffHandle, 0); // Set write offset to 0, so that we dont appen data
     // Writing zero bytes, will produce a warning, thus we write 1 byte
     char data = 0;
-    TIFFWriteRawTile(m_tiffHandle, tile_id, &data, 1);
+    TIFFWriteRawTile(m_tiffHandle, tile_id, &data, 0);
     TIFFCheckpointDirectory(m_tiffHandle);
     m_initializedPatchList.insert(std::to_string(level) + "-" + std::to_string(tile_id));
 

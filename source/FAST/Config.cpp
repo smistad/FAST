@@ -362,24 +362,17 @@ namespace fast {
 				return;
 			std::cout << "Downloading test data (~2GB) to " << destination << std::endl;
 			createDirectories(destination);
-			std::cout << "Progress: " << std::endl;
 			Window::initializeQtApp();
 			QNetworkAccessManager manager;
-			QUrl url("https://folk.ntnu.no/smistad/fast/FAST_Test_Data.zip");
+			QUrl url("https://smistad.folk.ntnu.no/fast/FAST_Test_Data.zip");
 			QNetworkRequest request(url);
-			auto timer = new QElapsedTimer;
-			timer->start();
+			request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
 			auto reply = manager.get(request);
-			int step = 5;
-			int progress = step;
-			QObject::connect(reply, &QNetworkReply::downloadProgress, [&progress, timer, step](quint64 current, quint64 max) {
-				int percent = ((float)current / max) * 100;
-				float speed = ((float)timer->elapsed() / 1000.0f)/percent;
-				uint64_t remaining = speed * (100 - percent);
-				if(percent >= progress) {
-					std::cout << percent << "% - ETA ~" << (int)std::ceil((float)remaining / 60) << " minutes. " << std::endl;;
-					progress += step;
-				}
+			Progress progressBar(1);
+			progressBar.setText("Downloading");
+			QObject::connect(reply, &QNetworkReply::downloadProgress, [&progressBar](quint64 current, quint64 max) {
+                progressBar.setMax(max)	;
+			    progressBar.update(current)	;
 			});
 			auto tempLocation = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/FAST_Test_Data.zip";
 			QFile file(tempLocation);

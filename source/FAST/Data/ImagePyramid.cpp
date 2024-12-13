@@ -52,12 +52,15 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
     TIFFSetErrorHandler([](const char* module, const char* fmt, va_list ap) {
         auto str = make_uninitialized_unique<char[]>(512);
         sprintf(str.get(), fmt, ap);
-        Reporter::warning() << "TIFF: " << module << ": " << str.get() << Reporter::end();
+        std::string str2 = str.get();
+        if(strcmp(module, "TIFFAppendToStrip") == 0 && str2.substr(0, 23) == "Write error at scanline") // Suppress error when writing 0 byte patches
+            return;
+        Reporter::warning() << "TIFF error: " << module << ": " << str.get() << Reporter::end();
     });
     TIFFSetWarningHandler([](const char* module, const char* fmt, va_list ap) {
         auto str = make_uninitialized_unique<char[]>(512);
         sprintf(str.get(), fmt, ap);
-        Reporter::warning() << "TIFF: " << module << ": " << str.get() << Reporter::end();
+        Reporter::warning() << "TIFF warning: " << module << ": " << str.get() << Reporter::end();
     });
     m_tiffHandle = TIFFOpen(m_tiffPath.c_str(), "w8"); // 8 == Bigtiff (64 bit)
     auto tiff = m_tiffHandle;
