@@ -11,120 +11,120 @@ on:
   workflow_dispatch:
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
   build:
     name: Build
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-20.04
-    container:
-      image: ubuntu:18.04
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+      # Use docker-run-action instead of container to get around githubs node20 requirement which doesn't work with ubuntu 18
+    - uses: addnab/docker-run-action@v3
+      with:
+        image: ubuntu:18.04
+        options: -v ${{ github.workspace }}:${{ github.workspace }}
+        shell: bash
+        run: |
+          echo "Check free space"
           
-    - name: Check free space
-      run: |
-        df -h
+          df -h
+          
+          echo "Install dependencies"
+          
+          apt update && apt install -y sudo
+          mkdir -p ${{github.workspace}}/artifacts
+          # Get a newer version of cmake
+          sudo apt install -y gpg wget software-properties-common lsb-release ca-certificates
+          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
+          sudo apt-get update
+          sudo rm /usr/share/keyrings/kitware-archive-keyring.gpg
+          sudo apt-get install kitware-archive-keyring
+          sudo apt install -y cmake
+          sudo apt install -y g++ patchelf
+          sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+          sudo apt install -y libopenslide-dev libjpeg-turbo8-dev # Needed for WSI module
+          sudo apt install -y pkgconf libusb-1.0-0-dev # Needed for realsense
+          sudo apt install -y python3 libpython3-dev python3-pip python3-setuptools
+          sudo pip3 install --upgrade pip
+          pip3 install numpy==1.19.5 pylddwrap==1.2.0 twine wheel==0.37.1
 
-    - uses: actions/checkout@v1
+          echo "Install CUDA and TensorRT"
+          
+          wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+          sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+          sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
+          sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+          sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
+          sudo apt-get update
+          sudo apt-get install -y cuda-toolkit-11-0 libcudnn8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev
 
-    - name: Install dependencies
-      run: |
-        apt update && apt install -y sudo
-        mkdir -p ${{github.workspace}}/artifacts
-        # Get a newer version of cmake
-        sudo apt install -y gpg wget software-properties-common lsb-release ca-certificates
-        wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-        echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
-        sudo apt-get update
-        sudo rm /usr/share/keyrings/kitware-archive-keyring.gpg
-        sudo apt-get install kitware-archive-keyring
-        sudo apt install -y cmake
-        sudo apt install -y g++ patchelf
-        sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-        sudo apt install -y libopenslide-dev libjpeg-turbo8-dev # Needed for WSI module
-        sudo apt install -y pkgconf libusb-1.0-0-dev # Needed for realsense
-        sudo apt install -y python3 libpython3-dev python3-pip python3-setuptools
-        sudo pip3 install --upgrade pip
-        pip3 install numpy==1.19.5 pylddwrap==1.2.0 twine wheel==0.37.1
-        
-    - name: Install CUDA and TensorRT
-      run: |
-        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
-        sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
-        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
-        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
-        sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
-        sudo apt-get update
-        sudo apt-get install -y cuda-toolkit-11-0 libcudnn8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev
+          echo "Configure CMake"
+          cmake -B build \
+              -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
+              -DFAST_MODULE_OpenVINO=ON \
+              -DFAST_MODULE_Dicom=ON \
+              -DFAST_MODULE_WholeSlideImaging=ON \
+              -DFAST_MODULE_OpenIGTLink=ON \
+              -DFAST_MODULE_Clarius=ON \
+              -DFAST_MODULE_TensorFlow=ON \
+              -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda/" \
+              -DFAST_MODULE_TensorRT=ON \
+              -DFAST_MODULE_HDF5=ON \
+              -DFAST_MODULE_Plotting=ON \
+              -DFAST_MODULE_Python=ON \
+              -DFAST_MODULE_RealSense=ON \
+              -DFAST_BUILD_EXAMPLES=ON
 
-    - name: Configure CMake
-      run: |
-        cmake -B build \
-            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
-            -DFAST_MODULE_OpenVINO=ON \
-            -DFAST_MODULE_Dicom=ON \
-            -DFAST_MODULE_WholeSlideImaging=ON \
-            -DFAST_MODULE_OpenIGTLink=ON \
-            -DFAST_MODULE_Clarius=ON \
-            -DFAST_MODULE_TensorFlow=ON \
-            -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda/" \
-            -DFAST_MODULE_TensorRT=ON \
-            -DFAST_MODULE_HDF5=ON \
-            -DFAST_MODULE_Plotting=ON \
-            -DFAST_MODULE_Python=ON \
-            -DFAST_MODULE_RealSense=ON \
-            -DFAST_BUILD_EXAMPLES=ON
+          echo "Build"
+          
+          cmake --build build --config ${{env.BUILD_TYPE}} -j 4
 
-    - name: Build
-      run: cmake --build build --config ${{env.BUILD_TYPE}} -j 4
+          echo "Free some space"
+          
+          df -h
+          rm -Rf build/external/tensorflow/src/tensorflow/
+          rm -Rf build/external/openvino/src/openvino/
+          rm -Rf build/external/qt5/src/qt5/
+          rm -Rf build/external/clarius/src/clarius/
+          df -h
 
-    - name: Free some space
-      run: |
-        df -h
-        rm -Rf build/external/tensorflow/src/tensorflow/
-        rm -Rf build/external/openvino/src/openvino/
-        rm -Rf build/external/qt5/src/qt5/
-        rm -Rf build/external/clarius/src/clarius/
-        df -h
+          echo "Build Python Wheel"
+          
+          cmake --build build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
+          cp build/python/dist/pyFAST-*.whl build/
 
-    - name: Build Python wheel
-      run: |
-        cmake --build build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
-        cp build/python/dist/pyFAST-*.whl build/
+          echo "Free some space"
+          
+          df -h
+          rm -Rf build/python/
+          df -h
 
-    - name: Free some space
-      run: |
-        df -h
-        rm -Rf build/python/
-        df -h
-
-    - name: Package
-      run: |
-        cmake --build build --config ${{env.BUILD_TYPE}} --target package -j 4
+          echo "Package"
+          
+          cmake --build build --config ${{env.BUILD_TYPE}} --target package -j 4
 
     - name: Upload Debian package
-      uses: kittaakos/upload-artifact-as-is@v0
+      uses: actions/upload-artifact@v4
       with:
         name: Debian package
         path: ${{github.workspace}}/build/fast_*.deb
         if-no-files-found: error
 
     - name: Upload archive package
-      uses: kittaakos/upload-artifact-as-is@v0
+      uses: actions/upload-artifact@v4
       with:
         name: Archive package (tar.xz)
         path: ${{github.workspace}}/build/fast_*.tar.xz
         if-no-files-found: error
 
     - name: Upload Python wheel
-      uses: kittaakos/upload-artifact-as-is@v0
+      uses: actions/upload-artifact@v4
       with:
         name: Python wheel
         path: ${{github.workspace}}/build/pyFAST-*.whl
