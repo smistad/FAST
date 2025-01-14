@@ -53,7 +53,7 @@ void JPEGCompression::compress(void *data, int width, int height, std::vector<ui
     jpeg_create_compress(&cinfo);
 
     // Set up memory
-    unsigned long resultSize = 0;
+    std::size_t resultSize = 0;
     uchar* resultBuffer = nullptr;
     jpeg_mem_dest(&cinfo, &resultBuffer, &resultSize);
 
