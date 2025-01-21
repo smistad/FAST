@@ -72,16 +72,19 @@ def get_all_apple_depedencies(path, libraries):
 
     result = []
     libraries_in_path = os.listdir(path)
-    for library in libraries:
+    queue = libraries
+    while len(queue) > 0:
+        library = queue.pop(0)
         if not os.path.exists(os.path.join(path, library)): continue
         if not library.startswith('libFAST.dylib'):
             result.append(os.path.join(path[5:], library))
+        # Find dependencies of this library
         deps = otool(os.path.join(path, library))
         print(os.path.join(path, library))
         for dep in deps:
             if dep[0] == '/': continue
             if dep in libraries_in_path or dep.startswith('libFAST.dylib'):
-                result.append(os.path.join(path[5:], dep))
+                queue.append(dep)
 
     return result
 
