@@ -364,7 +364,7 @@ namespace fast {
 			createDirectories(destination);
 			Window::initializeQtApp();
 			QNetworkAccessManager manager;
-			QUrl url("https://smistad.folk.ntnu.no/fast/FAST_Test_Data.zip");
+			QUrl url("https://fast-datahub.sintef.no/data/FAST_Test_Data.zip");
 			QNetworkRequest request(url);
 			request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
 			auto reply = manager.get(request);

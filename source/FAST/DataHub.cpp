@@ -24,7 +24,7 @@ namespace fast {
 
 DataHub::DataHub(std::string URL, std::string storageDirectory) {
     if(URL.empty()) {
-        m_URL = "https://datahub.eriksmistad.no/";
+        m_URL = "https://fast-datahub.sintef.no/";
     } else {
         m_URL = URL;
     }
@@ -286,9 +286,9 @@ static bool checkMinVersion(std::string version, std::string minVersion) {
     auto parts1 = split(version, ".");
     auto parts2 = split(minVersion, ".");
     for(int i = 0; i < 3; ++i) {
-        if(parts1[i] < parts2[i]) {
+        if(std::stoi(parts1[i]) < std::stoi(parts2[i])) {
             return false;
-        } else if(parts1[i] > parts2[i]) {
+        } else if(std::stoi(parts1[i]) > std::stoi(parts2[i])) {
             return true;
         }
     }
@@ -302,10 +302,9 @@ static bool checkMaxVersion(std::string version, std::string maxVersion) {
     auto parts1 = split(version, ".");
     auto parts2 = split(maxVersion, ".");
     for(int i = 0; i < 3; ++i) {
-        if(parts1[i] < parts2[i]) {
+        if(std::stoi(parts1[i]) < std::stoi(parts2[i])) {
             return true;
-        } else if(parts1[i] > parts2[i]) {
-            std::cout << parts1[i] << " " << parts2[i] << std::endl;
+        } else if(std::stoi(parts1[i]) > std::stoi(parts2[i])) {
             return false;
         }
     }
