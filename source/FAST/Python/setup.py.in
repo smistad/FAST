@@ -84,7 +84,7 @@ def get_all_apple_depedencies(path, libraries):
         for dep in deps:
             if dep[0] == '/': continue
             if os.path.join(path[5:], dep) in result: continue # Already added
-            if dep in libraries_in_path or dep.startswith('libFAST.dylib')
+            if dep in libraries_in_path or dep.startswith('libFAST.dylib'):
                 queue.append(dep)
 
     return result
