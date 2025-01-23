@@ -9,13 +9,13 @@ elseif(APPLE)
     if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
         fast_download_dependency(jpegxl
             0.11.0
-            dc05ced17948ed02e2c646e9480758ed439aa061d70c9d820df3e3239ea1dadd
+            2da83a5bcba122116cdadf98af9f4cecfeb45595dd2989a4cc95281a88f40d57
             jxl.dylib jxl_threads.dylib
         )
     else()
         fast_download_dependency(jpegxl
             0.11.0
-            f743d0fb5cdb6b8d63028d14a633c5ae250dbeca8b4577ad9c55b98a024035b3
+            0828fc48b0b9262e0db6ae3602c0afcd55626f0f388826a38c245c6f8911f38e
             jxl.dylib jxl_threads.dylib
         )
     endif()
