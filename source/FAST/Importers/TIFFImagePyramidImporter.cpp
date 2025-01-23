@@ -1,6 +1,7 @@
 #include "TIFFImagePyramidImporter.hpp"
 #include <tiffio.h>
 #include <FAST/Data/ImagePyramid.hpp>
+#include <regex>
 
 namespace fast {
 
@@ -40,6 +41,7 @@ void TIFFImagePyramidImporter::execute() {
         }
     }
 
+    float magnification = 0.0f;
     if(isOMETiff) {
         TIFFSetDirectory(tiff, 0);
 
@@ -90,6 +92,23 @@ void TIFFImagePyramidImporter::execute() {
             levelData.offset = offsets[i];
             levelList.push_back(levelData);
         }
+
+        // Try to get magnification from description using regex
+        std::regex pattern(R"(NominalMagnification="([-+]?[0-9]*\.?[0-9]+))");
+        std::smatch match;
+        std::string str = description;
+        magnification = 0.0f;
+        while(std::regex_search(str, match, pattern)) {
+            if(std::stof(match[1]) > magnification) { // Get largest magnification
+                magnification = std::stof(match[1]);
+            }
+            str = match.suffix();
+        }
+        if(magnification == 0) {
+            reportInfo() << "Unable to get magnification from OME-TIFF XML data" << reportEnd();
+        } else {
+            reportInfo() << "Got magnification " << magnification << " from OME-TIFF XML data" << reportEnd();
+        }
     } else {
         for(int level = 0; level < TIFFNumberOfDirectories(tiff); ++level) {
             TIFFSetDirectory(tiff, level);
@@ -112,6 +131,8 @@ void TIFFImagePyramidImporter::execute() {
         }
     }
     auto image = ImagePyramid::create(tiff, levelList, (int)channels, isOMETiff);
+    if(magnification > 0)
+        image->setMagnification(magnification);
     addOutputData(0, image);
 }
 

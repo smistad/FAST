@@ -81,23 +81,35 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
         // Try TIFF resolution instead
         // Definition of TIFF resolution is: The number of pixels per ResolutionUnit (https://www.awaresystems.be/imaging/tiff/tifftags/xresolution.html)
         reportInfo() << "Trying to get spacing from tiff.X/YResolution: " << reportEnd();
-        float resX = std::stof(image->getMetadata("tiff.XResolution")); // Nr of pixels per unit
-        float resY = std::stof(image->getMetadata("tiff.YResolution"));
-        std::string unit = image->getMetadata("tiff.ResolutionUnit");
-        // Convert to # pixels per millimeters
-        if(unit == "centimeter") {
-            resX /= 10.0f;
-            resY /= 10.0f;
-        } else if(unit == "inch") {
-            resX /= 25.5f;
-            resY /= 25.5f;
-        } else {
-            // No unit specified, use as is..
+        try {
+            float resX = std::stof(image->getMetadata("tiff.XResolution")); // Nr of pixels per unit
+            float resY = std::stof(image->getMetadata("tiff.YResolution"));
+            std::string unit = image->getMetadata("tiff.ResolutionUnit");
+            // Convert to # pixels per millimeters
+            if(unit == "centimeter") {
+                resX /= 10.0f;
+                resY /= 10.0f;
+            } else if(unit == "inch") {
+                resX /= 25.5f;
+                resY /= 25.5f;
+            } else {
+                // No unit specified, use as is..
+            }
+            // Convert #pixels per millimeters to spacing of each pixel
+            image->setSpacing(Vector3f(1.0f / resX, 1.0f / resY, 1.0f));
+        } catch(...) {
+
         }
-        // Convert #pixels per millimeters to spacing of each pixel
-        image->setSpacing(Vector3f(1.0f / resX, 1.0f / resY, 1.0f));
     }
     reportInfo() << "Spacing set to " << image->getSpacing().transpose() << " millimeters" << reportEnd();
+    // Try to get magnification
+    try {
+        float magnification = std::stof(image->getMetadata("openslide.objective-power"));
+        reportInfo() << "Got magnification from OpenSlide: " << magnification << reportEnd();
+        image->setMagnification(magnification);
+    } catch(...) {
+        reportInfo() << "Unable to get magnification using OpenSlide" << reportEnd();
+    }
 
     addOutputData(0, image);
 }

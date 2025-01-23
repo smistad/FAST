@@ -23,15 +23,21 @@ namespace fast {
 class FAST_EXPORT TissueSegmentation : public ProcessObject {
     FAST_PROCESS_OBJECT(TissueSegmentation)
     public:
-        /**
-         * Create an instance of TissueSegmentation
-         *
-         * @param threshold Threshold for distance from white (255,255,255) to be considered as tissue.
-         * @param dilationSize Size of dilation to perform after thresholding
-         * @param erosionSize Size of erosion to perform after thresholding
-         * @return A tissue segmentation instance
-         */
+    /**
+     * Create an instance of TissueSegmentation
+     *
+     * @param useColorThresholdingMethod Whether to use a simple color thresholding method or a neural network to segment tissue
+     * @param level Level to run neural network on. Only used if magnification <= 0
+     * @param magnification Magnification to run neural network on.
+     * @param threshold Threshold for distance from white (255,255,255) to be considered as tissue.
+     * @param dilationSize Size of dilation to perform after thresholding
+     * @param erosionSize Size of erosion to perform after thresholding
+     * @return A tissue segmentation instance
+     */
         FAST_CONSTRUCTOR(TissueSegmentation,
+                         bool, useColorThresholdingMethod, = false,
+                         int, level, = -1,
+                         float, magnification, = 1.25f,
                          int, threshold, = 85,
                          int, dilationSize, = 9,
                          int, erosionSize, = 9,
@@ -72,14 +78,25 @@ class FAST_EXPORT TissueSegmentation : public ProcessObject {
          * Get current status whether to include zero uints into background class or not. Default is true
          */
         bool getFilterZeros() const;
+        void setLevel(int level);
+        int getLevel() const;
+        void setMagnification(float magnification);
+        float getMagnification() const;
+        void setUseColorThresholdingMethod(bool use);
+        bool getUseColorThresholdingMethod() const;
         void loadAttributes() override;
     protected:
         void execute() override;
+        void runNeuralNetwork(SpatialDataObject::pointer image);
+        void runColorThresholding(SpatialDataObject::pointer image);
     private:
         int m_dilate = 9;
         int m_erode = 9;
         int m_thresh = 85;
+        int m_level = -1;
+        float m_magnification = 2.5f;
         bool m_filterZeros = true;
+        bool m_useColorThresholdingMethod = false;
 };
 
 }

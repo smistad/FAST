@@ -61,13 +61,12 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getLevelTilesY(int level);
         float getLevelScale(int level);
         /**
-         * @brief Get level for a given magnification
+         * @brief Get level for a given magnification if it exists
          * @param magnification Magnification amount (e.g. 40, 20, 10 etc.)
-         * @param slackPercentage Slack to allow from target magnification, given in percentage of target spacing/magnification.
-         *      If distance between closest level and target magnification is larger than this, an exception is thrown.
          * @return level
          */
-        int getLevelForMagnification(float magnification, float slackPercentage = 0.5f);
+        int getLevelForMagnification(float magnification);
+        std::pair<int, float> getClosestLevelForMagnification(float magnification, float percentageSlack = 0.1f);
         int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;
@@ -102,6 +101,8 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         std::shared_ptr<NeuralNetwork> getDecompressionModel() const;
         float getDecompressionOutputScaleFactor() const;
         DataType getDataType() const;
+        float getMagnification() const;
+        void setMagnification(float magnification);
     private:
         ImagePyramid();
         std::vector<ImagePyramidLevel> m_levels;
@@ -136,6 +137,8 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         std::shared_ptr<NeuralNetwork> m_compressionModel;
         std::shared_ptr<NeuralNetwork> m_decompressionModel;
         float m_decompressionOutputScaleFactor = 1.0f;
+
+        float m_magnification = -1.0f;
 };
 
 }

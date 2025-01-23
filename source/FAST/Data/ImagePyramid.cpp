@@ -513,38 +513,18 @@ DataBoundingBox ImagePyramid::getBoundingBox() const {
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
-int ImagePyramid::getLevelForMagnification(float magnification, float slackPercentage) {
+int ImagePyramid::getLevelForMagnification(float magnification) {
     if(magnification <= 0)
         throw Exception("Magnification must be larger than 0 in getLevleForMagnification");
-    const Vector3f spacing = getSpacing();
-    // For this calculation we assume the following:
-    /*
-    * 1 micron = 0.001 millimeters
-    * 40X -> 0.00025 mm
-    * 20X -> 0.0005 mm
-    * 10X -> 0.001 mm
-    * 5X -> 0.002 mm
-    * 1X -> 0.01 mm
-     */
-    float level0spacing = spacing.x();
-    float targetSpacing = 0.00025f * (40.0f / (float)magnification);
-    float minDistance = std::numeric_limits<float>::max();
-    int levelResult = 0;
-    for(int i = 0; i < m_levels.size(); ++i) {
-        auto scale = getLevelScale(i);
-        float levelSpacing = scale*level0spacing;
-        float distance = std::fabs(levelSpacing - targetSpacing);
-        if(distance < minDistance) {
-            minDistance = distance;
-            levelResult = i;
-        }
+
+    float magnificationLevel0 = getMagnification();
+    for(int level = 0; level < m_levels.size(); ++level) {
+        float scale = round(getLevelScale(level));
+        if(magnificationLevel0 / scale == magnification)
+            return level;
     }
 
-    // How much slack to allow?
-    if(minDistance > targetSpacing*slackPercentage)
-        throw Exception("No level close enough to magnification of " + std::to_string(magnification) + " was found in the image pyramid.");
-
-    return levelResult;
+    throw Exception("No level corresponded to magnification " + std::to_string(magnification) + " in getLevelForMagnification()");
 }
 
 bool ImagePyramid::isOMETIFF() const {
@@ -591,6 +571,87 @@ DataType ImagePyramid::getDataType() const {
 
 int ImagePyramid::getCompressionQuality() const {
     return m_compressionQuality;
+}
+
+float ImagePyramid::getMagnification() const {
+    if(m_magnification <= 0) {
+        // Try to guess magnification from spacing if available
+        Vector3f spacing = getSpacing();
+        if(spacing != Vector3f::Ones()) {
+            // For this calculation we assume the following:
+            /*
+            * 1 micron = 0.001 millimeters
+            * 40X -> 0.00025 mm
+            * 20X -> 0.0005 mm
+            * 10X -> 0.001 mm
+            * 5X -> 0.002 mm
+            * 1X -> 0.01 mm
+             */
+            int magnification = 0;
+            if(spacing.x() > 0.00015 && spacing.x() <= 0.00035) {
+                magnification = 40;
+            } else if(spacing.x() > 0.0004 && spacing.x() < 0.0006) {
+                magnification = 20;
+            } else if(spacing.x() > 0.00075 && spacing.x() < 0.00125) {
+                magnification = 10;
+            } else if(spacing.x() > 0.00175 && spacing.x() < 0.00225) {
+                magnification = 5;
+            } else if(spacing.x() > 0.0075 && spacing.x() < 0.0125) {
+                magnification = 1;
+            }
+            if(magnification == 0) {
+                Reporter::info() << "Unable to guess the magnification from the set pixel spacing: " << spacing.x() << " mm" << Reporter::end();
+                throw Exception("Magnification of this image pyramid is unknown. You can set it manually using the setMagnification() method");
+            } else {
+                Reporter::info() << "Guessed the magnification " << magnification << " from the set pixel spacing: " << spacing.x() << " mm" << Reporter::end();
+                return magnification;
+            }
+        } else {
+            throw Exception("Magnification of this image pyramid is unknown. You can set it manually using the setMagnification() method");
+        }
+    }
+    return m_magnification;
+}
+
+void ImagePyramid::setMagnification(float m) {
+    if(m <= 0)
+        throw Exception("Magnification given to setMagnification() must be larger than 0");
+    m_magnification = m;
+}
+
+std::pair<int, float> ImagePyramid::getClosestLevelForMagnification(float magnification, float percentageSlack) {
+    // Check if it exists first
+    try {
+        int level = getLevelForMagnification(magnification);
+        return {level, 1.0f};
+    } catch(Exception &e) {
+
+    }
+
+    float level0spacing = getSpacing().x();
+    if(getSpacing() == Vector3f::Ones() && m_magnification > 0) {
+        level0spacing = 0.00025f * (40.0f / (float)m_magnification);
+    }
+
+    // First find level which is larger than request magnification
+    float targetSpacing = 0.00025f * (40.0f / (float)magnification);
+    int level = 0;
+    float resampleFactor = 1.0f;
+    for(int i = 0; i < getNrOfLevels(); ++i) {
+        float levelSpacing = getLevelScale(i)*level0spacing;
+        level = i;
+        resampleFactor = targetSpacing / levelSpacing; // Scale between level and the magnification level we want
+        if(i+1 < getNrOfLevels() && getLevelScale(i+1)*level0spacing > targetSpacing) {
+            break;
+        }
+    }
+    if(level < 0)
+        throw Exception("Unable to get closest magnification level to " +
+        std::to_string(magnification) + " because level 0 was at a lower magnification ");
+    if(std::fabs(resampleFactor - 1.0f) < percentageSlack) { // If within 1.1 - 0.9 resampleFactor, we just sample from the specific level
+        resampleFactor = 1.0f;
+    }
+    return {level, resampleFactor};
 }
 
 }
