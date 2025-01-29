@@ -78,7 +78,12 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
     } else {
         if(compression == ImageCompression::UNSPECIFIED)
             compression = ImageCompression::JPEG;
-        photometric = PHOTOMETRIC_RGB;
+        if(compression == ImageCompression::JPEG) {
+            photometric = PHOTOMETRIC_YCBCR; // JPEG is stored using YCBCR internally.
+            // If this is not set to YCBCR for JPEG, OpenSlide will not display FAST created WSI tiffs correctly.
+        } else {
+            photometric = PHOTOMETRIC_RGB;
+        }
         samplesPerPixel = 3; // RGBA image pyramid is converted to RGB with getPatchAsImage
     }
     m_compressionFormat = compression;
