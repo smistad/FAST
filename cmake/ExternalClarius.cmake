@@ -15,7 +15,7 @@ elseif(APPLE)
         set(URL "https://github.com/clariusdev/cast/releases/download/v${CLARIUS_CAST_VERSION}/cast-${CLARIUS_CAST_VERSION}-macos.x86_64.zip")
     endif()
 else()
-    set(URL "https://github.com/clariusdev/cast/releases/download/v${CLARIUS_CAST_VERSION}/cast-${CLARIUS_CAST_VERSION}-linux.x86_64-gcc_ubuntu_20.04.zip")
+    set(URL "https://github.com/clariusdev/cast/releases/download/v${CLARIUS_CAST_VERSION}/cast-${CLARIUS_CAST_VERSION}-linux.x86_64-gcc_ubuntu_22.04.zip")
 endif()
 
 if(WIN32)
