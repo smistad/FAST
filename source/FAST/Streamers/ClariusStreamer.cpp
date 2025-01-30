@@ -103,13 +103,13 @@ void* ClariusStreamer::getFunc(std::string name) {
 void ClariusStreamer::execute() {
     if(!mStreamIsStarted) {
         reportInfo() << "Trying to set up Clarius streaming..." << reportEnd();
-        int argc = 0;
         std::string keydir = Config::getKernelBinaryPath();
         // TODO A hack here to get this to work. Fix later
         // Lambdas converted to C style pointers can't have captures
         static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
 
         CusInitParams params;
+        params.args.argc = 0;
         params.storeDir = keydir.c_str();
         params.newProcessedImageFn = [](const void* img, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos) {
             self->newImageFn(img, nfo, npos, pos);
