@@ -134,7 +134,10 @@ void ImageExporter::execute() {
             }
         }
 
-        image.save(QString(m_filename.c_str()), nullptr, m_quality);
+        int quality = -1;
+        if(ext == "jpg" || ext == "jpeg")
+            quality = m_quality;
+        image.save(QString(m_filename.c_str()), nullptr, quality);
     }
 }
 
