@@ -167,13 +167,13 @@ void TissueSegmentation::runNeuralNetwork(SpatialDataObject::pointer image) {
                 // If level is not specified, automatically find an OK level to use.
                 int useLevel = wsi->getNrOfLevels()-1;
                 while(useLevel >= 0) {
-                    if(wsi->getLevelWidth(useLevel) < width || wsi->getLevelHeight(useLevel) < height) {
-                        // Go further down
-                        --useLevel;
-                    } else if(wsi->getLevelWidth(useLevel) >= 8192 || wsi->getLevelHeight(useLevel) >= 8192) {
+                    if(wsi->getLevelWidth(useLevel) >= 8192 || wsi->getLevelHeight(useLevel) >= 8192) {
                         // Go back
                         ++useLevel;
                         break;
+                    } else {
+                        // Go further down
+                        --useLevel;
                     }
                 }
                 if(useLevel < 0)
