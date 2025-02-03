@@ -22,6 +22,7 @@ void WholeSlideImageImporter::readWithTIFF(std::string filename) {
 }
 
 void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
+    reportInfo() << "Using OpenSlide version: " << openslide_get_version() << reportEnd();
     openslide_t* file = openslide_open(filename.c_str());
     if(file == nullptr) {
         throw Exception("OpenSlide was unable to open the file: " + filename);
