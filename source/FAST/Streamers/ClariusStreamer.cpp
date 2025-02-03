@@ -103,31 +103,51 @@ void* ClariusStreamer::getFunc(std::string name) {
 void ClariusStreamer::execute() {
     if(!mStreamIsStarted) {
         reportInfo() << "Trying to set up Clarius streaming..." << reportEnd();
+        int argc = 0;
         std::string keydir = Config::getKernelBinaryPath();
         // TODO A hack here to get this to work. Fix later
         // Lambdas converted to C style pointers can't have captures
         static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
 
-        CusInitParams params;
-        params.args.argc = 0;
-        params.storeDir = keydir.c_str();
-        params.newProcessedImageFn = [](const void* img, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos) {
-            self->newImageFn(img, nfo, npos, pos);
-        };
-        params.width = 512;
-        params.height = 512;
-        params.errorFn = [](const char* msg) {
-            self->getReporter().error() << msg << self->getReporter().end();
-        };
-
-        auto init = (int (*)(const CusInitParams* params))getFunc("cusCastInit");
-        int success = init(&params);
+        auto init = (int (*)(int argc,
+                char** argv,
+                const char* dir,
+                CusNewProcessedImageFn newProcessedImage,
+                CusNewRawImageFn newRawImage,
+                CusNewSpectralImageFn newSpectralImage,
+                CusNewImuDataFn newImuData,
+                CusFreezeFn freeze,
+                CusButtonFn btn,
+                CusProgressFn progress,
+                CusErrorFn err,
+                int width,
+                int height
+                ))getFunc("cusCastInit");
+        int success = init(argc, nullptr, keydir.c_str(),
+            // new image callback
+            [](const void* img, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos)
+            {
+                self->newImageFn(img, nfo, npos, pos);
+            },
+            nullptr/*pre-scanconverted image*/, 
+            nullptr/*spectral image*/,
+            nullptr/*imu*/,
+		    nullptr/*freeze*/, 
+		    nullptr/*button*/, 
+		    nullptr/*progress*/, 
+			/*error call back*/
+			[](const char* msg) {
+                self->getReporter().error() << msg << self->getReporter().end();
+            },
+			512, 
+			512
+		);
         if(success != 0)
             throw Exception("Unable to initialize clarius cast");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
         auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusConnectFn fn))getFunc("cusCastConnect");
-        success = connect(mIPAddress.c_str(), mPort, "research", [](int port, int imuPort, int swMatch) {
+        success = connect(mIPAddress.c_str(), mPort, "research", [](int port, int swMatch) {
             if (port > 0) {
 				self->getReporter().info() << "Clarius connect on UDP port " << port << self->getReporter().end();
                 if (swMatch == CUS_FAILURE) {
