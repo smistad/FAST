@@ -168,7 +168,7 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
     QObject::connect(&manager, &QNetworkAccessManager::finished, [blank, reply, &file, destination]() {
         if(reply->error() != QNetworkReply::NoError) {
             std::cout << "\r" << blank;
-            std::cout << "\rERROR: Download failed!" << std::endl;
+            std::cout << "\rERROR: Download failed! : " << reply->errorString().toStdString() << std::endl;
             file.close();
             file.remove();
             return;

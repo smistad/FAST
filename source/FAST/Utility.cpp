@@ -1230,6 +1230,8 @@ static int getConsoleWidth() {
 #else
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        if(w.ws_col == 0)
+            return 80;
         return w.ws_col;
 #endif
     }
