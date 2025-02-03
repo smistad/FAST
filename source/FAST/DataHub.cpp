@@ -5,6 +5,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <FAST/Exception.hpp>
+#include <FAST/Utility.hpp>
 #include "DataHub.hpp"
 #include <iostream>
 #include <FAST/Visualization/Window.hpp>
@@ -99,22 +100,6 @@ void DataHub::downloadTextFile(const std::string& url, const std::string& destin
         //failure
         throw Exception("Failed to retrieve data from FAST DataHub.\nServer could be down, or you may have no internet access.\nPlease try again later.");
     }
-}
-
-static int getConsoleWidth() {
-#ifdef WIN32
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    int columns, rows;
-
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-    return columns;
-#else
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    return w.ws_col;
-#endif
 }
 
 void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::string& destination, const std::string& name, int fileNr) {

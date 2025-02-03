@@ -1218,7 +1218,7 @@ void Progress::start() {
     m_started = true;
 }
 
-static int getConsoleWidth() {
+int getConsoleWidth() {
 #ifdef WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     int columns, rows;

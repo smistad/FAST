@@ -323,6 +323,13 @@ FAST_EXPORT std::string roundToString(double value, int decimals = 0);
 FAST_EXPORT std::string roundToString(float value, int decimals = 0);
 
 /**
+ * @brief Get character width of terminal/console.
+ * If not found, default to 80
+ * @return width
+ */
+FAST_EXPORT int getConsoleWidth();
+
+/**
  * @brief A utility class for keeping track of progress and printing progress to the console.
  */
 class FAST_EXPORT Progress {
