@@ -31,11 +31,12 @@ fast_add_sources(
     Attribute.cpp
     Attribute.hpp
     ProcessObjectRegistry.hpp
-    PipelineSynchronizer.cpp
-    PipelineSynchronizer.hpp
+    FramerateSynchronizer.cpp
+    FramerateSynchronizer.hpp
     DataStream.cpp
     DataStream.hpp
 )
+fast_add_process_object(FramerateSynchronizer FramerateSynchronizer.hpp)
 if(FAST_MODULE_Visualization)
     fast_add_sources(
         Pipeline.hpp

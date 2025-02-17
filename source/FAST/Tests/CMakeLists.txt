@@ -11,7 +11,7 @@ fast_add_test_sources(
     Algorithms/DoubleFilterTests.cpp
     SceneGraphTests.cpp
     UtilityTests.cpp
-    PipelineSynchronizerTests.cpp
+        FramerateSynchronizerTests.cpp
     PipelineTests.cpp
 )
 if(FAST_MODULE_Visualization)
