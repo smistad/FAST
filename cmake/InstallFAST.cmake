@@ -30,11 +30,11 @@ endif()
 # Install dependency libraries
 install(FILES ${PROJECT_BINARY_DIR}/FASTExport.hpp
     DESTINATION fast/include
-	COMPONENT fast
+	COMPONENT fast_headers
 )
 install(FILES ${PROJECT_BINARY_DIR}/FASTVersion.hpp
 	DESTINATION fast/include
-	COMPONENT fast
+	COMPONENT fast_headers
 )
 if(WIN32)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
@@ -86,7 +86,7 @@ endif()
 if(FAST_MODULE_Visualization)
 install(DIRECTORY ${PROJECT_BINARY_DIR}/plugins/
     DESTINATION fast/plugins/
-		COMPONENT fast
+	COMPONENT fast
 )
 
 # Install qt moc
@@ -100,6 +100,7 @@ if(WIN32)
 		install(FILES ${PROJECT_BINARY_DIR}/bin/idc.exe
 		    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
 		    DESTINATION fast/bin
+			COMPONENT fast
 		)
 endif()
 endif()
@@ -107,12 +108,12 @@ endif()
 # Install headers
 install(DIRECTORY ${FAST_SOURCE_DIR}
 	DESTINATION fast/include/FAST/
-	COMPONENT fast
+	COMPONENT fast_headers
 	FILES_MATCHING PATTERN "*.hpp"
 )
 install(DIRECTORY ${FAST_SOURCE_DIR}
 	DESTINATION fast/include/FAST/
-	COMPONENT fast
+	COMPONENT fast_headers
 	FILES_MATCHING PATTERN "*.h"
 )
 
@@ -163,20 +164,20 @@ endif()
 foreach(INCLUDE_FOLDER ${INCLUDE_FOLDERS})
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
-				OPTIONAL
-		COMPONENT fast
+		OPTIONAL
+		COMPONENT fast_headers
         FILES_MATCHING PATTERN "*.h"
     )
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
-				OPTIONAL
-		COMPONENT fast
+		OPTIONAL
+		COMPONENT fast_headers
         FILES_MATCHING PATTERN "*.hpp"
     )
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
-				OPTIONAL
-		COMPONENT fast
+		OPTIONAL
+		COMPONENT fast_headers
         FILES_MATCHING REGEX "/[^.]+$" # Files with no extension
     )
 endforeach()
@@ -184,7 +185,7 @@ endforeach()
 # Install created headers
 install(FILES ${PROJECT_BINARY_DIR}/ProcessObjectList.hpp
     DESTINATION fast/include/FAST/
-	COMPONENT fast
+	COMPONENT fast_headers
 )
 
 # Install OpenCL kernels
@@ -284,7 +285,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
 if(WIN32)
 	install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/MSVC_redis_files_license.txt
 	    DESTINATION fast/licenses/MSVC/
-			COMPONENT fast
+		COMPONENT fast
 	)
 endif()
 

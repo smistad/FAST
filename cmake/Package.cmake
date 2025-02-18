@@ -2,8 +2,8 @@
 
 set(CPACK_PACKAGE_NAME "FAST")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "FAST is an open-source cross-platform framework with the main goal of making it easier to do high performance processing and visualization of medical images on heterogeneous systems (CPU+GPU).")
-set(CPACK_PACKAGE_VENDOR "Erik Smistad")
-set(CPACK_PACKAGE_CONTACT "Erik Smistad ersmistad@gmail.com")
+set(CPACK_PACKAGE_VENDOR "SINTEF and Norwegian University of Science and Technology (NTNU)")
+set(CPACK_PACKAGE_CONTACT "Erik Smistad erik.smistad@sintef.no")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/README.md")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
@@ -82,7 +82,7 @@ else()
     # Add debian package dependencies
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libopenslide0,libusb-1.0-0")
 
-    set(CPACK_COMPONENTS_ALL fast)
+    set(CPACK_COMPONENTS_ALL fast fast_headers)
 
     set(CPACK_PACKAGE_FILE_NAME "fast_${DISTRO_NAME}${DISTRO_VERSION}_${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
     set(CPACK_DEBIAN_FAST_FILE_NAME "fast_${DISTRO_NAME}${DISTRO_VERSION}_${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.deb")

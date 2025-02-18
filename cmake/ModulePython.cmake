@@ -49,19 +49,25 @@ if(FAST_MODULE_Python)
         set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include <${FILE}>\n")
     endforeach()
 
-    set(PYFAST_FILE "${PROJECT_BINARY_DIR}/PyFAST.i")
-    configure_file(
-            "${PROJECT_SOURCE_DIR}/source/FAST/Python/PyFAST.i.in"
-            ${PYFAST_FILE}
-    )
+    set(PYFAST_SOURCES Core.i)
+    foreach(SRC ${PYFAST_SOURCES})
+        set(PYFAST_FILE "${PROJECT_BINARY_DIR}/${SRC}")
+        configure_file(
+                "${PROJECT_SOURCE_DIR}/source/FAST/Python/${SRC}.in"
+                ${PYFAST_FILE}
+        )
 
+        set_source_files_properties(${PYFAST_FILE} PROPERTIES GENERATED TRUE)
+        set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
+        set_source_files_properties(${PYFAST_FILE} PROPERTIES USE_TARGET_INCLUDE_DIRECTORIES ON)
+        if(NOT ${SRC} STREQUAL Common.i)
+            list(APPEND PYFAST_CONFIGURED_SOURCES ${PYFAST_FILE})
+        endif()
+    endforeach()
     # Build it
-    set_source_files_properties(${PYFAST_FILE} PROPERTIES GENERATED TRUE)
-    set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
-    set_property(SOURCE ${PYFAST_FILE} PROPERTY SWIG_MODULE_NAME fast)
     set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
-    swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_FILE})
+    swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_CONFIGURED_SOURCES})
     if(WIN32)
         get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
         target_link_directories(_fast PRIVATE ${PYTHON_LIBRARY_DIR})
@@ -80,6 +86,7 @@ if(FAST_MODULE_Python)
     add_custom_target(install_to_wheel
         COMMAND ${CMAKE_COMMAND}
         -D CMAKE_INSTALL_PREFIX:STRING=${PROJECT_BINARY_DIR}/python/
+        -D CMAKE_INSTALL_COMPONENT:STRING=fast
         -P ${PROJECT_BINARY_DIR}/cmake_install.cmake
     )
     add_dependencies(install_to_wheel _fast)
@@ -97,7 +104,7 @@ if(FAST_MODULE_Python)
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
     # Remove this lib file as we don't need it: the setup script will build a new one
-    COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/_unused_fast_python_lib
+    #COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/_unused_fast_python_lib
     COMMAND ${CMAKE_COMMAND}
         -D FAST_VERSION=${FAST_VERSION}
         -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}

@@ -2,6 +2,7 @@
 import os
 os.environ['MACOSX_DEPLOYMENT_TARGET'] = '@OSX_DEPLOYMENT_TARGET@'
 from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
 import os.path
 import sys
 
@@ -93,8 +94,6 @@ def get_all_apple_depedencies(path, libraries):
 is_windows = sys.platform.startswith('win')
 is_apple = sys.platform.startswith('darwin')
 if is_windows:
-    compile_args = ['/bigobj', '/nologo', '/MD', '/EHsc', '-DNOMINMAX', '-DNOGDI']
-    link_args = []
     package_data = {'': [
             'bin/*.dll',
             'bin/UFFviewer.exe',
@@ -110,11 +109,9 @@ if is_windows:
             + get_all_filenames('fast/plugins/')
             + get_all_filenames('fast/doc/')
           }
-    additional_libraries = ['OpenCL', '@OPENGL_LIBRARIES@']
 elif is_apple:
-    compile_args = ['-Xclang', '-std=c++17', '-mmacosx-version-min=@OSX_DEPLOYMENT_TARGET@']
-    link_args = ['-bundle', '-Wl,-rpath,@loader_path/../lib', '-framework', 'OpenCL', '-framework', 'OpenGL']
     package_data = {'': [
+            'lib/_fast.dylib'
             'lib/plugins.xml',
             'lib/cache.json',
             'bin/UFFviewer',
@@ -150,14 +147,12 @@ elif is_apple:
                 'libopenvino_ir_frontend.2230.dylib',
             ])
           }
-    additional_libraries = []
     # Override platform tag, or it gets tag 10_15 for some reason
     sys.argv.append('--plat-name')
     sys.argv.append('macosx_' + '@OSX_DEPLOYMENT_TARGET@'.replace('.', '_') + '_' + '@OSX_ARCHITECTURE@')
 else:
-    compile_args = ['-std=c++17']
-    link_args = ['-Wl,-rpath=$ORIGIN/../lib']
     package_data = {'': [
+            'lib/_fast.so',
             'lib/plugins.xml',
             'lib/cache.json',
             'bin/UFFviewer',
@@ -193,43 +188,24 @@ else:
                 'libInferenceEngineONNXRuntime.so',
             ])
           }
-    additional_libraries = ['OpenCL', '@OPENGL_LIBRARIES@']
     # Override platform tag
     sys.argv.append('--plat-name') 
     sys.argv.append('manylinux1_x86_64')
 
-_fast = Extension('fast.bin._fast',
-                include_dirs=[
-                    '.',
-                    '..',
-                    '@FAST_BINARY_DIR@/include/',
-                    '@FAST_BINARY_DIR@/include/eigen3/',
-                    '@FAST_BINARY_DIR@/include/QWidgets/',
-                    '@FAST_BINARY_DIR@/include/QtCore',
-                    '@FAST_BINARY_DIR@/include/QtWidgets',
-                    '@FAST_BINARY_DIR@/include/QtOpenGL',
-                    '@FAST_BINARY_DIR@/include/QtPrintSupport',
-                    '@FAST_BINARY_DIR@/include/QtGui',
-                    '@FAST_SOURCE_DIR@/source/',
-                    '@NUMPY_INCLUDE_DIR@',
-                ],
-                library_dirs=['@FAST_BINARY_DIR@/lib/'],
-                sources=['fast/PyFASTPYTHON_wrap.cxx'],
-                libraries=[ # Libraries to link with
-                    'FAST',
-                    'Qt5Core',
-                	'Qt5Widgets',
-                	'Qt5Gui',
-                	'Qt5OpenGL',
-                	'Qt5Multimedia',
-                	'Qt5MultimediaWidgets',
-                    'Qt5PrintSupport',
-                    'Qt5Network',
-                ] + additional_libraries,
-                extra_compile_args=compile_args,
-                extra_link_args=link_args,
+# We do not have to build the extension, because it
+# is already done by cmake and swig
+_fast = Extension('fast.lib._fast',
+                include_dirs=[],
+                library_dirs=[],
+                sources=[],
+                libraries=[] ,
                 py_limited_api=True
-            )
+)
+
+class my_build_ext(build_ext):
+    def build_extension(self, ext):
+        # Do nothing, it is already built
+        pass
 
 # Get long description from README
 with open("@FAST_SOURCE_DIR@/README.md", "r", encoding='utf-8') as fh:
@@ -248,11 +224,12 @@ setup(name='pyFAST',    # Distribution name
       long_description=long_description,
       long_description_content_type="text/markdown",
       author='Erik Smistad',
-      author_email='ersmistad@gmail.com',
+      author_email='erik.smistad@sintef.no',
       url='https://github.com/smistad/FAST',
       license='BSD 2-clause (package include binary dependencies with other licences, see README)',
       packages=['fast'],    # Package name
       setup_requires=['wheel'],
+      cmdclass={"build_ext": my_build_ext},
       ext_modules=[_fast],
       package_data=package_data,
       entry_points={'gui_scripts': [
