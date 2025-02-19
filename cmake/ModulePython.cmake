@@ -67,7 +67,7 @@ if(FAST_MODULE_Python)
     # Build it
     set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
-    swig_add_library(fast LANGUAGE python SOURCES Core.i)
+    swig_add_library(fast LANGUAGE python SOURCES ${PROJECT_BINARY_DIR}/Core.i)
     if(WIN32)
         get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
         target_link_directories(_fast PRIVATE ${PYTHON_LIBRARY_DIR})
