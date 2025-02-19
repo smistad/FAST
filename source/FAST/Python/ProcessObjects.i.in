@@ -1,4 +1,14 @@
 // Python process object functionality using directors feature
+%define MODULEIMPORT
+"
+from typing import *
+import $module
+"
+%enddef
+%module(moduleimport=MODULEIMPORT, directors=1) fast_processobjects
+#pragma SWIG nowarn=511
+
+%include "Common.i"
 
 %feature("director") PythonProcessObject;
 %shared_ptr(fast::PythonProcessObject)

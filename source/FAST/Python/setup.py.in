@@ -152,7 +152,8 @@ elif is_apple:
     sys.argv.append('macosx_' + '@OSX_DEPLOYMENT_TARGET@'.replace('.', '_') + '_' + '@OSX_ARCHITECTURE@')
 else:
     package_data = {'': [
-            'lib/_fast.so',
+            'lib/_fast_core.so',
+            'lib/_fast_processobjects.so',
             'lib/plugins.xml',
             'lib/cache.json',
             'bin/UFFviewer',

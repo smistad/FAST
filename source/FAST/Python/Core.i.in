@@ -11,45 +11,10 @@ from typing import *
 import $module
 "
 %enddef
-%module(moduleimport=MODULEIMPORT, directors=1) fast
+%module(moduleimport=MODULEIMPORT) fast_core
 #pragma SWIG nowarn=511
 
-%{
-
-#include <FAST/Object.hpp>
-#include <FAST/ProcessObject.hpp>
-#include <FAST/Reporter.hpp>
-#include <FAST/Visualization/SimpleWindow.hpp>
-#include <FAST/Visualization/View.hpp>
-#include <FAST/Visualization/Renderer.hpp>
-#include <FAST/Data/DataTypes.hpp>
-#include <FAST/Data/SimpleDataObject.hpp>
-@PYFAST_HEADER_INCLUDES@
-
-using namespace fast;
-#undef slots
-
-%}
-
-
-// General exception handler to avoid crashing python when something in FAST triggers an exception
-%exception {
-    try {
-        $action
-    } catch(std::exception &e) {
-        PyErr_SetString(PyExc_RuntimeError, e.what());
-        SWIG_fail;
-    }
-}
-
-// Third party stuff
-%include <std_pair.i>
-%include <std_string.i>
-%include <std_shared_ptr.i>
-%include <std_vector.i>
-%include <std_map.i>
-%include <stdint.i>
-%include <FAST/Python/std_unique_ptr.i>
+%include "Common.i"
 
 // Enable eigen <-> numpy data conversion
 %include <FAST/Python/eigen.i>
@@ -378,5 +343,3 @@ static float* _intToFloatPointer(std::size_t intPointer) {
     }
 }
 */
-
-%include "ProcessObjects.i"

@@ -49,7 +49,9 @@ if(FAST_MODULE_Python)
         set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include <${FILE}>\n")
     endforeach()
 
-    set(PYFAST_SOURCES Core.i)
+    set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
+    file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
+    set(PYFAST_SOURCES Common.i Core.i ProcessObjects.i)
     foreach(SRC ${PYFAST_SOURCES})
         set(PYFAST_FILE "${PROJECT_BINARY_DIR}/${SRC}")
         configure_file(
@@ -62,25 +64,28 @@ if(FAST_MODULE_Python)
         set_source_files_properties(${PYFAST_FILE} PROPERTIES USE_TARGET_INCLUDE_DIRECTORIES ON)
         if(NOT ${SRC} STREQUAL Common.i)
             list(APPEND PYFAST_CONFIGURED_SOURCES ${PYFAST_FILE})
+            # Build it
+            if(${SRC} STREQUAL Core.i) #FIXME
+                set(TARGET_NAME fast_core)
+            else()
+                set(TARGET_NAME fast_processobjects)
+            endif()
+            swig_add_library(${TARGET_NAME} TYPE MODULE LANGUAGE python SOURCES ${PYFAST_FILE})
+            if(WIN32)
+                get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
+                target_link_directories(_${TARGET_NAME} PRIVATE ${PYTHON_LIBRARY_DIR})
+                target_link_libraries(_${TARGET_NAME} python3 FAST)
+            else()
+                target_link_libraries(_${TARGET_NAME} ${PYTHON_LIBRARIES} FAST)
+            endif()
+            set_property(TARGET _${TARGET_NAME} PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
+            set_target_properties(_${TARGET_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+            set_target_properties(_${TARGET_NAME} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+            target_include_directories(_${TARGET_NAME} PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
+            target_include_directories(_${TARGET_NAME} PRIVATE ${PYTHON_INCLUDE_DIRS})
+            target_include_directories(_${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
         endif()
     endforeach()
-    # Build it
-    set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
-    file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
-    swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_CONFIGURED_SOURCES})
-    if(WIN32)
-        get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
-        target_link_directories(_fast PRIVATE ${PYTHON_LIBRARY_DIR})
-        swig_link_libraries(fast python3 FAST)
-    else()
-        swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
-    endif()
-    set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
-    set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
-    set_target_properties(_fast PROPERTIES EXCLUDE_FROM_ALL TRUE)
-    target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
-    target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
-    target_include_directories(_fast PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Trigger install operation
     add_custom_target(install_to_wheel
@@ -89,7 +94,7 @@ if(FAST_MODULE_Python)
         -D CMAKE_INSTALL_COMPONENT:STRING=fast
         -P ${PROJECT_BINARY_DIR}/cmake_install.cmake
     )
-    add_dependencies(install_to_wheel _fast)
+    add_dependencies(install_to_wheel _fast_core _fast_processobjects)
     message("PYTHON LIBRARIES: ${PYTHON_LIBRARIES}")
 
     if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
