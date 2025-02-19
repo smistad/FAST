@@ -81,6 +81,7 @@ if(FAST_MODULE_Python)
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
     target_include_directories(_fast PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(_fast PRIVATE ${CMAKE_BINARY_DIR})
 
     # Trigger install operation
     add_custom_target(install_to_wheel
@@ -109,12 +110,6 @@ if(FAST_MODULE_Python)
         -D FAST_VERSION=${FAST_VERSION}
         -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
         -D FAST_BINARY_DIR:STRING=${PROJECT_BINARY_DIR}
-        -D PYTHON_VERSION:STRING=${PYTHONLIBS_VERSION_STRING}
-        -D PYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
-        -D PYTHON_LIBRARIES:STRING=${PYTHON_LIBRARIES}
-        -D NUMPY_INCLUDE_DIR:STRING=${PYTHON_NUMPY_INCLUDE_DIR}
-        -D OpenCL_LIBRARIES:STRING=${OpenCL_LIBRARIES}
-        -D OPENGL_LIBRARIES:STRING=${OPENGL_LIBRARIES}
         -D OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
         -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
         -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
