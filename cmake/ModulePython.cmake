@@ -49,7 +49,7 @@ if(FAST_MODULE_Python)
         set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include <${FILE}>\n")
     endforeach()
 
-    set(PYFAST_SOURCES Core.i)
+    set(PYFAST_SOURCES Core.i ProcessObjects.i)
     foreach(SRC ${PYFAST_SOURCES})
         set(PYFAST_FILE "${PROJECT_BINARY_DIR}/${SRC}")
         configure_file(
@@ -67,7 +67,7 @@ if(FAST_MODULE_Python)
     # Build it
     set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
-    swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_CONFIGURED_SOURCES})
+    swig_add_library(fast LANGUAGE python SOURCES Core.i)
     if(WIN32)
         get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
         target_link_directories(_fast PRIVATE ${PYTHON_LIBRARY_DIR})
@@ -81,7 +81,6 @@ if(FAST_MODULE_Python)
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
     target_include_directories(_fast PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_include_directories(_fast PRIVATE ${CMAKE_BINARY_DIR})
 
     # Trigger install operation
     add_custom_target(install_to_wheel
