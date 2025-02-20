@@ -89,7 +89,7 @@ if(FAST_MODULE_Python)
         -D CMAKE_INSTALL_COMPONENT:STRING=fast
         -P ${PROJECT_BINARY_DIR}/cmake_install.cmake
     )
-    add_dependencies(install_to_wheel _fast)
+    add_dependencies(install_to_wheel FAST)
     message("PYTHON LIBRARIES: ${PYTHON_LIBRARIES}")
 
     if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
@@ -114,7 +114,7 @@ if(FAST_MODULE_Python)
         -D OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
         -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
         -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
-    add_dependencies(python-wheel install_to_wheel)
+    add_dependencies(python-wheel install_to_wheel _fast)
 else()
     message("-- Python module not enabled in CMake, Python bindings will NOT be created.")
 endif()
