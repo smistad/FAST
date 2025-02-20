@@ -1,2 +1,2 @@
 fast_add_sources(VectorMedianFilter.cpp VectorMedianFilter.hpp)
-fast_add_process_object(VectorMedianFilter VectorMedianFilter.hpp)
+fast_add_process_object(ALGORITHMS VectorMedianFilter VectorMedianFilter.hpp)

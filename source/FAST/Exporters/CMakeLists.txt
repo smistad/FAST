@@ -11,12 +11,12 @@ fast_add_sources(
     StreamToFileExporter.hpp
     Exporter.hpp
 )
-fast_add_python_interfaces(Exporter.hpp FileExporter.hpp)
-fast_add_python_shared_pointers(Exporter FileExporter)
-fast_add_process_object(MetaImageExporter MetaImageExporter.hpp)
-fast_add_process_object(ImageFileExporter ImageFileExporter.hpp)
-fast_add_process_object(StreamToFileExporter StreamToFileExporter.hpp)
-fast_add_process_object(VTKMeshFileExporter VTKMeshFileExporter.hpp)
+fast_add_python_interfaces(EXPORTERS Exporter.hpp FileExporter.hpp)
+fast_add_python_shared_pointers(EXPORTERS Exporter FileExporter)
+fast_add_process_object(EXPORTERS MetaImageExporter MetaImageExporter.hpp)
+fast_add_process_object(EXPORTERS ImageFileExporter ImageFileExporter.hpp)
+fast_add_process_object(EXPORTERS StreamToFileExporter StreamToFileExporter.hpp)
+fast_add_process_object(EXPORTERS VTKMeshFileExporter VTKMeshFileExporter.hpp)
 fast_add_test_sources(
     Tests/MetaImageExporterTests.cpp
     Tests/VTKMeshFileExporterTests.cpp
@@ -26,7 +26,7 @@ if(FAST_MODULE_Visualization)
         ImageExporter.cpp
         ImageExporter.hpp
     )
-    fast_add_process_object(ImageExporter ImageExporter.hpp)
+    fast_add_process_object(EXPORTERS ImageExporter ImageExporter.hpp)
     fast_add_test_sources(
         Tests/ImageExporterTests.cpp
     )
@@ -56,7 +56,7 @@ if(FAST_MODULE_HDF5)
         HDF5TensorExporter.hpp
         HDF5TensorExporter.cpp
     )
-    fast_add_process_object(HDF5TensorExporter HDF5TensorExporter.hpp)
+    fast_add_process_object(EXPORTERS HDF5TensorExporter HDF5TensorExporter.hpp)
     fast_add_test_sources(Tests/HDF5TensorExporterTests.cpp)
 endif()
 if(FAST_MODULE_WholeSlideImaging)
@@ -67,6 +67,6 @@ if(FAST_MODULE_WholeSlideImaging)
         TIFFImagePyramidExporter.hpp
     )
     fast_add_test_sources(Tests/TIFFImagePyramidExporterTests.cpp Tests/ImagePyramidPatchExporterTests.cpp)
-    fast_add_process_object(ImagePyramidPatchExporter ImagePyramidPatchExporter.hpp)
-    fast_add_process_object(TIFFImagePyramidExporter TIFFImagePyramidExporter.hpp)
+    fast_add_process_object(EXPORTERS ImagePyramidPatchExporter ImagePyramidPatchExporter.hpp)
+    fast_add_process_object(EXPORTERS TIFFImagePyramidExporter TIFFImagePyramidExporter.hpp)
 endif()

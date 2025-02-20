@@ -7,4 +7,4 @@ fast_add_test_sources(
         LevelSetTests.cpp
 )
 endif()
-fast_add_process_object(LevelSetSegmentation LevelSetSegmentation.hpp)
+fast_add_process_object(ALGORITHMS LevelSetSegmentation LevelSetSegmentation.hpp)

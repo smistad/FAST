@@ -10,7 +10,7 @@ fast_add_sources(
     InverseGradientSegmentation.cpp
     InverseGradientSegmentation.hpp
 )
-fast_add_process_object(TubeSegmentationAndCenterlineExtraction TubeSegmentationAndCenterlineExtraction.hpp)
+fast_add_process_object(ALGORITHMS TubeSegmentationAndCenterlineExtraction TubeSegmentationAndCenterlineExtraction.hpp)
 if(FAST_MODULE_Visualization)
 fast_add_test_sources(
     TubeSegmentationAndCenterlineExtractionTests.cpp

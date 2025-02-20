@@ -1,5 +1,5 @@
 if(FAST_MODULE_WholeSlideImaging)
     fast_add_sources(ImagePyramidLevelExtractor.cpp ImagePyramidLevelExtractor.hpp)
     fast_add_test_sources(Tests.cpp)
-    fast_add_process_object(ImagePyramidLevelExtractor ImagePyramidLevelExtractor.hpp)
+    fast_add_process_object(ALGORITHMS ImagePyramidLevelExtractor ImagePyramidLevelExtractor.hpp)
 endif()

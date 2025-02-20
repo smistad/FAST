@@ -36,7 +36,7 @@ fast_add_sources(
     DataStream.cpp
     DataStream.hpp
 )
-fast_add_process_object(FramerateSynchronizer FramerateSynchronizer.hpp)
+fast_add_process_object(CORE FramerateSynchronizer FramerateSynchronizer.hpp)
 if(FAST_MODULE_Visualization)
     fast_add_sources(
         Pipeline.hpp
@@ -46,5 +46,5 @@ if(FAST_MODULE_Visualization)
         DataHub.cpp
         DataHub.hpp
 	)
-    fast_add_python_interfaces(DataHub.hpp Pipeline.hpp)
+    fast_add_python_interfaces(CORE DataHub.hpp Pipeline.hpp)
 endif()

@@ -1,0 +1,10 @@
+// Importers pyfast module
+%module fast_importers
+#pragma SWIG nowarn=511
+
+%include "Common.i"
+%import "Core.i"
+
+@PYFAST_SHARED_PTR_DEFS_IMPORTERS@
+
+@PYFAST_INTERFACE_INCLUDES_IMPORTERS@

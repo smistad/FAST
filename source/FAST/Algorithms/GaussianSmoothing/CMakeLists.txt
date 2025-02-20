@@ -5,4 +5,4 @@ fast_add_sources(
 fast_add_test_sources(
     GaussianSmoothingTests.cpp
 )
-fast_add_process_object(GaussianSmoothing GaussianSmoothing.hpp)
+fast_add_process_object(ALGORITHMS GaussianSmoothing GaussianSmoothing.hpp)

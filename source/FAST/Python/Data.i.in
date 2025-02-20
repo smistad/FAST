@@ -1,0 +1,128 @@
+// data pyfast module
+%module fast_data
+
+%include "Common.i"
+%import "Core.i"
+
+@PYFAST_SHARED_PTR_DEFS_DATA@
+
+@PYFAST_INTERFACE_INCLUDES_DATA@
+
+// Extend image for numpy support
+%extend fast::Image {
+std::size_t _getHostDataPointer() {
+    auto access = $self->getImageAccess(ACCESS_READ);
+    return (std::size_t)access->get();
+}
+static void* _intToVoidPointer(std::size_t intPointer) {
+    return (void*)intPointer;
+}
+%pythoncode %{
+  _data_type_to_str = {
+    TYPE_UINT8: 'u1',
+    TYPE_INT8: 'i1',
+    TYPE_UINT16: 'u2',
+    TYPE_INT16: 'i2',
+    TYPE_UINT32: 'u4',
+    TYPE_INT32: 'i4',
+    TYPE_FLOAT: 'f4',
+  }
+  _str_to_data_type = {value : key for (key, value) in _data_type_to_str.items()}
+  @property
+  def __array_interface__(self):
+    if self.getDimensions() == 2:
+        shape = (self.getHeight(), self.getWidth(), self.getNrOfChannels())
+    else:
+        shape = (self.getDepth(), self.getHeight(), self.getWidth(), self.getNrOfChannels())
+    return {
+      'shape': shape,
+      'data': (self._getHostDataPointer(), False),
+      'typestr': self._data_type_to_str[self.getDataType()],
+      'version': 3,
+      'strides': None,
+    }
+
+  @staticmethod
+  def createFromArray(ndarray):
+    """Create a FAST image from a N-D array (e.g. numpy ndarray)"""
+    import numpy as np
+    if not hasattr(ndarray, '__array_interface__'):
+        raise ValueError('Input to Image createFromArray() must have the array_interface property')
+    # ndarray must be C contiguous
+    ndarray = np.ascontiguousarray(ndarray)
+    array_interface = ndarray.__array_interface__
+    shape = array_interface['shape']
+    is_2d = True
+    has_channels = False
+    if len(shape) == 3 and shape[-1] <= 4:
+        has_channels = True
+    elif len(shape) == 3 and shape[-1] > 4:
+        is_2d = False
+    elif len(shape) >= 5:
+        raise ValueError('Input to image cannot have shape with more than 4 dimensions')
+    elif len(shape) > 3:
+        is_2d = False
+        has_channels = True
+    elif len(shape) < 2:
+        raise ValueError('Input to image must have a shape with at least 2 dimensions')
+    if is_2d:
+        return Image.create(
+            shape[1],
+            shape[0],
+            Image._str_to_data_type[array_interface['typestr'][1:]],
+            shape[-1] if has_channels else 1,
+            Image._intToVoidPointer(array_interface['data'][0])
+        )
+    else:
+        return Image.create(
+            shape[2],
+            shape[1],
+            shape[0],
+            Image._str_to_data_type[array_interface['typestr'][1:]],
+            shape[-1] if has_channels else 1,
+            Image._intToVoidPointer(array_interface['data'][0])
+        )
+%}
+}
+
+// Extend Tensor for numpy support
+%extend fast::Tensor {
+std::size_t _getHostDataPointer() {
+    auto access = $self->getAccess(ACCESS_READ);
+    return (std::size_t)access->getRawData();
+}
+static float* _intToFloatPointer(std::size_t intPointer) {
+    return (float*)intPointer;
+}
+%pythoncode %{
+  @property
+  def __array_interface__(self):
+    return {
+      'shape': self.getShape().getAll(),
+      'data': (self._getHostDataPointer(), False),
+      'typestr': 'f4',
+      'version': 3,
+      'strides': None,
+    }
+
+  @staticmethod
+  def createFromArray(ndarray):
+    """Create a FAST Tensor from a N-D array (e.g. numpy ndarray)"""
+    import numpy as np
+    if not hasattr(ndarray, '__array_interface__'):
+        raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
+
+    # Check data type if it is correct
+    if ndarray.__array_interface__['typestr'][1:] != 'f4': # Is Float 32 bit?
+        print('WARNING: ndarray given to fast::Tensor::createFromArray was not 32 bit float and will now be converted.')
+    # Make sure it is C contiguous first
+    ndarray = np.ascontiguousarray(ndarray, dtype=np.float32)
+    array_interface = ndarray.__array_interface__
+    shape = array_interface['shape']
+    fast_shape = TensorShape()
+    for i in shape:
+        fast_shape.addDimension(i)
+
+    return Tensor.create(Tensor._intToFloatPointer(array_interface['data'][0]), fast_shape)
+%}
+}

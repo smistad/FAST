@@ -4,8 +4,8 @@ fast_add_sources(
     ColorToGrayscale.cpp
     ColorToGrayscale.hpp
 )
-fast_add_process_object(GrayscaleToColor GrayscaleToColor.hpp)
-fast_add_process_object(ColorToGrayscale ColorToGrayscale.hpp)
+fast_add_process_object(ALGORITHMS GrayscaleToColor GrayscaleToColor.hpp)
+fast_add_process_object(ALGORITHMS ColorToGrayscale ColorToGrayscale.hpp)
 fast_add_test_sources(
     ColorToGrayscaleTests.cpp
     GrayscaleToColorTests.cpp

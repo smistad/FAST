@@ -1,4 +1,4 @@
-fast_add_python_interfaces(MeshVertex.hpp) # Must be before Mesh access objects
+fast_add_python_interfaces(DATA MeshVertex.hpp) # Must be before Mesh access objects
 fast_add_subdirectories(Access)
 fast_add_sources(
     BoundingBox.cpp
@@ -34,14 +34,14 @@ fast_add_test_sources(
     Tests/DataObjectTests.cpp
     Tests/ImageTests.cpp
 )
-fast_add_process_object(BoundingBoxSetAccumulator BoundingBox.hpp)
-fast_add_python_interfaces(Image.hpp Mesh.hpp TensorShape.hpp Tensor.hpp Text.hpp MeshVertex.hpp Transform.hpp SimpleDataObject.hpp)
-fast_add_python_shared_pointers(Image BoundingBox BoundingBoxSet Mesh Tensor Segmentation Text)
+fast_add_process_object(DATA BoundingBoxSetAccumulator BoundingBox.hpp)
+fast_add_python_interfaces(DATA Image.hpp Mesh.hpp TensorShape.hpp Tensor.hpp Text.hpp MeshVertex.hpp Transform.hpp SimpleDataObject.hpp)
+fast_add_python_shared_pointers(DATA Image BoundingBox BoundingBoxSet Mesh Tensor Segmentation Text)
 
 if(FAST_MODULE_WholeSlideImaging)
     fast_add_sources(ImagePyramid.cpp ImagePyramid.hpp)
-    fast_add_python_interfaces(ImagePyramid.hpp)
-    fast_add_python_shared_pointers(ImagePyramid)
+    fast_add_python_interfaces(DATA ImagePyramid.hpp)
+    fast_add_python_shared_pointers(DATA ImagePyramid)
     fast_add_test_sources(Tests/ImagePyramidTests.cpp)
 endif()
 

@@ -11,8 +11,8 @@ fast_add_sources(
         TransferFunction.hpp
 )
 fast_add_test_sources(Tests.cpp)
-fast_add_python_interfaces(VolumeRenderer.hpp TransferFunction.hpp)
-fast_add_python_shared_pointers(VolumeRenderer)
-fast_add_process_object(AlphaBlendingVolumeRenderer AlphaBlendingVolumeRenderer.hpp)
-fast_add_process_object(ThresholdVolumeRenderer ThresholdVolumeRenderer.hpp)
-fast_add_process_object(MaximumIntensityProjection MaximumIntensityProjection.hpp)
+fast_add_python_interfaces(CORE VolumeRenderer.hpp TransferFunction.hpp)
+fast_add_python_shared_pointers(CORE VolumeRenderer)
+fast_add_process_object(CORE AlphaBlendingVolumeRenderer AlphaBlendingVolumeRenderer.hpp)
+fast_add_process_object(CORE ThresholdVolumeRenderer ThresholdVolumeRenderer.hpp)
+fast_add_process_object(CORE MaximumIntensityProjection MaximumIntensityProjection.hpp)

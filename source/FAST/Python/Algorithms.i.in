@@ -1,0 +1,31 @@
+// Algorithms pyfast module
+%module fast_algorithms
+
+%include "Common.i"
+%import "Core.i"
+%import "Data.i"
+
+%ignore std::vector<fast::NeuralNetworkNode>::vector(size_type);
+%ignore std::vector<fast::NeuralNetworkNode>::resize;
+%ignore std::vector<fast::NeuralNetworkNode>::pop;
+%template(NeuralNetworkNodes) std::vector<fast::NeuralNetworkNode>;
+%template(NeuralNetworkNodeMap) std::map<std::string, fast::NeuralNetworkNode>;
+%template(Regions) std::vector<fast::Region>;
+
+@PYFAST_SHARED_PTR_DEFS_ALGORITHMS@
+
+%shared_ptr(fast::SimpleDataObject<fast::InferenceDataList>)
+%shared_ptr(fast::Batch)
+%shared_ptr(fast::Sequence)
+%shared_ptr(fast::FloatScalar)
+%shared_ptr(fast::FloatPoint)
+%template(FloatScalarT) fast::SimpleDataObject<float>;
+%template(FloatPointT) fast::SimpleDataObject<Vector2f>;
+%template(BatchT) fast::SimpleDataObject<fast::InferenceDataList>;
+%template(SequenceT) fast::SimpleDataObject<fast::InferenceDataList>;
+%template(ClassificationSimpleDataType) fast::SimpleDataObject<std::map<std::string, float>>;
+%shared_ptr(fast::SimpleDataObject<std::vector<fast::Region>>)
+%shared_ptr(fast::RegionList)
+%template(RegionListT) fast::SimpleDataObject<std::vector<fast::Region>>;
+
+@PYFAST_INTERFACE_INCLUDES_ALGORITHMS@

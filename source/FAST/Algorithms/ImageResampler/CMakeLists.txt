@@ -10,5 +10,5 @@ fast_add_test_sources(
     IsotropicResamplerTests.cpp
 )
 endif()
-fast_add_process_object(ImageResampler ImageResampler.hpp)
-fast_add_process_object(IsotropicResampler IsotropicResampler.hpp)
+fast_add_process_object(ALGORITHMS ImageResampler ImageResampler.hpp)
+fast_add_process_object(ALGORITHMS IsotropicResampler IsotropicResampler.hpp)

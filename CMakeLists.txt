@@ -17,6 +17,7 @@ set(FAST_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 # the zlib library to be 'zlib' when it was in fact 'zlibd'.
 cmake_policy(SET CMP0022 NEW)
 
+set(PYTHON_GROUPS CORE;IMPORTERS;EXPORTERS;STREAMERS;VISUALIZATION;DATA;ALGORITHMS)
 include(cmake/Macros.cmake)
 
 #### Options

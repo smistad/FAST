@@ -31,27 +31,29 @@ if(FAST_MODULE_Python)
 
     # Generate the PyFAST interface file
     # Include all header files
-    list(REMOVE_DUPLICATES FAST_PYTHON_HEADER_FILES)
-    foreach(FILE ${FAST_PYTHON_HEADER_FILES})
-        if(${FILE} MATCHES "^.*hpp$")
-            set(PYFAST_HEADER_INCLUDES "${PYFAST_HEADER_INCLUDES}#include <${FILE}>\n")
-        endif()
-    endforeach()
+    foreach(GROUP ${PYTHON_GROUPS})
+        list(REMOVE_DUPLICATES FAST_PYTHON_HEADER_FILES_${GROUP})
+        foreach(FILE ${FAST_PYTHON_HEADER_FILES_${GROUP}})
+            if(${FILE} MATCHES "^.*hpp$")
+                set(PYFAST_HEADER_INCLUDES_${GROUP} "${PYFAST_HEADER_INCLUDES_${GROUP}}#include <${FILE}>\n")
+            endif()
+        endforeach()
 
-    # Create shared_ptr defines
-    list(REMOVE_DUPLICATES FAST_PYTHON_SHARED_PTR_OBJECTS)
-    foreach(OBJECT ${FAST_PYTHON_SHARED_PTR_OBJECTS})
-        set(PYFAST_SHARED_PTR_DEFS "${PYFAST_SHARED_PTR_DEFS}%shared_ptr(fast::${OBJECT})\n")
-    endforeach()
+        # Create shared_ptr defines
+        list(REMOVE_DUPLICATES FAST_PYTHON_SHARED_PTR_OBJECTS_${GROUP})
+        foreach(OBJECT ${FAST_PYTHON_SHARED_PTR_OBJECTS_${GROUP}})
+            set(PYFAST_SHARED_PTR_DEFS_${GROUP} "${PYFAST_SHARED_PTR_DEFS_${GROUP}}%shared_ptr(fast::${OBJECT})\n")
+        endforeach()
 
-    # Include all python interface files
-    foreach(FILE ${FAST_PYTHON_HEADER_FILES})
-        set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include <${FILE}>\n")
+        # Include all python interface files
+        foreach(FILE ${FAST_PYTHON_HEADER_FILES_${GROUP}})
+            set(PYFAST_INTERFACE_INCLUDES_${GROUP} "${PYFAST_INTERFACE_INCLUDES_${GROUP}}%include <${FILE}>\n")
+        endforeach()
     endforeach()
 
     set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
-    set(PYFAST_SOURCES Common.i Core.i ProcessObjects.i)
+    set(PYFAST_SOURCES Common.i Core.i Data.i Algorithms.i ProcessObjects.i Importers.i Exporters.i Streamers.i)
     foreach(SRC ${PYFAST_SOURCES})
         set(PYFAST_FILE "${PROJECT_BINARY_DIR}/${SRC}")
         configure_file(
@@ -65,11 +67,9 @@ if(FAST_MODULE_Python)
         if(NOT ${SRC} STREQUAL Common.i)
             list(APPEND PYFAST_CONFIGURED_SOURCES ${PYFAST_FILE})
             # Build it
-            if(${SRC} STREQUAL Core.i) #FIXME
-                set(TARGET_NAME fast_core)
-            else()
-                set(TARGET_NAME fast_processobjects)
-            endif()
+            string(REGEX REPLACE "\\.[^.]*$" "" NAME ${SRC})
+            string(TOLOWER ${NAME} NAME)
+            set(TARGET_NAME fast_${NAME})
             swig_add_library(${TARGET_NAME} TYPE MODULE LANGUAGE python SOURCES ${PYFAST_FILE})
             if(WIN32)
                 get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
@@ -78,6 +78,8 @@ if(FAST_MODULE_Python)
             else()
                 target_link_libraries(_${TARGET_NAME} ${PYTHON_LIBRARIES} FAST)
             endif()
+            #set_property(SOURCE ${CMAKE_BINARY_DIR}/python/fast/${NAME}PYTHON_wrap.h PROPERTY SKIP_AUTOGEN ON)
+            #set_property(SOURCE ${CMAKE_BINARY_DIR}/python/fast/${NAME}PYTHON_wrap.cxx PROPERTY SKIP_AUTOGEN ON)
             set_property(TARGET _${TARGET_NAME} PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
             set_target_properties(_${TARGET_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
             set_target_properties(_${TARGET_NAME} PROPERTIES EXCLUDE_FROM_ALL TRUE)
@@ -95,7 +97,7 @@ if(FAST_MODULE_Python)
         -D CMAKE_INSTALL_COMPONENT:STRING=fast
         -P ${PROJECT_BINARY_DIR}/cmake_install.cmake
     )
-    add_dependencies(install_to_wheel _fast_core _fast_processobjects)
+    add_dependencies(install_to_wheel _fast_core _fast_processobjects _fast_importers _fast_exporters _fast_streamers _fast_data _fast_algorithms)
     message("PYTHON LIBRARIES: ${PYTHON_LIBRARIES}")
 
     if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")

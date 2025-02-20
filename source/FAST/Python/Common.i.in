@@ -1,3 +1,10 @@
+#pragma SWIG nowarn=511
+#pragma SWIG nowarn=315
+#pragma SWIG nowarn=401
+#pragma SWIG nowarn=325
+#pragma SWIG nowarn=503
+#pragma SWIG nowarn=389
+#pragma SWIG nowarn=314
 
 %{
 
@@ -9,7 +16,12 @@
 #include <FAST/Visualization/Renderer.hpp>
 #include <FAST/Data/DataTypes.hpp>
 #include <FAST/Data/SimpleDataObject.hpp>
-@PYFAST_HEADER_INCLUDES@
+@PYFAST_HEADER_INCLUDES_CORE@
+@PYFAST_HEADER_INCLUDES_IMPORTERS@
+@PYFAST_HEADER_INCLUDES_EXPORTERS@
+@PYFAST_HEADER_INCLUDES_STREAMERS@
+@PYFAST_HEADER_INCLUDES_DATA@
+@PYFAST_HEADER_INCLUDES_ALGORITHMS@
 
 using namespace fast;
 #undef slots
@@ -36,6 +48,121 @@ using namespace fast;
 %include <stdint.i>
 %include <FAST/Python/std_unique_ptr.i>
 
+// Enable eigen <-> numpy data conversion
+%include <FAST/Python/eigen.i>
+%eigen_typemaps(Vector2f)
+%eigen_typemaps(Vector3f)
+%eigen_typemaps(Vector2i)
+%eigen_typemaps(Vector3i)
+%eigen_typemaps(Vector2ui)
+%eigen_typemaps(Vector3ui)
+%eigen_typemaps(VectorXf)
+%eigen_typemaps(VectorXi)
+%eigen_typemaps(VectorXui)
+%eigen_typemaps(Matrix3f)
+%eigen_typemaps(Matrix4f)
+
+
+// Define FAST_EXPORT to nothing to avoid compile errors
+%define FAST_EXPORT
+%enddef
+%define Q_OBJECT
+%enddef
+%define Q_SLOTS
+%enddef
+%define Q_SIGNALS
+public
+%enddef
 
 
 
+// Enable std::vector and std::map <-> python conversion
+%include <FAST/Data/DataTypes.hpp>
+%template(vectori) std::vector<int>;
+%template(vectorf) std::vector<float>;
+%template(vectorui) std::vector<uint>;
+%template(vectorc) std::vector<char>;
+%template(vectoruc) std::vector<uchar>;
+%template(vectors) std::vector<std::string>;
+%template(vectorqwidget) std::vector<QWidget*>;
+
+%template(LabelColors) std::map<uint, fast::Color>;
+%template(LabelNames) std::map<uint, std::string>;
+%template(StringMap) std::map<std::string, std::string>;
+%template(StringFloatMap) std::map<std::string, float>;
+%template(StringFloatPair) std::pair<std::string, float>;
+// This avoids the no default constructor available problem for this vector types:
+%ignore std::vector<fast::MeshVertex>::vector(size_type);
+%ignore std::vector<fast::MeshVertex>::resize;
+%ignore std::vector<fast::MeshVertex>::pop;
+%ignore std::vector<fast::MeshLine>::vector(size_type);
+%ignore std::vector<fast::MeshLine>::resize;
+%ignore std::vector<fast::MeshLine>::pop;
+%ignore std::vector<fast::MeshTriangle>::vector(size_type);
+%ignore std::vector<fast::MeshTriangle>::resize;
+%ignore std::vector<fast::MeshTriangle>::pop;
+%template(vectormeshvertex) std::vector<fast::MeshVertex>;
+%template(vectormeshline) std::vector<fast::MeshLine>;
+%template(vectormeshtriangle) std::vector<fast::MeshTriangle>;
+%template(Connections) std::vector<std::vector<fast::MeshLine>>;
+
+// FAST CORE LIBRARY
+
+// Ignore statements
+%ignore getDevice;
+%ignore ReporterEnd::~ReporterEnd();
+%ignore QObject;
+%ignore MovieStreamerWorker;
+%ignore CameraWorker;
+%ignore ImagePyramidLevel;
+%ignore ImagePyramidPatch;
+%ignore fast::ImagePyramidAccess::getPatchData;
+%ignore fast::ImagePyramidAccess::getPatch;
+%ignore fast::Tensor::create(std::unique_ptr<float[]> data, TensorShape shape);
+// Disable GIL on PythonStreamer execute to avoid deadlock between execute and generateStream
+%ignore fast::PythonStreamer::execute;
+%ignore fast::PythonRandomAccessStreamer::execute;
+%ignore fast::PythonRandomAccessStreamer::getPause;
+%ignore fast::PythonRandomAccessStreamer::waitForUnpause;
+%ignore fast::Streamer::waitForFirstFrame;
+%ignore fast::Streamer::startStream;
+%ignore fast::Streamer::setMaximumNrOfFrames;
+
+%nodefaultdtor Config;
+
+// unique_ptr declerations
+%unique_ptr(fast::OpenCLImageAccess)
+%unique_ptr(fast::ImageAccess)
+%unique_ptr(fast::OpenCLBufferAccess)
+%unique_ptr(fast::BoundingBoxSetAccess)
+%unique_ptr(fast::BoundingBoxSetOpenGLAccess)
+%unique_ptr(fast::MeshAccess)
+%unique_ptr(fast::VertexBufferObjectAccess)
+%unique_ptr(fast::MeshOpenCLAccess)
+%unique_ptr(fast::TensorAccess)
+%unique_ptr(fast::ImagePyramidAccess)
+%unique_ptr(fast::OpenGLTextureAccess)
+
+// Shared_ptr declerations
+%shared_ptr(fast::Object)
+%shared_ptr(fast::AttributeObject)
+%shared_ptr(fast::DataChannel)
+%shared_ptr(fast::ExecutionDevice)
+%shared_ptr(fast::Host)
+%shared_ptr(fast::OpenCLDevice)
+%shared_ptr(fast::RuntimeMeasurement)
+%shared_ptr(fast::RuntimeMeasurementsManager)
+%shared_ptr(fast::DataObject)
+%shared_ptr(fast::Transform)
+%shared_ptr(fast::SpatialDataObject)
+%shared_ptr(fast::DataChannel)
+%shared_ptr(fast::ProcessObject)
+@PYFAST_SHARED_PTR_DEFS_CORE@
+
+// These must live here due to the shared_ptr
+%template(vectorrenderer) std::vector<std::shared_ptr<fast::Renderer>>;
+%template(vectorpo) std::vector<std::shared_ptr<fast::ProcessObject>>;
+%template(vectorimage) std::vector<std::shared_ptr<fast::Image>>;
+%template(vectortensor) std::vector<std::shared_ptr<fast::Tensor>>;
+%template(DataMap) std::map<std::string, std::shared_ptr<fast::DataObject>>;
+%template(ProcessObjectMap) std::map<std::string, std::shared_ptr<fast::ProcessObject>>;

@@ -2,5 +2,5 @@ fast_add_sources(
 	MeanValueCoordinatesModel.hpp
 	MeanValueCoordinatesModel.cpp
 )
-fast_add_python_interfaces(MeanValueCoordinatesModel.hpp)
-fast_add_python_shared_pointers(MeanValueCoordinatesModel)
+fast_add_python_interfaces(ALGORITHMS MeanValueCoordinatesModel.hpp)
+fast_add_python_shared_pointers(ALGORITHMS MeanValueCoordinatesModel)

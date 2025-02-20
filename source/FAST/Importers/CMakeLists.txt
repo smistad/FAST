@@ -10,14 +10,14 @@ fast_add_sources(
     ImageFileImporter.hpp
 )
 # The order here is important, this must come first:
-fast_add_python_interfaces(Importer.hpp FileImporter.hpp)
-fast_add_python_shared_pointers(Importer FileImporter)
+fast_add_python_interfaces(IMPORTERS Importer.hpp FileImporter.hpp)
+fast_add_python_shared_pointers(IMPORTERS Importer FileImporter)
 
-fast_add_process_object(ImageFileImporter ImageFileImporter.hpp)
-fast_add_process_object(MetaImageImporter MetaImageImporter.hpp)
-fast_add_process_object(ImageImporter ImageImporter.hpp)
-fast_add_process_object(VTKMeshFileImporter VTKMeshFileImporter.hpp)
-fast_add_process_object(NIFTIImporter NIFTIImporter.hpp)
+fast_add_process_object(IMPORTERS ImageFileImporter ImageFileImporter.hpp)
+fast_add_process_object(IMPORTERS MetaImageImporter MetaImageImporter.hpp)
+fast_add_process_object(IMPORTERS ImageImporter ImageImporter.hpp)
+fast_add_process_object(IMPORTERS VTKMeshFileImporter VTKMeshFileImporter.hpp)
+fast_add_process_object(IMPORTERS NIFTIImporter NIFTIImporter.hpp)
 fast_add_test_sources(
     Tests/MetaImageImporterTests.cpp
     Tests/VTKMeshFileImporterTests.cpp
@@ -29,7 +29,7 @@ fast_add_sources(
     DICOMFileImporter.cpp
     DICOMFileImporter.hpp
 )
-fast_add_process_object(DICOMFileImporter DICOMFileImporter.hpp)
+fast_add_process_object(IMPORTERS DICOMFileImporter DICOMFileImporter.hpp)
 fast_add_test_sources(
     Tests/DICOMFileImporterTests.cpp
 )
@@ -73,15 +73,15 @@ if(FAST_MODULE_WholeSlideImaging)
     fast_add_test_sources(
         Tests/WholeSlideImageImporterTests.cpp
     )
-    fast_add_process_object(WholeSlideImageImporter WholeSlideImageImporter.hpp)
-    fast_add_process_object(ImagePyramidPatchImporter ImagePyramidPatchImporter.hpp)
-    fast_add_process_object(TIFFImagePyramidImporter TIFFImagePyramidImporter.hpp)
+    fast_add_process_object(IMPORTERS WholeSlideImageImporter WholeSlideImageImporter.hpp)
+    fast_add_process_object(IMPORTERS ImagePyramidPatchImporter ImagePyramidPatchImporter.hpp)
+    fast_add_process_object(IMPORTERS TIFFImagePyramidImporter TIFFImagePyramidImporter.hpp)
 endif()
 if(FAST_MODULE_HDF5)
     fast_add_sources(
         HDF5TensorImporter.cpp
         HDF5TensorImporter.hpp
     )
-    fast_add_process_object(HDF5TensorImporter HDF5TensorImporter.hpp)
+    fast_add_process_object(IMPORTERS HDF5TensorImporter HDF5TensorImporter.hpp)
     fast_add_test_sources(Tests/HDF5TensorImporterTests.cpp)
 endif()

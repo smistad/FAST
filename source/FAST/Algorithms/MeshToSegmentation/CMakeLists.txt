@@ -7,4 +7,4 @@ fast_add_test_sources(
 	Tests.cpp
 )
 endif()
-fast_add_process_object(MeshToSegmentation MeshToSegmentation.hpp)
+fast_add_process_object(ALGORITHMS MeshToSegmentation MeshToSegmentation.hpp)

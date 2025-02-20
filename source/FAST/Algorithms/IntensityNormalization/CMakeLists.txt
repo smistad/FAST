@@ -4,8 +4,8 @@ fast_add_sources(
         ZeroMeanUnitVariance.cpp
         ZeroMeanUnitVariance.hpp
 )
-fast_add_process_object(IntensityNormalization IntensityNormalization.hpp)
-fast_add_process_object(ZeroMeanUnitVariance ZeroMeanUnitVariance.hpp)
+fast_add_process_object(ALGORITHMS IntensityNormalization IntensityNormalization.hpp)
+fast_add_process_object(ALGORITHMS ZeroMeanUnitVariance ZeroMeanUnitVariance.hpp)
 fast_add_test_sources(
     IntensityNormalizationTests.cpp
 )

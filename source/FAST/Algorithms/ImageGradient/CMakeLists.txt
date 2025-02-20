@@ -5,4 +5,4 @@ fast_add_sources(
 fast_add_test_sources(
     ImageGradientTests.cpp
 )
-fast_add_process_object(ImageGradient ImageGradient.hpp)
+fast_add_process_object(ALGORITHMS ImageGradient ImageGradient.hpp)

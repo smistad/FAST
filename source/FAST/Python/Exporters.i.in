@@ -1,0 +1,11 @@
+// Exporters pyfast module
+%module fast_exporters
+#pragma SWIG nowarn=511
+
+%include "Common.i"
+%import "Core.i"
+
+@PYFAST_SHARED_PTR_DEFS_EXPORTERS@
+
+@PYFAST_INTERFACE_INCLUDES_EXPORTERS@
+

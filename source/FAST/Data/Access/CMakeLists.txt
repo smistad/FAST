@@ -21,11 +21,11 @@ fast_add_sources(
     OpenGLTextureAccess.cpp
     OpenGLTextureAccess.hpp
 )
-fast_add_python_interfaces(MeshAccess.hpp MeshOpenCLAccess.hpp VertexBufferObjectAccess.hpp TensorAccess.hpp)
+fast_add_python_interfaces(DATA MeshAccess.hpp MeshOpenCLAccess.hpp VertexBufferObjectAccess.hpp TensorAccess.hpp)
 if(FAST_MODULE_WholeSlideImaging)
 fast_add_sources(
     ImagePyramidAccess.cpp 
     ImagePyramidAccess.hpp
 )
-fast_add_python_interfaces(ImagePyramidAccess.hpp)
+fast_add_python_interfaces(DATA ImagePyramidAccess.hpp)
 endif()

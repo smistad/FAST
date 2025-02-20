@@ -6,8 +6,8 @@ fast_add_sources(
 	Shape.cpp
 	Shape.hpp
 )
-fast_add_python_interfaces(KalmanFilterModelSegmentation.hpp AppearanceModel.hpp ShapeModel.hpp Shape.hpp)
-fast_add_python_shared_pointers(KalmanFilterModelSegmentation AppearanceModel ShapeModel Shape)
+fast_add_python_interfaces(ALGORITHMS KalmanFilterModelSegmentation.hpp AppearanceModel.hpp ShapeModel.hpp Shape.hpp)
+fast_add_python_shared_pointers(ALGORITHMS KalmanFilterModelSegmentation AppearanceModel ShapeModel Shape)
 if(FAST_MODULE_Visualization)
 fast_add_test_sources(
 	Tests.cpp

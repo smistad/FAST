@@ -1,0 +1,10 @@
+// Streamers pyfast module
+%module fast_streamers
+
+%include "Common.i"
+%import "Core.i"
+%import "Data.i"
+
+@PYFAST_SHARED_PTR_DEFS_STREAMERS@
+
+@PYFAST_INTERFACE_INCLUDES_STREAMERS@

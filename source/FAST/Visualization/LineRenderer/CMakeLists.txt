@@ -5,4 +5,4 @@ fast_add_sources(
 fast_add_test_sources(
     LineRendererTests.cpp
 )
-fast_add_process_object(LineRenderer LineRenderer.hpp)
+fast_add_process_object(CORE LineRenderer LineRenderer.hpp)

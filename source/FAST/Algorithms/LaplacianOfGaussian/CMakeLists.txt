@@ -7,4 +7,4 @@ fast_add_test_sources(
     LaplacianOfGaussianTests.cpp
 )
 endif()
-fast_add_process_object(LaplacianOfGaussian LaplacianOfGaussian.hpp)
+fast_add_process_object(ALGORITHMS LaplacianOfGaussian LaplacianOfGaussian.hpp)

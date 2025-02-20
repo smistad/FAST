@@ -1,3 +1,3 @@
 fast_add_sources(RunUntilFinished.cpp RunUntilFinished.hpp)
 fast_add_test_sources(Tests.cpp)
-fast_add_process_object(RunUntilFinished RunUntilFinished.hpp)
+fast_add_process_object(ALGORITHMS RunUntilFinished RunUntilFinished.hpp)
