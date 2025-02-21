@@ -1,5 +1,10 @@
 // Visualization pyfast module
-%module fast_importers
+%define MODULEIMPORT
+"
+import $module
+"
+%enddef
+%module(moduleimport=MODULEIMPORT) fast_visualization
 
 %include "Common.i"
 %import "Core.i"

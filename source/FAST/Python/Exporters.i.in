@@ -1,9 +1,13 @@
 // Exporters pyfast module
-%module fast_exporters
+%define MODULEIMPORT
+"
+import $module
+"
+%enddef
+%module(moduleimport=MODULEIMPORT) fast_exporters
 #pragma SWIG nowarn=511
 
 %include "Common.i"
-%import "Core.i"
 
 @PYFAST_SHARED_PTR_DEFS_EXPORTERS@
 

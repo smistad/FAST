@@ -1,5 +1,10 @@
 // Streamers pyfast module
-%module fast_streamers
+%define MODULEIMPORT
+"
+import $module
+"
+%enddef
+%module(moduleimport=MODULEIMPORT) fast_streamers
 
 %include "Common.i"
 %import "Core.i"

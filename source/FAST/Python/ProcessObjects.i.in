@@ -1,5 +1,10 @@
 // Python process object functionality using directors feature
-%module(directors=1) fast_processobjects
+%define MODULEIMPORT
+"
+import $module
+"
+%enddef
+%module(moduleimport=MODULEIMPORT, directors=1) fast_processobjects
 #pragma SWIG nowarn=511
 
 %include "Common.i"

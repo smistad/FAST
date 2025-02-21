@@ -4,8 +4,12 @@
 #include <crtdefs.h>
 #endif
 %}
-
-%module fast_core
+%define MODULEIMPORT
+"
+import $module
+"
+%enddef
+%module(moduleimport=MODULEIMPORT) fast_core
 
 %include "Common.i"
 

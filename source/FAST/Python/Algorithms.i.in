@@ -1,5 +1,10 @@
 // Algorithms pyfast module
-%module fast_algorithms
+%define MODULEIMPORT
+"
+import $module
+"
+%enddef
+%module(moduleimport=MODULEIMPORT) fast_algorithms
 
 %include "Common.i"
 %import "Core.i"
