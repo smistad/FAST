@@ -22,6 +22,7 @@
 @PYFAST_HEADER_INCLUDES_STREAMERS@
 @PYFAST_HEADER_INCLUDES_DATA@
 @PYFAST_HEADER_INCLUDES_ALGORITHMS@
+@PYFAST_HEADER_INCLUDES_VISUALIZATION@
 
 using namespace fast;
 #undef slots
@@ -160,7 +161,6 @@ public
 @PYFAST_SHARED_PTR_DEFS_CORE@
 
 // These must live here due to the shared_ptr
-%template(vectorrenderer) std::vector<std::shared_ptr<fast::Renderer>>;
 %template(vectorpo) std::vector<std::shared_ptr<fast::ProcessObject>>;
 %template(vectorimage) std::vector<std::shared_ptr<fast::Image>>;
 %template(vectortensor) std::vector<std::shared_ptr<fast::Tensor>>;

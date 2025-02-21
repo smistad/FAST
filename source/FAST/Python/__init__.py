@@ -24,6 +24,7 @@ from .fast_importers import *
 from .fast_exporters import *
 from .fast_streamers import *
 from .fast_algorithms import *
+from .fast_visualization import *
 Config.setBasePath(bin_path)
 Config.setTerminateHandlerDisabled(True)
 if True not in [x in sys.argv[0] for x in ['UFFviewer', 'runPipeline', 'systemCheck']]:
