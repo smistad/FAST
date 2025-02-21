@@ -2,6 +2,6 @@ fast_add_sources(
     RenderToImage.cpp
     RenderToImage.hpp
 )
-fast_add_process_object(CORE RenderToImage RenderToImage.hpp)
+fast_add_process_object(VISUALIZATION RenderToImage RenderToImage.hpp)
 
 fast_add_test_sources(Tests.cpp)

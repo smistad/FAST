@@ -5,7 +5,7 @@ if(FAST_MODULE_Plotting)
         LinePlotter.cpp
         LinePlotter.hpp
     )
-    fast_add_python_interfaces(CORE Plotter.hpp)
-    fast_add_python_shared_pointers(CORE Plotter)
-    fast_add_process_object(CORE LinePlotter LinePlotter.hpp)
+    fast_add_python_interfaces(VISUALIZATION Plotter.hpp)
+    fast_add_python_shared_pointers(VISUALIZATION Plotter)
+    fast_add_process_object(VISUALIZATION LinePlotter LinePlotter.hpp)
 endif()

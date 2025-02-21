@@ -1,0 +1,11 @@
+// Visualization pyfast module
+%module fast_importers
+
+%include "Common.i"
+%import "Core.i"
+
+@PYFAST_SHARED_PTR_DEFS_VISUALIZATION@
+
+%template(vectorrenderer) std::vector<std::shared_ptr<fast::Renderer>>;
+
+@PYFAST_INTERFACE_INCLUDES_VISUALIZATION@

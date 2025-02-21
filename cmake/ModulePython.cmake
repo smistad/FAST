@@ -53,7 +53,7 @@ if(FAST_MODULE_Python)
 
     set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
-    set(PYFAST_SOURCES Common.i Core.i Data.i Algorithms.i ProcessObjects.i Importers.i Exporters.i Streamers.i)
+    set(PYFAST_SOURCES Common.i Core.i Data.i Algorithms.i ProcessObjects.i Importers.i Exporters.i Streamers.i Visualization.i)
     foreach(SRC ${PYFAST_SOURCES})
         set(PYFAST_FILE "${PROJECT_BINARY_DIR}/${SRC}")
         configure_file(
@@ -65,12 +65,12 @@ if(FAST_MODULE_Python)
         set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
         set_source_files_properties(${PYFAST_FILE} PROPERTIES USE_TARGET_INCLUDE_DIRECTORIES ON)
         if(NOT ${SRC} STREQUAL Common.i)
-            list(APPEND PYFAST_CONFIGURED_SOURCES ${PYFAST_FILE})
             # Build it
             string(REGEX REPLACE "\\.[^.]*$" "" NAME ${SRC})
             string(TOLOWER ${NAME} NAME)
             set(TARGET_NAME fast_${NAME})
             swig_add_library(${TARGET_NAME} TYPE MODULE LANGUAGE python SOURCES ${PYFAST_FILE})
+            list(APPEND SWIG_TARGETS _${TARGET_NAME})
             if(WIN32)
                 get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
                 target_link_directories(_${TARGET_NAME} PRIVATE ${PYTHON_LIBRARY_DIR})
@@ -97,7 +97,7 @@ if(FAST_MODULE_Python)
         -D CMAKE_INSTALL_COMPONENT:STRING=fast
         -P ${PROJECT_BINARY_DIR}/cmake_install.cmake
     )
-    add_dependencies(install_to_wheel _fast_core _fast_processobjects _fast_importers _fast_exporters _fast_streamers _fast_data _fast_algorithms)
+    add_dependencies(install_to_wheel FAST)
     message("PYTHON LIBRARIES: ${PYTHON_LIBRARIES}")
 
     if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
@@ -120,7 +120,7 @@ if(FAST_MODULE_Python)
         -D OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
         -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
         -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
-    add_dependencies(python-wheel install_to_wheel)
+    add_dependencies(python-wheel install_to_wheel ${SWIG_TARGETS})
 else()
     message("-- Python module not enabled in CMake, Python bindings will NOT be created.")
 endif()

@@ -2,7 +2,7 @@ fast_add_sources(
     TriangleRenderer.cpp
     TriangleRenderer.hpp
 )
-fast_add_process_object(CORE TriangleRenderer TriangleRenderer.hpp)
+fast_add_process_object(VISUALIZATION TriangleRenderer TriangleRenderer.hpp)
 fast_add_test_sources(
     TriangleRendererTests.cpp
 )

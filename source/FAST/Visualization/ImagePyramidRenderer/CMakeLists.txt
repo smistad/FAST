@@ -3,5 +3,5 @@ fast_add_sources(
         ImagePyramidRenderer.cpp
         ImagePyramidRenderer.hpp
 )
-fast_add_process_object(CORE ImagePyramidRenderer ImagePyramidRenderer.hpp)
+fast_add_process_object(VISUALIZATION ImagePyramidRenderer ImagePyramidRenderer.hpp)
 endif()
