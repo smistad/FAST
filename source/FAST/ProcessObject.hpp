@@ -194,7 +194,7 @@ class FAST_EXPORT  ProcessObject : public AttributeObject {
         void createOutputPort(uint portID);
 
         template <class DataType>
-        std::shared_ptr<DataType> getInputData(uint portID = 0);
+        std::shared_ptr<DataType> getInputData(uint portID = 0, bool readFrameData = true);
         void addOutputData(DataObject::pointer data, bool propagateLastFrameData = true, bool propagateFrameData = true);
         void addOutputData(uint portID, DataObject::pointer data, bool propagateLastFrameData = true, bool propagateFrameData = true);
 
@@ -269,7 +269,7 @@ void ProcessObject::createOutputPort(uint portID) {
 }
 
 template<class DataType>
-std::shared_ptr<DataType> ProcessObject::getInputData(uint portID) {
+std::shared_ptr<DataType> ProcessObject::getInputData(uint portID, bool readFrameData) {
     validateInputPortExists(portID);
     DataChannel::pointer port = mInputConnections.at(portID);
     DataObject::pointer data = port->getNextFrame();
@@ -280,10 +280,12 @@ std::shared_ptr<DataType> ProcessObject::getInputData(uint portID) {
         throw BadCastException(data->getNameOfClass(), DataType::getStaticNameOfClass());
 
     // Store frame data for this input data so it can be added to output data later
-    for(auto&& lastFrame : data->getLastFrame())
-        m_lastFrame.insert(lastFrame);
-    for(auto&& frameData : data->getFrameData())
-        m_frameData[frameData.first] = frameData.second;
+    if(readFrameData) {
+        for(auto&& lastFrame : data->getLastFrame())
+            m_lastFrame.insert(lastFrame);
+        for(auto&& frameData : data->getFrameData())
+            m_frameData[frameData.first] = frameData.second;
+    }
 
     return convertedData;
 }
