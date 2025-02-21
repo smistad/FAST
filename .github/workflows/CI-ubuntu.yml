@@ -179,7 +179,7 @@ jobs:
         run: |
           sudo apt install libopenslide0 libpocl2t64 xvfb
       - name: Download artifacts
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: 'Archive package (tar.xz)'
           path: ${{github.workspace}}/download/
@@ -212,10 +212,13 @@ jobs:
   test-python:
     name: Run Python Tests
     needs: [build]
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-24.04
     steps:
+      - name: Install dependencies
+        run: |
+          sudo apt install libopenslide0 libpocl2t64 xvfb
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: 'Python wheel'
           path: ${{github.workspace}}/download/
@@ -232,6 +235,7 @@ jobs:
         env:
           DISPLAY: ':1'
         run: |
+          Xvfb "$DISPLAY" -screen 0 1024x768x24 &
           cd ${{github.workspace}}/tmp/
           source venv/bin/activate
           pytest ../source/FAST/
