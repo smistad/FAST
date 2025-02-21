@@ -173,8 +173,11 @@ jobs:
   test-cpp:
     name: Run C++ Tests
     needs: [build]
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-24.04
     steps:
+      - name: Install dependencies
+        run: |
+          sudo apt install libopenslide0 libpocl2t64 xvfb
       - name: Download artifacts
         uses: actions/download-artifact@v1
         with:
@@ -195,6 +198,7 @@ jobs:
         env:
           DISPLAY: ':1'
         run: |
+          Xvfb "$DISPLAY" -screen 0 1024x768x24 &
           cd ${{github.workspace}}
           cd fast_*
           cd fast/bin/
