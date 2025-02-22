@@ -235,6 +235,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Download test data
         run: |
+          cd ${{github.workspace}}/tmp/
+          source venv/bin/activate
           python -c "import fast;fast.downloadTestDataIfNotExists()"
       - name: Run tests
         env:
