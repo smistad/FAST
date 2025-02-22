@@ -231,6 +231,11 @@ jobs:
           source venv/bin/activate
           pip3 install pytest
           pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download test data
+        run: |
+          python -c "import fast;fast.downloadTestDataIfNotExists()"
       - name: Run tests
         env:
           DISPLAY: ':1'
