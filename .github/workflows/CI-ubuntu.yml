@@ -177,7 +177,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt install libopenslide0 libpocl2t64 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0
+          sudo apt install libopenslide0 libpocl2t64 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xkb1 libxkbcommon-x11-0
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -216,7 +216,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt install libopenslide0 libpocl2t64 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0
+          sudo apt install python3-virtualenv libopenslide0 libpocl2t64 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xkb1 libxkbcommon-x11-0
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
