@@ -113,7 +113,7 @@ if(FAST_MODULE_Python)
             -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
             -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
 
-    if(WIN32)
+    if(WIN32 OR APPLE)
         add_custom_target(copy_pyd COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/bin/)
         add_dependencies(python-wheel install_to_wheel _fast copy_pyd)
     else()
