@@ -31,11 +31,11 @@ jobs:
         shell: bash
         run: |
           echo "===========> Check free space"
-          
+
           df -h
-          
+
           echo "===========> Install dependencies"
-          
+
           apt update && apt install -y sudo
           mkdir -p ${{github.workspace}}/artifacts
           # Get a newer version of cmake
@@ -55,7 +55,7 @@ jobs:
           pip3 install numpy==1.19.5 pylddwrap==1.2.0 twine wheel==0.37.1
 
           echo "===========> Install CUDA and TensorRT"
-          
+
           wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
           sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
           sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
@@ -65,11 +65,11 @@ jobs:
           sudo apt-get install -y cuda-toolkit-11-0 libcudnn8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev
 
           echo "===========> Set work dir"
-          
+
           cd ${{ github.workspace }}
 
           echo "===========> Configure CMake"
-          
+
           cmake -B build \
               -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}\
               -DFAST_MODULE_OpenVINO=ON \
@@ -87,11 +87,11 @@ jobs:
               -DFAST_BUILD_EXAMPLES=ON
 
           echo "===========> Build"
-          
+
           cmake --build build --config ${{env.BUILD_TYPE}} -j 4
 
           echo "===========> Free some space"
-          
+
           df -h
           rm -Rf build/external/tensorflow/src/tensorflow/
           rm -Rf build/external/openvino/src/openvino/
@@ -100,18 +100,18 @@ jobs:
           df -h
 
           echo "===========> Build Python Wheel"
-          
+
           cmake --build build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
           cp build/python/dist/pyFAST-*.whl build/
 
           echo "===========> Free some space"
-          
+
           df -h
           rm -Rf build/python/
           df -h
 
           echo "===========> Package"
-          
+
           cmake --build build --config ${{env.BUILD_TYPE}} --target package -j 4
 
     - name: Upload Debian package
@@ -245,11 +245,10 @@ jobs:
           #Xvfb "$DISPLAY" -screen 0 1024x768x24 &
           cd ${{github.workspace}}/tmp/
           source venv/bin/activate
-          pytest ../source/FAST/Python/Tests/
+          pytest ../source/FAST/
       - name: Cleanup
         if: always()
         run: |
           rm -Rf ${{github.workspace}}/download/
           rm -Rf ${{github.workspace}}/tmp/
           rm -Rf $HOME/FAST/kernel_binaries/*
-
