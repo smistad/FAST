@@ -101,20 +101,24 @@ if(FAST_MODULE_Python)
     endif()
 
     add_custom_target(python-wheel
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
-    # Remove this lib file as we don't need it: the setup script will build a new one
-    #COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/_unused_fast_python_lib
-    COMMAND ${CMAKE_COMMAND}
-        -D FAST_VERSION=${FAST_VERSION}
-        -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
-        -D FAST_BINARY_DIR:STRING=${PROJECT_BINARY_DIR}
-        -D PYTHON_VERSION:STRING=${PYTHONLIBS_VERSION_STRING}
-        -D PYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
-        -D OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
-        -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
-        -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
-    add_dependencies(python-wheel install_to_wheel _fast)
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
+        COMMAND ${CMAKE_COMMAND}
+            -D FAST_VERSION=${FAST_VERSION}
+            -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
+            -D FAST_BINARY_DIR:STRING=${PROJECT_BINARY_DIR}
+            -D PYTHON_VERSION:STRING=${PYTHONLIBS_VERSION_STRING}
+            -D PYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
+            -D OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
+            -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
+            -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
+
+    if(WIN32)
+        add_custom_target(copy_pyd COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/bin/)
+        add_dependencies(python-wheel install_to_wheel _fast copy_pyd)
+    else()
+        add_dependencies(python-wheel install_to_wheel _fast)
+    endif()
 else()
     message("-- Python module not enabled in CMake, Python bindings will NOT be created.")
 endif()
