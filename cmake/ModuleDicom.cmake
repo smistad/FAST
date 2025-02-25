@@ -17,10 +17,10 @@ if(FAST_MODULE_Dicom)
                 )
 	else()
         fast_download_dependency(dcmtk
-                3.6.3
-                b6994b69cb160f51183c3f86a0670bbfddacb79c6e44f4d66491466cbd6d1936
-                libdcmdata.dylib libdcmimgle.dylib libofstd.dylib liboflog.dylib
-                )
+                3.6.7
+                308081dcf9622234263c9c7312450dbb8d54285224ad750f3d4f07aa48558b74
+                libdcmimage.dylib libdcmjpeg.dylib libdcmdata.dylib libdcmimgle.dylib libofstd.dylib liboflog.dylib
+          )
 	endif()
     else()
         fast_download_dependency(dcmtk
