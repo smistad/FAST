@@ -112,7 +112,7 @@ if is_windows:
           }
 elif is_apple:
     package_data = {'': [
-            'bin/_fast*.dylib'
+            'bin/_fast*'
             'lib/plugins.xml',
             'lib/cache.json',
             'bin/UFFviewer',
