@@ -12,8 +12,8 @@ if(FAST_MODULE_Dicom)
 	if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
         fast_download_dependency(dcmtk
                 3.6.7
-		4a602eebcbc99a3a146c8fedc92eabced9858703ec740073fb9284c88dc4b9bc
-                libdcmdata.dylib libdcmimgle.dylib libofstd.dylib liboflog.dylib
+		c2a56ed04763a5d542500a22dc8f77d61d2050ef951d1ad0915abbcea957e82d
+                libdcmimage.dylib libdcmjpeg.dylib libdcmdata.dylib libdcmimgle.dylib libofstd.dylib liboflog.dylib
                 )
 	else()
         fast_download_dependency(dcmtk
