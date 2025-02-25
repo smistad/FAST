@@ -21,7 +21,7 @@ if(FAST_BUILD_TESTS)
     # Install test executable
     install(TARGETS testFAST
         DESTINATION fast/bin
-		COMPONENT fast
+		COMPONENT fast_tests
     )
 endif()
 
