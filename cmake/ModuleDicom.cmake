@@ -4,9 +4,9 @@ if(FAST_MODULE_Dicom)
     add_definitions("-DFAST_MODULE_DICOM")
     if(WIN32)
         fast_download_dependency(dcmtk
-                3.6.3
-                fbb84b29154fbf58833025188dea2c139caa2a5c136a5f48469839f43b9f6e05
-                dcmdata.lib dcmimgle.lib ofstd.lib oflog.lib
+                3.6.7
+                37cd22205fb2e07f687be5f1d27d4e8ffdf29f01a87ffa3fca6ad86f00d95909
+                dcmimage.lib dcmjpeg.lib dcmdata.lib dcmimgle.lib ofstd.lib oflog.lib
         )
     elseif(APPLE)
 	if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
