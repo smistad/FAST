@@ -82,7 +82,7 @@ else()
     # Add debian package dependencies
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libopenslide0,libusb-1.0-0")
 
-    set(CPACK_COMPONENTS_ALL fast fast_headers fast_examples fast_tools)
+    set(CPACK_COMPONENTS_ALL fast fast_headers fast_examples fast_tests)
 
     set(CPACK_PACKAGE_FILE_NAME "fast_${DISTRO_NAME}${DISTRO_VERSION}_${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
     set(CPACK_DEBIAN_FAST_FILE_NAME "fast_${DISTRO_NAME}${DISTRO_VERSION}_${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.deb")

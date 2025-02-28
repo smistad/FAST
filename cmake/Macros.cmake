@@ -122,7 +122,7 @@ macro (fast_add_tool NAME)
         target_link_libraries(${NAME} FAST)
         install(TARGETS ${NAME}
                 DESTINATION fast/bin
-                COMPONENT fast_tools
+                COMPONENT fast
         )
         file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
         if(_relPath)

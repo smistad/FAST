@@ -112,7 +112,7 @@ if is_windows:
           }
 elif is_apple:
     package_data = {'': [
-            'lib/_fast.dylib'
+            'bin/_fast.so'
             'lib/plugins.xml',
             'lib/cache.json',
             'bin/UFFviewer',
@@ -153,7 +153,7 @@ elif is_apple:
     sys.argv.append('macosx_' + '@OSX_DEPLOYMENT_TARGET@'.replace('.', '_') + '_' + '@OSX_ARCHITECTURE@')
 else:
     package_data = {'': [
-            'lib/_fast.so',
+            'bin/_fast.so',
             'lib/plugins.xml',
             'lib/cache.json',
             'bin/UFFviewer',

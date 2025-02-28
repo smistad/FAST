@@ -76,7 +76,11 @@ if(FAST_MODULE_Python)
         swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
     endif()
     set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
-    set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+    if(APPLE)
+        set_target_properties(_fast PROPERTIES INSTALL_RPATH "@loader_path/../lib")
+    else()
+        set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+    endif()
     set_target_properties(_fast PROPERTIES EXCLUDE_FROM_ALL TRUE)
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
@@ -103,6 +107,8 @@ if(FAST_MODULE_Python)
     add_custom_target(python-wheel
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
+        COMMAND ${CMAKE_COMMAND} -E echo "----------> TARGET FILE: $<TARGET_FILE:_fast>"
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/bin/
         COMMAND ${CMAKE_COMMAND}
             -D FAST_VERSION=${FAST_VERSION}
             -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
@@ -113,12 +119,7 @@ if(FAST_MODULE_Python)
             -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
             -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
 
-    if(WIN32)
-        add_custom_target(copy_pyd COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/bin/)
-        add_dependencies(python-wheel install_to_wheel _fast copy_pyd)
-    else()
-        add_dependencies(python-wheel install_to_wheel _fast)
-    endif()
+    add_dependencies(python-wheel install_to_wheel _fast)
 else()
     message("-- Python module not enabled in CMake, Python bindings will NOT be created.")
 endif()
