@@ -348,7 +348,7 @@ void PatchGenerator::execute() {
 
     if(mInputConnections.count(1) > 0) {
         // If a mask was given store it
-        m_inputMask = getInputData<Image>(1);
+        m_inputMask = getInputData<Image>(1, false);
     }
 
     startStream();
