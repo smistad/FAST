@@ -74,7 +74,7 @@ if(FAST_MODULE_Python)
         target_link_directories(_fast PRIVATE ${PYTHON_LIBRARY_DIR})
         swig_link_libraries(fast python3 FAST)
     else()
-        swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
+        swig_link_libraries(fast FAST)
         set_target_properties(_fast PROPERTIES SUFFIX ".abi3.so")
     endif()
     set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
