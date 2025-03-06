@@ -78,8 +78,8 @@ if(FAST_MODULE_Python)
         set_target_properties(_fast PROPERTIES SUFFIX ".abi3.so")
         if(APPLE)
             target_link_options(_fast PRIVATE 
-                "LINKER:-undefined dynamic_lookup" 
                 "LINKER:-bundle"
+                "LINKER:-undefined" "LINKER:dynamic_lookup"
             )
         else()
             target_link_options(_fast PRIVATE "LINKER:-Bsymbolic-functions")
