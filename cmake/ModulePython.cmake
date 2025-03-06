@@ -76,7 +76,14 @@ if(FAST_MODULE_Python)
     else()
         swig_link_libraries(fast FAST)
         set_target_properties(_fast PROPERTIES SUFFIX ".abi3.so")
-        target_link_options(_fast PRIVATE "LINKER:-Bsymbolic-functions")
+        if(APPLE)
+            target_link_options(_fast PRIVATE 
+                "LINKER:-undefined dynamic_lookup" 
+                "LINKER:-bundle"
+            )
+        else()
+            target_link_options(_fast PRIVATE "LINKER:-Bsymbolic-functions")
+        endif()
     endif()
     set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
     if(APPLE)
