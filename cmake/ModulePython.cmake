@@ -80,17 +80,16 @@ if(FAST_MODULE_Python)
             target_link_options(_fast PRIVATE 
                 "LINKER:-bundle"
                 "LINKER:-undefined" "LINKER:dynamic_lookup"
+                "LINKER:-rpath,@loader_path/../lib"
             )
         else()
-            target_link_options(_fast PRIVATE "LINKER:-Bsymbolic-functions")
+            target_link_options(_fast PRIVATE 
+                "LINKER:-Bsymbolic-functions"
+                "LINKER:-rpath,\$ORIGIN/../lib"
+                )
         endif()
     endif()
     set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
-    if(APPLE)
-        set_target_properties(_fast PROPERTIES INSTALL_RPATH "@loader_path/../lib")
-    else()
-        set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
-    endif()
     set_target_properties(_fast PROPERTIES EXCLUDE_FROM_ALL TRUE)
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
