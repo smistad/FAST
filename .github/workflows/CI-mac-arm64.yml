@@ -133,12 +133,16 @@ jobs:
         with:
           name: 'Python wheel'
           path: ${{github.workspace}}/download/
-      - name: Install wheel
+      - name: Create virtual environment and install wheel
         run: |
           cd ${{github.workspace}}
-          pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+          python3 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install ${{github.workspace}}/download/pyFAST-*.whl
       - name: Import FAST with Python
         run: |
+          cd ${{github.workspace}}
+          source venv/bin/activate
           python3 -c "import fast"
 
 #  test-cpp:
