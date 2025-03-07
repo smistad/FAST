@@ -235,6 +235,7 @@ jobs:
           name: 'Python wheel'
           path: ${{github.workspace}}/download/
       - name: Install wheel
+        shell: powershell
         run: |
           python3 -m pip install --prefer-binary ${{github.workspace}}/download/pyFAST-*.whl
       - name: Import FAST with Python
