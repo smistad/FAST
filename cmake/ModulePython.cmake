@@ -70,22 +70,22 @@ if(FAST_MODULE_Python)
     swig_add_library(fast LANGUAGE python SOURCES ${PROJECT_BINARY_DIR}/Core.i)
     target_compile_definitions(_fast PRIVATE Py_LIMITED_API=0x03060000)
     if(WIN32)
+        set(OUTPUT_FOLDER bin)
         get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
         target_link_directories(_fast PRIVATE ${PYTHON_LIBRARY_DIR})
         swig_link_libraries(fast FAST)
     else()
+        set(OUTPUT_FOLDER lib)
         swig_link_libraries(fast FAST)
         set_target_properties(_fast PROPERTIES SUFFIX ".abi3.so")
         if(APPLE)
             target_link_options(_fast PRIVATE 
                 "LINKER:-bundle"
                 "LINKER:-undefined" "LINKER:dynamic_lookup"
-                "LINKER:-rpath,@loader_path/../lib"
             )
         else()
             target_link_options(_fast PRIVATE 
                 "LINKER:-Bsymbolic-functions"
-                "LINKER:-rpath,$ORIGIN/../lib"
                 )
         endif()
     endif()
@@ -116,7 +116,7 @@ if(FAST_MODULE_Python)
     add_custom_target(python-wheel
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/${OUTPUT_FOLDER}/
         COMMAND ${CMAKE_COMMAND}
             -D FAST_VERSION=${FAST_VERSION}
             -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
