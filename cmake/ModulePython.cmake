@@ -78,6 +78,7 @@ if(FAST_MODULE_Python)
         set(OUTPUT_FOLDER lib)
         swig_link_libraries(fast FAST)
         set_target_properties(_fast PROPERTIES SUFFIX ".abi3.so")
+        set_target_properties(_fast PROPERTIES BUILD_WITH_INSTALL_RPATH ON)
         if(APPLE)
             target_link_options(_fast PRIVATE 
                 "LINKER:-bundle"
