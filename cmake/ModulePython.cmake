@@ -85,7 +85,7 @@ if(FAST_MODULE_Python)
         else()
             target_link_options(_fast PRIVATE 
                 "LINKER:-Bsymbolic-functions"
-                "LINKER:-rpath,\$ORIGIN/../lib"
+                "LINKER:-rpath,$ORIGIN/../lib"
                 )
         endif()
     endif()
