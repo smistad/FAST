@@ -136,14 +136,14 @@ jobs:
       - name: Create virtual environment and install wheel
         run: |
           cd ${{github.workspace}}
-          python3 -m venv venv
+          python3.12 -m venv venv
           source venv/bin/activate
-          python3 -m pip install --prefer-binary ${{github.workspace}}/download/pyFAST-*.whl
+          python -m pip install --prefer-binary ${{github.workspace}}/download/pyFAST-*.whl
       - name: Import FAST with Python
         run: |
           cd ${{github.workspace}}
           source venv/bin/activate
-          python3 -c "import fast"
+          python -c "import fast"
 
 #  test-cpp:
 #    name: Run C++ Tests
