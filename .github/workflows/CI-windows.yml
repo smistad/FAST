@@ -224,3 +224,19 @@ jobs:
       run: |
         twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/python/dist/pyFAST-*.whl
 
+  test-python-wheel:
+    name: Test Python Wheel
+    needs: [build]
+    runs-on: windows-2019
+    steps:
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: 'Python wheel'
+          path: ${{github.workspace}}/download/
+      - name: Install wheel
+        run: |
+          python3 -m pip install --prefer-binary ${{github.workspace}}/download/pyFAST-*.whl
+      - name: Import FAST with Python
+        run: |
+          python3 -c "import fast"
