@@ -170,6 +170,28 @@ jobs:
       run: |
         twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/pyFAST-*.whl
 
+  test-python-wheel:
+    name: Test Python Wheel
+    needs: [build]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt install libopenslide0 libpocl2t64 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: 'Python wheel'
+          path: ${{github.workspace}}/download/
+      - name: Install wheel
+        run: |
+          cd ${{github.workspace}}
+          python3 -m pip install ${{github.workspace}}/download/pyFAST-*.whl
+      - name: Import FAST with Python
+        run: |
+          cd ${{github.workspace}}
+          python3 -c "import fast"
+
   test-cpp:
     name: Run C++ Tests
     needs: [build]
@@ -203,11 +225,6 @@ jobs:
           cd fast_*
           cd fast/bin/
           ./testFAST ~[visual]
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -Rf ${{github.workspace}}
-          rm -Rf $HOME/FAST/kernel_binaries/*
 
   test-python:
     name: Run Python Tests
@@ -216,7 +233,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt install libopenslide0 libpocl2t64 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0
+          sudo apt install python3-virtualenv libopenslide0 libpocl2t64 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -239,10 +256,4 @@ jobs:
           cd ${{github.workspace}}/tmp/
           source venv/bin/activate
           pytest ../source/FAST/
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -Rf ${{github.workspace}}/download/
-          rm -Rf ${{github.workspace}}/tmp/
-          rm -Rf $HOME/FAST/kernel_binaries/*
 
