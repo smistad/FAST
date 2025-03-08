@@ -235,9 +235,10 @@ jobs:
           name: 'Python wheel'
           path: ${{github.workspace}}/download/
       - name: Install wheel
+        shell: powershell
         run: |
           cd ${{github.workspace}}/download/
-          for %%w in (*.whl) do python3 -m pip install --prefer-binary %%w
+          Get-ChildItem -Path ".\*.whl" | ForEach-Object { python3 -m pip install $_.FullName }
       - name: Import FAST with Python
         run: |
           python3 -c "import fast"
