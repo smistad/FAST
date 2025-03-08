@@ -173,7 +173,11 @@ jobs:
   test-python-wheel:
     name: Test Python Wheel
     needs: [build]
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Install dependencies
         run: |
