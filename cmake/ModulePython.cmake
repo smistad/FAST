@@ -68,9 +68,11 @@ if(FAST_MODULE_Python)
     set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
     swig_add_library(fast LANGUAGE python SOURCES ${PROJECT_BINARY_DIR}/Core.i)
+    # Use python limited api 3.6
     target_compile_definitions(_fast PRIVATE Py_LIMITED_API=0x03060000)
     if(WIN32)
         set(OUTPUT_FOLDER bin)
+        # On windows, to use ABI3, it will link against python3.dll which is located in the python library dir
         get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
         target_link_directories(_fast PRIVATE ${PYTHON_LIBRARY_DIR})
         swig_link_libraries(fast FAST)
@@ -79,6 +81,8 @@ if(FAST_MODULE_Python)
         swig_link_libraries(fast FAST)
         set_target_properties(_fast PROPERTIES SUFFIX ".abi3.so")
         set_target_properties(_fast PROPERTIES BUILD_WITH_INSTALL_RPATH ON)
+	# To use ABI3 on unix systems we will not link with the python library. Instead we tell the linker that undefined
+	# symbols should be ignored for now, and will be supplied during runtime instead:
         if(APPLE)
             target_link_options(_fast PRIVATE 
                 "LINKER:-bundle"
@@ -115,7 +119,7 @@ if(FAST_MODULE_Python)
     endif()
 
     add_custom_target(python-wheel
-        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
+        COMMAND ${CMAKE_COMMAND} -E rename ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__fast.py ${PROJECT_BINARY_DIR}/python/fast/__init__.py
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/${OUTPUT_FOLDER}/
         COMMAND ${CMAKE_COMMAND}
