@@ -1,4 +1,4 @@
-name: CI Ubuntu 18.04
+name: CI Ubuntu
 
 on:
   push:
@@ -16,7 +16,7 @@ env:
 
 jobs:
   build:
-    name: Build
+    name: Build on Ubuntu 18.04
     runs-on: ubuntu-20.04
 
     steps:
@@ -177,6 +177,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, ubuntu-22.04]
+        python-version: [3.6, 3.8, 3.10, 3.13]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install dependencies
@@ -195,14 +196,20 @@ jobs:
         with:
           name: 'Python wheel'
           path: ${{github.workspace}}/download/
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
       - name: Install wheel
         run: |
           cd ${{github.workspace}}
-          python3 -m pip install ${{github.workspace}}/download/pyFAST-*.whl
+          python -m pip install ${{github.workspace}}/download/pyFAST-*.whl
       - name: Import FAST with Python
         run: |
           cd ${{github.workspace}}
-          python3 -c "import fast"
+          python -c "import fast"
 
   test-cpp:
     name: Run C++ Tests
