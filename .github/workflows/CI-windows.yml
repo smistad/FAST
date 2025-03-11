@@ -227,6 +227,10 @@ jobs:
   test-python-wheel:
     name: Test Python Wheel
     needs: [build]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.6', '3.10', '3.12', '3.x']
     runs-on: windows-2019
     steps:
       - name: Download wheel artifact
@@ -234,16 +238,22 @@ jobs:
         with:
           name: 'Python wheel'
           path: ${{github.workspace}}/download/
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
       - name: Install wheel
         shell: powershell
         run: |
           cd ${{github.workspace}}/download/
-          Get-ChildItem -Path ".\*.whl" | ForEach-Object { python3 -m pip install $_.FullName }
+          Get-ChildItem -Path ".\*.whl" | ForEach-Object { python -m pip install $_.FullName }
       - name: Import FAST with Python
         shell: powershell
         run: |
           try {
-            python3 -c "import fast"
+            python -c "import fast"
           } catch {
             Write-Warning "Import failed"
           }
