@@ -122,6 +122,10 @@ jobs:
   test-python-wheel:
     name: Test Python Wheel
     needs: [build]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.8', '3.10', '3.x']
     runs-on: macos-14
     steps:
       - name: Install dependencies
@@ -132,6 +136,12 @@ jobs:
            # the GitHub nodes don't have, thus we install pocl 
            # which supports CPUs
           brew install pocl
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
@@ -140,7 +150,7 @@ jobs:
       - name: Create virtual environment and install wheel
         run: |
           cd ${{github.workspace}}
-          python3.12 -m venv venv
+          python -m venv venv # Get error if not using virtual environment for some reason
           source venv/bin/activate
           python -m pip install --prefer-binary ${{github.workspace}}/download/pyFAST-*.whl
       - name: Import FAST with Python
