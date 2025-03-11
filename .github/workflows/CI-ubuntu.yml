@@ -270,7 +270,7 @@ jobs:
         env:
           DISPLAY: ':1'
         run: |
-          Xvfb "$DISPLAY" -screen 0 1024x768x24 &
+          #Xvfb "$DISPLAY" -screen 0 1024x768x24 &
           cd ${{github.workspace}}/tmp/
           source venv/bin/activate
           pytest ../source/FAST/
