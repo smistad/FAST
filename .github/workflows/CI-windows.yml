@@ -230,7 +230,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.6', '3.10', '3.12', '3.x']
+        python-version: ['3.6', '3.10', '3.12']
     runs-on: windows-2019
     steps:
       - name: Download wheel artifact
