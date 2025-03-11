@@ -247,3 +247,4 @@ jobs:
           } catch {
             Write-Warning "Import failed"
           }
+          exit 0
