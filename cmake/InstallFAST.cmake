@@ -54,14 +54,14 @@ elseif(APPLE)
 			DESTINATION fast/lib/
 			COMPONENT fast
 			FILES_MATCHING PATTERN "*.so*"
-   			EXCLUDE "_fast.abi3.so")
+   			PATTERN "_fast.abi3.so" EXCLUDE)
 	install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
 else()
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
 			FILES_MATCHING PATTERN "*.so*"
-   			EXCLUDE "_fast.abi3.so")
+   			PATTERN "_fast.abi3.so" EXCLUDE)
 	# Fix RPaths on install
 	install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
 endif()
