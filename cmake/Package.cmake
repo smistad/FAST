@@ -73,8 +73,6 @@ else()
     )
 
     set(CPACK_GENERATOR "DEB" "TXZ")
-    # Select components to avoid some cmake leftovers from built dependencies
-    set(CPACK_DEB_COMPONENT_INSTALL ON)
     set(CPACK_DEBIAN_PACKAGE_HOMEPAGE https://eriksmistad.no/fast/)
     set(CPACK_DEBIAN_COMPRESSION_TYPE "xz")
     set(CPACK_PROJECT_CONFIG_FILE ${CMAKE_SOURCE_DIR}/cmake/PackageConfig.txt)
@@ -82,6 +80,7 @@ else()
     # Add debian package dependencies
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libopenslide0,libusb-1.0-0")
 
+    # Select components to avoid some cmake leftovers from built dependencies
     set(CPACK_COMPONENTS_ALL fast fast_headers fast_examples fast_tests)
 
     set(CPACK_PACKAGE_FILE_NAME "fast_${DISTRO_NAME}${DISTRO_VERSION}_${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
