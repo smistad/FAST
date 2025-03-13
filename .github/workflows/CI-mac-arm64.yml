@@ -119,6 +119,47 @@ jobs:
       run: |
         twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/python/dist/pyFAST-*.whl
 
+  test-python-wheel:
+    name: Test Python Wheel
+    needs: [build]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.8', '3.10', '3.12']
+    runs-on: macos-14
+    steps:
+      - name: Install dependencies
+        run: |
+          brew reinstall zlib
+          brew install openslide pcre libomp
+           # OpenCL on apple silicon only supports GPU which 
+           # the GitHub nodes don't have, thus we install pocl 
+           # which supports CPUs
+          brew install pocl
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: 'Python wheel'
+          path: ${{github.workspace}}/download/
+      - name: Create virtual environment and install wheel
+        run: |
+          cd ${{github.workspace}}
+          python -m venv venv # Get error if not using virtual environment for some reason
+          source venv/bin/activate
+          python -m pip install --prefer-binary ${{github.workspace}}/download/pyFAST-*.whl
+      - name: Import FAST with Python
+        run: |
+          cd ${{github.workspace}}
+          source venv/bin/activate
+          # This will fail because there are no OpenCL plaforms available, thus we add || true
+          python -c "import fast" || true
+
 #  test-cpp:
 #    name: Run C++ Tests
 #    needs: [build]

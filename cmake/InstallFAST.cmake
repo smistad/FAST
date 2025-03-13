@@ -21,7 +21,7 @@ if(FAST_BUILD_TESTS)
     # Install test executable
     install(TARGETS testFAST
         DESTINATION fast/bin
-		COMPONENT fast
+		COMPONENT fast_tests
     )
 endif()
 
@@ -30,11 +30,11 @@ endif()
 # Install dependency libraries
 install(FILES ${PROJECT_BINARY_DIR}/FASTExport.hpp
     DESTINATION fast/include
-	COMPONENT fast
+	COMPONENT fast_headers
 )
 install(FILES ${PROJECT_BINARY_DIR}/FASTVersion.hpp
 	DESTINATION fast/include
-	COMPONENT fast
+	COMPONENT fast_headers
 )
 if(WIN32)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
@@ -53,40 +53,24 @@ elseif(APPLE)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.so*")
+			FILES_MATCHING PATTERN "*.so*"
+   			PATTERN "_fast.abi3.so" EXCLUDE)
 	install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
-	if(FAST_SIGN_CODE)
-		install(CODE "
-    file(GLOB installedSOs
-            \"$ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/lib/*.dylib*\"
-            \"$ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/lib/*.so*\"
-            \"$ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/bin/*\"
-	)
-
-    foreach(SO $\{installedSOs\})
-    	message(\"-- Signing $\{SO\}\")
-		execute_process(COMMAND codesign --force --options runtime,library -s \"Developer ID Application: Erik Smistad (85JK2HDMY2)\" --timestamp --signature-size=12000 $\{SO\} RESULT_VARIABLE res OUTPUT_VARIABLE out ERROR_VARIABLE err)
-		if (NOT res EQUAL 0)
-			message(\"Unable to sign $\{SO\} - $\{err\}\")
-		endif ()
-	endforeach()
-    message(\"Binaries signed\")
-		" COMPONENT fast)
-	endif()
 else()
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.so*")
+			FILES_MATCHING PATTERN "*.so*"
+   			PATTERN "_fast.abi3.so" EXCLUDE)
 	# Fix RPaths on install
-    install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
+	install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
 endif()
 
 # Install Qt plugins
 if(FAST_MODULE_Visualization)
 install(DIRECTORY ${PROJECT_BINARY_DIR}/plugins/
     DESTINATION fast/plugins/
-		COMPONENT fast
+	COMPONENT fast
 )
 
 # Install qt moc
@@ -100,6 +84,7 @@ if(WIN32)
 		install(FILES ${PROJECT_BINARY_DIR}/bin/idc.exe
 		    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
 		    DESTINATION fast/bin
+			COMPONENT fast
 		)
 endif()
 endif()
@@ -107,12 +92,12 @@ endif()
 # Install headers
 install(DIRECTORY ${FAST_SOURCE_DIR}
 	DESTINATION fast/include/FAST/
-	COMPONENT fast
+	COMPONENT fast_headers
 	FILES_MATCHING PATTERN "*.hpp"
 )
 install(DIRECTORY ${FAST_SOURCE_DIR}
 	DESTINATION fast/include/FAST/
-	COMPONENT fast
+	COMPONENT fast_headers
 	FILES_MATCHING PATTERN "*.h"
 )
 
@@ -163,20 +148,20 @@ endif()
 foreach(INCLUDE_FOLDER ${INCLUDE_FOLDERS})
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
-				OPTIONAL
-		COMPONENT fast
+		OPTIONAL
+		COMPONENT fast_headers
         FILES_MATCHING PATTERN "*.h"
     )
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
-				OPTIONAL
-		COMPONENT fast
+		OPTIONAL
+		COMPONENT fast_headers
         FILES_MATCHING PATTERN "*.hpp"
     )
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
-				OPTIONAL
-		COMPONENT fast
+		OPTIONAL
+		COMPONENT fast_headers
         FILES_MATCHING REGEX "/[^.]+$" # Files with no extension
     )
 endforeach()
@@ -184,7 +169,7 @@ endforeach()
 # Install created headers
 install(FILES ${PROJECT_BINARY_DIR}/ProcessObjectList.hpp
     DESTINATION fast/include/FAST/
-	COMPONENT fast
+	COMPONENT fast_headers
 )
 
 # Install OpenCL kernels
@@ -284,7 +269,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
 if(WIN32)
 	install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/MSVC_redis_files_license.txt
 	    DESTINATION fast/licenses/MSVC/
-			COMPONENT fast
+		COMPONENT fast
 	)
 endif()
 

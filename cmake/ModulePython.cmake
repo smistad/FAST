@@ -49,28 +49,52 @@ if(FAST_MODULE_Python)
         set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include <${FILE}>\n")
     endforeach()
 
-    set(PYFAST_FILE "${PROJECT_BINARY_DIR}/PyFAST.i")
-    configure_file(
-            "${PROJECT_SOURCE_DIR}/source/FAST/Python/PyFAST.i.in"
-            ${PYFAST_FILE}
-    )
+    set(PYFAST_SOURCES Core.i ProcessObjects.i)
+    foreach(SRC ${PYFAST_SOURCES})
+        set(PYFAST_FILE "${PROJECT_BINARY_DIR}/${SRC}")
+        configure_file(
+                "${PROJECT_SOURCE_DIR}/source/FAST/Python/${SRC}.in"
+                ${PYFAST_FILE}
+        )
 
+        set_source_files_properties(${PYFAST_FILE} PROPERTIES GENERATED TRUE)
+        set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
+        set_source_files_properties(${PYFAST_FILE} PROPERTIES USE_TARGET_INCLUDE_DIRECTORIES ON)
+        if(NOT ${SRC} STREQUAL Common.i)
+            list(APPEND PYFAST_CONFIGURED_SOURCES ${PYFAST_FILE})
+        endif()
+    endforeach()
     # Build it
-    set_source_files_properties(${PYFAST_FILE} PROPERTIES GENERATED TRUE)
-    set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
-    set_property(SOURCE ${PYFAST_FILE} PROPERTY SWIG_MODULE_NAME fast)
     set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR}/python/fast/)
     file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
-    swig_add_library(fast LANGUAGE python SOURCES ${PYFAST_FILE})
+    swig_add_library(fast LANGUAGE python SOURCES ${PROJECT_BINARY_DIR}/Core.i)
+    # Use python limited api 3.6
+    target_compile_definitions(_fast PRIVATE Py_LIMITED_API=0x03060000)
     if(WIN32)
+        set(OUTPUT_FOLDER bin)
+        # On windows, to use ABI3, it will link against python3.dll which is located in the python library dir
         get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
         target_link_directories(_fast PRIVATE ${PYTHON_LIBRARY_DIR})
-        swig_link_libraries(fast python3 FAST)
+        swig_link_libraries(fast FAST)
     else()
-        swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
+        set(OUTPUT_FOLDER lib)
+        swig_link_libraries(fast FAST)
+        set_target_properties(_fast PROPERTIES SUFFIX ".abi3.so")
+        set_target_properties(_fast PROPERTIES BUILD_WITH_INSTALL_RPATH ON)
+	# To use ABI3 on unix systems we will not link with the python library. Instead we tell the linker that undefined
+	# symbols should be ignored for now, and will be supplied during runtime instead:
+        if(APPLE)
+            target_link_options(_fast PRIVATE 
+                "LINKER:-bundle"
+                "LINKER:-undefined" "LINKER:dynamic_lookup"
+            )
+        else()
+            target_link_options(_fast PRIVATE 
+                "LINKER:-Bsymbolic-functions"
+                )
+        endif()
     endif()
     set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
-    set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
     set_target_properties(_fast PROPERTIES EXCLUDE_FROM_ALL TRUE)
     target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
@@ -80,9 +104,10 @@ if(FAST_MODULE_Python)
     add_custom_target(install_to_wheel
         COMMAND ${CMAKE_COMMAND}
         -D CMAKE_INSTALL_PREFIX:STRING=${PROJECT_BINARY_DIR}/python/
+        -D CMAKE_INSTALL_COMPONENT:STRING=fast
         -P ${PROJECT_BINARY_DIR}/cmake_install.cmake
     )
-    add_dependencies(install_to_wheel _fast)
+    add_dependencies(install_to_wheel FAST)
     message("PYTHON LIBRARIES: ${PYTHON_LIBRARIES}")
 
     if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
@@ -94,24 +119,20 @@ if(FAST_MODULE_Python)
     endif()
 
     add_custom_target(python-wheel
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__.py ${PROJECT_BINARY_DIR}/python/fast/
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
-    # Remove this lib file as we don't need it: the setup script will build a new one
-    COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/_unused_fast_python_lib
-    COMMAND ${CMAKE_COMMAND}
-        -D FAST_VERSION=${FAST_VERSION}
-        -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
-        -D FAST_BINARY_DIR:STRING=${PROJECT_BINARY_DIR}
-        -D PYTHON_VERSION:STRING=${PYTHONLIBS_VERSION_STRING}
-        -D PYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
-        -D PYTHON_LIBRARIES:STRING=${PYTHON_LIBRARIES}
-        -D NUMPY_INCLUDE_DIR:STRING=${PYTHON_NUMPY_INCLUDE_DIR}
-        -D OpenCL_LIBRARIES:STRING=${OpenCL_LIBRARIES}
-        -D OPENGL_LIBRARIES:STRING=${OPENGL_LIBRARIES}
-        -D OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
-        -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
-        -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
-    add_dependencies(python-wheel install_to_wheel)
+        COMMAND ${CMAKE_COMMAND} -E rename ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__fast.py ${PROJECT_BINARY_DIR}/python/fast/__init__.py
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/${OUTPUT_FOLDER}/
+        COMMAND ${CMAKE_COMMAND}
+            -D FAST_VERSION=${FAST_VERSION}
+            -D FAST_SOURCE_DIR:STRING=${PROJECT_SOURCE_DIR}
+            -D FAST_BINARY_DIR:STRING=${PROJECT_BINARY_DIR}
+            -D PYTHON_VERSION:STRING=${PYTHONLIBS_VERSION_STRING}
+            -D PYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
+            -D OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
+            -D OSX_ARCHITECTURE:STRING=${OSX_ARCHITECTURE}
+            -P "${PROJECT_SOURCE_DIR}/cmake/PythonWheel.cmake")
+
+    add_dependencies(python-wheel install_to_wheel _fast)
 else()
     message("-- Python module not enabled in CMake, Python bindings will NOT be created.")
 endif()

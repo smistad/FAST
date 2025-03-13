@@ -115,6 +115,43 @@ jobs:
       run: |
         twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/python/dist/pyFAST-*.whl
 
+  test-python-wheel:
+    name: Test Python Wheel
+    needs: [build]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.6', '3.10', '3.x']
+    runs-on: macos-13
+    steps:
+      - name: Install dependencies
+        run: |
+          brew reinstall zlib
+          brew reinstall libtiff
+          brew install openslide pcre libomp
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: 'Python wheel'
+          path: ${{github.workspace}}/download/
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Create virtual environment and install wheel
+        run: |
+          cd ${{github.workspace}}
+          python -m venv venv # Get error if not using virtual environment for some reason
+          source venv/bin/activate
+          python -m pip install ${{github.workspace}}/download/pyFAST-*.whl
+      - name: Import FAST with Python
+        run: |
+          cd ${{github.workspace}}
+          source venv/bin/activate
+          python -c "import fast"
+
 #  test-cpp:
 #    name: Run C++ Tests
 #    needs: [build]
