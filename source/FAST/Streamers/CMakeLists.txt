@@ -22,6 +22,11 @@ fast_add_python_interfaces(
 )
 fast_add_python_shared_pointers(Streamer RandomAccessStreamer FileStreamer MeshFileStreamer)
 fast_add_process_object(ImageFileStreamer ImageFileStreamer.hpp)
+if(FAST_MODULE_Dicom)
+    fast_add_sources(DicomMultiFrameStreamer.cpp DicomMultiFrameStreamer.hpp)
+    fast_add_process_object(DicomMultiFrameStreamer DicomMultiFrameStreamer.hpp)
+    fast_add_test_sources(Tests/DicomMultiFrameStreamerTests.cpp)
+endif()
 if(FAST_MODULE_OpenIGTLink)
     fast_add_sources(
             OpenIGTLinkStreamer.hpp

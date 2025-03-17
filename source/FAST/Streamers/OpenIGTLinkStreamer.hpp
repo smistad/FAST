@@ -31,7 +31,7 @@ FAST_SIMPLE_DATA_OBJECT(String, std::string);
  * <h3>Output ports</h3>
  * Multiple ports possible dependeing on number of streams from OpenIGTLink server
  *
- * @ingroup streamers
+ * @ingroup streamers ultrasound
  */
 class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
     FAST_PROCESS_OBJECT(OpenIGTLinkStreamer)

@@ -146,6 +146,10 @@ elif is_apple:
                 'libopenvino_tensorflow_frontend.2230.dylib',
                 'libopenvino_paddle_frontend.2230.dylib',
                 'libopenvino_ir_frontend.2230.dylib',
+                # DCMTK jpeg
+                'libijg8.dylib',
+                'libijg12.dylib',
+                'libijg16.dylib',
             ])
           }
     # Override platform tag, or it gets tag 10_15 for some reason
@@ -187,6 +191,10 @@ else:
                 'libInferenceEngineTensorRT.so',
                 'libInferenceEngineTensorFlow.so',
                 'libInferenceEngineONNXRuntime.so',
+                # DCMTK jpeg
+                'libijg8.so',
+                'libijg12.so',
+                'libijg16.so',
             ])
           }
     # Override platform tag

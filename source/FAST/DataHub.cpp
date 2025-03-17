@@ -56,7 +56,6 @@ static QJsonDocument getJSONFromURL(const std::string& url) {
 
     reply->deleteLater();
     QJsonDocument result;
-    //std::cout << url << std::endl;
     if (reply->error() == QNetworkReply::NoError) {
         auto status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
         auto res = reply->readAll();
@@ -98,7 +97,7 @@ void DataHub::downloadTextFile(const std::string& url, const std::string& destin
         throw Exception("FAST DataHub item " + name + " not found. Please check spelling.");
     } else {
         //failure
-        throw Exception("Failed to retrieve data from FAST DataHub.\nServer could be down, or you may have no internet access.\nPlease try again later.");
+        throw Exception("Failed to retrieve pipeline data from FAST DataHub.\nServer could be down, or you may have no internet access.\nPlease try again later.");
     }
 }
 
@@ -476,19 +475,12 @@ QPixmap DataHubBrowser::downloadThumbnail(const std::string& URL) {
 }
 
 void DataHubBrowser::download(std::string itemID) {
-    std::cout << "asd" << std::endl;
-    std::cout << m_hub.getStorageDirectory() << std::endl;
-    std::cout << "asd11" << std::endl;
     auto item = m_hub.getItem(itemID);
-    std::cout << "asd1" << std::endl;
     auto progressWidget = new DownloadProgressWidget(item);
-    std::cout << "asd2" << std::endl;
     connect(&m_hub, &DataHub::progress, progressWidget, &DownloadProgressWidget::updateProgress);
     progressWidget->show();
-    std::cout << "asd3" << std::endl;
     connect(&m_hub, &DataHub::finished, [=]() {
         for(int i = 0; i < m_listWidget->count(); ++i) {
-            std::cout << "asd5" << std::endl;
             DataHubItemWidget* widget = (DataHubItemWidget*)m_listWidget->itemWidget(m_listWidget->item(i));
             if(widget->id == itemID) {
                 widget->setDownloaded(true);
@@ -497,7 +489,6 @@ void DataHubBrowser::download(std::string itemID) {
         progressWidget->close();
     });
     m_hub.download(itemID);
-    std::cout << "asd6" << std::endl;
 }
 
 }
