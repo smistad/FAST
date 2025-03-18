@@ -119,7 +119,7 @@ if(FAST_MODULE_Python)
     endif()
 
     add_custom_target(python-wheel
-        COMMAND ${CMAKE_COMMAND} -E rename ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__fast.py ${PROJECT_BINARY_DIR}/python/fast/__init__.py
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/__init__fast.py ${PROJECT_BINARY_DIR}/python/fast/__init__.py
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/source/FAST/Python/entry_points.py ${PROJECT_BINARY_DIR}/python/fast/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_fast> ${PROJECT_BINARY_DIR}/python/fast/${OUTPUT_FOLDER}/
         COMMAND ${CMAKE_COMMAND}
