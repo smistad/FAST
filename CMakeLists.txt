@@ -83,8 +83,6 @@ endif()
 
 
 ## Set build folders
-# First for the generic no-config case (e.g. with mingw)
-cmake_policy(SET CMP0043 OLD)
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
