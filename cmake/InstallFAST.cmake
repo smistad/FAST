@@ -280,16 +280,6 @@ install(DIRECTORY ${FAST_EXTERNAL_BUILD_DIR}/eigen/src/eigen/
 		COMPONENT fast
 		FILES_MATCHING PATTERN "COPYING.*")
 
-# NumPy (numpy.i file)
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/NumPy_LICENSE.txt
-		DESTINATION fast/licenses/numpy/
-		COMPONENT fast
-)
-# Eigen SWIG interface (eigen.i file)
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Eigen_SWIG_interface_LICENSE.txt
-		DESTINATION fast/licenses/eigen-swig/
-		COMPONENT fast
-)
 # Semaphore implementation
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 		DESTINATION fast/licenses/semaphore/

@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma SWIG nowarn=315 // Suppress SWIG warnings caused by the using Eigen:: statements below
 #define NOMINMAX // Removes windows min and max macros
 #define _USE_MATH_DEFINES
 #include <cmath>

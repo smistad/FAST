@@ -36,6 +36,7 @@ class FAST_EXPORT SeededRegionGrowing : public ProcessObject {
         void addSeedPoint(uint x, uint y);
         void addSeedPoint(uint x, uint y, uint z);
         void addSeedPoint(Vector3i position);
+        std::vector<Vector3i> getSeedPoints() const;
     private:
         SeededRegionGrowing();
         void execute();

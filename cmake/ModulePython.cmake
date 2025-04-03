@@ -24,7 +24,6 @@ if(FAST_MODULE_Python)
         find_package(PythonInterp 3 REQUIRED)
         find_package(PythonLibs 3 REQUIRED)
     endif()
-    find_package(NumPy REQUIRED)
 
     set(CMAKE_SWIG_FLAGS "")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSWIG_PYTHON_INTERPRETER_NO_DEBUG") # Avoid a error on windows when compiling in debug mode
@@ -96,7 +95,6 @@ if(FAST_MODULE_Python)
     endif()
     set_property(TARGET _fast PROPERTY SWIG_COMPILE_OPTIONS -py3 -doxygen -py3-stable-abi -keyword -threads) # Enable Python 3 specific features and doxygen comment translation in SWIG
     set_target_properties(_fast PROPERTIES EXCLUDE_FROM_ALL TRUE)
-    target_include_directories(_fast PRIVATE ${PYTHON_NUMPY_INCLUDE_DIR})
     target_include_directories(_fast PRIVATE ${PYTHON_INCLUDE_DIRS})
     target_include_directories(_fast PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 

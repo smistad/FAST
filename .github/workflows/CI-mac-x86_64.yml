@@ -43,7 +43,7 @@ jobs:
     - name: Install pip dependencies
       run: |
         pip3 install --upgrade pip
-        pip3 install numpy==1.19.5 twine wheel==0.37.1
+        pip3 install twine wheel==0.37.1
 
     - name: Configure CMake
       run: |

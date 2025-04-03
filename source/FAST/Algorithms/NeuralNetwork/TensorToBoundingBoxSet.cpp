@@ -156,5 +156,9 @@ void TensorToBoundingBoxSet::setNrOfInputNodes(int nr) {
         createInputPort(i, "Tensor");
 }
 
+std::vector<std::vector<Vector2f>> TensorToBoundingBoxSet::getAnchors() const {
+    return m_anchors;
+}
+
 
 }

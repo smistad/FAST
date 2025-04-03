@@ -236,4 +236,8 @@ void SeededRegionGrowing::waitToFinish() {
     }
 }
 
+std::vector<Vector3i> SeededRegionGrowing::getSeedPoints() const {
+    return mSeedPoints;
+}
+
 } // end namespace fast

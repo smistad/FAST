@@ -80,6 +80,9 @@ def test_image_array_interface_exceptions():
     data = np.ndarray((16,34,23,54,23), dtype=np.uint8)
     with pytest.raises(ValueError):
         fast.Image.createFromArray(data)
+    data = np.ndarray((16,34), dtype=np.float64)
+    with pytest.raises(TypeError):
+        fast.Image.createFromArray(data)
 
 
 def test_tensor_array_interface():
@@ -112,6 +115,58 @@ def test_tensor_array_interface_exceptions():
     data = ''
     with pytest.raises(ValueError):
         fast.Tensor.createFromArray(data)
-    #data = np.ndarray((16,0,1), dtype=np.float32)
-    #with pytest.raises(ValueError):
-    #    fast.Tensor.createFromArray(data)
+
+
+def test_image_array_interface_conversion():
+    """ Test fortran -> C array conversion for images """
+    # If channel dimension not given, it fails,
+    # this is because a channel dimension is added for grayscale image array.
+    # Not sure if this can be considered a bug..
+    shapes = [
+        (23, 28, 64, 3),
+        (23, 31, 64, 1),
+        #(120, 31, 12), # Fails
+        (23, 28, 2),
+        (23, 28, 1),
+        #(120, 31), # Fails
+    ]
+    types_to_test = [
+        (np.uint8, 255),
+        (np.float32, 1),
+        (np.uint16, 128),
+        (np.int16, 128)
+    ]
+    for shape in shapes:
+        for type, scale in types_to_test:
+            data = (np.random.random(shape)*scale).astype(type)
+            data = np.asfortranarray(data)
+            assert data.flags['F_CONTIGUOUS']
+            image = fast.Image.createFromArray(data)
+            data2 = np.asarray(image)
+            assert data.shape == data2.shape
+            assert np.array_equal(data2, data)
+            assert data2.flags['C_CONTIGUOUS']
+
+
+def test_tensor_array_interface_conversion():
+    """ Test fortran -> C array and float32 conversion for tensors"""
+    shape = (23,20,2)
+    types_to_test = [
+        (np.uint8, 255),
+        (np.int8, 127),
+        (np.float32, 1),
+        (np.float64, 1),
+        (np.uint16, 128),
+        (np.int16, 128),
+        (np.uint32, 128),
+        (np.int32, 128)
+    ]
+    for type, scale in types_to_test:
+        data = (np.random.random(shape)*scale).astype(type)
+        data = np.asfortranarray(data)
+        assert data.flags['F_CONTIGUOUS']
+        image = fast.Tensor.createFromArray(data)
+        data2 = np.asarray(image)
+        assert data2.flags['C_CONTIGUOUS']
+        assert data2.dtype == np.float32
+        assert np.array_equal(data2, data.astype(np.float32))

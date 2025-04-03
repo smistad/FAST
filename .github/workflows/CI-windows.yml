@@ -32,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
           pip3 install --upgrade pip
-          pip3 install numpy==1.19.5 twine
+          pip3 install twine
     - name: Install CUDA
       shell: powershell
       run: |

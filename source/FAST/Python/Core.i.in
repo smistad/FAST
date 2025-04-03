@@ -14,6 +14,7 @@ import $module
 %module(moduleimport=MODULEIMPORT, directors=1) fast
 #pragma SWIG nowarn=511
 
+
 %{
 
 #include <FAST/Object.hpp>
@@ -51,19 +52,6 @@ using namespace fast;
 %include <stdint.i>
 %include <FAST/Python/std_unique_ptr.i>
 
-// Enable eigen <-> numpy data conversion
-%include <FAST/Python/eigen.i>
-%eigen_typemaps(Vector2f)
-%eigen_typemaps(Vector3f)
-%eigen_typemaps(Vector2i)
-%eigen_typemaps(Vector3i)
-%eigen_typemaps(Vector2ui)
-%eigen_typemaps(Vector3ui)
-%eigen_typemaps(VectorXf)
-%eigen_typemaps(VectorXi)
-%eigen_typemaps(VectorXui)
-%eigen_typemaps(Matrix3f)
-%eigen_typemaps(Matrix4f)
 
 
 // Define FAST_EXPORT to nothing to avoid compile errors
@@ -77,8 +65,24 @@ using namespace fast;
 public
 %enddef
 
-// Enable std::vector and std::map <-> python conversion
+// Enable eigen <-> python data conversion
 %include <FAST/Data/DataTypes.hpp>
+%include <FAST/Python/EigenTypemaps.i>
+
+%eigen_vector_typemaps(Vector4f)
+%eigen_vector_typemaps(Vector3f)
+%eigen_vector_typemaps(Vector3i)
+%eigen_vector_typemaps(fast::Vector3ui) // fast:: needed here, not sure why
+%eigen_vector_typemaps(Vector2f)
+%eigen_vector_typemaps(Vector2i)
+%eigen_vector_typemaps(fast::Vector2ui)
+%eigen_vector_typemaps(VectorXi)
+%eigen_vector_typemaps(fast::VectorXui)
+
+%eigen_matrix_typemaps(Matrix3f)
+%eigen_matrix_typemaps(Matrix4f)
+
+// Enable std::vector and std::map <-> python conversion
 %template(vectori) std::vector<int>;
 %template(vectorf) std::vector<float>;
 %template(vectorui) std::vector<uint>;
@@ -173,6 +177,176 @@ public
 %template(DataMap) std::map<std::string, std::shared_ptr<fast::DataObject>>;
 %template(ProcessObjectMap) std::map<std::string, std::shared_ptr<fast::ProcessObject>>;
 
+// Define some helper functions for array_interface data conversion
+%inline %{
+
+// Convert a fortran contiguous pointer array of type T to a new C contiguous array of type U
+template <class T, class U> // Input type, output type
+void* _createAndConvertToCContiguous(std::size_t pointer, std::vector<int> shape) {
+    size_t totalSize = 1;
+    for(auto dim : shape)
+        totalSize *= dim;
+    U* data = new U[totalSize];
+
+    T* originalData = (T*)pointer;
+    for(size_t i = 0; i < totalSize; ++i) {
+        size_t fortranOffset = i;
+
+        // Convert Fortran offset to Fortran indices
+        std::vector<int> fortranIndices;
+        for(auto dim : shape) {
+            fortranIndices.push_back((fortranOffset % dim) + 1);
+            fortranOffset /= dim;
+        }
+
+        // Convert Fortran indices to C offset
+        size_t cOffset = 0;
+        for(int j = 0; j < fortranIndices.size(); ++j) {
+            size_t dimSize = 1;
+            for(int k = j + 1; k < shape.size(); ++k)
+                dimSize *= shape[k];
+
+            cOffset += (fortranIndices[j] - 1) * dimSize;
+        }
+
+        // Copy and potentially convert the data type to U
+        data[cOffset] = (U)(originalData[i]);
+    }
+
+    return (void*)data;
+}
+
+// Convert a fortran contiguous pointer array of DataType type to a C contiguous pointer array of the same type
+std::size_t _convertToCContiguous(std::size_t pointer, std::vector<int> shape, fast::DataType type) {
+    switch(type) {
+        case TYPE_UINT8:
+            return (std::size_t)_createAndConvertToCContiguous<uchar, uchar>(pointer, shape);
+            break;
+        case TYPE_INT8:
+            return (std::size_t)_createAndConvertToCContiguous<char, char>(pointer, shape);
+            break;
+        case TYPE_UINT16:
+            return (std::size_t)_createAndConvertToCContiguous<ushort, ushort>(pointer, shape);
+            break;
+        case TYPE_INT16:
+            return (std::size_t)_createAndConvertToCContiguous<short, short>(pointer, shape);
+            break;
+        case TYPE_UINT32:
+            return (std::size_t)_createAndConvertToCContiguous<uint, uint>(pointer, shape);
+            break;
+        case TYPE_INT32:
+            return (std::size_t)_createAndConvertToCContiguous<int, int>(pointer, shape);
+            break;
+        case TYPE_FLOAT:
+            return (std::size_t)_createAndConvertToCContiguous<float, float>(pointer, shape);
+            break;
+        default:
+            throw std::runtime_error("Unknown type in _convertToCContiguous");
+            break;
+    }
+}
+
+// Convert a fortran contiguous pointer array of DataType type to a float C contiguous pointer array
+std::size_t _convertToCContiguousFloat(std::size_t pointer, std::vector<int> shape, std::string type) {
+    if(type == "u1") {
+        return (std::size_t)_createAndConvertToCContiguous<uchar, float>(pointer, shape);
+    } else if(type == "i1") {
+        return (std::size_t)_createAndConvertToCContiguous<char, float>(pointer, shape);
+    } else if(type == "u2") {
+        return (std::size_t)_createAndConvertToCContiguous<ushort, float>(pointer, shape);
+    } else if(type == "i2") {
+        return (std::size_t)_createAndConvertToCContiguous<short, float>(pointer, shape);
+    } else if(type == "u4") {
+        return (std::size_t)_createAndConvertToCContiguous<uint, float>(pointer, shape);
+    } else if(type == "i4") {
+        return (std::size_t)_createAndConvertToCContiguous<int, float>(pointer, shape);
+    } else if(type == "f4") {
+        return (std::size_t)_createAndConvertToCContiguous<float, float>(pointer, shape);
+    } else if(type == "f8") {
+        return (std::size_t)_createAndConvertToCContiguous<double, float>(pointer, shape);
+    } else {
+        throw std::runtime_error("Unknown type in _convertToCContiguousFloat");
+    }
+}
+
+// Convert a pointer array of type T to float
+template <class T>
+void _convertToFloat(std::size_t pointer, float* out, uint64_t sum) {
+    T* in = (T*)pointer;
+    for(size_t i = 0; i < sum; ++i)
+        out[i] = (float)(in[i]);
+}
+
+// Convert a C contiguous pointer array of type to float
+std::size_t _convertToFloat(std::size_t pointer, std::vector<int> shape, std::string type) {
+    size_t sum = 1;
+    for(auto item : shape)
+        sum *= item;
+    float* data = new float[sum];
+    if(type == "u1") {
+        _convertToFloat<uchar>(pointer, data, sum);
+    } else if(type == "i1") {
+        _convertToFloat<char>(pointer, data, sum);
+    } else if(type == "u2") {
+        _convertToFloat<ushort>(pointer, data, sum);
+    } else if(type == "i2") {
+        _convertToFloat<short>(pointer, data, sum);
+    } else if(type == "u4") {
+        _convertToFloat<uint>(pointer, data, sum);
+    } else if(type == "i4") {
+        _convertToFloat<int>(pointer, data, sum);
+    } else if(type == "f4") {
+        return pointer;
+    } else if(type == "f8") {
+        _convertToFloat<double>(pointer, data, sum);
+    } else {
+        throw std::runtime_error("Unknown type in _convertToFloat");
+    }
+    return (std::size_t)data;
+}
+
+// Free a pointer array of given FAST type
+void _freePointer(std::size_t pointer, fast::DataType type) {
+      switch(type) {
+            case TYPE_UINT8:
+                delete[] (uchar*)pointer;
+                break;
+            case TYPE_INT8:
+                delete[] (char*)pointer;
+                break;
+            case TYPE_UINT16:
+                delete[] (ushort*)pointer;
+                break;
+            case TYPE_INT16:
+                delete[] (short*)pointer;
+                break;
+            case TYPE_UINT32:
+                delete[] (uint*)pointer;
+                break;
+            case TYPE_INT32:
+                delete[] (int*)pointer;
+                break;
+            case TYPE_FLOAT:
+                delete[] (float*)pointer;
+                break;
+            default:
+                break;
+        }
+}
+%}
+%pythoncode %{
+  _data_type_to_str = {
+    TYPE_UINT8: 'u1',
+    TYPE_INT8: 'i1',
+    TYPE_UINT16: 'u2',
+    TYPE_INT16: 'i2',
+    TYPE_UINT32: 'u4',
+    TYPE_INT32: 'i4',
+    TYPE_FLOAT: 'f4',
+  }
+  _str_to_data_type = {value : key for (key, value) in _data_type_to_str.items()}
+%}
+
 // Since python is dynamically typed, lets convert DataObjects to the right type before returning
 %pythonappend fast::ProcessObject::runAndGetOutputData(uint, int64_t) %{
     className = val.getNameOfClass()
@@ -237,8 +411,7 @@ public
 
 %template(getNextFrame) fast::DataChannel::getNextFrame<fast::DataObject>;
 
-
-// Extend image for numpy support
+// Extend image for array interface support
 %extend fast::Image {
 std::size_t _getHostDataPointer() {
     auto access = $self->getImageAccess(ACCESS_READ);
@@ -247,17 +420,9 @@ std::size_t _getHostDataPointer() {
 static void* _intToVoidPointer(std::size_t intPointer) {
     return (void*)intPointer;
 }
+
 %pythoncode %{
-  _data_type_to_str = {
-    TYPE_UINT8: 'u1',
-    TYPE_INT8: 'i1',
-    TYPE_UINT16: 'u2',
-    TYPE_INT16: 'i2',
-    TYPE_UINT32: 'u4',
-    TYPE_INT32: 'i4',
-    TYPE_FLOAT: 'f4',
-  }
-  _str_to_data_type = {value : key for (key, value) in _data_type_to_str.items()}
+
   @property
   def __array_interface__(self):
     if self.getDimensions() == 2:
@@ -267,7 +432,7 @@ static void* _intToVoidPointer(std::size_t intPointer) {
     return {
       'shape': shape,
       'data': (self._getHostDataPointer(), False),
-      'typestr': self._data_type_to_str[self.getDataType()],
+      'typestr': _data_type_to_str[self.getDataType()],
       'version': 3,
       'strides': None,
     }
@@ -275,13 +440,19 @@ static void* _intToVoidPointer(std::size_t intPointer) {
   @staticmethod
   def createFromArray(ndarray):
     """Create a FAST image from a N-D array (e.g. numpy ndarray)"""
-    import numpy as np
     if not hasattr(ndarray, '__array_interface__'):
         raise ValueError('Input to Image createFromArray() must have the array_interface property')
-    # ndarray must be C contiguous
-    ndarray = np.ascontiguousarray(ndarray)
-    array_interface = ndarray.__array_interface__
+    # Make sure it is C contiguous first
+    mem = memoryview(ndarray)
+    import copy
+    array_interface = copy.copy(ndarray.__array_interface__)
+    typestr = array_interface['typestr'][1:]
+    if typestr not in _str_to_data_type:
+        raise TypeError('Unknown input type given to Image.createFromArray: ' + typestr)
+    type = _str_to_data_type[typestr]
     shape = array_interface['shape']
+    if not mem.c_contiguous:
+        array_interface['data'] = (_convertToCContiguous(array_interface['data'][0], shape, type), False)
     is_2d = True
     has_channels = False
     if len(shape) == 3 and shape[-1] <= 4:
@@ -296,26 +467,29 @@ static void* _intToVoidPointer(std::size_t intPointer) {
     elif len(shape) < 2:
         raise ValueError('Input to image must have a shape with at least 2 dimensions')
     if is_2d:
-        return Image.create(
+        image = Image.create(
             shape[1],
             shape[0],
-            Image._str_to_data_type[array_interface['typestr'][1:]],
+            type,
             shape[-1] if has_channels else 1,
             Image._intToVoidPointer(array_interface['data'][0])
         )
     else:
-        return Image.create(
+        image = Image.create(
             shape[2],
             shape[1],
             shape[0],
-            Image._str_to_data_type[array_interface['typestr'][1:]],
+            type,
             shape[-1] if has_channels else 1,
             Image._intToVoidPointer(array_interface['data'][0])
         )
+    if not mem.c_contiguous:
+        _freePointer(array_interface['data'][0], type)
+    return image;
 %}
 }
 
-// Extend Tensor for numpy support
+// Extend Tensor for array_interface support
 %extend fast::Tensor {
 std::size_t _getHostDataPointer() {
     auto access = $self->getAccess(ACCESS_READ);
@@ -338,22 +512,40 @@ static float* _intToFloatPointer(std::size_t intPointer) {
   @staticmethod
   def createFromArray(ndarray):
     """Create a FAST Tensor from a N-D array (e.g. numpy ndarray)"""
-    import numpy as np
     if not hasattr(ndarray, '__array_interface__'):
         raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
 
-    # Check data type if it is correct
-    if ndarray.__array_interface__['typestr'][1:] != 'f4': # Is Float 32 bit?
-        print('WARNING: ndarray given to fast::Tensor::createFromArray was not 32 bit float and will now be converted.')
-    # Make sure it is C contiguous first
-    ndarray = np.ascontiguousarray(ndarray, dtype=np.float32)
-    array_interface = ndarray.__array_interface__
+    # Make sure it is C contiguous, convert if needed
+    mem = memoryview(ndarray)
+    import copy
+    array_interface = copy.copy(ndarray.__array_interface__)
     shape = array_interface['shape']
+    # Check data type if it is correct
+    converted = False
+    if array_interface['typestr'][1:] != 'f4': # Is Float 32 bit?
+        converted = True
+        type = array_interface['typestr'][1:]
+        print('WARNING: ndarray given to fast::Tensor::createFromArray was not 32 bit float and will now be converted.')
+        if not mem.c_contiguous:
+            array_interface['data'] = (_convertToCContiguousFloat(array_interface['data'][0], shape, type), False)
+        else:
+            array_interface['data'] = (_convertToFloat(array_interface['data'][0], shape, type), False)
+        array_interface['typestr'] = array_interface['typestr'][0] + 'f4'
+    else:
+        if not mem.c_contiguous:
+            type = _str_to_data_type[array_interface['typestr'][1:]]
+            converted = True
+            array_interface['data'] = (_convertToCContiguous(array_interface['data'][0], shape, type), False)
+
+    # Convert to fast shape
     fast_shape = TensorShape()
     for i in shape:
         fast_shape.addDimension(i)
 
-    return Tensor.create(Tensor._intToFloatPointer(array_interface['data'][0]), fast_shape)
+    return_value = Tensor.create(Tensor._intToFloatPointer(array_interface['data'][0]), fast_shape)
+    if converted:
+        _freePointer(array_interface['data'][0], TYPE_FLOAT)
+    return return_value
 %}
 }
 

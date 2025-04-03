@@ -41,6 +41,7 @@ class FAST_EXPORT TensorToBoundingBoxSet : public ProcessObject {
         void setType(BoundingBoxNetworkType type);
         void setThreshold(float threshold);
         void setAnchors(std::vector<std::vector<Vector2f>> anchors);
+        std::vector<std::vector<Vector2f>> getAnchors() const;
         void setInputConnection(DataChannel::pointer channel) override;
         void setInputConnection(uint portID, DataChannel::pointer channel) override;
         void setNrOfInputNodes(int nr);
