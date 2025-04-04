@@ -51,13 +51,6 @@ void View::setBackgroundColor(Color color) {
     mBackgroundColor = color;
 }
 
-QGLFormat View::getGLFormat() {
-    QGLFormat qglFormat = QGLFormat::defaultFormat();
-    qglFormat.setVersion(3, 3);
-    qglFormat.setProfile(QGLFormat::CoreProfile);
-    return qglFormat;
-}
-
 View::View() {
     createInputPort<Camera>(0, false);
 
@@ -83,18 +76,12 @@ View::View() {
     timer = new QTimer(this);
     timer->start(1000 / mFramerate); // in milliseconds
     timer->setSingleShot(false);
-    QObject::connect(timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+    QObject::connect(timer, SIGNAL(timeout()), this, SLOT(update()));
 
     m_textRenderer = TextRenderer::create(42, Color::Black(), TextRenderer::STYLE_NORMAL, TextRenderer::POSITION_BOTTOM_LEFT);
     m_lineRenderer = LineRenderer::create();
     if(QThread::currentThread() != QApplication::instance()->thread()) {
         throw Exception("FAST View must be created in the main thread");
-    }
-    QGLContext *context = new QGLContext(getGLFormat(), this);
-    context->create(fast::Window::getSecondaryGLContext());
-    this->setContext(context);
-    if(!context->isValid() || !context->isSharing()) {
-        throw Exception("The custom Qt GL context in fast::View is invalid!");
     }
 }
 
@@ -525,7 +512,6 @@ void View::initializeGL() {
 
 
 void View::paintGL() {
-
     mRuntimeManager->startRegularTimer("paint");
 
     if(!mIsIn2DMode && !mVolumeRenderers.empty())
@@ -742,12 +728,12 @@ void View::wheelEvent(QWheelEvent *event) {
 		float currentPosX = (event->position().x()/width())*(mRight - mLeft) + mLeft;
         float currentPosY = (event->position().y()/height())*(mTop - mBottom) + mBottom;
         // First: Zoom towards center
-        if(event->delta() > 0) {
+        if(event->angleDelta().y() > 0) {
             mLeft = mLeft + targetSizeX*0.5f;
             mRight = mRight - targetSizeX*0.5f;
             mBottom = mBottom + targetSizeY * 0.5f;
             mTop = mTop - targetSizeY*0.5f;
-        } else if(event->delta() < 0) {
+        } else if(event->angleDelta().y() < 0) {
             mLeft = mLeft - targetSizeX * 0.5f;;
             mRight = mRight + targetSizeX*0.5f;
             mBottom = mBottom - targetSizeY*0.5f;
@@ -765,10 +751,10 @@ void View::wheelEvent(QWheelEvent *event) {
         mPerspectiveMatrix = loadOrthographicMatrix(mLeft * scalingWidth, mRight * scalingWidth,
                                                     mBottom * scalingHeight, mTop * scalingHeight, zNear, zFar);
     } else {
-        if(event->delta() > 0) {
+        if(event->angleDelta().y() > 0) {
             mCameraPosition[2] += (zFar - zNear) * 0.05f;
             m3DViewingTransformation.pretranslate(Vector3f(0, 0, (zFar - zNear) * 0.05f));
-        } else if(event->delta() < 0) {
+        } else if(event->angleDelta().y() < 0) {
             mCameraPosition[2] += -(zFar - zNear) * 0.05f;
             m3DViewingTransformation.pretranslate(Vector3f(0, 0, -(zFar - zNear) * 0.05f));
         }

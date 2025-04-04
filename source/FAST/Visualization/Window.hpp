@@ -6,13 +6,12 @@
 #include "ComputationThread.hpp"
 #include "View.hpp"
 #include <vector>
-#include <QGLContext>
 
-class QGLContext;
 class QEventLoop;
 class QVBoxLayout;
 class QHBoxLayout;
 class QOffscreenSurface;
+class QOpenGLContext;
 
 namespace fast {
 
@@ -38,9 +37,9 @@ class FAST_EXPORT  Window : public QObject, public AttributeObject {
     Q_OBJECT
     public:
         static void initializeQtApp();
-        static QGLContext* getMainGLContext();
-        static QGLContext* getSecondaryGLContext();
-        static void setMainGLContext(QGLContext* context);
+        static QOpenGLContext* getMainGLContext();
+        static QOpenGLContext* getSecondaryGLContext();
+        static void setMainGLContext(QOpenGLContext* context);
         /**
          * Makes the window close after a specific number of ms
          */
@@ -112,6 +111,7 @@ class FAST_EXPORT  Window : public QObject, public AttributeObject {
         std::string getNameOfClass() {
             return "Window";
         }
+        static QSurface* getQSurface();
 protected:
         void startComputationThread();
         void stopComputationThread();
@@ -136,8 +136,9 @@ protected:
         void setCenterWidget(QWidget* widget);
         void setCenterLayout(QLayout* layout);
     private:
-        static QGLContext* mMainGLContext;
-        static QGLContext* mSecondaryGLContext;
+        static QOpenGLContext* mMainGLContext;
+        static QOpenGLContext* mSecondaryGLContext;
+        static QOffscreenSurface* m_offscreenSurface;
     public Q_SLOTS:
         void stop();
 

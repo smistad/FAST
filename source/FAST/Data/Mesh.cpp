@@ -123,9 +123,9 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         if(!QApplication::instance()) {
             Window::initializeQtApp();
         }
-        if(QGLContext::currentContext() == nullptr)
-            Window::getMainGLContext()->makeCurrent();
-        QGLFunctions *fun = Window::getMainGLContext()->functions();
+        if(QOpenGLContext::currentContext() == nullptr)
+            Window::getMainGLContext()->makeCurrent(Window::getQSurface());
+        QOpenGLFunctions *fun = Window::getMainGLContext()->functions();
         fun->glDeleteBuffers(1, &mCoordinateVBO);
         fun->glGenBuffers(1, &mCoordinateVBO);
         if(mHostHasData) {
@@ -275,8 +275,8 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         if(!QApplication::instance()) {
             Window::initializeQtApp();
         }
-        if(QGLContext::currentContext() == nullptr)
-            Window::getMainGLContext()->makeCurrent();
+        if(QOpenGLContext::currentContext() == nullptr)
+            Window::getMainGLContext()->makeCurrent(Window::getQSurface());
 
         QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
         fun->initializeOpenGLFunctions();
@@ -467,7 +467,7 @@ void Mesh::freeAll() {
         // Need mutual exclusive write lock to delete data
         //VertexBufferObjectAccess::pointer access = getVertexBufferObjectAccess(ACCESS_READ_WRITE);
         //Window::getMainGLContext()->makeCurrent(); // Need an active context to delete the mesh VBO
-        QGLFunctions *fun = Window::getMainGLContext()->functions();
+        QOpenGLFunctions *fun = Window::getMainGLContext()->functions();
         // glDeleteBuffer is not used due to multi-threading issues..
         //fun->glDeleteBuffers(1, &mVBOID);
 
