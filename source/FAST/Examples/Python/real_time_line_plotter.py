@@ -13,10 +13,11 @@
 
 import platform
 if platform.system() != 'Windows':
-    import PySide2.QtSvg # Must import this before fast due to conflicting symbols
-import fast # Must import FAST before rest of pyside2
-from PySide2.QtWidgets import *
-from shiboken2 import wrapInstance
+    import PySide6.QtSvg # Must import this before fast due to conflicting symbols
+import PySide6.QtNetwork
+import fast # Must import FAST before rest of pyside6
+from PySide6.QtWidgets import *
+from shiboken6 import wrapInstance
 import numpy as np
 
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example

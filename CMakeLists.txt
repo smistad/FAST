@@ -122,7 +122,7 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # This will setup all of FAST's dependencies
 add_definitions(-DQT_DISABLE_DEPRECATED_UP_TO=0x050F00) # Make FAST ready for Qt 6
-include(cmake/Depdendencies.cmake)
+include(cmake/Dependencies.cmake)
 
 if(FAST_BUILD_DOCS)
     include(cmake/ExternalMCSS.cmake)

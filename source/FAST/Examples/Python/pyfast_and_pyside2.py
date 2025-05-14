@@ -1,20 +1,22 @@
 ## @example pyfast_and_pyside2.py
 # This example demonstrates how to use FAST together with Qt Python GUI with PySide2
 #
-# @m_class{m-block m-warning} @par PySide2 Qt Version
+# @m_class{m-block m-warning} @par PySide6 Qt Version
 # @parblock
-#     For this example you <b>must</b> use the same Qt version of PySide2 as used in FAST (5.15.2)
-#     Do this with: <b>pip install pyside2==5.15.2.1</b>
+#     For this example you <b>must</b> use the same Qt version of PySide6 as used in FAST (6.9.0)
+#     Do this with: <b>pip install pyside6==6.9.0</b>
+#     This requires at least python version 3.9, and make sure pip is up to date
 # @endparblock
 #
 # @image html images/examples/python/pyfast_and_pyside.jpg width=400px;
 
 import platform
 if platform.system() != 'Windows':
-    import PySide2.QtSvg # Must import this before fast due to conflicting symbols
-import fast # Must import FAST before rest of pyside2
-from PySide2.QtWidgets import *
-from shiboken2 import wrapInstance
+    import PySide6.QtSvg # Must import this before fast due to conflicting symbols
+import PySide6.QtNetwork # Must import this before fast due to conflicting symbols
+import fast # Must import FAST before rest of pyside6
+from PySide6.QtWidgets import *
+from shiboken6 import wrapInstance
 from random import random
 
 # Setup a FAST pipeline

@@ -1,6 +1,5 @@
 #include "Window.hpp"
 #include <QApplication>
-#include <QGLPixelBuffer>
 #include <QEventLoop>
 #include <QScreen>
 #include <QIcon>
@@ -16,9 +15,9 @@
 
 namespace fast {
 
-QOpenGLContext* Window::mMainGLContext = nullptr; // Lives in main thread or computation thread if it exists.
-QOpenGLContext* Window::mSecondaryGLContext = nullptr; // Lives in main thread always
-QOffscreenSurface* Window::m_offscreenSurface = nullptr;
+static QOpenGLContext* mMainGLContext = nullptr; // Lives in main thread or computation thread if it exists.
+static QOpenGLContext* mSecondaryGLContext = nullptr; // Lives in main thread always
+static QOffscreenSurface* m_offscreenSurface = nullptr;
 
 class FAST_EXPORT FASTApplication : public QApplication {
 public:
@@ -191,7 +190,6 @@ void Window::initializeQtApp() {
         }
 #endif
 
-
         // Set default window icon
         QApplication::setWindowIcon(QIcon((Config::getDocumentationPath() + "images/fast_icon.png").c_str()));
 
@@ -201,28 +199,30 @@ void Window::initializeQtApp() {
         setenv("QT_QPA_FONTDIR", env.c_str(), 1);
 #endif
         // Add all fonts in fonts folder
+        // FIXME This is causing QThreadStorage entry X destroyed before end of thread: Why?
         for(auto&& filename : getDirectoryList(join(Config::getDocumentationPath(), "fonts"))) {
             if(filename.substr(filename.size()-4) == ".ttf") {
                 QFontDatabase::addApplicationFont(join(Config::getDocumentationPath(), "fonts", filename).c_str());
             }
         }
     } else {
-        Reporter::info() << "QApp already exists.." << Reporter::end();
+        //Reporter::info() << "QApp already exists.." << Reporter::end();
     }
 
      // Create computation GL context, if it doesn't exist
     if(mMainGLContext == nullptr && Config::getVisualization()) {
-        Reporter::info() << "Creating new GL context for computation thread" << Reporter::end();
+        Reporter::info() << "Creating GL contexts" << Reporter::end();
 
         // Create GL context to be shared with the CL contexts
-        m_offscreenSurface = new QOffscreenSurface;
+        // FIXME This is causing QThreadStorage entry X destroyed before end of thread: Why?
+        m_offscreenSurface = new QOffscreenSurface();
         m_offscreenSurface->create();
         if(!m_offscreenSurface->isValid())
             throw Exception("QOffscreenSurface was invalid");
-        mMainGLContext = new QOpenGLContext(); // by including widget here the context becomes valid
+        mMainGLContext = new QOpenGLContext();
         mMainGLContext->setShareContext(QOpenGLContext::globalShareContext());
         mMainGLContext->create();
-        mSecondaryGLContext = new QOpenGLContext(); // by including widget here the context becomes valid
+        mSecondaryGLContext = new QOpenGLContext();
         mSecondaryGLContext->setShareContext(mMainGLContext);
         mSecondaryGLContext->create();
         if(!mMainGLContext->isValid()) {
@@ -328,7 +328,8 @@ Window::~Window() {
     //reportInfo() << "Deleting event loop" << Reporter::end();
     //if(mEventLoop != NULL)
     //    delete mEventLoop;
-    mThread->stop();
+    if(mThread)
+        mThread->stop();
     reportInfo() << "Deleting widget" << Reporter::end();
     if(mWidget != NULL) {
         delete mWidget;
@@ -373,7 +374,7 @@ void Window::startComputationThread() {
 }
 
 void Window::stopComputationThread() {
-    if(mThread != nullptr) {
+    if(mThread) {
         mThread->stop();
     }
 }

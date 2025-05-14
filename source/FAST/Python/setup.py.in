@@ -172,8 +172,7 @@ else:
             + get_all_filenames('fast/doc/')
             + get_all_linux_depedencies('fast/lib/', [
                 'libFAST.so',
-                'libQt5XcbQpa.so.5',
-                'libQt5MultimediaGstTools.so.5',
+                'libQt6XcbQpa.so.6',
                 'libcast.so',
                 # OpenVINO
                 'libInferenceEngineOpenVINO.so',

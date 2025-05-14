@@ -2,22 +2,34 @@
 #include <FAST/Streamers/CameraStreamer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
-#include <QtMultimedia/QCamera>
+#include <QMediaDevices>
+#include <FAST/Data/Image.hpp>
 
 using namespace fast;
 
-TEST_CASE("CameraStreamer", "[fast][camerastreamer][visual]") {
-	auto cameras = QCameraInfo::availableCameras();
+TEST_CASE("CameraStreamer window", "[fast][camerastreamer][visual]") {
+    Window::initializeQtApp(); // Must initialize qt before video inputs
+	auto cameras = QMediaDevices::videoInputs();
     if(!cameras.empty()) {
-        auto streamer = CameraStreamer::New();
+        auto streamer = CameraStreamer::create();
 
-        auto renderer = ImageRenderer::New();
-        renderer->addInputConnection(streamer->getOutputPort());
+        auto renderer = ImageRenderer::create()->connect(streamer);
 
-        auto window = SimpleWindow::New();
-        window->addRenderer(renderer);
-        window->set2DMode();
-        window->setTimeout(1000);
+        auto window = SimpleWindow2D::create()->connect(renderer);
+        window->setTimeout(2000);
         window->start();
+    }
+}
+
+TEST_CASE("CameraStreamer stream", "[fast][camerastreamer][visual]") {
+    Window::initializeQtApp(); // Must initialize qt before video inputs
+    auto cameras = QMediaDevices::videoInputs();
+    if(!cameras.empty()) {
+        auto streamer = CameraStreamer::create();
+
+        auto stream = DataStream(streamer);
+
+        auto image = stream.getNextFrame<Image>();
+        std::cout << "Got image with size: " << image->getWidth() << " " << image->getHeight() << std::endl;
     }
 }

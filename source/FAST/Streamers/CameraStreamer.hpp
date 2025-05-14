@@ -1,10 +1,12 @@
 #pragma once
 
 #include <FAST/Streamers/Streamer.hpp>
-#include <QtMultimedia/QCamera>
-#include <QtMultimedia/QCameraInfo>
+#include <QCamera>
 
 class QThread;
+class QEventLoop;
+class QVideoSink;
+class QMediaCaptureSession;
 
 namespace fast {
 
@@ -42,34 +44,36 @@ class FAST_EXPORT CameraStreamer : public Streamer {
         void setGrayscale(bool grayscale);
         void loadAttributes() override;
         void setCamera(uchar index);
+        void stop() override;
+        ~CameraStreamer() override;
 	protected:
 		void execute() override;
-        void generateStream() override {};
+        void generateStream() override;
 
 		bool mGrayscale = false;
 		bool m_finished = false;
-		int m_framesAdded = 0;
+		uint64_t m_framesAdded = 0;
         std::chrono::high_resolution_clock::time_point m_startTime;
-        QThread* thread;
-        CameraWorker* worker;
+        //QThread* thread;
+        QEventLoop* m_eventLoop;
         uint m_cameraIndex = 0;
 };
-
 
 class CameraWorker : public QObject {
     Q_OBJECT
     public:
-        CameraWorker(CameraStreamer* streamer, const QCameraInfo camera);
+        CameraWorker(QCamera* camera);
         ~CameraWorker();
     public Q_SLOTS:
         void run();
     Q_SIGNALS:
         void finished();
         void error(QString err);
+        void newFrame(const QVideoFrame& frame);
     private:
-        QCameraInfo m_cameraInfo;
-		std::unique_ptr<QCamera> m_camera;
-        CameraStreamer* mStreamer;
+		QCamera* m_camera;
+		QMediaCaptureSession* m_captureSession;
+		QVideoSink* m_mySink;
 };
 
 

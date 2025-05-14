@@ -6,7 +6,7 @@
 #include "FAST/DeviceManager.hpp"
 #include "SimpleWindow.hpp"
 #include "FAST/Utility.hpp"
-#include <QGLFunctions>
+#include <QOpenGLFunctions>
 #include <algorithm>
 #include <QCursor>
 #include <QApplication>

@@ -11,6 +11,7 @@
 #include <FAST/Visualization/Window.hpp>
 #include <fstream>
 #include <QStandardPaths>
+#include <QFile>
 #ifdef WIN32
 #include <windows.h>
 #else

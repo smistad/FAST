@@ -1,4 +1,4 @@
-#include <FAST/Streamers/MovieStreamer.hpp>
+#include <FAST/Streamers/VideoStreamer.hpp>
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
         file = replace(file, "\\", "/");
         const std::string extension = file.substr(file.rfind('.'));
         Reporter::info() << "Processing file " << file << Reporter::end();
-        auto streamer = MovieStreamer::New();
+        auto streamer = VideoStreamer::New();
         streamer->setGrayscale(!parser.getOption("color"));
         streamer->setFilename(file);
 

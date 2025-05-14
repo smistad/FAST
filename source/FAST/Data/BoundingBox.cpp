@@ -2,7 +2,7 @@
 #ifdef FAST_MODULE_VISUALIZATION
 #include <FAST/Visualization/Window.hpp>
 #include <QApplication>
-#include <QGLFunctions>
+#include <QOpenGLFunctions>
 #include <QOpenGLFunctions_3_3_Core>
 #endif
 

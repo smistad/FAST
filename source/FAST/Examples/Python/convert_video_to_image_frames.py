@@ -13,7 +13,7 @@ import numpy as np
 
 fast.downloadTestDataIfNotExists() # This will download the test data needed to run the example
 
-streamer = fast.MovieStreamer.create(fast.Config.getTestDataPath() + 'US/sagittal_spine.avi')
+streamer = fast.VideoStreamer.create(fast.Config.getTestDataPath() + 'US/sagittal_spine.avi')
 
 frame_list = []
 counter = 0

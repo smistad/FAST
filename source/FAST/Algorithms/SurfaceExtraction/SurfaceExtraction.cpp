@@ -7,7 +7,7 @@
 #include "FAST/SceneGraph.hpp"
 #include <numeric>
 #ifdef FAST_MODULE_VISUALIZATION
-#include <QGLFunctions>
+#include <QOpenGLFunctions>
 #include "FAST/Visualization/Window.hpp"
 #endif
 

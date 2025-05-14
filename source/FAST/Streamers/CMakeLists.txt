@@ -29,28 +29,32 @@ if(FAST_MODULE_Dicom)
 endif()
 if(FAST_MODULE_OpenIGTLink)
     fast_add_sources(
-            OpenIGTLinkStreamer.hpp
-            OpenIGTLinkStreamer.cpp
+        OpenIGTLinkStreamer.hpp
+        OpenIGTLinkStreamer.cpp
         Tests/DummyIGTLServer.cpp
         Tests/DummyIGTLServer.hpp
     )
     fast_add_process_object(OpenIGTLinkStreamer OpenIGTLinkStreamer.hpp)
     if(FAST_MODULE_Visualization)
     fast_add_test_sources(
-            Tests/OpenIGTLinkStreamerTests.cpp
+        Tests/OpenIGTLinkStreamerTests.cpp
     )
     endif()
 endif()
 if(FAST_MODULE_Visualization)
     fast_add_sources(
-        MovieStreamer.cpp
-        MovieStreamer.hpp
+        VideoStreamer.cpp
+        VideoStreamer.hpp
+        VideoRandomAccessStreamer.cpp
+        VideoRandomAccessStreamer.hpp
         CameraStreamer.cpp
         CameraStreamer.hpp
     )
-    fast_add_test_sources(Tests/MovieStreamerTests.cpp)
+    fast_add_test_sources(Tests/VideoStreamerTests.cpp)
+    fast_add_test_sources(Tests/VideoRandomAccessStreamerTests.cpp)
     fast_add_test_sources(Tests/CameraStreamerTests.cpp)
-    fast_add_process_object(MovieStreamer MovieStreamer.hpp)
+    fast_add_process_object(VideoStreamer VideoStreamer.hpp)
+    fast_add_process_object(VideoRandomAccessStreamer VideoRandomAccessStreamer.hpp)
     fast_add_process_object(CameraStreamer CameraStreamer.hpp)
 endif()
 if(FAST_MODULE_Kinect)

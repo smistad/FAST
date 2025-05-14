@@ -364,9 +364,6 @@ cl::Program ProcessObject::getOpenCLProgram(
     return program->build(device, buildOptions);
 }
 
-ProcessObject::~ProcessObject() {
-}
-
 int ProcessObject::getNrOfInputConnections() const {
     return mInputConnections.size();
 }

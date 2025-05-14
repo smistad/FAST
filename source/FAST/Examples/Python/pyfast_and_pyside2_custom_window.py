@@ -11,11 +11,13 @@
 
 import platform
 if platform.system() != 'Windows':
-    import PySide2.QtSvg # Must import this before fast due to conflicting symbols
+    import PySide6.QtSvg # Must import this before fast due to conflicting symbols
+import PySide6.QtNetwork # Must import this before fast due to conflicting symbols
 import fast # Must import FAST before rest of pyside2
-from PySide2.QtWidgets import *
-from PySide2.QtCore import Slot
-from shiboken2 import wrapInstance
+from PySide6.QtWidgets import *
+from PySide6.QtOpenGLWidgets import QOpenGLWidget
+from PySide6.QtCore import Slot
+from shiboken6 import wrapInstance
 
 #fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
 
@@ -74,4 +76,4 @@ if __name__ == '__main__':
     window.show()
 
     # Run the main Qt loop
-    app.exec_()
+    app.exec()

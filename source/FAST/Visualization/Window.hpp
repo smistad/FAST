@@ -136,9 +136,9 @@ protected:
         void setCenterWidget(QWidget* widget);
         void setCenterLayout(QLayout* layout);
     private:
-        static QOpenGLContext* mMainGLContext;
-        static QOpenGLContext* mSecondaryGLContext;
-        static QOffscreenSurface* m_offscreenSurface;
+        //static QOpenGLContext* mMainGLContext;
+        //static QOpenGLContext* mSecondaryGLContext;
+        //static QOffscreenSurface* m_offscreenSurface;
     public Q_SLOTS:
         void stop();
 

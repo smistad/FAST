@@ -6,7 +6,7 @@ file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include/)
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/licenses/)
 
-## OpenCL
+## ============ OpenCL
 if(WIN32)
     fast_download_dependency(opencl
             3.0.8
@@ -36,7 +36,7 @@ else()
     )
 endif()
 
-## OpenGL
+## ============== OpenGL
 find_package(OpenGL REQUIRED)
 list(APPEND FAST_SYSTEM_LIBRARIES ${OPENGL_LIBRARIES})
 list(APPEND FAST_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
@@ -48,10 +48,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux)
     list(APPEND FAST_SYSTEM_LIBRARIES pthread)
 endif()
 
-## Qt
+## ============== Qt
 if(FAST_MODULE_Visualization)
     if(FAST_BUILD_QT5)
-        # Let FAST build Qt 5
+        # Use FAST build of Qt
         if(WIN32)
             fast_download_dependency(qt5
                     5.15.2
@@ -77,67 +77,75 @@ if(FAST_MODULE_Visualization)
             )
 		endif()
         else()
-            fast_download_dependency(qt5
-                    5.15.2
-		    71bf6dbae6aa24cc5e64379cb04899f6abf4fe512d87093f3f566c6b0fca4fa9
-                    libQt5Core.so libQt5Gui.so libQt5Widgets.so libQt5OpenGL.so libQt5Multimedia.so libQt5MultimediaWidgets.so libQt5Network.so libQt5PrintSupport.so libQt5SerialPort.so
+            fast_download_dependency(qt6
+                    6.9.0
+                    12c714bba41779a792c09a7e8611c23507ae140870f54c14ebc381e0fe39314d
+                    libQt6Core.so libQt6Gui.so libQt6Widgets.so libQt6OpenGL.so libQt6OpenGLWidgets.so libQt6Multimedia.so libQt6MultimediaWidgets.so libQt6Network.so
             )
             fast_download_dependency(openssl
                     1.1.1
                     813d09d0e4fb8c03b4470692659d8600e5d56c77708aa27c0290e9be03cc7352
             )
         endif()
-        # MOC setup
+        # Need to set version manually to suppress warnings
         set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                PROPERTY Qt5Core_VERSION_MAJOR "5")
+                PROPERTY Qt6Core_VERSION_MAJOR "6")
         set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                PROPERTY Qt5Core_VERSION_MINOR "15")
-        add_executable(Qt5::moc IMPORTED)
-        add_dependencies(Qt5::moc qt5)
+                PROPERTY Qt6Core_VERSION_MINOR "9")
+        set(Qt6Core_VERSION_MAJOR "6")
+        set(Qt6Core_VERSION_MINOR "9")
+        # MOC/AUTOGEN setup
+        add_executable(Qt6::moc IMPORTED)
+        add_executable(Qt6::rcc IMPORTED)
+        add_executable(Qt6::uic IMPORTED)
+        add_dependencies(Qt6::moc qt6)
+        set(QT_FORCE_MIN_CMAKE_VERSION_FOR_USING_QT 3.20)
+
+        #set(Qt6_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt/Qt6)
+        #find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets Network PATHS ${PROJECT_SOURCE_DIR}/cmake/)
+
         set(MOC_FILENAME "${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX}" )
-        set_target_properties(Qt5::moc PROPERTIES IMPORTED_LOCATION ${MOC_FILENAME})
+        set_target_properties(Qt6::moc PROPERTIES IMPORTED_LOCATION ${MOC_FILENAME})
         # HACK: Create fake moc executable to avoid errors on newer cmake
         if(NOT EXISTS ${MOC_FILENAME})
             # Copy an executable we know exist: cmake(.exe)
             file(COPY ${CMAKE_COMMAND}
-                DESTINATION "${PROJECT_BINARY_DIR}/bin/"
-                FOLLOW_SYMLINK_CHAIN
-                FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
+                    DESTINATION "${PROJECT_BINARY_DIR}/bin/"
+                    FOLLOW_SYMLINK_CHAIN
+                    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
             # Rename it to moc(.exe)
             file(RENAME ${PROJECT_BINARY_DIR}/bin/cmake${CMAKE_EXECUTABLE_SUFFIX} ${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX})
         endif()
-        set(Qt5_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5/)
-        find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport Network PATHS ${PROJECT_SOURCE_DIR}/cmake/)
-        set(Qt5Core_VERSION "5.15.2")
-        set(Qt5Core_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtCore)
-        set(Qt5Gui_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtGui)
-        set(Qt5Widgets_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtWidgets)
-        set(Qt5OpenGL_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtOpenGL)
-        set(Qt5Multimedia_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtMultimedia)
-        set(Qt5MultimediaWidgets_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtMultimediaWidgets)
-        set(Qt5PrintSupport_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtPrintSupport)
-        set(Qt5Network_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtNetwork)
+
+        set(QT_MODULES QtCore QtGui QtWidgets QtOpenGL QtOpenGLWidgets QtMultimedia QtMultimediaWidgets QtPrintSupport QtNetwork)
+        foreach(ITEM ${QT_MODULES})
+            list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/${ITEM})
+        endforeach()
     else(FAST_BUILD_QT5)
         # Use system Qt
-        find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport Network)
-        list(APPEND LIBRARIES Qt5::Core)
-        list(APPEND LIBRARIES Qt5::Gui)
-        list(APPEND LIBRARIES Qt5::Widgets)
-        list(APPEND LIBRARIES Qt5::OpenGL)
-        list(APPEND LIBRARIES Qt5::Multimedia)
-        list(APPEND LIBRARIES Qt5::MultimediaWidgets)
-        list(APPEND LIBRARIES Qt5::PrintSupport)
-        list(APPEND LIBRARIES Qt5::Network)
+        find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport Network)
+        list(APPEND LIBRARIES Qt6::Core)
+        list(APPEND LIBRARIES Qt6::Gui)
+        list(APPEND LIBRARIES Qt6::Widgets)
+        list(APPEND LIBRARIES Qt6::OpenGL)
+        list(APPEND LIBRARIES Qt6::Multimedia)
+        list(APPEND LIBRARIES Qt6::MultimediaWidgets)
+        list(APPEND LIBRARIES Qt6::PrintSupport)
+        list(APPEND LIBRARIES Qt6::Network)
+
+        list(APPEND FAST_INCLUDE_DIRS
+                ${Qt6Widgets_INCLUDE_DIRS}
+                ${Qt6Core_INCLUDE_DIRS}
+                ${Qt6Gui_INCLUDE_DIRS}
+                ${Qt6OpenGL_INCLUDE_DIRS}
+                ${Qt6OpenGLWidgets_INCLUDE_DIRS}
+                ${Qt6Multimedia_INCLUDE_DIRS}
+                ${Qt6MultimediaWidgets_INCLUDE_DIRS}
+                ${Qt6PrintSupport_INCLUDE_DIRS}
+                ${Qt6Network_INCLUDE_DIRS}
+        )
     endif(FAST_BUILD_QT5)
 
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Widgets_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Core_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Gui_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5OpenGL_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Multimedia_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5MultimediaWidgets_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5PrintSupport_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Network_INCLUDE_DIRS})
     set(CMAKE_AUTOMOC ON)
 
     if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -146,14 +154,14 @@ if(FAST_MODULE_Visualization)
     add_definitions("-DFAST_MODULE_VISUALIZATION")
 endif()
 
-## External dependencies
+## ============= External dependencies
 include(cmake/ExternalEigen.cmake)
 add_definitions("-DEIGEN_MPL2_ONLY") # Avoid using LGPL code in eigen http://eigen.tuxfamily.org/index.php?title=Main_Page#License
 include(cmake/ExternalZlib.cmake)
 include(cmake/ExternalZip.cmake)
 include(cmake/ImageCompressionDependencies.cmake)
 
-# Optional modules
+## ============= Optional modules + dependencies
 include(cmake/ModuleVTK.cmake)
 include(cmake/ModuleITK.cmake)
 include(cmake/ModuleOpenIGTLink.cmake)

@@ -35,7 +35,7 @@ class FAST_EXPORT Streamer : public ProcessObject {
     public:
         typedef std::shared_ptr<Streamer> pointer;
         Streamer();
-        virtual ~Streamer() { stop(); };
+        virtual ~Streamer();
         static std::string getStaticNameOfClass() {
             return "Streamer";
         }
@@ -56,6 +56,7 @@ class FAST_EXPORT Streamer : public ProcessObject {
         StreamingMode getStreamingMode() const;
 
         virtual DataChannel::pointer getOutputPort(uint portID = 0) override;
+        void stopPipeline() override;
     protected:
         /**
          * Block until the first data frame has been sent using a condition variable
@@ -87,7 +88,8 @@ class FAST_EXPORT Streamer : public ProcessObject {
         std::unique_ptr<std::thread> m_thread;
         std::condition_variable m_firstFrameCondition;
 
-        std::map<uint, std::shared_ptr<ProcessObject>> m_outputPOs;
+        // Must be weak_ptr or be we get a circular dependency and streamers are never destroyed here
+        std::map<uint, std::weak_ptr<ProcessObject>> m_outputPOs;
 
 
 };
