@@ -22,7 +22,7 @@ jobs:
     steps:
     - name: Docker clean
       run: |
-        docker image prune
+        docker image prune -f
     - name: Checkout
       uses: actions/checkout@v4
 
