@@ -26,7 +26,10 @@ jobs:
       # Use docker-run-action instead of container to get around githubs node20 requirement which doesn't work with ubuntu 18
     - uses: addnab/docker-run-action@v3
       with:
-        image: ubuntu:18.04
+        image: ghcr.io/smistad/fast-ubuntu18-build:latest
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.github_token }}
         options: -v ${{ github.workspace }}:${{ github.workspace }}
         shell: bash
         run: |
@@ -34,26 +37,6 @@ jobs:
           
           df -h
           
-          echo "===========> Install dependencies"
-          
-          apt update && apt install -y sudo
-          mkdir -p ${{github.workspace}}/artifacts
-          # Get a newer version of cmake
-          sudo apt install -y gpg wget software-properties-common lsb-release ca-certificates
-          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-          echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
-          sudo apt-get update
-          sudo rm /usr/share/keyrings/kitware-archive-keyring.gpg
-          sudo apt-get install kitware-archive-keyring
-          sudo apt install -y cmake
-          sudo apt install -y g++ patchelf
-          sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-          sudo apt install -y libopenslide-dev libjpeg-turbo8-dev # Needed for WSI module
-          sudo apt install -y pkgconf libusb-1.0-0-dev # Needed for realsense
-          sudo apt install -y python3 libpython3-dev python3-pip python3-setuptools
-          sudo pip3 install --upgrade pip
-          pip3 install pylddwrap==1.2.0 twine wheel==0.37.1
-
           echo "===========> Install CUDA and TensorRT"
           
           wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
@@ -95,7 +78,7 @@ jobs:
           df -h
           rm -Rf build/external/tensorflow/src/tensorflow/
           rm -Rf build/external/openvino/src/openvino/
-          rm -Rf build/external/qt5/src/qt5/
+          rm -Rf build/external/qt6/src/qt6/
           rm -Rf build/external/clarius/src/clarius/
           df -h
 
