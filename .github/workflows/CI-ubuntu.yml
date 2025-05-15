@@ -20,6 +20,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Docker clean
+      run: |
+        docker image prune
     - name: Checkout
       uses: actions/checkout@v4
 
