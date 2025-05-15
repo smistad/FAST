@@ -212,7 +212,7 @@ void PatchGenerator::generateStream() {
                     mRuntimeManager->stopRegularTimer("create patch");
                     try {
                         if(previousPatch) {
-                            addOutputData(0, previousPatch, false);
+                            addOutputData(0, previousPatch, false, false);
                             frameAdded();
                         }
                     } catch(ThreadStopped &e) {
@@ -301,7 +301,7 @@ void PatchGenerator::generateStream() {
                         patch->setFrameData("progress", std::to_string(m_progress));
                         try {
                             if(previousPatch) {
-                                addOutputData(0, previousPatch, false);
+                                addOutputData(0, previousPatch, false, false);
                                 frameAdded();
                                 //std::this_thread::sleep_for(std::chrono::seconds(2));
                             }
@@ -322,7 +322,7 @@ void PatchGenerator::generateStream() {
         // Add final patch, and mark it has last frame
         previousPatch->setLastFrame(getNameOfClass());
         try {
-            addOutputData(0, previousPatch, false);
+            addOutputData(0, previousPatch, false, false);
         } catch(ThreadStopped &e) {
 
         }
