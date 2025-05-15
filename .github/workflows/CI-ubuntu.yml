@@ -26,10 +26,10 @@ jobs:
       # Use docker-run-action instead of container to get around githubs node20 requirement which doesn't work with ubuntu 18
     - uses: addnab/docker-run-action@v3
       with:
-        image: ghcr.io/smistad/fast-ubuntu18-build:latest
-        credentials:
-          username: ${{ github.actor }}
-          password: ${{ secrets.github_token }}
+        image: fast-ubuntu18-build:latest
+        username: ${{ github.actor }}
+        password: ${{ secrets.GHCR_TOKEN }}
+        registry: ghcr.io
         options: -v ${{ github.workspace }}:${{ github.workspace }}
         shell: bash
         run: |
