@@ -224,7 +224,7 @@ jobs:
       - name: Run in container
         uses: addnab/docker-run-action@v3
         with:
-          image: {{ matrix.os }}
+          image: ${{ matrix.os }}
           options: -v ${{ github.workspace }}:${{ github.workspace }}
           shell: bash
           run: |
