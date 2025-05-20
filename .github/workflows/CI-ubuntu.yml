@@ -229,6 +229,7 @@ jobs:
           shell: bash
           run: |
             # Install dependencies
+            apt-get update
             apt install libpocl2 libopenslide0 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 python3
             python3 -c "import sys; print(sys.version)"
             # Install wheel
