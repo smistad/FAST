@@ -201,8 +201,8 @@ void OpenVINOEngine::load() {
                 };
         ov::CompiledModel compiled_model = m_core->compile_model(model, deviceMap[m_deviceType]);
         reportInfo() << "OpenVINO successfully compiled model" << reportEnd();
-        ov::Any execution_devices = compiled_model.get_property(ov::execution_devices);
-        reportInfo() << "OpenVINO is running network on " << execution_devices->to_string() << reportEnd();
+        //ov::Any execution_devices = compiled_model.get_property(ov::execution_devices);
+        //reportInfo() << "OpenVINO is running network on " << execution_devices->to_string() << reportEnd();
 
         // Create infer request
         m_infer = std::make_shared<OpenVINOInfer>();
