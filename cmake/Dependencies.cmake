@@ -38,14 +38,15 @@ endif()
 
 ## ============== OpenGL
 find_package(OpenGL REQUIRED)
-list(APPEND FAST_SYSTEM_LIBRARIES ${OPENGL_LIBRARIES})
 list(APPEND FAST_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
-# If OS is Linux, also need X
+list(APPEND FAST_SYSTEM_LIBRARIES OpenGL::OpenGL)
+# If OS is Linux, also need X, pthread and GLX
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
     find_package(X11 REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS ${X11_INCLUDE_DIR})
     list(APPEND FAST_SYSTEM_LIBRARIES X11::X11)
     list(APPEND FAST_SYSTEM_LIBRARIES pthread)
+    list(APPEND FAST_SYSTEM_LIBRARIES OpenGL::GLX)
 endif()
 
 ## ============== Qt
