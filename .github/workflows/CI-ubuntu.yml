@@ -50,7 +50,7 @@ jobs:
           sudo apt-get install kitware-archive-keyring
           sudo apt install -y cmake
           sudo apt install -y g++ patchelf
-          sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+          sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
           sudo apt install -y libopenslide-dev libjpeg-turbo8-dev # Needed for WSI module
           sudo apt install -y pkgconf libusb-1.0-0-dev # Needed for realsense
           sudo apt install -y python3 libpython3-dev python3-pip python3-setuptools
