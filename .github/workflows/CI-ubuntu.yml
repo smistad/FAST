@@ -249,7 +249,7 @@ jobs:
           run: |
             # Install dependencies
             apt-get update
-            apt install -y libpocl2 libopenslide0 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 python3 python3-pip
+            apt install -y libpocl2 libopenslide0 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 libxkbcommon0 python3 python3-pip
             python3 -c "import sys; print(sys.version)"
             # Install wheel
             cd ${{github.workspace}}
