@@ -249,11 +249,11 @@ jobs:
           run: |
             # Install dependencies
             apt-get update
-            apt install -y libpocl2 libopenslide0 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 python3
+            apt install -y libpocl2 libopenslide0 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 python3 python3-pip
             python3 -c "import sys; print(sys.version)"
             # Install wheel
             cd ${{github.workspace}}
-            python3 -m pip install ${{github.workspace}}/download/pyFAST-*.whl
+            pip3 install ${{github.workspace}}/download/pyFAST-*.whl
             # Import FAST with Python
             cd ${{github.workspace}}
             python3 -c "import fast"
