@@ -230,6 +230,7 @@ jobs:
       - name: Run tests
         env:
           DISPLAY: ':1'
+          QT_DEBUG_PLUGINS: 1
         run: |
           Xvfb "$DISPLAY" -screen 0 1024x768x24 &
           cd ${{github.workspace}}
