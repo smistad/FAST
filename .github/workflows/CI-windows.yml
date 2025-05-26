@@ -303,5 +303,5 @@ jobs:
       - name: Run tests
         run: |
           cd ${{github.workspace}}
-          python -m pip install pytest
+          python -m pip install pytest numpy
           pytest source/FAST/
