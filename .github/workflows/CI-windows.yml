@@ -297,6 +297,13 @@ jobs:
         run: |
           cd ${{github.workspace}}/download/
           Get-ChildItem -Path ".\*.whl" | ForEach-Object { python -m pip install $_.FullName }
+      - name: Cache test data
+        id: cache-test-dataset
+        uses: actions/cache@v4
+        with:
+          path: C:/ProgramData/FAST/data/
+          key: test-dataset
+          enableCrossOsArchive: true
       - name: Download test data
         run: |
           python -c "import fast;fast.downloadTestDataIfNotExists()"
