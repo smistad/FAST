@@ -221,6 +221,13 @@ jobs:
           mkdir -p ${{github.workspace}}/download/
           cd ${{github.workspace}}/download/
           tar -xf fast_*.tar.xz -C ${{github.workspace}}
+      - name: Cache test data
+        id: cache-test-dataset
+        uses: actions/cache@v4
+        with:
+          path: ~/fast/data/
+          key: test-dataset
+          enableCrossOsArchive: true
       - name: Download test data
         run: |
           cd ${{github.workspace}}
@@ -262,6 +269,13 @@ jobs:
           source venv/bin/activate
           pip3 install pytest numpy
           pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+      - name: Cache test data
+        id: cache-test-dataset
+        uses: actions/cache@v4
+        with:
+          path: ~/fast/data/
+          key: test-dataset
+          enableCrossOsArchive: true
       - name: Download test data
         run: |
           cd ${{github.workspace}}/tmp/
