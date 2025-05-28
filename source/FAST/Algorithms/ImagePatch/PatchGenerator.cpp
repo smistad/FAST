@@ -208,6 +208,7 @@ void PatchGenerator::generateStream() {
                     patch->setFrameData("patch-level", std::to_string(level));
                     m_progress = (float)(patchX+patchY*patchesX)/(patchesX*patchesY);
                     patch->setFrameData("progress", std::to_string(m_progress));
+                    patch->setFrameData("streaming", "yes"); // Since we are not propagating frame data, we have to set this
 
                     mRuntimeManager->stopRegularTimer("create patch");
                     try {
@@ -299,6 +300,7 @@ void PatchGenerator::generateStream() {
                         patch->setFrameData("patch-spacing-z", std::to_string(spacing.z()));
                         m_progress = ((float)(patchX+patchY*patchesX+patchZ*patchesX*patchesY)/(patchesX*patchesY*patchesZ));
                         patch->setFrameData("progress", std::to_string(m_progress));
+                        patch->setFrameData("streaming", "yes"); // Since we are not propagating frame data, we have to set this
                         try {
                             if(previousPatch) {
                                 addOutputData(0, previousPatch, false, false);
@@ -321,6 +323,7 @@ void PatchGenerator::generateStream() {
         }
         // Add final patch, and mark it has last frame
         previousPatch->setLastFrame(getNameOfClass());
+		previousPatch->setFrameData("streaming", "yes"); // Since we are not propagating frame data, we have to set this
         try {
             addOutputData(0, previousPatch, false, false);
         } catch(ThreadStopped &e) {

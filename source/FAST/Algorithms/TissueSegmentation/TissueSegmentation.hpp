@@ -94,7 +94,7 @@ class FAST_EXPORT TissueSegmentation : public ProcessObject {
         int m_erode = 9;
         int m_thresh = 85;
         int m_level = -1;
-        float m_magnification = 2.5f;
+        float m_magnification = 1.25f;
         bool m_filterZeros = true;
         bool m_useColorThresholdingMethod = false;
 };

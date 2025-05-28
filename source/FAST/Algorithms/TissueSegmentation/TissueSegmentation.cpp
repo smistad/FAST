@@ -20,6 +20,7 @@ TissueSegmentation::TissueSegmentation(bool useColorThresholdingMethod, int leve
     createIntegerAttribute("dilate-kernel-size", "Kernel size for dilation", "", m_dilate);
     createIntegerAttribute("erode-kernel-size", "Kernel size for erosion", "", m_erode);
     createBooleanAttribute("filter-zeros", "Include zero values to background/glass class", "", m_filterZeros);
+    createBooleanAttribute("color-thresholding", "Use color thresholding instead of neural network", "", false);
     setThreshold(threshold);
     setDilate(dilationSize);
     setErode(erosionSize);
@@ -34,7 +35,7 @@ void TissueSegmentation::loadAttributes() {
     setDilate(getIntegerAttribute("dilate-kernel-size"));
     setErode(getIntegerAttribute("erode-kernel-size"));
     setFilterZeros(getBooleanAttribute("filter-zeros"));
-
+    setUseColorThresholdingMethod("color-thresholding");
 }
 
 void TissueSegmentation::setThreshold(int thresh) {
