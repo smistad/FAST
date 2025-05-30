@@ -318,6 +318,16 @@ jobs:
     needs: [build]
     runs-on: windows-2019
     steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: 'Archive package (tar.xz)'
+          path: ${{github.workspace}}/download/
+      - name: Extract artifact
+        run: |
+          mkdir -p ${{github.workspace}}/download/
+          cd ${{github.workspace}}/download/
+          tar -xf fast_*.tar.xz -C ${{github.workspace}}
       - name: Install POCL
         shell: powershell
         run: |
@@ -332,17 +342,7 @@ jobs:
             }
             
             Write-Output "Installing POCL .."
-            Start-Process -Wait -FilePath .\pocl_installer.exe -ArgumentList "/S"  
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: 'Archive package (tar.xz)'
-          path: ${{github.workspace}}/download/
-      - name: Extract artifact
-        run: |
-          mkdir -p ${{github.workspace}}/download/
-          cd ${{github.workspace}}/download/
-          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+            Start-Process -Wait -FilePath .\pocl_installer.exe -ArgumentList "/S"            
       - name: Cache test data
         id: cache-test-dataset
         uses: actions/cache@v4
