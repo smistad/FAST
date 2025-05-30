@@ -114,6 +114,25 @@ jobs:
           
           cmake --build build --config ${{env.BUILD_TYPE}} --target package -j 4
 
+    - name: Check C/C++ standard library version dependency
+      run: |
+        # Throw error if GLIBCXX dependency above 3.4.25
+        temp_file=$(mktemp)
+        find . -wholename "${{ github.workspace }}/build/lib/*.so" -print0 |
+          while IFS= read -r -d $'\0' file; do
+            strings "$file" | grep -E "^GLIBCXX_3\.4\.(2[6-9]|[3-9][0-9])$" |
+            while IFS= read -r line; do
+              echo "File: $file neeeds GLIBCXX version: $line"
+              echo "true" > $temp_file
+            done
+          done
+        if grep -q "true" $temp_file; then
+          echo "Version error found."
+          exit 1 # indicate error to github action
+        else
+          echo "No version errors found."
+        fi
+
     - name: Upload Debian package
       uses: actions/upload-artifact@v4
       with:
