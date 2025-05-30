@@ -312,3 +312,53 @@ jobs:
           cd ${{github.workspace}}
           python -m pip install pytest numpy
           pytest source/FAST/
+
+  test-cpp:
+    name: Run C++ Tests
+    needs: [build]
+    runs-on: windows-2019
+    steps:
+      - name: Install POCL
+        shell: powershell
+        run: |
+            cd ${{github.workspace}}/download/
+            Write-Output "Downloading POCL .."
+            Invoke-WebRequest https://github.com/pocl/pocl/releases/download/v7.0/PoCL-7.0.0-CONF-win64.exe -OutFile pocl_installer.exe | Out-Null
+            if(Test-Path -Path pocl_installer.exe){
+                Write-Output "Downloading Complete"
+            } else {
+                Write-Output "Error: Failed to download POCL installer"
+                exit 1
+            }
+            
+            Write-Output "Installing POCL .."
+            Start-Process -Wait -FilePath .\pocl_installer.exe -ArgumentList "/S"  
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: 'Archive package (tar.xz)'
+          path: ${{github.workspace}}/download/
+      - name: Extract artifact
+        run: |
+          mkdir -p ${{github.workspace}}/download/
+          cd ${{github.workspace}}/download/
+          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+      - name: Cache test data
+        id: cache-test-dataset
+        uses: actions/cache@v4
+        with:
+          path: C:/ProgramData/FAST/data/
+          key: test-dataset
+          enableCrossOsArchive: true
+      - name: Download test data
+        run: |
+          cd ${{github.workspace}}
+          cd fast*
+          cd fast/bin/
+          ./downloadTestData
+      - name: Run tests
+        run: |
+          cd ${{github.workspace}}
+          cd fast_*
+          cd fast/bin/
+          ./testFAST ~[visual]
