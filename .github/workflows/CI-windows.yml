@@ -321,13 +321,13 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: 'Archive package (tar.xz)'
+          name: 'Archive package (zip)'
           path: ${{github.workspace}}/download/
       - name: Extract artifact
         run: |
-          mkdir -p ${{github.workspace}}/download/
-          cd ${{github.workspace}}/download/
-          tar -xf fast_*.tar.xz -C ${{github.workspace}}
+          Get-ChildItem -Path "${{github.workspace}}/download/" -Filter "*.zip" | ForEach-Object {
+              Expand-Archive -Path $_.FullName -DestinationPath ${{github.workspace}}
+          }
       - name: Install POCL
         shell: powershell
         run: |
