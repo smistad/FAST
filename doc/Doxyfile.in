@@ -1,11 +1,11 @@
-PROJECT_NAME           = "@CMAKE_PROJECT_NAME@"
+PROJECT_NAME           = "FAST"
 PROJECT_NUMBER         = "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@"
 PROJECT_BRIEF          = "| Documentation"
-STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@/source/ \
-                         @PROJECT_SOURCE_DIR@/doc/pages/
-INPUT                  = @PROJECT_SOURCE_DIR@/doc/mainpage.dox \
-                         @FAST_SOURCE_DIR@ \
-                         @PROJECT_SOURCE_DIR@/doc/pages/
+STRIP_FROM_PATH        = @TOP_SOURCE_DIR@/source/ \
+                         @TOP_SOURCE_DIR@/doc/pages/
+INPUT                  = @TOP_SOURCE_DIR@/doc/mainpage.dox \
+                         @TOP_SOURCE_DIR@/source/FAST/ \
+                         @TOP_SOURCE_DIR@/doc/pages/
 FILE_PATTERNS          = *.hpp, *.dox, *.md, *.cpp, *.py
 EXCLUDE_PATTERNS       = */Tests/* \
                          */Tools/*  \
@@ -21,15 +21,15 @@ EXTRACT_ALL             = YES
 ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 
-M_FAVICON = @PROJECT_SOURCE_DIR@/doc/images/fast_icon.ico
-PROJECT_LOGO = @PROJECT_SOURCE_DIR@/doc/images/fast_icon.png
-IMAGE_PATH = @PROJECT_SOURCE_DIR@/doc/images/
+M_FAVICON = @TOP_SOURCE_DIR@/doc/images/fast_icon.ico
+PROJECT_LOGO = @TOP_SOURCE_DIR@/doc/images/fast_icon.png
+IMAGE_PATH = @TOP_SOURCE_DIR@/doc/images/
 HTML_EXTRA_STYLESHEET = 'https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600' \
     '../css/m-dark+documentation.compiled.css' \
-    '@PROJECT_SOURCE_DIR@/doc/fast.css'
+    '@TOP_SOURCE_DIR@/doc/fast.css'
 M_THEME_COLOR = '#22272e'
 EXCLUDE_SYMBOLS = cl, libfreenect2, nvinfer1, tensorflow, TEST_CASE
-EXAMPLE_PATH = @PROJECT_SOURCE_DIR@/source/FAST/Examples/
+EXAMPLE_PATH = @TOP_SOURCE_DIR@/source/FAST/Examples/
 EXAMPLE_PATTERNS = *.cpp, *.py, *.hpp, *.txt, *.fpl
 EXAMPLE_RECURSIVE = YES
 ALIASES += \

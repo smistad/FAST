@@ -1,5 +1,5 @@
 # Download M.CSS for building the documentation
-include(cmake/Externals.cmake)
+include(${PROJECT_SOURCE_DIR}/../cmake/Externals.cmake)
 
 ExternalProject_Add(mcss
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/mcss

@@ -124,8 +124,7 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 include(cmake/Depdendencies.cmake)
 
 if(FAST_BUILD_DOCS)
-    include(cmake/ExternalMCSS.cmake)
-    include(cmake/Documentation.cmake)
+    add_subdirectory(doc/)
 endif()
 
 include(cmake/OpenMP.cmake)
