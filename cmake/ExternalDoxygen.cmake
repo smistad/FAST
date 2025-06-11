@@ -1,4 +1,5 @@
 # Build and install a specific version of Doxygen for building the documentation
+# FLEX and bison are required to build doxygen, see https://www.doxygen.nl/manual/install.html
 include(${PROJECT_SOURCE_DIR}/../cmake/Externals.cmake)
 
 ExternalProject_Add(doxygen

@@ -1,4 +1,5 @@
 # Download M.CSS for building the documentation
+# jinja2 is needed for python: pip3 install jinja2
 include(${PROJECT_SOURCE_DIR}/../cmake/Externals.cmake)
 
 ExternalProject_Add(mcss
