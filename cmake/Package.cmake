@@ -35,7 +35,7 @@ if(WIN32 AND NOT UNIX)
         "OpenIGTLink Server"
         "fast\\\\bin\\\\downloadTestData"
         "Download test data (~2GB)"
-        "http://fast.eriksmistad.no"
+        "http://fast-imaging.github.io"
         "FAST Webpage"
         "Uninstall.exe"
         "Uninstall"

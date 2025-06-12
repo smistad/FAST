@@ -16,14 +16,14 @@ std::string doCheck() {
     auto deviceManager = DeviceManager::getInstance();
     auto platforms = deviceManager->getPlatforms(DEVICE_PLATFORM_ANY);
     std::stringstream message;
-    message << "FAST v" << getVersion() << " SYSTEM CHECK\n\n";
+    message << "FAST " << getVersion() << " SYSTEM CHECK\n\n";
 
     bool canVisualize = Config::getVisualization();
 
     if(platforms.empty()) {
         if(canVisualize) {
             std::string msg = "No OpenCL platforms found! Please install an OpenCL platform. <br>"
-                              "See <a href=\"https://fast.eriksmistad.no/requirements.html\">https://fast.eriksmistad.no/requirements.html</a> for more information.";
+                              "See <a href=\"https://fast-imaging.github.io/requirements.html\">https://fast-imaging.github.io/requirements.html</a> for more information.";
             auto button = QMessageBox::critical(nullptr, "No OpenCL platform found.", msg.c_str());
         } else {
             message << "No OpenCL platforms found! Please install an OpenCL platform. "

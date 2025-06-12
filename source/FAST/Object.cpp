@@ -83,7 +83,7 @@ Object::Object() {
 #endif
         std::cout << "\n     - Powered by -     \n"
             "   _______   __________   \n"
-            "  / __/ _ | / __/_  __/   https://fast.eriksmistad.no\n"
+            "  / __/ _ | / __/_  __/   https://fast-imaging.github.io\n"
             " / _// __ |_\\ \\  / /               " + getVersion() + "\n"
             "/_/ /_/ |_/___/ /_/       \n\n";
 #if WIN32

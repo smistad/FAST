@@ -2,19 +2,19 @@
 
 [![GitHub Discussions](https://img.shields.io/github/discussions/smistad/FAST?label=GitHub%20discussions&logo=github)](https://github.com/smistad/FAST/discussions)
 [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
-[![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://fast.eriksmistad.no/download-stats.html)
+[![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://fast-imaging.github.io/download-stats.html)
 
 FAST is an open-source framework developed by researchers at the Norwegian University of Science and Technology (NTNU) and SINTEF. 
 The main goal of FAST is to make it easier to do high-performance processing, neural network inference, and visualization of medical images utilizing multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL, and neural network inference libraries such as TensorRT, OpenVINO, TensorFlow and ONNX Runtime.
 
 ### Get started
-See installation instructions for [Windows](https://fast.eriksmistad.no/install-windows.html), [Ubuntu Linux](https://fast.eriksmistad.no/install-ubuntu-linux.html) and [macOS](https://fast.eriksmistad.no/install-mac.html).
+See installation instructions for [Windows](https://fast-imaging.github.io/install-windows.html), [Ubuntu Linux](https://fast-imaging.github.io/install-ubuntu-linux.html) and [macOS](https://fast-imaging.github.io/install-mac.html).
 
-To start using the framework, check out the [C++ tutorials](https://fast.eriksmistad.no/cpp-tutorials.html) or the [Python tutorials](https://fast.eriksmistad.no/python-tutorials.html).
+To start using the framework, check out the [C++ tutorials](https://fast-imaging.github.io/cpp-tutorials.html) or the [Python tutorials](https://fast-imaging.github.io/python-tutorials.html).
 
-Learn best by example? Check out all the examples for [C++](https://fast.eriksmistad.no/cpp-examples.html) and [Python](https://fast.eriksmistad.no/python-examples.html).
+Learn best by example? Check out all the examples for [C++](https://fast-imaging.github.io/cpp-examples.html) and [Python](https://fast-imaging.github.io/python-examples.html).
 
-For more examples and documentation, go to [fast.eriksmistad.no](https://fast.eriksmistad.no).
+For more examples and documentation, go to [fast-imaging.github.io](https://fast-imaging.github.io).
 
 Need help? Post your questions on the [Discussions](https://github.com/smistad/FAST/discussions/new?category=q-a) page or use the [Gitter Chat](https://gitter.im/smistad/FAST).
 
@@ -47,9 +47,9 @@ IEEE Access 2019*
 ### Build
 
 To setup and build the framework, see the instructions for your operating system:
-* [Linux (Ubuntu)](https://fast.eriksmistad.no/building-on-linux.html)
-* [Windows](https://fast.eriksmistad.no/building-on-windows.html)
-* [macOS](https://fast.eriksmistad.no/building-on-mac.html)
+* [Linux (Ubuntu)](https://fast-imaging.github.io/building-on-linux.html)
+* [Windows](https://fast-imaging.github.io/building-on-windows.html)
+* [macOS](https://fast-imaging.github.io/building-on-mac.html)
 
 
 ![Surface mesh extracted from a large abdominal CT scan.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Alpha blending ray casting rendering of a thorax CT image.](https://github.com/smistad/FAST/wiki/images/volume_renderer.jpg)
