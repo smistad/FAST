@@ -227,7 +227,7 @@ for v in sys.argv: # override version if present
         sys.argv.remove(v) # Remove or setup will be cranky
         break
 
-setup(name='pyFAST',    # Distribution name
+setup(name='pyfast',    # Distribution name
       version=version,
       description='Python bindings of FAST - a framework for high performance medical image computing and visualization on heterogeneous systems utilizing multi-core CPUs and GPUs.',
       long_description=long_description,
