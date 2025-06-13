@@ -1,5 +1,5 @@
 # Setup all dependencies for FAST, both internal (have to be installed on the system)
-# and external (downloaded and built automatically)
+# and external (downloaded automatically)
 
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/lib/)
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
@@ -51,7 +51,7 @@ endif()
 ## Qt
 if(FAST_MODULE_Visualization)
     if(FAST_BUILD_QT5)
-        # Let FAST build Qt 5
+        # Use FAST build of Qt
         if(WIN32)
             fast_download_dependency(qt5
                     5.15.2
@@ -87,11 +87,13 @@ if(FAST_MODULE_Visualization)
                     813d09d0e4fb8c03b4470692659d8600e5d56c77708aa27c0290e9be03cc7352
             )
         endif()
-        # MOC setup
+        # Need to set version manually to suppress warnings
         set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                 PROPERTY Qt5Core_VERSION_MAJOR "5")
         set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                 PROPERTY Qt5Core_VERSION_MINOR "15")
+        set(Qt5Core_VERSION_MAJOR "5")
+        set(Qt5Core_VERSION_MINOR "15")
         add_executable(Qt5::moc IMPORTED)
         add_dependencies(Qt5::moc qt5)
         set(MOC_FILENAME "${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX}" )
@@ -106,38 +108,35 @@ if(FAST_MODULE_Visualization)
             # Rename it to moc(.exe)
             file(RENAME ${PROJECT_BINARY_DIR}/bin/cmake${CMAKE_EXECUTABLE_SUFFIX} ${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX})
         endif()
-        set(Qt5_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5/)
-        find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport Network PATHS ${PROJECT_SOURCE_DIR}/cmake/)
-        set(Qt5Core_VERSION "5.15.2")
-        set(Qt5Core_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtCore)
-        set(Qt5Gui_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtGui)
-        set(Qt5Widgets_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtWidgets)
-        set(Qt5OpenGL_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtOpenGL)
-        set(Qt5Multimedia_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtMultimedia)
-        set(Qt5MultimediaWidgets_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtMultimediaWidgets)
-        set(Qt5PrintSupport_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtPrintSupport)
-        set(Qt5Network_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtNetwork)
+        set(QT_MODULES QtCore QtGui QtWidgets QtOpenGL QtOpenGLWidgets QtMultimedia QtMultimediaWidgets QtPrintSupport QtNetwork)
+        foreach(ITEM ${QT_MODULES})
+            list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/${ITEM})
+        endforeach()
     else(FAST_BUILD_QT5)
         # Use system Qt
         find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport Network)
-        list(APPEND LIBRARIES Qt5::Core)
-        list(APPEND LIBRARIES Qt5::Gui)
-        list(APPEND LIBRARIES Qt5::Widgets)
-        list(APPEND LIBRARIES Qt5::OpenGL)
-        list(APPEND LIBRARIES Qt5::Multimedia)
-        list(APPEND LIBRARIES Qt5::MultimediaWidgets)
-        list(APPEND LIBRARIES Qt5::PrintSupport)
-        list(APPEND LIBRARIES Qt5::Network)
+        list(APPEND LIBRARIES
+                Qt5::Core
+                Qt5::Gui
+                Qt5::Widgets
+                Qt5::OpenGL
+                Qt5::Multimedia
+                Qt5::MultimediaWidgets
+                Qt5::PrintSupport
+                Qt5::Network
+        )
+        list(APPEND FAST_INCLUDE_DIRS
+                ${Qt5Widgets_INCLUDE_DIRS}
+                ${Qt5Core_INCLUDE_DIRS}
+                ${Qt5Gui_INCLUDE_DIRS}
+                ${Qt5OpenGL_INCLUDE_DIRS}
+                ${Qt5Multimedia_INCLUDE_DIRS}
+                ${Qt5MultimediaWidgets_INCLUDE_DIRS}
+                ${Qt5PrintSupport_INCLUDE_DIRS}
+                ${Qt5Network_INCLUDE_DIRS}
+        )
     endif(FAST_BUILD_QT5)
 
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Widgets_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Core_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Gui_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5OpenGL_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Multimedia_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5MultimediaWidgets_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5PrintSupport_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Qt5Network_INCLUDE_DIRS})
     set(CMAKE_AUTOMOC ON)
 
     if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")

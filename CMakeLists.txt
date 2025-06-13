@@ -120,7 +120,7 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # This will setup all of FAST's dependencies
-include(cmake/Depdendencies.cmake)
+include(cmake/Dependencies.cmake)
 
 if(FAST_BUILD_DOCS)
     add_subdirectory(doc/)
