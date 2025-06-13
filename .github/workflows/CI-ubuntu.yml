@@ -102,7 +102,7 @@ jobs:
           echo "===========> Build Python Wheel"
           
           cmake --build build --config ${{env.BUILD_TYPE}} --target python-wheel -j 4
-          cp build/python/dist/pyFAST-*.whl build/
+          cp build/python/dist/pyfast-*.whl build/
 
           echo "===========> Free some space"
           
@@ -151,7 +151,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Python wheel
-        path: ${{github.workspace}}/build/pyFAST-*.whl
+        path: ${{github.workspace}}/build/pyfast-*.whl
         if-no-files-found: error
 
     - name: Upload Debian package to release
@@ -179,7 +179,7 @@ jobs:
       uses: svenstaro/upload-release-action@2.7.0
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}/build/pyFAST-*.whl
+        file: ${{github.workspace}}/build/pyfast-*.whl
         file_glob: true
         tag: ${{ github.ref }}
         overwrite: true
@@ -188,7 +188,7 @@ jobs:
       if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
       run: |
         pip3 install twine
-        twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/pyFAST-*.whl
+        twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/pyfast-*.whl
 
   test-python-wheel:
     name: Test Python Wheel
@@ -217,7 +217,7 @@ jobs:
       - name: Install wheel
         run: |
           cd ${{github.workspace}}
-          python -m pip install ${{github.workspace}}/download/pyFAST-*.whl
+          python -m pip install ${{github.workspace}}/download/pyfast-*.whl
       - name: Import FAST with Python
         run: |
           cd ${{github.workspace}}
@@ -251,7 +251,7 @@ jobs:
             python3 -c "import sys; print(sys.version)"
             # Install wheel
             cd ${{github.workspace}}
-            pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+            pip3 install ${{github.workspace}}/download/pyfast-*.whl
             # Import FAST with Python
             cd ${{github.workspace}}
             python3 -c "import fast"
@@ -321,7 +321,7 @@ jobs:
           virtualenv -p python3 venv
           source venv/bin/activate
           pip3 install pytest numpy
-          pip3 install ${{github.workspace}}/download/pyFAST-*.whl
+          pip3 install ${{github.workspace}}/download/pyfast-*.whl
       - name: Cache test data
         id: cache-test-dataset
         uses: actions/cache@v4

@@ -180,7 +180,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Python wheel
-        path: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        path: ${{github.workspace}}/build/python/dist/pyfast-*.whl
         if-no-files-found: error
 
     - name: Upload Windows installer to release
@@ -208,7 +208,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        file: ${{github.workspace}}/build/python/dist/pyfast-*.whl
         file_glob: true
         tag: ${{ github.ref }}
         overwrite: true
@@ -217,7 +217,7 @@ jobs:
     - name: Upload Python wheel to PyPi
       if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
       run: |
-        twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/python/dist/pyFAST-*.whl
+        twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/python/dist/pyfast-*.whl
 
   test-python-wheel:
     name: Test Python Wheel
