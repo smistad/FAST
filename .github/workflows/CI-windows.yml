@@ -21,12 +21,7 @@ env:
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: windows-2019
-
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
@@ -231,7 +226,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.6', '3.10', '3.12']
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
@@ -262,7 +257,7 @@ jobs:
   test-python:
     name: Run Python Tests
     needs: [build]
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -317,7 +312,7 @@ jobs:
 #  test-cpp:
 #    name: Run C++ Tests
 #    needs: [build]
-#    runs-on: windows-2019
+#    runs-on: windows-2022
 #    steps:
 #      - name: Download artifacts
 #        uses: actions/download-artifact@v4

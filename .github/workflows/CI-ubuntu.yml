@@ -52,7 +52,7 @@ jobs:
           sudo apt install -y pkgconf libusb-1.0-0-dev # Needed for realsense
           sudo apt install -y python3 libpython3-dev python3-pip python3-setuptools
           sudo pip3 install --upgrade pip
-          pip3 install pylddwrap==1.2.0 twine wheel==0.37.1
+          pip3 install pylddwrap==1.2.0 wheel==0.37.1
 
           echo "===========> Install CUDA and TensorRT"
           
@@ -62,7 +62,7 @@ jobs:
           sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
           sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
           sudo apt-get update
-          sudo apt-get install -y cuda-toolkit-11-0 libcudnn8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev
+          sudo apt-get install -y cuda-toolkit-11-0 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev
 
           echo "===========> Set work dir"
           
@@ -187,6 +187,7 @@ jobs:
     - name: Upload Python wheel to PyPi
       if: ${{ github.event_name == 'release' && !contains(github.ref, 'rc') }}
       run: |
+        pip3 install twine
         twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} ${{github.workspace}}/build/pyFAST-*.whl
 
   test-python-wheel:
