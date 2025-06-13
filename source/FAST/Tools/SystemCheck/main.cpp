@@ -27,7 +27,7 @@ std::string doCheck() {
             auto button = QMessageBox::critical(nullptr, "No OpenCL platform found.", msg.c_str());
         } else {
             message << "No OpenCL platforms found! Please install an OpenCL platform. "
-                       "See https://fast.eriksmistad.no/requirements.html for more information.";
+                       "See https://fast-imaging.github.io/requirements.html for more information.";
             std::cout << message.str() << std::endl;
         }
         exit(0);
