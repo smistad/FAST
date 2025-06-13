@@ -61,20 +61,44 @@ void Streamer::setStreamingMode(StreamingMode mode) {
 }
 
 DataChannel::pointer Streamer::getOutputPort(uint portID) {
-    if(m_outputPOs.count(portID) == 0) {
+    if(m_outputPOs.count(portID) == 0) { // Doesn't exist
         auto channel = ProcessObject::getOutputPort(portID);
-        m_outputPOs[portID] = RunLambda::create([](DataObject::pointer data) -> DataList {
+        auto PO = RunLambda::create([](DataObject::pointer data) -> DataList {
             return DataList(data);
         });
-        m_outputPOs[portID]->setInputConnection(channel);
-    }
+        PO->setInputConnection(channel);
+        m_outputPOs[portID] = PO;
+        return PO->getOutputPort();
+    } else {
+        auto PO = m_outputPOs[portID].lock();
+        if(!PO) { // Expired, recreate
+            // TODO duplicate code:
+            auto channel = ProcessObject::getOutputPort(portID);
+            auto PO = RunLambda::create([](DataObject::pointer data) -> DataList {
+                return DataList(data);
+            });
+            PO->setInputConnection(channel);
+            m_outputPOs[portID] = PO;
+        }
 
-    return m_outputPOs[portID]->getOutputPort();
+        return PO->getOutputPort();
+    }
 }
 
 bool Streamer::isStopped() {
     std::lock_guard<std::mutex> lock(m_stopMutex);
     return m_stop;
+}
+
+Streamer::~Streamer() noexcept {
+    reportInfo() << "Destroying streamer.." << reportEnd();
+    stop();
+    reportInfo() << "Streamer DESTROYED." << reportEnd();
+}
+
+void Streamer::stopPipeline() {
+    stop();
+    ProcessObject::stopPipeline();
 }
 
 }

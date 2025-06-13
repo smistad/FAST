@@ -65,7 +65,6 @@ class ProcessObject;
  */
 class FAST_EXPORT  ProcessObject : public AttributeObject {
     public:
-        virtual ~ProcessObject();
         /**
          * @brief Update/Run the pipeline up to this process object.
          *
@@ -128,7 +127,7 @@ class FAST_EXPORT  ProcessObject : public AttributeObject {
         /**
          * @brief Stop a pipeline.
          */
-        void stopPipeline();
+        virtual void stopPipeline();
 
         /**
          * @brief Mark this process object as modified or not.
