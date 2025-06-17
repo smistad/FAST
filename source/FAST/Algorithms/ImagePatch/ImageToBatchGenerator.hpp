@@ -25,7 +25,6 @@ class FAST_EXPORT ImageToBatchGenerator : public Streamer {
          */
         FAST_CONSTRUCTOR(ImageToBatchGenerator, int, maxBatchSize,);
         void setMaxBatchSize(int size);
-        ~ImageToBatchGenerator() override;
         void loadAttributes() override;
     protected:
         void execute() override;

@@ -53,10 +53,6 @@ void PatchGenerator::loadAttributes() {
     setPatchMagnification(getFloatAttribute("patch-magnification"));
 }
 
-PatchGenerator::~PatchGenerator() {
-    stop();
-}
-
 template <typename T>
 std::string to_string_with_precision(const T a_value, const int n = 6)
 {

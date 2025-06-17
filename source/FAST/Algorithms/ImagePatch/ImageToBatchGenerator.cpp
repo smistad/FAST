@@ -88,8 +88,4 @@ void ImageToBatchGenerator::setMaxBatchSize(int size) {
     mIsModified = true;
 }
 
-ImageToBatchGenerator::~ImageToBatchGenerator() {
-    stop();
-}
-
 }

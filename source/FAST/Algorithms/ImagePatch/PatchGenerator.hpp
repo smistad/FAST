@@ -61,7 +61,6 @@ class FAST_EXPORT PatchGenerator : public Streamer {
         void setPatchMagnification(float magnification);
         void setMaskThreshold(float percent);
         void setPaddingValue(int paddingValue);
-        ~PatchGenerator();
         void loadAttributes() override;
         /**
          * @brief Get progress of this patch generator in percent.
