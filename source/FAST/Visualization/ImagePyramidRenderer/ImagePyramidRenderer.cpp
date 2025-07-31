@@ -321,25 +321,31 @@ ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
                 // Only process visible patches
                 // Fully contained and partly
                 if(!(
+                        // Completely inside
                         (offset_x <= tile_offset_x * mCurrentTileScale &&
                          offset_x + width > tile_offset_x * mCurrentTileScale + tile_width * mCurrentTileScale)
                         ||
+                        // Partially inside on left side
                         (offset_x > tile_offset_x * mCurrentTileScale &&
                          offset_x < (tile_offset_x + tile_width) * mCurrentTileScale)
                         ||
+                        // Partially inside on right side
                         (offset_x + width > tile_offset_x * mCurrentTileScale &&
-                         offset_x + width < (tile_offset_x + tile_width) * mCurrentTileScale)
+                         offset_x + width <= (tile_offset_x + tile_width) * mCurrentTileScale)
                 ))
                     continue;
                 if(!(
+                        // Completely inside
                         (offset_y <= tile_offset_y * mCurrentTileScale &&
                          offset_y + height > tile_offset_y * mCurrentTileScale + tile_height * mCurrentTileScale)
                         ||
+                        // Partially inside top
                         (offset_y > tile_offset_y * mCurrentTileScale &&
                          offset_y < (tile_offset_y + tile_height) * mCurrentTileScale)
                         ||
+                        // Partially inside bottom
                         (offset_y + height > tile_offset_y * mCurrentTileScale &&
-                         offset_y + height < (tile_offset_y + tile_height) * mCurrentTileScale)
+                         offset_y + height <= (tile_offset_y + tile_height) * mCurrentTileScale)
                 ))
                     continue;
 
