@@ -84,7 +84,7 @@ void PatchGenerator::generateStream() {
                 try {
                     std::tie(level, resampleFactor) = m_inputImagePyramid->getClosestLevelForMagnification(m_magnification, 0.1);
                     if(resampleFactor != 1.0f)
-                        reportWarning() << "Requested magnification level does not exist in image pyramid. " <<
+                        reportWarning() << "Requested magnification " << m_magnification << " does not exist in a level of the image pyramid. " <<
                                         "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();
                 } catch(Exception &e) {
                     throw Exception("Unable to generate patches for magnification level " +
@@ -121,13 +121,7 @@ void PatchGenerator::generateStream() {
                         patchHeight = levelHeight - (patchY * patchHeightWithoutOverlap - overlapInPixelsY)*resampleFactor;
                     }
                     int patchOffsetX = (patchX * patchWidthWithoutOverlap - overlapInPixelsX)*resampleFactor;
-                    if(patchX == 0 && overlapInPixelsX > 0) {
-                        patchOffsetX = 0;
-                    }
                     int patchOffsetY = (patchY * patchHeightWithoutOverlap - overlapInPixelsY)*resampleFactor;
-                    if(patchY == 0 && overlapInPixelsY > 0) {
-                        patchOffsetY = 0;
-                    }
 
                     if(m_inputMask) {
                         // If a mask exist, check if this patch should be included or not
@@ -160,10 +154,10 @@ void PatchGenerator::generateStream() {
                     if(patchWidth < overlapInPixelsX*2 || patchHeight < overlapInPixelsY*2)
                         continue;
                     auto patch = access->getPatchAsImage(level,
-                                                         patchOffsetX,
-                                                         patchOffsetY,
-                                                         patchWidth,
-                                                         patchHeight);
+                                                         patchOffsetX < 0 ? 0 : patchOffsetX, // if there is overlap, we will have negative offset at edges
+                                                         patchOffsetY < 0 ? 0 : patchOffsetY,
+                                                         patchWidth + (patchOffsetX < 0 ? patchOffsetX : 0), // We have to reduce width and height if negative offset
+                                                         patchHeight + (patchOffsetY < 0 ? patchOffsetY : 0));
 
                     // If patch does not have correct size, pad it
                     int paddingValue = m_paddingValue;
@@ -174,17 +168,12 @@ void PatchGenerator::generateStream() {
                             paddingValue = 0;
                         }
                     }
-                    if(patch->getWidth() != (int)(m_width*resampleFactor) || patch->getHeight() != (int)(m_height*resampleFactor)) {
+                    if(patchOffsetX < 0 || patchOffsetY < 0 || patch->getWidth() != (int)(m_width*resampleFactor) || patch->getHeight() != (int)(m_height*resampleFactor)) {
                         // Edge cases, patches may not be the target patch size. Need to pad.
-                        patch = patch->crop(Vector2i(0, 0), Vector2i(m_width*resampleFactor, m_height*resampleFactor), true, paddingValue);
+                        patch = patch->crop(Vector2i(patchOffsetX < 0 ? patchOffsetX : 0, patchOffsetY < 0 ? patchOffsetY : 0), Vector2i(m_width*resampleFactor, m_height*resampleFactor), true, paddingValue);
                     }
                     if(resampleFactor > 1.0f) {
                         patch = ImageResizer::create(m_width, m_height, 1, m_inputImagePyramid->getNrOfChannels() > 1)->connect(patch)->runAndGetOutputData<Image>();
-                    }
-                    if(m_overlapPercent > 0.0f && (patchX == 0 || patchY == 0)) {
-                        int offsetX = patchX == 0 ? -overlapInPixelsX : 0;
-                        int offsetY = patchY == 0 ? -overlapInPixelsY : 0;
-                        patch = patch->crop(Vector2i(offsetX, offsetY), Vector2i(m_width, m_height), true, paddingValue);
                     }
 
                     // Store some frame data useful for patch stitching

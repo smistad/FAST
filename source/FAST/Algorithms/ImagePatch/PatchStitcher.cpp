@@ -170,8 +170,12 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
         const int patchOverlapY = std::stoi(patch->getFrameData("patch-overlap-y"));
         // Calculate offset. If this calculation is incorrect. Update in ImagePyramidPatchExporter as well.
         // Position of where to insert the (cropped) patch
-        const int startX = std::stoi(patch->getFrameData("patchid-x")) * (std::stoi(patch->getFrameData("patch-width")) - patchOverlapX*2); // TODO + overlap to compensate for start offset
-        const int startY = std::stoi(patch->getFrameData("patchid-y")) * (std::stoi(patch->getFrameData("patch-height")) - patchOverlapY*2);
+        const int patchWidth = std::stoi(patch->getFrameData("patch-width"));
+        const int patchHeight = std::stoi(patch->getFrameData("patch-height"));
+        const int patchWidthWithoutOverlap = patchWidth - patchOverlapX*2;
+        const int patchHeightWithoutOverlap = patchHeight - patchOverlapY*2;
+        const int startX = std::stoi(patch->getFrameData("patchid-x")) * patchWidthWithoutOverlap;
+        const int startY = std::stoi(patch->getFrameData("patchid-y")) * patchHeightWithoutOverlap;
         if(m_outputImage) {
             // 2D image
             cl::Program program = getOpenCLProgram(device, "2D");
@@ -190,8 +194,8 @@ void PatchStitcher::processImage(std::shared_ptr<Image> patch) {
                 kernel,
                 cl::NullRange,
                 cl::NDRange(
-                        std::min(patch->getWidth(), m_outputImage->getWidth()-startX),
-                        std::min(patch->getHeight(), m_outputImage->getHeight()-startY)
+                        std::min(patchWidthWithoutOverlap, m_outputImage->getWidth()-startX),
+                        std::min(patchHeightWithoutOverlap, m_outputImage->getHeight()-startY)
                     ),
                 cl::NullRange
             );
