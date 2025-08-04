@@ -101,4 +101,13 @@ void Streamer::stopPipeline() {
     ProcessObject::stopPipeline();
 }
 
+void Streamer::stopWithError(std::string message, int outputPort) {
+    frameAdded(); // Unlock blocking execute()
+    if(outputPort < 0)
+        outputPort = 0;
+    for(const auto& channel : mOutputConnections[outputPort]) {
+        channel.lock()->stop();
+    }
+}
+
 }

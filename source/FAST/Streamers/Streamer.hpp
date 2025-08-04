@@ -48,6 +48,8 @@ class FAST_EXPORT Streamer : public ProcessObject {
          */
         virtual void stop();
 
+        virtual void stopWithError(std::string message, int outputPort = -1);
+
         virtual bool isStopped();
 
         virtual void setMaximumNrOfFrames(int maximumNrOfFrames);

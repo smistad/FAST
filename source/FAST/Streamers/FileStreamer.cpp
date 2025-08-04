@@ -100,6 +100,9 @@ void FileStreamer::setFilenameFormats(std::vector<std::string> strs) {
 }
 
 void FileStreamer::generateStream() {
+    if(getNrOfFrames() == 0) {
+        stopWithError("No frames were created by the FileStreamer");
+    }
 
     // Read timestamp file if available
     std::ifstream timestampFile;

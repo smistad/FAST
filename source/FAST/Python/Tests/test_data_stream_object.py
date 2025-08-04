@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 
-def test_data_stream_empty():
+def test_data_stream_empty_generator():
     importer = fast.WholeSlideImageImporter.create(fast.Config.getTestDataPath() + '/WSI/CMU-1.svs')
 
     segmentation = fast.TissueSegmentation.create(False).connect(importer).runAndGetOutputData()
@@ -14,7 +14,19 @@ def test_data_stream_empty():
     with pytest.raises(RuntimeError):
         for image in fast.DataStream(generator):
             counter += 1
-    assert(counter == 0)
+    assert counter == 0
+
+
+def test_data_stream_empty_file_streamer():
+    streamer = fast.ImageFileStreamer \
+        .create(fast.Config.getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd",)
+    streamer.setStartNumber(200) # Incorrect start number, will result in no frames
+
+    counter = 0
+    with pytest.raises(RuntimeError):
+        for image in fast.DataStream(streamer):
+            counter += 1
+    assert counter == 0
 
 
 def test_data_stream_single():

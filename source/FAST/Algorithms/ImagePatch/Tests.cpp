@@ -82,6 +82,30 @@ TEST_CASE("Patch generator with no patches", "[fast][PatchGenerator]") {
     REQUIRE(counter == 0);
 }
 
+
+TEST_CASE("Patch generator throws exception in thread", "[fast][PatchGenerator]") {
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
+    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+
+    auto segmentation = Image::create(512, 512, TYPE_UINT8, 1);
+    segmentation->fill(0); // Empty segmentation will mean no patches
+    const int width = 256;
+    const int height = 256;
+    // Level 4 doesn't exist in this image pyramid, thus it will trigger an exception
+    auto generator = PatchGenerator::create(width, height, 1, 4)
+            ->connect(importer)
+            ->connect(1, segmentation);
+    auto stream = DataStream(generator);
+    int counter = 0;
+    CHECK_THROWS(
+            while(!stream.isDone()) {
+                auto image = stream.getNextFrame<Image>();
+                ++counter;
+            }
+    );
+    REQUIRE(counter == 0);
+}
+
 TEST_CASE("Patch generator on 3D image", "[fast][PatchGenerator]") {
     auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
     auto image = importer->runAndGetOutputData<Image>();
