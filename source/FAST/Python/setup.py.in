@@ -90,13 +90,20 @@ def get_all_apple_depedencies(path, libraries):
 
     return result
 
+def get_all_windows_dlls():
+    files = []
+    for file in os.listdir('fast/bin/'):
+        if not file.endswith('.dll'): continue
+        if 'tensorflow' in file: continue # Skip TF in pyfast
+        files.append('bin/' + file)
+    return files
+
 
 is_windows = sys.platform.startswith('win')
 is_apple = sys.platform.startswith('darwin')
 if is_windows:
     package_data = {'': [
             'bin/_fast.pyd',
-            'bin/*.dll',
             'bin/UFFviewer.exe',
             'bin/runPipeline.exe',
             'bin/systemCheck.exe',
@@ -109,6 +116,7 @@ if is_windows:
             + get_all_filenames('fast/kernels/')
             + get_all_filenames('fast/plugins/')
             + get_all_filenames('fast/doc/')
+            + get_all_windows_dlls()
           }
 elif is_apple:
     package_data = {'': [

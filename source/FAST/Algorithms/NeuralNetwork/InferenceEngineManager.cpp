@@ -281,8 +281,14 @@ void InferenceEngineManager::loadAll() {
                     continue;
                 }
                 // When we put libraries in another path than the libInferenceEngineTensorFlow so file, we have to do this:
-                std::string path2 = Config::getKernelBinaryPath() + "/../lib/";
+                std::string path2 = Config::getKernelBinaryPath() + "../lib/";
                 SetDllDirectory(path2.c_str());
+				auto handle = LoadLibrary(join(path2, "tensorflow_cc.dll").c_str());
+				if(!handle) {
+					m_possibleEngines[name] = "Failed to load tensorflow library because: " + GetLastErrorAsString();
+					continue;
+				}
+				SetDllDirectory(NULL);
             }
             SetDllDirectory(Config::getLibraryPath().c_str());
             auto handle = LoadLibrary(path.c_str());
