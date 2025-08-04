@@ -97,7 +97,7 @@ Streamer::~Streamer() noexcept {
 }
 
 void Streamer::stopPipeline() {
-    stop();
+    //stop(); // <-- This causes race condition and may block with addFrame wait in QueuedDataChannel
     ProcessObject::stopPipeline();
 }
 
