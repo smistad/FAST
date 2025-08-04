@@ -2,6 +2,21 @@ import fast
 import numpy as np
 import pytest
 
+
+def test_data_stream_empty():
+    importer = fast.WholeSlideImageImporter.create(fast.Config.getTestDataPath() + '/WSI/CMU-1.svs')
+
+    segmentation = fast.TissueSegmentation.create(False).connect(importer).runAndGetOutputData()
+    segmentation.fill(0) # Empty segmentation, means no patches
+    generator = fast.PatchGenerator.create(256, 256, level=2).connect(importer).connect(1, segmentation)
+
+    counter = 0
+    with pytest.raises(RuntimeError):
+        for image in fast.DataStream(generator):
+            counter += 1
+    assert(counter == 0)
+
+
 def test_data_stream_single():
     streamer = fast.ImageFileStreamer\
         .create(fast.Config.getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd")
@@ -16,6 +31,7 @@ def test_data_stream_single():
         previousImage = image
         counter += 1
     assert counter == 100
+
 
 def test_data_stream_multiple():
     streamer1 = fast.ImageFileStreamer \

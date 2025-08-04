@@ -1,5 +1,4 @@
-#ifndef EXCEPTIONS_HPP_
-#define EXCEPTIONS_HPP_
+#pragma once
 
 #include "FASTExport.hpp"
 #include <exception>
@@ -130,6 +129,3 @@ class FAST_EXPORT ThreadStopped : public Exception {
 };
 
 } // end namespace fast
-
-
-#endif /* EXCEPTIONS_HPP_ */

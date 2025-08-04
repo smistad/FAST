@@ -59,6 +59,29 @@ TEST_CASE("Patch generator on 2D image", "[fast][PatchGenerator]") {
     REQUIRE(nrOfPatches == counter);
 }
 
+
+TEST_CASE("Patch generator with no patches", "[fast][PatchGenerator]") {
+    auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
+    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+
+    auto segmentation = TissueSegmentation::create(true)->connect(wsi)->runAndGetOutputData<Image>();
+    segmentation->fill(0); // Empty segmentation will mean no patches
+    const int width = 256;
+    const int height = 256;
+    auto generator = PatchGenerator::create(width, height, 1, 2)
+            ->connect(importer)
+            ->connect(1, segmentation);
+    auto stream = DataStream(generator);
+    int counter = 0;
+    CHECK_THROWS(
+    while(!stream.isDone()) {
+        auto image = stream.getNextFrame<Image>();
+        ++counter;
+    }
+    );
+    REQUIRE(counter == 0);
+}
+
 TEST_CASE("Patch generator on 3D image", "[fast][PatchGenerator]") {
     auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
     auto image = importer->runAndGetOutputData<Image>();

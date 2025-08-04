@@ -307,14 +307,23 @@ void PatchGenerator::generateStream() {
             throw Exception("Unsupported data object given to PatchGenerator");
         }
         // Add final patch, and mark it has last frame
-        previousPatch->setLastFrame(getNameOfClass());
-		previousPatch->setFrameData("streaming", "yes"); // Since we are not propagating frame data, we have to set this
-        try {
-            addOutputData(0, previousPatch, false, false);
-        } catch(ThreadStopped &e) {
+        if(!previousPatch) {
+            // No patches have been created
+            reportInfo() << "No patches were generated." << reportEnd();
+            frameAdded(); // Unlock blocking execute()
+            for(const auto& channel : mOutputConnections[0]) {
+                channel.lock()->stop("No patches were created by the PatchGenerator");
+            }
+        } else {
+            previousPatch->setLastFrame(getNameOfClass());
+            previousPatch->setFrameData("streaming", "yes"); // Since we are not propagating frame data, we have to set this
+            try {
+                addOutputData(0, previousPatch, false, false);
+            } catch(ThreadStopped &e) {
 
+            }
+            reportInfo() << "Done generating patches" << reportEnd();
         }
-        reportInfo() << "Done generating patches" << reportEnd();
     } catch(std::exception &e) {
         // Exception happened in thread. Stop pipeline, and propagate error message.
         for(auto item : mOutputConnections) {
