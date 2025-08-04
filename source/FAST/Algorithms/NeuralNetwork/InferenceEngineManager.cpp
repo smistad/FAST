@@ -321,7 +321,11 @@ void InferenceEngineManager::loadAll() {
                 if(name == "TensorFlow") {
                     // When we put libraries in another path than the libInferenceEngineTensorFlow so file, we have to do this:
                     // Try to load libtensorflow manually
+#if defined(__APPLE__) || defined(__MACOSX)
+                    std::string path2 = Config::getKernelBinaryPath() + "/../lib/libtensorflow_cc.dylib";
+#else
                     std::string path2 = Config::getKernelBinaryPath() + "/../lib/libtensorflow_cc.so";
+#endif
                     auto handle2 = dlopen(path2.c_str(), RTLD_LAZY);
                     if(!handle2) {
                         m_possibleEngines[name] = "Failed to load inference engine because " + std::string(dlerror());
