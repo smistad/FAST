@@ -18,6 +18,7 @@ class FAST_EXPORT InferenceEngineManager {
     private:
         static bool m_loaded;
         static std::unordered_map<std::string, std::function<InferenceEngine*()>> m_engines;
+        static std::unordered_map<std::string, std::string> m_possibleEngines; // key = name, value = errors
 };
 
 }

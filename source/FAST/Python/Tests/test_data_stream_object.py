@@ -1,5 +1,4 @@
 import fast
-import numpy as np
 import pytest
 
 

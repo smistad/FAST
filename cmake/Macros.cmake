@@ -172,7 +172,7 @@ macro(fast_download_dependency NAME VERSION SHA)
     if(${NAME} STREQUAL qt5)
         ExternalProject_Add(${NAME}
                 PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
-                URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
+                URL ${FAST_DEPENDENCY_DOWNLOAD_BASE_URL}/${FILENAME}
                 URL_HASH SHA256=${SHA}
                 UPDATE_COMMAND ""
                 CONFIGURE_COMMAND ""
@@ -188,7 +188,7 @@ macro(fast_download_dependency NAME VERSION SHA)
     else()
         ExternalProject_Add(${NAME}
                 PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
-                URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
+                URL ${FAST_DEPENDENCY_DOWNLOAD_BASE_URL}/${FILENAME}
                 URL_HASH SHA256=${SHA}
                 UPDATE_COMMAND ""
                 CONFIGURE_COMMAND ""
@@ -205,7 +205,7 @@ macro(fast_download_dependency NAME VERSION SHA)
         # copy_directory doesn't support symlinks, use cp on linux/apple:
         ExternalProject_Add(${NAME}
                 PREFIX ${FAST_EXTERNAL_BUILD_DIR}/${NAME}
-                URL ${FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW}/${FILENAME}
+                URL ${FAST_DEPENDENCY_DOWNLOAD_BASE_URL}/${FILENAME}
                 URL_HASH SHA256=${SHA}
                 UPDATE_COMMAND ""
                 CONFIGURE_COMMAND ""

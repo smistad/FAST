@@ -37,7 +37,7 @@ double round(double n) {
 
 double round(double n, int decimals) {
     int factor = decimals*10;
-    return round(n*factor)/factor;
+    return decimals == 0 ? round(n) : round(n*factor)/factor;
 }
 
 void* allocateDataArray(unsigned int voxels, DataType type, unsigned int nrOfComponents) {
@@ -1248,10 +1248,15 @@ void Progress::update(uint64_t current) {
     if(m_print) {
         std::cout << "\r"; // Replace line
         std::stringstream ss;
-        ss << std::setprecision(1)
-        << std::fixed;
-        //ss << "] " << (int)(percent * 100.0f) << "% | " << m_current/(1024*1024) << "MB / " << m_max/(1024*1024) << "MB | ETA " << ETA << " mins";
-        ss << "] " << (int)(percent * 100.0f) << "% | ETA " << ETA << " mins";
+        if(m_unitPrecision >= 0) {
+            ss << std::setprecision(m_unitPrecision);
+            ss << std::fixed;
+        }
+        ss << "] " << (int)(percent * 100.0f) << "%";
+        if(!m_unit.empty()) {
+            ss << " " << round(m_current*m_unitScale, m_unitPrecision) << m_unit << " / " << round(m_max*m_unitScale, m_unitPrecision) << m_unit;
+        }
+        ss << " | ETA " << ETA << " mins";
         std::string startString = m_text + (m_text.empty() ? "" : " ") + "[";
         const int totalWidth = getConsoleWidth();
         const int progressbarWidth = totalWidth - ss.str().size() - startString.size() - 1; // have to leave last line open to avoid jumping to next line (windows)
@@ -1286,4 +1291,11 @@ void Progress::setText(std::string text) {
 void Progress::setMax(uint64_t max) {
     m_max = max;
 }
+
+void Progress::setUnit(std::string unit, float scale, int precision) {
+    m_unit = unit;
+    m_unitScale = scale;
+    m_unitPrecision = precision;
+}
+
 } // end namespace fast

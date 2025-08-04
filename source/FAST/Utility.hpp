@@ -341,6 +341,7 @@ class FAST_EXPORT Progress {
         void setText(std::string text);
         uint64_t getCurrent() const;
         void setMax(uint64_t max);
+        void setUnit(std::string unit, float scale = 1.0f, int precision = 1);
     private:
         std::chrono::high_resolution_clock::time_point m_startTime;
         bool m_print = true;
@@ -348,6 +349,9 @@ class FAST_EXPORT Progress {
         uint64_t m_max;
         uint64_t m_current;
         std::string m_text = "";
+        std::string m_unit = "";
+        float m_unitScale = 1.0f;
+        int m_unitPrecision = -1;
 };
 } // end namespace fast
 

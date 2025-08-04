@@ -160,6 +160,7 @@ else:
             'lib/_fast.abi3.so',
             'lib/plugins.xml',
             'lib/cache.json',
+            'lib/libInferenceEngineTensorFlow.so',
             'bin/UFFviewer',
             'bin/runPipeline',
             'bin/systemCheck',
@@ -189,7 +190,6 @@ else:
                 'libopenvino_paddle_frontend.so.2230',
                 'libopenvino_ir_frontend.so.2230',
                 'libInferenceEngineTensorRT.so',
-                'libInferenceEngineTensorFlow.so',
                 'libInferenceEngineONNXRuntime.so',
                 # DCMTK jpeg
                 'libijg8.so',
@@ -234,8 +234,8 @@ setup(name='pyfast',    # Distribution name
       long_description_content_type="text/markdown",
       author='Erik Smistad',
       author_email='erik.smistad@sintef.no',
-      url='https://github.com/smistad/FAST',
-      license='BSD 2-clause (package include binary dependencies with other licences, see README)',
+      url='https://fast-imaging.github.io',
+      license='BSD 2-clause (package include binary dependencies with other licenses, see licenses folder)',
       packages=['fast'],    # Package name
       setup_requires=['wheel'],
       cmdclass={"build_ext": my_build_ext},

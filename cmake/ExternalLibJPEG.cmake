@@ -5,7 +5,7 @@ include(cmake/Externals.cmake)
 if(WIN32)
 ExternalProject_Add(libjpeg
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/libjpeg
-        URL "https://github.com/smistad/FAST-dependencies/releases/download/v4.0.0/LibJPEG-9d-Win-pc064.zip"
+        URL "https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/LibJPEG-9d-Win-pc064.zip"
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
