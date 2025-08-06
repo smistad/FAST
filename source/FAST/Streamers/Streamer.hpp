@@ -58,7 +58,6 @@ class FAST_EXPORT Streamer : public ProcessObject {
         StreamingMode getStreamingMode() const;
 
         virtual DataChannel::pointer getOutputPort(uint portID = 0) override;
-        void stopPipeline() override;
     protected:
         /**
          * Block until the first data frame has been sent using a condition variable

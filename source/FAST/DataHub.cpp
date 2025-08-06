@@ -315,6 +315,7 @@ DataHub::Download DataHub::download(std::string itemID, bool force) {
         }
         auto folder = join(m_storageDirectory, itemObject.id);
         auto downloadName = "'" + itemObject.name + "'";
+        download.items.push_back(itemObject.name);
         download.paths.push_back(folder);
         createDirectories(folder);
         if(!getDirectoryList(folder, true, true).empty()) {

@@ -54,7 +54,7 @@ option(FAST_SIGN_CODE "Whether to sign binaries" OFF)
 set(FAST_Python_Version "" CACHE STRING "Python version to use for building pyFAST")
 
 # Base URL for downloading prebuilt dependencies
-set(FAST_PREBUILT_DEPENDENCY_DOWNLOAD_URL_NEW "https://github.com/smistad/FAST-dependencies/releases/download/v${VERSION_MAJOR}.0.0/")
+set(FAST_DEPENDENCY_DOWNLOAD_BASE_URL "https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v${VERSION_MAJOR}.0.0/")
 if(WIN32)
     set(FAST_DEPENDENCY_TOOLSET msvc142)
 elseif(APPLE)
