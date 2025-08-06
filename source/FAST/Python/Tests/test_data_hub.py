@@ -23,5 +23,5 @@ def test_download_item():
     assert len(download.items) == 1
     assert len(download.paths) == 1
     #assert download.items[0] == name
-    assert download.paths[0] == os.path.join(hub.getStorageDirectory(), name)
+    assert os.path.normpath(download.paths[0]) == os.path.normpath(os.path.join(hub.getStorageDirectory(), name))
     assert hub.isDownloaded(name)
