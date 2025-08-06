@@ -1,6 +1,16 @@
 #include <FAST/Config.hpp>
 #include <FAST/Utility.hpp>
 #include <FAST/DeviceManager.hpp>
+#ifdef FAST_MODULE_VISUALIZATION
+#include <iomanip>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QElapsedTimer>
+#include <QEventLoop>
+#include <QFile>
+#include <QStandardPaths>
+#endif
 #ifdef WIN32
 // For TensorFlow AVX2 check - Taken from https://docs.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=msvc-160
 #include <vector>
@@ -200,6 +210,7 @@ namespace fast {
 
 bool InferenceEngineManager::m_loaded = false;
 std::unordered_map<std::string, std::function<InferenceEngine*()>> InferenceEngineManager::m_engines;
+std::unordered_map<std::string, std::string> InferenceEngineManager::m_possibleEngines; // key = name, value = errors
 
 #ifdef WIN32
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
@@ -252,30 +263,46 @@ void InferenceEngineManager::loadAll() {
     }
 #endif
     Reporter::info() << "Loading inference engines in folder " << Config::getLibraryPath() << Reporter::end();
+    m_possibleEngines.clear();
     for(auto&& item : getDirectoryList(Config::getLibraryPath(), true, false)) {
         auto path = join(Config::getLibraryPath(), item);
         if(item.substr(0, prefix.size()) == prefix) {
             std::string name = item.substr(prefix.size(), item.rfind('.') - prefix.size());
+            m_possibleEngines[name] = "";
+            if(m_engines.count(name) > 0) // Already loaded skip
+                continue;
             Reporter::info() << "Loading inference engine " << name << " from shared library " << path << Reporter::end();
 #ifdef WIN32
+            SetErrorMode(SEM_FAILCRITICALERRORS); // To avoid diaglog box, when not able to load a DLL
             if(name == "TensorFlow") {
                 if(!InstructionSet::AVX2()) {
+                    m_possibleEngines[name] = "You CPU does not support AVX2, unable to load TensorFlow inference engine.";
                     Reporter::warning() << "You CPU does not support AVX2, unable to load TensorFlow inference engine." << Reporter::end();
                     continue;
                 }
+                // When we put libraries in another path than the libInferenceEngineTensorFlow so file, we have to do this:
+                std::string path2 = Config::getKernelBinaryPath() + "../lib/tensorflow/";
+                SetDllDirectory(path2.c_str());
+				auto handle = LoadLibrary(join(path2, "tensorflow_cc.dll").c_str());
+				if(!handle) {
+					m_possibleEngines[name] = "Failed to load tensorflow library because: " + GetLastErrorAsString();
+					continue;
+				}
+				SetDllDirectory(NULL);
             }
-            SetErrorMode(SEM_FAILCRITICALERRORS); // TODO To avoid diaglog box, when not able to load a DLL
             SetDllDirectory(Config::getLibraryPath().c_str());
             auto handle = LoadLibrary(path.c_str());
-            SetDllDirectory("");
+            SetDllDirectory(NULL);
             if(!handle) {
-                Reporter::warning() << "Failed to load plugin because " << GetLastErrorAsString() << Reporter::end();
+                //Reporter::warning() << "Failed to load plugin because " << GetLastErrorAsString() << Reporter::end();
+                m_possibleEngines[name] = "Failed to load inference engine because: " + GetLastErrorAsString();
                 continue;
             }
             auto load = (InferenceEngine* (*)())GetProcAddress(handle, "load");
             if(!load) {
                 FreeLibrary(handle);
-                Reporter::warning() << "Failed to get adress to load function because " << GetLastErrorAsString() << Reporter::end();
+                //Reporter::warning() << "Failed to get address to load function because " << GetLastErrorAsString() << Reporter::end();
+                m_possibleEngines[name] = "Failed to get address to load function because: " + GetLastErrorAsString();
                 continue;
             }
 #else
@@ -283,20 +310,44 @@ void InferenceEngineManager::loadAll() {
 #ifdef __arm64__
 #else
                 if(!__builtin_cpu_supports("avx2")) {
-                    Reporter::warning() << "You CPU does not support AVX2, unable to load TensorFlow inference engine." << Reporter::end();
+                    m_possibleEngines[name] = "You CPU does not support AVX2, unable to load TensorFlow inference engine.";
+                    //Reporter::warning() << "You CPU does not support AVX2, unable to load TensorFlow inference engine." << Reporter::end();
                     continue;
                 }
 #endif
             }
             auto handle = dlopen(path.c_str(), RTLD_LAZY);
             if(!handle) {
-                Reporter::warning() << "Failed to load plugin because " << dlerror() << Reporter::end();
-                continue;
+                if(name == "TensorFlow") {
+                    // When we put libraries in another path than the libInferenceEngineTensorFlow so file, we have to do this:
+                    // Try to load libtensorflow manually
+#if defined(__APPLE__) || defined(__MACOSX)
+                    std::string path2 = Config::getKernelBinaryPath() + "/../lib/tensorflow/libtensorflow_cc.dylib";
+#else
+                    std::string path2 = Config::getKernelBinaryPath() + "/../lib/tensorflow/libtensorflow_cc.so";
+#endif
+                    auto handle2 = dlopen(path2.c_str(), RTLD_LAZY);
+                    if(!handle2) {
+                        m_possibleEngines[name] = "Failed to load inference engine because " + std::string(dlerror());
+                        continue;
+                    }
+                    // Then try to load again
+                    handle = dlopen(path.c_str(), RTLD_LAZY);
+                    if(!handle) {
+                        m_possibleEngines[name] = "Failed to load inference engine because " + std::string(dlerror());
+                        continue;
+                    }
+                } else {
+                    m_possibleEngines[name] = "Failed to load inference engine because " + std::string(dlerror());
+                    //Reporter::warning() << "Failed to load plugin because " << dlerror() << Reporter::end();
+                    continue;
+                }
             }
             auto load = (InferenceEngine* (*)())dlsym(handle, "load");
             if(!load) {
                 dlclose(handle);
-                Reporter::warning() << "Failed to get address of load function because " << Reporter::end();// dlerror() << Reporter::end();
+                //Reporter::warning() << "Failed to get address of load function because " << Reporter::end();// dlerror() << Reporter::end();
+                m_possibleEngines[name] = "Failed to get address of load function because " + std::string(dlerror());
                 continue;
             }
 #endif
@@ -312,16 +363,7 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
     if(m_engines.empty())
         throw Exception("No inference engines available on the system");
 
-    if(isEngineAvailable("TensorFlow")) {
-        // Default is tensorflow if GPU support is enabled
-        auto engine = loadEngine("TensorFlow");
-        auto devices = engine->getDeviceList();
-        for (auto &&device : devices) {
-            if (device.type == InferenceDeviceType::GPU)
-                return engine;
-        }
-    }
-
+    // TensorRT is default inference engine if available
     if(isEngineAvailable("TensorRT"))
         return loadEngine("TensorRT");
 
@@ -341,14 +383,9 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
     if(m_engines.empty())
         throw Exception("No inference engines available on the system");
 
-    if(isEngineAvailable("TensorFlow") && loadEngine("TensorFlow")->isModelFormatSupported(modelFormat)) {
-        // Default is tensorflow if GPU support is enabled
-        auto engine = loadEngine("TensorFlow");
-        auto devices = engine->getDeviceList();
-        for (auto &&device : devices) {
-            if (device.type == InferenceDeviceType::GPU)
-                return engine;
-        }
+    // If TensorFlow model format
+    if(modelFormat == ModelFormat::SAVEDMODEL || modelFormat == ModelFormat::PROTOBUF) {
+        return loadEngine("TensorFlow");
     }
 
     if(isEngineAvailable("TensorRT") && loadEngine("TensorRT")->isModelFormatSupported(modelFormat))
@@ -370,17 +407,121 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
     throw Exception("No engine for model format found");
 }
 
-
-
 bool InferenceEngineManager::isEngineAvailable(std::string name) {
     loadAll();
     return m_engines.count(name) > 0;
 }
 
+#ifdef FAST_MODULE_VISUALIZATION
+static void downloadAndExtractZipFile(const std::string& URL, const std::string& destination, const std::string& name) {
+    QNetworkAccessManager manager;
+    QNetworkRequest request(QUrl(QString::fromStdString(URL)));
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    auto timer = new QElapsedTimer;
+    timer->start();
+    auto reply = manager.get(request);
+    Progress progress(100);
+    progress.setText("Downloading");
+    progress.setUnit("MB", 1.0/(1024*1024), 0);
+    const int totalWidth = getConsoleWidth();
+    std::string blank;
+    for(int i = 0; i < totalWidth-1; ++i)
+        blank += " ";
+    QObject::connect(reply, &QNetworkReply::downloadProgress, [&](quint64 current, quint64 max) {
+        progress.setMax(max);
+        progress.update(current);
+    });
+    auto tempLocation = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + name.c_str() + ".zip";
+    QFile file(tempLocation);
+    if(!file.open(QIODevice::WriteOnly)) {
+        throw Exception("Could not write to " + tempLocation.toStdString());
+    }
+    QObject::connect(reply, &QNetworkReply::readyRead, [&reply, &file]() {
+        file.write(reply->read(reply->bytesAvailable()));
+    });
+    QObject::connect(&manager, &QNetworkAccessManager::finished, [blank, reply, &file, destination]() {
+        std::cout << "\n";
+        if(reply->error() != QNetworkReply::NoError) {
+            std::cout << "\r" << blank;
+            std::cout << "\rERROR: Download failed! : " << reply->errorString().toStdString() << std::endl;
+            file.close();
+            file.remove();
+            return;
+        }
+        file.close();
+        std::cout << "\r" << blank;
+        std::cout << "\rExtracting zip file...";
+        std::cout.flush();
+        try {
+            extractZipFile(file.fileName().toStdString(), destination);
+        } catch(Exception& e) {
+            std::cout << "\r" << blank;
+            std::cout << "\rERROR: Zip extraction failed!" << std::endl;
+            file.remove();
+            return;
+        }
+
+        file.remove();
+        std::cout << "\r" << blank;
+        std::cout << "\rComplete." << std::endl;
+    });
+
+    auto eventLoop = new QEventLoop(&manager);
+
+    // Make sure to quit the event loop when download is finished
+    QObject::connect(&manager, &QNetworkAccessManager::finished, eventLoop, &QEventLoop::quit);
+
+    // Wait for it to finish
+    eventLoop->exec();
+}
+#else
+static void downloadAndExtractZipFile(const std::string& URL, const std::string& destination) {
+    throw NotImplementedException();
+}
+#endif
+
+
 std::shared_ptr<InferenceEngine> InferenceEngineManager::loadEngine(std::string name) {
     loadAll();
-    if(m_engines.count(name) == 0)
-        throw Exception("Inference engine with name " + name + " is not available");
+    if(name == "TensorFlow") {
+        if(m_engines.count(name) == 0) {
+#if defined(_M_ARM64) || defined(__aarch64__)
+            const std::string arch = "arm64";
+#else
+            const std::string arch = "x86_64";
+#endif
+#ifdef WIN32
+            const std::string OS = "windows";
+#elif defined(__APPLE__) || defined(__MACOSX)
+            const std::string OS = "macos";
+#else
+            const std::string OS = "linux";
+#endif
+            // If not apple arm:
+            // TensorFlow should be available; thus tensorflow lib is missing
+            // Download it and try to load tensorflow inference engine
+            if(!(arch == "arm64" && OS == "macos")) {
+                std::cout << "TensorFlow was not bundled with this distribution." << std::endl;
+                const std::string destination = Config::getKernelBinaryPath() + "/../lib/tensorflow/";
+                std::cout << "FAST will now download TensorFlow .." << std::endl;
+                createDirectories(destination);
+                downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/tensorflow_2.4.0_" + OS + "_" + arch + ".zip", destination, "tensorflow");
+                // Try to load TensorFlow inference engine again
+                m_loaded = false;
+                loadAll();
+            }
+        }
+    }
+    if(m_engines.count(name) == 0) {
+        if(m_possibleEngines.count(name) > 0) {
+            throw Exception("Inference engine with name " + name + " was not able to load. Make sure you have all required dependencies installed. Error message: \n" + m_possibleEngines[name]);
+        } else {
+            std::string engineList;
+            for(const auto item : m_possibleEngines)
+                engineList += item.first + ", ";
+            throw Exception("No inference engine with name " + name + " was available on this system. Engines available are: " + engineList);
+        }
+    }
     // Call the load function which the map stores a handle to
     return std::shared_ptr<InferenceEngine>(m_engines.at(name)());
 }

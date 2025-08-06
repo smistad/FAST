@@ -96,11 +96,6 @@ Streamer::~Streamer() noexcept {
     reportInfo() << "Streamer DESTROYED." << reportEnd();
 }
 
-void Streamer::stopPipeline() {
-    //stop(); // <-- This causes race condition and may block with addFrame wait in QueuedDataChannel
-    ProcessObject::stopPipeline();
-}
-
 void Streamer::stopWithError(std::string message, int outputPort) {
     frameAdded(); // Unlock blocking execute()
     if(outputPort < 0)
