@@ -123,7 +123,7 @@ elif is_apple:
             'lib/_fast.abi3.so',
             'lib/plugins.xml',
             'lib/cache.json',
-            'libInferenceEngineTensorFlow.dylib',
+            'lib/libInferenceEngineTensorFlow.dylib',
             'bin/UFFviewer',
             'bin/runPipeline',
             'bin/systemCheck',
