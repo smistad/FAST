@@ -500,7 +500,7 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadEngine(std::string 
             // If not apple arm:
             // TensorFlow should be available; thus tensorflow lib is missing
             // Download it and try to load tensorflow inference engine
-            if(arch != "arm64" && OS != "macos") {
+            if(!(arch == "arm64" && OS == "macos")) {
                 std::cout << "TensorFlow was not bundled with this distribution." << std::endl;
                 const std::string destination = Config::getKernelBinaryPath() + "/../lib/tensorflow/";
                 std::cout << "FAST will now download TensorFlow .." << std::endl;
