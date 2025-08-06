@@ -281,7 +281,7 @@ void InferenceEngineManager::loadAll() {
                     continue;
                 }
                 // When we put libraries in another path than the libInferenceEngineTensorFlow so file, we have to do this:
-                std::string path2 = Config::getKernelBinaryPath() + "../lib/";
+                std::string path2 = Config::getKernelBinaryPath() + "../lib/tensorflow/";
                 SetDllDirectory(path2.c_str());
 				auto handle = LoadLibrary(join(path2, "tensorflow_cc.dll").c_str());
 				if(!handle) {
@@ -324,7 +324,7 @@ void InferenceEngineManager::loadAll() {
 #if defined(__APPLE__) || defined(__MACOSX)
                     std::string path2 = Config::getKernelBinaryPath() + "/../lib/libtensorflow_cc.dylib";
 #else
-                    std::string path2 = Config::getKernelBinaryPath() + "/../lib/libtensorflow_cc.so";
+                    std::string path2 = Config::getKernelBinaryPath() + "/../lib/tensorflow/libtensorflow_cc.so";
 #endif
                     auto handle2 = dlopen(path2.c_str(), RTLD_LAZY);
                     if(!handle2) {
@@ -502,8 +502,7 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadEngine(std::string 
             // Download it and try to load tensorflow inference engine
             if(arch != "arm64" && OS != "macos") {
                 std::cout << "TensorFlow was not bundled with this distribution." << std::endl;
-                // TODO where to put it?? There are pros and cons
-                const std::string destination = Config::getKernelBinaryPath() + "/../lib/";
+                const std::string destination = Config::getKernelBinaryPath() + "/../lib/tensorflow/";
                 std::cout << "FAST will now download TensorFlow .." << std::endl;
                 createDirectories(destination);
                 downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/tensorflow_2.4.0_" + OS + "_" + arch + ".zip", destination, "tensorflow");
