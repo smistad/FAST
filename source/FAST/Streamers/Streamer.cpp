@@ -37,8 +37,6 @@ void Streamer::stop() {
     std::lock_guard<std::mutex> lock(m_stopMutex);
     if(!m_thread) // Already stopped
         return;
-    if(std::this_thread::get_id() == m_thread->get_id())
-        throw Exception("You can't call Streamer::stop() from the streaming thread.");
     reportInfo() << "Stopping in streamer.." << reportEnd();
     m_stop = true;
     // Thread might be locked due th QueueDataChannel, we have to signal them to stop:
@@ -52,8 +50,11 @@ void Streamer::stop() {
     }
     frameAdded(); // Unblock in execute, if needed
     // Join thread and reset
-    m_thread->join();
-    m_thread = nullptr;
+    if(std::this_thread::get_id() != m_thread->get_id()) {
+        // join can't be called from the streaming thread
+        m_thread->join();
+    }
+    m_thread.reset();
     m_streamIsStarted = false;
     m_firstFrameIsInserted = false;
     reportInfo() << "Streamer::stop() done." << reportEnd();
