@@ -59,6 +59,8 @@ void Streamer::stop() {
         reportInfo() << "reset" << reportEnd();
         m_thread.reset(); // This will destroy existing thread object, and will crash program if it happens inside thread
         reportInfo() << "reset done" << reportEnd();
+    } else {
+        m_thread->detach(); // Test
     }
     m_streamIsStarted = false;
     m_firstFrameIsInserted = false;
