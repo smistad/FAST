@@ -48,12 +48,16 @@ void Streamer::stop() {
             }
         }
     }
+    reportInfo() << "frameadd.." << reportEnd();
     frameAdded(); // Unblock in execute, if needed
+    reportInfo() << "done" << reportEnd();
     // Join thread and reset
     if(std::this_thread::get_id() != m_thread->get_id()) {
         // join can't be called from the streaming thread
+        reportInfo() << "join" << reportEnd();
         m_thread->join();
     }
+    reportInfo() << "reset..e" << reportEnd();
     m_thread.reset();
     m_streamIsStarted = false;
     m_firstFrameIsInserted = false;
