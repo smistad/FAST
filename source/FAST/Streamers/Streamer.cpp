@@ -92,7 +92,7 @@ bool Streamer::isStopped() {
 
 Streamer::~Streamer() noexcept {
     reportInfo() << "Destroying streamer.." << reportEnd();
-    stop();
+    //stop();
     reportInfo() << "Streamer DESTROYED." << reportEnd();
 }
 
