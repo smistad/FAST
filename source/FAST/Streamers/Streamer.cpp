@@ -56,9 +56,10 @@ void Streamer::stop() {
         // join can't be called from the streaming thread
         reportInfo() << "join" << reportEnd();
         m_thread->join();
+        reportInfo() << "reset" << reportEnd();
+        m_thread.reset(); // This will destroy existing thread object, and will crash program if it happens inside thread
+        reportInfo() << "reset done" << reportEnd();
     }
-    reportInfo() << "reset..e" << reportEnd();
-    m_thread.reset();
     m_streamIsStarted = false;
     m_firstFrameIsInserted = false;
     reportInfo() << "Streamer::stop() done." << reportEnd();
