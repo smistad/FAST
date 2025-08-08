@@ -32,7 +32,6 @@ void ImageToBatchGenerator::generateStream() {
     bool firstTime = true;
     while(!lastFrame) {
         {
-            std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop) {
                 m_streamIsStarted = false;
                 m_firstFrameIsInserted = false;

@@ -435,7 +435,6 @@ void UFFStreamer::generateStream() {
         pause = getPause();
 
         {
-            std::lock_guard<std::mutex> lock(m_stopMutex);
             if(m_stop) break;
         }
 

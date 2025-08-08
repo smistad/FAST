@@ -44,7 +44,10 @@ class FAST_EXPORT Streamer : public ProcessObject {
         }
 
         /**
-         * Stop the stream
+         * @brief Stop the stream
+         *
+         * The streaming thread has finished when this method returns.
+         * This method should not be called from the streaming thread.
          */
         virtual void stop();
 
@@ -81,16 +84,18 @@ class FAST_EXPORT Streamer : public ProcessObject {
 
         bool m_firstFrameIsInserted = false;
         bool m_streamIsStarted = false;
-        bool m_stop = false;
         StreamingMode m_streamingMode = StreamingMode::ProcessAllFrames;
 
         std::mutex m_firstFrameMutex;
-        std::mutex m_stopMutex;
         std::unique_ptr<std::thread> m_thread;
         std::condition_variable m_firstFrameCondition;
 
         // Must be weak_ptr or be we get a circular dependency and streamers are never destroyed here
         std::map<uint, std::weak_ptr<ProcessObject>> m_outputPOs;
+
+        std::atomic_bool m_stop = false;
+    private:
+        std::mutex m_stopMutex; // Used to ensure stop() is only called by one thread at a time
 
 
 };

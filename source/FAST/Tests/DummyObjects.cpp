@@ -30,7 +30,6 @@ void DummyStreamer::generateStream() {
     std::cout << "DummyStreamer thread started" << std::endl;
     for(int i = 0; i < mFramesToGenerate; ++i) {
         {
-            std::lock_guard<std::mutex> lock(m_stopMutex);
             if(m_stop)
                 break;
         }

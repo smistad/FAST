@@ -60,7 +60,6 @@ void ManualImageStreamer::generateStream() {
     int currentSequence = 0;
     while(true) {
         {
-            std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop) {
                 m_streamIsStarted = false;
                 m_firstFrameIsInserted = false;

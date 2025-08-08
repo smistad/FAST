@@ -195,11 +195,10 @@ void ProcessObject::addOutputData(uint portID, DataObject::pointer data, bool pr
 
     // Add it to all output connections, if any connections exist
     if(mOutputConnections.count(portID) > 0) {
-        for(auto output : mOutputConnections.at(portID)) {
-            if(!output.expired()) {
-                DataChannel::pointer port = output.lock();
+        for(const auto& output : mOutputConnections.at(portID)) {
+            auto port = output.lock();
+            if(port)
                 port->addFrame(data);
-            }
         }
     }
 }
