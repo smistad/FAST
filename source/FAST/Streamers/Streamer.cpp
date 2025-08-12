@@ -48,17 +48,12 @@ void Streamer::stop() {
             }
         }
     }
-    reportInfo() << "frameadd.." << reportEnd();
     frameAdded(); // Unblock in execute, if needed
-    reportInfo() << "done" << reportEnd();
     // Join thread and reset
     if(std::this_thread::get_id() != m_thread->get_id()) {
         // join can't be called from the streaming thread
-        reportInfo() << "join" << reportEnd();
         m_thread->join();
-        reportInfo() << "reset" << reportEnd();
         m_thread.reset(); // This will destroy existing thread object, and will crash program if it happens inside thread
-        reportInfo() << "reset done" << reportEnd();
     } else {
         m_thread->detach(); // Test
     }
