@@ -28,8 +28,8 @@ if(FAST_MODULE_WholeSlideImaging)
                 libtiff.so
         )
         fast_download_dependency(openslide
-                3.4.1
-                cf362c0d2abb1bbc49fd91a9549625cd41e4821d794ae8ccf5707b63857caf19
+                4.0.0
+                200d1878bd28297309949bd4091c371380d9041cd9ec94e5336fbc3223f41445
                 libopenslide.so
         )
     endif()
