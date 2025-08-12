@@ -31,7 +31,6 @@ void Interleave::generateStream() {
     auto previousTime = std::chrono::high_resolution_clock::now();
     while(!lastFrame) {
         {
-            std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop) {
                 m_streamIsStarted = false;
                 m_firstFrameIsInserted = false;
@@ -129,7 +128,6 @@ void InterleavePlayback::generateStream() {
         pause = getPause();
 
         {
-            std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop) {
                 m_streamIsStarted = false;
                 m_firstFrameIsInserted = false;

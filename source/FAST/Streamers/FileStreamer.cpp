@@ -102,6 +102,7 @@ void FileStreamer::setFilenameFormats(std::vector<std::string> strs) {
 void FileStreamer::generateStream() {
     if(getNrOfFrames() == 0) {
         stopWithError("No frames were created by the FileStreamer");
+        return;
     }
 
     // Read timestamp file if available
@@ -140,7 +141,6 @@ void FileStreamer::generateStream() {
         pause = getPause();
 
         {
-            std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop) {
                 m_streamIsStarted = false;
                 m_firstFrameIsInserted = false;
@@ -153,6 +153,7 @@ void FileStreamer::generateStream() {
         std::string filename = getFilename(i, currentSequence);
         try {
             reportInfo() << "Filestreamer reading " << filename << reportEnd();
+            // If this causes pure virtual method called error, it means derived class forgot to call stop() in destructor
             DataObject::pointer dataFrame = getDataFrame(filename);
 
             // Timing

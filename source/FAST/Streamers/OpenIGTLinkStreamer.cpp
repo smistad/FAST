@@ -139,8 +139,11 @@ void OpenIGTLinkStreamer::updateFirstFrameSetFlag() {
     bool allHaveGotData = true;
     for(auto port : mOutputConnections) {
         for(auto output : port.second) {
-            if(output.lock()->getSize() == 0)
-                allHaveGotData = false;
+            auto channel = output.lock();
+            if(channel) {
+                if(channel->getSize() == 0)
+                    allHaveGotData = false;
+            }
         }
     }
 
@@ -186,7 +189,6 @@ void OpenIGTLinkStreamer::generateStream() {
 
     while(true) {
         {
-            std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop) {
                 m_streamIsStarted = false;
                 m_firstFrameIsInserted = false;

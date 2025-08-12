@@ -28,6 +28,7 @@ class FAST_EXPORT  MeshFileStreamer : public FileStreamer {
                          std::string, filenameFormat,,
                          bool, loop, = false
         );
+        ~MeshFileStreamer() { stop(); }; // FileStreamer derived classes must call stop() in destructor or you will get a pure virtual method called error
     protected:
         DataObject::pointer getDataFrame(std::string filename);
         MeshFileStreamer();

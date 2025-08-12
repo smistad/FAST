@@ -69,6 +69,7 @@ class FAST_EXPORT ImageFileStreamer : public FileStreamer {
          */
         void setGrayscale(bool grayscale);
         void loadAttributes() override;
+        ~ImageFileStreamer() { stop(); }; // FileStreamer derived classes must call stop() in destructor or you will get a pure virtual method called error
     protected:
         DataObject::pointer getDataFrame(std::string filename) override;
 

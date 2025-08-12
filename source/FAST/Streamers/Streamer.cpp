@@ -34,18 +34,37 @@ Streamer::Streamer() {
 }
 
 void Streamer::stop() {
+    std::lock_guard<std::mutex> lock(m_stopMutex);
+    if(!m_thread) // Already stopped
+        return;
     reportInfo() << "Stopping in streamer.." << reportEnd();
-    {
-        std::unique_lock<std::mutex> lock(m_stopMutex);
-        m_stop = true;
-        m_streamIsStarted = false;
-        m_firstFrameIsInserted = false;
+    m_stop = true;
+    // Thread might be locked due th QueueDataChannel, we have to signal them to stop:
+    for(const auto& output : mOutputConnections) {
+        for(const auto& channel : output.second) {
+            auto channelLocked = channel.lock();
+            if(channelLocked) { // Make sure it is still valid, before calling stop
+                channelLocked->stop();
+            }
+        }
     }
-    if(m_thread) {
+    reportInfo() << "frameadd.." << reportEnd();
+    frameAdded(); // Unblock in execute, if needed
+    reportInfo() << "done" << reportEnd();
+    // Join thread and reset
+    if(std::this_thread::get_id() != m_thread->get_id()) {
+        // join can't be called from the streaming thread
+        reportInfo() << "join" << reportEnd();
         m_thread->join();
-        m_thread = nullptr;
-        reportInfo() << "Streamer thread for " << getNameOfClass() << " returned" << reportEnd();
+        reportInfo() << "reset" << reportEnd();
+        m_thread.reset(); // This will destroy existing thread object, and will crash program if it happens inside thread
+        reportInfo() << "reset done" << reportEnd();
+    } else {
+        m_thread->detach(); // Test
     }
+    m_streamIsStarted = false;
+    m_firstFrameIsInserted = false;
+    reportInfo() << "Streamer::stop() done." << reportEnd();
 }
 
 void Streamer::setMaximumNrOfFrames(int frames) {
@@ -86,11 +105,10 @@ DataChannel::pointer Streamer::getOutputPort(uint portID) {
 }
 
 bool Streamer::isStopped() {
-    std::lock_guard<std::mutex> lock(m_stopMutex);
     return m_stop;
 }
 
-Streamer::~Streamer() noexcept {
+Streamer::~Streamer() {
     reportInfo() << "Destroying streamer.." << reportEnd();
     stop();
     reportInfo() << "Streamer DESTROYED." << reportEnd();
@@ -101,7 +119,9 @@ void Streamer::stopWithError(std::string message, int outputPort) {
     if(outputPort < 0)
         outputPort = 0;
     for(const auto& channel : mOutputConnections[outputPort]) {
-        channel.lock()->stop();
+        auto channelLocked = channel.lock();
+        if(channelLocked) // Make sure it is still valid, before calling stop
+            channelLocked->stop();
     }
 }
 
