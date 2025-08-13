@@ -4,7 +4,9 @@
 if(WIN32)
 		# DLL should be in binary folder
 		install(TARGETS FAST
-			DESTINATION fast/bin
+			RUNTIME DESTINATION fast/bin
+			COMPONENT fast
+			LIBRARY DESTINATION fast/lib
 			COMPONENT fast
 		)
 		set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION fast/bin)
@@ -44,12 +46,14 @@ if(WIN32)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.lib")
+			FILES_MATCHING PATTERN "*.lib"
+			PATTERN "_fast.lib" EXCLUDE)
 elseif(APPLE)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.dylib*")
+			FILES_MATCHING PATTERN "*.dylib*"
+			PATTERN "*.dylib.dSYM" EXCLUDE)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
