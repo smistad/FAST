@@ -306,7 +306,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           python -m pip install pytest numpy
-          pytest source/FAST/
+          pytest source/FAST/ -v
 
 # Seg faults for some reason:
 #  test-cpp:

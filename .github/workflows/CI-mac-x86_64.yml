@@ -201,5 +201,5 @@ jobs:
         run: |
           cd ${{github.workspace}}
           source venv/bin/activate
-          pytest source/FAST/
+          pytest source/FAST/ -v
 
