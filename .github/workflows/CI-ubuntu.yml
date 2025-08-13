@@ -263,7 +263,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt install libopenslide0 libpocl2t64 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0
+          sudo apt install libopenslide0 libpocl2t64 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 libxcb-icccm4
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -341,5 +341,5 @@ jobs:
           #Xvfb "$DISPLAY" -screen 0 1024x768x24 &
           cd ${{github.workspace}}/tmp/
           source venv/bin/activate
-          pytest ../source/FAST/
+          pytest ../source/FAST/ -v
 

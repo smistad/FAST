@@ -112,7 +112,6 @@ void DicomMultiFrameStreamer::generateStream() {
         pause = getPause();
 
         {
-            std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop) {
                 m_streamIsStarted = false;
                 m_firstFrameIsInserted = false;

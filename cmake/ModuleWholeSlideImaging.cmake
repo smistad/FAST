@@ -12,15 +12,15 @@ if(FAST_MODULE_WholeSlideImaging)
                 tiff.lib
         )
     elseif(APPLE)
+        include(cmake/ExternalOpenSlide.cmake)
+
         set(CMAKE_FIND_FRAMEWORK LAST) # Avoid wrong TIFF header from Mono.framework being used
         # Get OpenSlide and TIFF from OS
-        find_package(OpenSlide REQUIRED)
         find_package(TIFF REQUIRED)
         find_package(JPEG REQUIRED)
 
-        list(APPEND LIBRARIES ${OPENSLIDE_LIBRARIES} ${TIFF_LIBRARIES} ${JPEG_LIBRARIES})
-        list(APPEND FAST_INCLUDE_DIRS ${OPENSLIDE_INCLUDE_DIRS} ${TIFF_INCLUDE_DIRS})
-        message(STATUS "TIFF FOUND: ${TIFF_LIBRARY} ${TIFF_LIBRARIES} ${TIFF_INCLUDE_DIRS}")
+        list(APPEND LIBRARIES ${TIFF_LIBRARIES} ${JPEG_LIBRARIES} libopenslide.dylib)
+        list(APPEND FAST_INCLUDE_DIRS ${TIFF_INCLUDE_DIRS} ${FAST_EXTERNAL_INSTALL_DIR}/include/openslide/)
     else()
         fast_download_dependency(tiff
                 4.3.0
@@ -28,8 +28,8 @@ if(FAST_MODULE_WholeSlideImaging)
                 libtiff.so
         )
         fast_download_dependency(openslide
-                3.4.1
-                cf362c0d2abb1bbc49fd91a9549625cd41e4821d794ae8ccf5707b63857caf19
+                4.0.0
+                200d1878bd28297309949bd4091c371380d9041cd9ec94e5336fbc3223f41445
                 libopenslide.so
         )
     endif()

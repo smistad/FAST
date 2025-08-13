@@ -202,16 +202,13 @@ void PatchGenerator::generateStream() {
                             frameAdded();
                         }
                     } catch(ThreadStopped &e) {
-                        std::unique_lock<std::mutex> lock(m_stopMutex);
                         m_stop = true;
                         break;
                     }
                     previousPatch = patch;
-                    std::unique_lock<std::mutex> lock(m_stopMutex);
                     if(m_stop)
                         break;
                 }
-                std::unique_lock<std::mutex> lock(m_stopMutex);
                 if(m_stop) {
                     //m_streamIsStarted = false;
                     m_firstFrameIsInserted = false;
@@ -293,13 +290,11 @@ void PatchGenerator::generateStream() {
                                 //std::this_thread::sleep_for(std::chrono::seconds(2));
                             }
                         } catch(ThreadStopped &e) {
-                            std::unique_lock<std::mutex> lock(m_stopMutex);
                             m_stop = true;
                             break;
                         }
                         mRuntimeManager->stopRegularTimer("create patch");
                         previousPatch = patch;
-                        std::unique_lock<std::mutex> lock(m_stopMutex);
                         if(m_stop)
                             break;
                     }}}

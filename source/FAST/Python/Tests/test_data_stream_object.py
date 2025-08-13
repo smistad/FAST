@@ -16,16 +16,16 @@ def test_data_stream_empty_generator():
     assert counter == 0
 
 
-# def test_data_stream_empty_file_streamer():
-#     streamer = fast.ImageFileStreamer \
-#         .create(fast.Config.getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd",)
-#     streamer.setStartNumber(200) # Incorrect start number, will result in no frames
-#
-#     counter = 0
-#     with pytest.raises(RuntimeError):
-#         for image in fast.DataStream(streamer):
-#             counter += 1
-#     assert counter == 0
+def test_data_stream_empty_file_streamer():
+    streamer = fast.ImageFileStreamer \
+        .create(fast.Config.getTestDataPath() + "/US/Heart/ApicalFourChamber/US-2D_#.mhd",)
+    streamer.setStartNumber(200) # Incorrect start number, will result in no frames
+
+    counter = 0
+    with pytest.raises(RuntimeError):
+        for image in fast.DataStream(streamer):
+            counter += 1
+    assert counter == 0
 
 
 def test_data_stream_single():
