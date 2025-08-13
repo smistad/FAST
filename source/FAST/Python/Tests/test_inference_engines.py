@@ -25,7 +25,8 @@ def test_inference_engine_presence():
 
 def test_inference_engine_tensorflow_download():
     """ TensorFlow is not bundled with pyfast, test that the automatic download works"""
-    if not (sys.platform == 'darwin' and platform.machine() == 'arm64'):
+    #if not (sys.platform == 'darwin' and platform.machine() == 'arm64'):
+    if not sys.platform == 'darwin':
         engine = fast.InferenceEngineManager.loadEngine('TensorFlow')
         list = fast.InferenceEngineManager.getEngineList()
         assert 'TensorFlow' in list
@@ -73,8 +74,9 @@ def test_openvino_ir_inference():
 
 def test_tensorflow_inference():
     """ Test if TensorFlow is able to do inference on protobuf model """
-    if sys.platform == 'darwin' and platform.machine() == 'arm64':
-        # TensorFlow not available on macOS arm64
+    #if sys.platform == 'darwin' and platform.machine() == 'arm64':
+    if sys.platform == 'darwin':
+        # TensorFlow not available on macOS
         return
 
     segmentation_inference('TensorFlow', '.pb')
