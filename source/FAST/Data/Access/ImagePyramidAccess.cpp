@@ -80,7 +80,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
         if(width == tileWidth && height == tileHeight && x % tileWidth == 0 && y % tileHeight == 0) {
             // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
             int bytesRead = readTileFromTIFF((void *) data.get(), x, y, level);
-        } else if((width < tileWidth || height < tileHeight) && x % tileWidth == 0 && y % tileHeight == 0) {
+        } else if(width <= tileWidth && height <= tileHeight && x % tileWidth == 0 && y % tileHeight == 0) {
             auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*bytesPerPixel);
             {
                 // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
@@ -144,14 +144,6 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
         }
     } else if(m_fileHandle != nullptr) {
         int scale = (float)m_image->getFullWidth()/levelWidth;
-#ifndef WIN32
-        // HACK for black edge frames on ubuntu linux 20.04. This seems to be an issue with openslide or underlying libraries
-        if(level != 0) { // only occurs on levels != 0
-            // Reading scale pixels further in eliminates the problem for some reason...
-            x = x == 0 ? x+1 : x;
-            y = y == 0 ? y+1 : y;
-        }
-#endif
         openslide_read_region(m_fileHandle, (uint32_t*)data.get(), x * scale, y * scale, level, width, height);
     } else {
         auto levelData = m_levels[level];

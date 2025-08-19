@@ -42,29 +42,33 @@ if(WIN32)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
 			DESTINATION fast/bin/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.dll")
+			FILES_MATCHING
+			PATTERN "*.dll")
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.lib"
+			FILES_MATCHING
+			PATTERN "*.lib"
 			PATTERN "_fast.lib" EXCLUDE)
 elseif(APPLE)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.dylib*"
-			PATTERN "*.dylib.dSYM/" EXCLUDE)
+			REGEX "^[^/]*\\.dylib[^/]*$"
+			PATTERN "*/" EXCLUDE) # Exclude sub folders
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.so*"
+			FILES_MATCHING
+			PATTERN "*.so*"
    			PATTERN "_fast.abi3.so" EXCLUDE)
 	install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
 else()
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.so*"
+			FILES_MATCHING
+			PATTERN "*.so*"
    			PATTERN "_fast.abi3.so" EXCLUDE)
 	# Fix RPaths on install
 	install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
