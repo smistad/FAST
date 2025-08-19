@@ -13,8 +13,8 @@ if(FAST_MODULE_ONNXRuntime)
             )
         else()
             fast_download_dependency(onnxruntime
-                1.22.0
-                b658da2cdd51f1fcce2dbc7eb89a2ecca86606f52948c0b03ef8645a8acc6cea
+                    1.14.0
+                    22fdcae7e380e064e3c75ec8c585d11d05bc24983f08cf30a810914500bfeb9d
             )
         endif()
     else()

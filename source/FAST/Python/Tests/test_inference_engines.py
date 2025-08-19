@@ -74,8 +74,7 @@ def test_openvino_ir_inference():
 
 def test_tensorflow_inference():
     """ Test if TensorFlow is able to do inference on protobuf model """
-    #if sys.platform == 'darwin' and platform.machine() == 'arm64':
-    if sys.platform == 'darwin':
+    if sys.platform == 'darwin' and platform.machine() == 'arm64':
         # TensorFlow not available on macOS
         return
 
