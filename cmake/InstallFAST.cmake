@@ -54,9 +54,9 @@ elseif(APPLE)
 	# Install dylib and so files while excluding dSYM directories:
 	install(CODE "
 		file(GLOB LIBS LIST_DIRECTORIES false ${PROJECT_BINARY_DIR}/lib/*.dylib*)
-		file(COPY $\{LIBS\} DESTINATION $ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/lib/)
+		file(COPY $\{LIBS\} DESTINATION $ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/lib/)
 		file(GLOB LIBS LIST_DIRECTORIES false ${PROJECT_BINARY_DIR}/lib/*.so*)
-		file(COPY $\{LIBS\} DESTINATION $ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/lib/ PATTERN \"_fast.abi3.so\" EXCLUDE)
+		file(COPY $\{LIBS\} DESTINATION $ENV\{DESTDIR\}/$\{CMAKE_INSTALL_PREFIX\}/fast/lib/ PATTERN \"_fast.abi3.so\" EXCLUDE)
 		"
 		COMPONENT fast)
 	# Fix RPaths on install
