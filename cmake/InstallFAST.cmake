@@ -54,8 +54,8 @@ elseif(APPLE)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
-			FILES_MATCHING PATTERN "*.dylib*"
-			PATTERN "*.dylib.dSYM/" EXCLUDE)
+			PATTERN "*.dylib*"
+			PATTERN "*.dylib.dSYM/*" EXCLUDE)
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 			DESTINATION fast/lib/
 			COMPONENT fast
