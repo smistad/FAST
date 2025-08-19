@@ -51,19 +51,15 @@ if(WIN32)
 			PATTERN "*.lib"
 			PATTERN "_fast.lib" EXCLUDE)
 elseif(APPLE)
-	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
-			DESTINATION fast/lib/
-			COMPONENT fast
-			FILES_MATCHING
-			PATTERN "*.dylib.dSYM/*" EXCLUDE
-			PATTERN "*.dylib*"
-			)
-	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
-			DESTINATION fast/lib/
-			COMPONENT fast
-			FILES_MATCHING
-			PATTERN "*.so*"
-   			PATTERN "_fast.abi3.so" EXCLUDE)
+	# Install dylib and so files while excluding dSYM directories:
+	install(CODE "
+		file(GLOB LIBS LIST_DIRECTORIES false ${PROJECT_BINARY_DIR}/lib/*.dylib*)
+		file(COPY $\{LIBS\} DESTINATION $ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/lib/)
+		file(GLOB LIBS LIST_DIRECTORIES false ${PROJECT_BINARY_DIR}/lib/*.so*)
+		file(COPY $\{LIBS\} DESTINATION $ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/fast/lib/ PATTERN \"_fast.abi3.so\" EXCLUDE)
+		"
+		COMPONENT fast)
+	# Fix RPaths on install
 	install(SCRIPT cmake/FixRPaths.cmake COMPONENT fast)
 else()
 	install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
