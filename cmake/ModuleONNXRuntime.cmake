@@ -2,14 +2,14 @@ if(FAST_MODULE_ONNXRuntime)
     message("-- Enabling Microsoft ONNX runtime inference engine module")
     if(WIN32)
         fast_download_dependency(onnxruntime
-              1.14.0
-              28d0477bbc21efa87ea1c44c5f3b8b29bf3e272b22921126981d7ecdfac2b998
+              1.22.1
+              7236099edc47df10aaac418d4775e7e1f5681f39cdc1d335d825a2ac653f796e
         )
     elseif(APPLE)
         if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
             fast_download_dependency(onnxruntime
-                    1.14.0
-                    06f80a2c3c36f7008594abd9651d0edf7903d82165d450350abebae37db2f4d0
+                    1.22.0
+                    934c7b1d25729dea29045ce98ff1055696daa44c769343ffced4cad3d35768d5
             )
         else()
             fast_download_dependency(onnxruntime
@@ -19,8 +19,8 @@ if(FAST_MODULE_ONNXRuntime)
         endif()
     else()
         fast_download_dependency(onnxruntime
-                1.14.0
-                b7e8f893459770596075be66bd311a3d93b71e07a47f1075d5541432054cfdc1
+                1.22.0
+                e0f9d12a52373606c213b2c2785c9bf7425b1fc7cf9cc4102840b402e1bc720f
         )
     endif()
 endif()
