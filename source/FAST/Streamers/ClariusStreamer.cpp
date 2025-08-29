@@ -138,8 +138,7 @@ void ClariusStreamer::execute() {
         params.width = 512;
         params.height = 512;
         params.errorFn = [](const char* msg) {
-			self->getReporter().error() << msg << self->getReporter().end();
-			self->signalCastStop();
+			self->signalCastStop(msg);
         };
 
         auto init = (int (*)(const CusInitParams* params))getFunc("cusCastInit");
@@ -160,8 +159,7 @@ void ClariusStreamer::execute() {
 				}
 			}
 			else {
-				self->getReporter().error() << "Failed to connect to Clarius device" << self->getReporter().end();
-                self->signalCastStop();
+                self->signalCastStop("Failed to connect to Clarius device");
 			}
         });
         if(success != 0)
@@ -229,13 +227,15 @@ void ClariusStreamer::generateStream() {
         m_castStopCV.wait(lock);
     }
     stop();
+	stopWithError(m_stopMessage); // This will cause ThreadStopped exception
     reportInfo() << "ClariusStreamer::generateStream() done" << reportEnd();
 }
 
-void ClariusStreamer::signalCastStop() {
+void ClariusStreamer::signalCastStop(std::string message) {
     {
         std::lock_guard<std::mutex> lock(m_castStopMutex);
         m_castStop = true;
+        m_stopMessage = message;
     }
     m_castStopCV.notify_all();
 }

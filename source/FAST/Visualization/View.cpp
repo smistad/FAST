@@ -476,9 +476,15 @@ void View::initializeGL() {
     glEnable(GL_TEXTURE_2D);
     // Update all renderes, so that getBoundingBox works
     std::vector<Renderer::pointer> renderers = getRenderers();
-    for(int i = 0; i < renderers.size(); i++) {
-        if(!renderers[i]->isDisabled())
-            renderers[i]->update(0);
+    try {
+        for (int i = 0; i < renderers.size(); i++) {
+            if (!renderers[i]->isDisabled())
+                renderers[i]->update(0);
+        }
+    } catch (ThreadStopped& e) {
+        // TODO What to do in this case?
+        reportInfo() << "Caught ThreadStopped in View::initializeGL" << reportEnd();
+        return;
     }
     if(renderers.empty())
         return;

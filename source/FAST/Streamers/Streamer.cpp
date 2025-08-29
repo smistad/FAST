@@ -88,7 +88,7 @@ DataChannel::pointer Streamer::getOutputPort(uint portID) {
         if(!PO) { // Expired, recreate
             // TODO duplicate code:
             auto channel = ProcessObject::getOutputPort(portID);
-            auto PO = RunLambda::create([](DataObject::pointer data) -> DataList {
+            PO = RunLambda::create([](DataObject::pointer data) -> DataList {
                 return DataList(data);
             });
             PO->setInputConnection(channel);
@@ -116,7 +116,7 @@ void Streamer::stopWithError(std::string message, int outputPort) {
     for(const auto& channel : mOutputConnections[outputPort]) {
         auto channelLocked = channel.lock();
         if(channelLocked) // Make sure it is still valid, before calling stop
-            channelLocked->stop();
+            channelLocked->stop(message);
     }
 }
 

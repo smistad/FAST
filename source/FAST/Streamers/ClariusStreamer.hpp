@@ -55,7 +55,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
          */
         void setGain(float gain);
         void loadAttributes() override;
-        void signalCastStop();
+        void signalCastStop(std::string stopMessage = "");
         virtual void stopPipeline() override;
 	protected:
         void generateStream() override;
@@ -83,6 +83,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         std::mutex m_castStopMutex;
         std::condition_variable m_castStopCV;
         bool m_castStop = false;
+        std::string m_stopMessage;
 };
 
 }
