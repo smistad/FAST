@@ -100,24 +100,46 @@ void* ClariusStreamer::getFunc(std::string name) {
 #endif
 }
 
+ClariusStreamer::pointer ClariusStreamer::self = nullptr; // class static
+
 void ClariusStreamer::execute() {
     if(!mStreamIsStarted) {
         reportInfo() << "Trying to set up Clarius streaming..." << reportEnd();
         std::string keydir = Config::getKernelBinaryPath();
         // TODO A hack here to get this to work. Fix later
         // Lambdas converted to C style pointers can't have captures
-        static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
+        self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
 
         CusInitParams params;
         params.args.argc = 0;
         params.storeDir = keydir.c_str();
+        // All callbacks have to be defined, or it will crash
         params.newProcessedImageFn = [](const void* img, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos) {
             self->newImageFn(img, nfo, npos, pos);
+        };
+        params.buttonFn = [](CusButton btn, int clicks) {
+            self->getReporter().info() << "button pressed: " << (btn == CusButton::ButtonDown ? "DOWN" : "UP") << self->getReporter().end();
+        };
+        params.newRawImageFn = [](const void* img, const CusRawImageInfo* nfo, int npos, const CusPosInfo* pos) {
+            self->getReporter().info() << "raw image received" << self->getReporter().end();
+        };
+        params.newImuDataFn = [](const CusPosInfo* pos) {
+            self->getReporter().info() << "imu data received" << self->getReporter().end();
+        };
+        params.progressFn = [](int progress) {
+            self->getReporter().info() << "progress: " << progress  << self->getReporter().end();
+        };
+        params.newSpectralImageFn = [](const void* img, const CusSpectralImageInfo* nfo) {
+           self->getReporter().info() << "spectral image received" << self->getReporter().end();
+        };
+        params.freezeFn = [](int state) {
+            self->getReporter().info() << "Freeze " << ((state == 1) ? "ON" : "OFF") << self->getReporter().end();
         };
         params.width = 512;
         params.height = 512;
         params.errorFn = [](const char* msg) {
-            self->getReporter().error() << msg << self->getReporter().end();
+			self->getReporter().error() << msg << self->getReporter().end();
+			self->signalCastStop();
         };
 
         auto init = (int (*)(const CusInitParams* params))getFunc("cusCastInit");
@@ -126,29 +148,29 @@ void ClariusStreamer::execute() {
             throw Exception("Unable to initialize clarius cast");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
+        mStreamIsStarted = true;
+        m_thread = std::make_unique<std::thread>(std::bind(&ClariusStreamer::generateStream, this));
+
         auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusConnectFn fn))getFunc("cusCastConnect");
         success = connect(mIPAddress.c_str(), mPort, "research", [](int port, int imuPort, int swMatch) {
-            if (port > 0) {
+			if (port > 0) {
 				self->getReporter().info() << "Clarius connect on UDP port " << port << self->getReporter().end();
-                if (swMatch == CUS_FAILURE) {
-                    self->getReporter().warning() << "A software mismatch between Clarius Cast API in FAST and the scanner was detected." << self->getReporter().end();
-                }
-            } else {
-                self->getReporter().error() << "Failed to connect to Clarius device" << self->getReporter().end();
-				self->stop();
-            }
+				if (swMatch == CUS_FAILURE) {
+					self->getReporter().warning() << "A software mismatch between Clarius Cast API in FAST and the scanner was detected." << self->getReporter().end();
+				}
+			}
+			else {
+				self->getReporter().error() << "Failed to connect to Clarius device" << self->getReporter().end();
+                self->signalCastStop();
+			}
         });
         if(success != 0)
             throw Exception("Unable to connect to clarius scanner");
-        reportInfo() << "Clarius streamer connected." << reportEnd();
-        mStreamIsStarted = true;
+        reportInfo() << "Clarius streamer connecting ...." << reportEnd();
     }
 
     // Wait here for first frame
-    std::unique_lock<std::mutex> lock(mFirstFrameMutex);
-    while(!mFirstFrameIsInserted) {
-        mFirstFrameCondition.wait(lock);
-    }
+    waitForFirstFrame();
 }
 
 void ClariusStreamer::newImageFn(const void *img, const _CusProcessedImageInfo *nfo, int npos,
@@ -175,13 +197,7 @@ void ClariusStreamer::newImageFn(const void *img, const _CusProcessedImageInfo *
     image->setCreationTimestamp(nfo->tm / 1000000); // convert timestsamp to milliseconds
 
     addOutputData(0, image);
-    if(!mFirstFrameIsInserted) {
-    {
-        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-        mFirstFrameIsInserted = true;
-    }
-    mFirstFrameCondition.notify_one();
-    }
+    frameAdded();
     mNrOfFrames++;
 }
 
@@ -190,22 +206,61 @@ uint ClariusStreamer::getNrOfFrames() {
 }
 
 ClariusStreamer::~ClariusStreamer() {
+    reportInfo() << "Destroying ClariuStreamer ..." << reportEnd();
     stop();
+			
+    // Calling destroy in the cast thread causes crash:
+    // Calling destroy in generateStream causes block
+    // TODO Check if Cast exist?
+    auto destroy = (int (*)())getFunc("cusCastDestroy");
+    getReporter().info() << "Destroying cast ..." << getReporter().end();
+    int success = destroy();
+    getReporter().info() << "Clarius Destroy done." << getReporter().end();
+    if (success < 0)
+        getReporter().error() << "Unable to destroy clarius cast" << getReporter().end();
+
+    reportInfo() << "ClariuStreamer destroyed" << reportEnd();
+}
+
+void ClariusStreamer::generateStream() {
+    // Use this thread to listen to a stop signal
+    std::unique_lock<std::mutex> lock(m_castStopMutex);
+    while(!m_castStop) {
+        m_castStopCV.wait(lock);
+    }
+    stop();
+    reportInfo() << "ClariusStreamer::generateStream() done" << reportEnd();
+}
+
+void ClariusStreamer::signalCastStop() {
+    {
+        std::lock_guard<std::mutex> lock(m_castStopMutex);
+        m_castStop = true;
+    }
+    m_castStopCV.notify_all();
 }
 
 void ClariusStreamer::stop() {
+    reportInfo() << "In clarius streamer stop()" << reportEnd();
+    if(!mStreamIsStarted)
+        return;
     reportInfo() << "Stopping clarius streamer.." << reportEnd();
+    mStreamIsStarted = false;
     auto disconnect = (int (*)(CusReturnFn))getFunc("cusCastDisconnect");
-    int success = disconnect([](int code) {});
-    reportInfo() << "done" << reportEnd();
-    if(success < 0)
-        throw Exception("Unable to disconnect from clarius scanner");
-    auto destroy = (int (*)())getFunc("cusCastDestroy");
-    success = destroy();
-    if(success < 0)
-        throw Exception("Unable to destroy clarius cast");
-
+    int success = disconnect([](int code) {
+        self->getReporter().info() << "Clarius Disconnect callback with return code: " << ((code == CUS_FAILURE) ? "Failure" : "Success") << self->getReporter().end();
+		self.reset(); // When is it safe to do this?
+    });
+    reportInfo() << "Clarius Disconnect done." << reportEnd();
+    if(success == 0)
+        reportError() << "Unable to disconnect from clarius scanner" << reportEnd();
+	frameAdded(); // Unblock execute if needed
     reportInfo() << "Clarius streamer stopped" << Reporter::end();
+    // TODO How to stop program gracefully if no frames are ever streamed?
+}
+
+void ClariusStreamer::stopPipeline() {
+    signalCastStop();
 }
 
 void ClariusStreamer::setConnectionAddress(std::string ipAddress) {

@@ -1,7 +1,7 @@
 # Download clarius cast API
 include(cmake/Externals.cmake)
 
-set(CLARIUS_CAST_VERSION "12.0.0")
+set(CLARIUS_CAST_VERSION "12.0.2")
 
 # Download license
 file(DOWNLOAD https://raw.githubusercontent.com/clariusdev/cast/v${CLARIUS_CAST_VERSION}/LICENSE ${FAST_EXTERNAL_INSTALL_DIR}/licenses/clarius/LICENSE)

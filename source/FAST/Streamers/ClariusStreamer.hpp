@@ -39,7 +39,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         );
         void setConnectionAddress(std::string ipAddress);
         void setConnectionPort(int port);
-        void stop();
+        virtual void stop() override;
         ~ClariusStreamer();
         uint getNrOfFrames();
         void newImageFn(const void* newImage, const _CusProcessedImageInfo* nfo, int npos, const _CusPosInfo* pos);
@@ -55,9 +55,12 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
          */
         void setGain(float gain);
         void loadAttributes() override;
+        void signalCastStop();
+        virtual void stopPipeline() override;
+	protected:
+        void generateStream() override;
 	private:
         void execute();
-        void generateStream() override {};
         void* getFunc(std::string name);
 
         bool mStreamIsStarted;
@@ -75,6 +78,11 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 #else
         void* m_handle;
 #endif
+        static ClariusStreamer::pointer self;
+
+        std::mutex m_castStopMutex;
+        std::condition_variable m_castStopCV;
+        bool m_castStop = false;
 };
 
 }
