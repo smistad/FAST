@@ -36,7 +36,7 @@ def test_cast():
         streamer = fast.ClariusStreamer.create()
 
         # Check that files exist
-        name = {'darwin': 'libcast.dylib', 'linux': 'libcast.so', 'windows': 'cast.dll'}
+        name = {'darwin': 'libcast.dylib', 'linux': 'libcast.so', 'win32': 'cast.dll'}
         assert os.path.exists(fast.Config.getKernelBinaryPath() + '/../lib/cast/LICENSE.txt')
         assert os.path.exists(fast.Config.getKernelBinaryPath() + '/../lib/cast/' + name[sys.platform])
 
