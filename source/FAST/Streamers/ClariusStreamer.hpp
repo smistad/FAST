@@ -35,7 +35,9 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         FAST_CONSTRUCTOR(ClariusStreamer,
                          std::string, ipAddress, = "192.168.1.1",
                          int, port, = 5828,
-                         bool, grayscale, = true
+                         bool, grayscale, = true,
+                         int, width, = 1024,
+                         int, height, = 1024
         );
         void setConnectionAddress(std::string ipAddress);
         void setConnectionPort(int port);
@@ -57,6 +59,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         void loadAttributes() override;
         void signalCastStop(std::string stopMessage = "");
         virtual void stopPipeline() override;
+        void setOutputSize(int width, int height);
 	protected:
         void generateStream() override;
 	private:
@@ -85,6 +88,9 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         std::condition_variable m_castStopCV;
         bool m_castStop = false;
         std::string m_stopMessage;
+
+        int m_width;
+        int m_height;
 };
 
 }

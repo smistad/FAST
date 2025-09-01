@@ -6,6 +6,8 @@
 #ifdef WIN32
 #else
 #include <dlfcn.h>
+#include <FAST/Visualization/Window.hpp>
+
 #endif
 
 namespace fast {
@@ -34,7 +36,7 @@ static std::string GetLastErrorAsString()
 
 
 
-ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale) {
+ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale, int width, int height) {
     createOutputPort<Image>(0);
     mNrOfFrames = 0;
     mFirstFrameIsInserted = false;
@@ -48,6 +50,7 @@ ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale
 
     setConnectionAddress(ipAddress);
     setConnectionPort(port);
+    setOutputSize(width, height);
     setStreamingMode(StreamingMode::NewestFrameOnly);
 
     loadLibrary();
@@ -110,13 +113,6 @@ ClariusStreamer::pointer ClariusStreamer::self = nullptr; // class static
 
 void ClariusStreamer::execute() {
     if(!mStreamIsStarted) {
-#ifndef WIN32
-        // If a GL context is currently active, we have to disable it when initializing clarius cast,
-        // or it will crash, most likely cast is using OpenGL as well.
-        QGLContext* glContext = (QGLContext*)QGLContext::currentContext();
-        if(glContext != nullptr)
-            glContext->doneCurrent();
-#endif
         reportInfo() << "Trying to set up Clarius streaming..." << reportEnd();
         std::string keydir = Config::getKernelBinaryPath();
         // TODO A hack here to get this to work. Fix later
@@ -128,30 +124,40 @@ void ClariusStreamer::execute() {
         params.storeDir = keydir.c_str();
         // All callbacks have to be defined, or it will crash
         params.newProcessedImageFn = [](const void* img, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos) {
+            self->getReporter().info() << "Processed image received" << self->getReporter().end();
             self->newImageFn(img, nfo, npos, pos);
         };
         params.buttonFn = [](CusButton btn, int clicks) {
-            self->getReporter().info() << "button pressed: " << (btn == CusButton::ButtonDown ? "DOWN" : "UP") << self->getReporter().end();
+            self->getReporter().info() << "Button pressed: " << (btn == CusButton::ButtonDown ? "DOWN" : "UP") << self->getReporter().end();
         };
         params.newRawImageFn = [](const void* img, const CusRawImageInfo* nfo, int npos, const CusPosInfo* pos) {
-            self->getReporter().info() << "raw image received" << self->getReporter().end();
+            self->getReporter().info() << "Raw image received" << self->getReporter().end();
         };
         params.newImuDataFn = [](const CusPosInfo* pos) {
-            self->getReporter().info() << "imu data received" << self->getReporter().end();
+            self->getReporter().info() << "IMU data received" << self->getReporter().end();
         };
         params.progressFn = [](int progress) {
-            self->getReporter().info() << "progress: " << progress  << self->getReporter().end();
+            self->getReporter().info() << "Progress: " << progress  << self->getReporter().end();
         };
         params.newSpectralImageFn = [](const void* img, const CusSpectralImageInfo* nfo) {
-           self->getReporter().info() << "spectral image received" << self->getReporter().end();
+           self->getReporter().info() << "Spectral image received" << self->getReporter().end();
         };
         params.freezeFn = [](int state) {
             self->getReporter().info() << "Freeze " << ((state == 1) ? "ON" : "OFF") << self->getReporter().end();
         };
-        params.width = 512;
-        params.height = 512;
+        params.width = m_width;
+        params.height = m_height;
         params.errorFn = [](const char* msg) {
-			self->signalCastStop(msg);
+            // Ignore OpenGL error which has the following message:
+            std::string find = "Failed to make context current";
+            std::string find2 = "Failed to make no context current";
+            std::string msg2 = msg;
+            if(msg2.size() > find2.size()) {
+                if(msg2.substr(0, find.size()) == find || msg2.substr(0, find2.size()) == find2)
+                    return;
+            }
+
+            self->signalCastStop(msg2);
         };
 
         auto init = (int (*)(const CusInitParams* params))getFunc("cusCastInit");
@@ -165,6 +171,15 @@ void ClariusStreamer::execute() {
 
         auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusConnectFn fn))getFunc("cusCastConnect");
         success = connect(mIPAddress.c_str(), mPort, "research", [](int port, int imuPort, int swMatch) {
+#ifndef WIN32
+            // For some reason we need to create a GL context here
+            auto widget = new QGLWidget;
+            QGLContext* glContext = new QGLContext(View::getGLFormat(), widget);
+            glContext->create(Window::getSecondaryGLContext());
+            glContext->makeCurrent();
+            if(!glContext->isValid())
+                self->getReporter().error() << "Cast GL CONTEXT WAS VALID!" << self->getReporter().end();
+#endif
 			if (port > 0) {
 				self->getReporter().info() << "Clarius connect on UDP port " << port << self->getReporter().end();
 				if (swMatch == CUS_FAILURE) {
@@ -178,10 +193,6 @@ void ClariusStreamer::execute() {
         if(success != 0)
             throw Exception("Unable to connect to clarius scanner");
         reportInfo() << "Clarius streamer connecting ...." << reportEnd();
-#ifndef WIN32
-        if(glContext != nullptr)
-            glContext->makeCurrent();
-#endif
     }
 
     // Wait here for first frame
@@ -318,6 +329,11 @@ void ClariusStreamer::setGain(float gain) {
     auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
 	if(userFunc(SetGain, gain, nullptr) < 0)
         reportError() << "Error setting gain to " << gain << reportEnd();
+}
+
+void ClariusStreamer::setOutputSize(int width, int height) {
+    m_width = width;
+    m_height = height;
 }
 
 }
