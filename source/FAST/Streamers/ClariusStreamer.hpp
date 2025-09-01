@@ -60,6 +60,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 	protected:
         void generateStream() override;
 	private:
+        void loadLibrary();
         void execute();
         void* getFunc(std::string name);
 

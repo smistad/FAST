@@ -2,6 +2,7 @@
 #include "FAST/Data/Image.hpp"
 #include <cast/cast.h>
 #include <functional>
+#include <QGLContext>
 #ifdef WIN32
 #else
 #include <dlfcn.h>
@@ -49,10 +50,15 @@ ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale
     setConnectionPort(port);
     setStreamingMode(StreamingMode::NewestFrameOnly);
 
+    loadLibrary();
+}
+
+void ClariusStreamer::loadLibrary() {
+
     // Load Clarius Cast library dynamically
     reportInfo() << "Loading clarius cast library" << reportEnd();
 #ifdef WIN32
-    SetErrorMode(SEM_FAILCRITICALERRORS); // TODO To avoid diaglog box, when not able to load a DLL
+    SetErrorMode(SEM_FAILCRITICALERRORS); // To avoid diaglog box, when not able to load a DLL
     m_handle = LoadLibrary("cast.dll");
     if(!m_handle) {
         std::string msg = GetLastErrorAsString();
@@ -104,6 +110,13 @@ ClariusStreamer::pointer ClariusStreamer::self = nullptr; // class static
 
 void ClariusStreamer::execute() {
     if(!mStreamIsStarted) {
+#ifndef WIN32
+        // If a GL context is currently active, we have to disable it when initializing clarius cast,
+        // or it will crash, most likely cast is using OpenGL as well.
+        QGLContext* glContext = (QGLContext*)QGLContext::currentContext();
+        if(glContext != nullptr)
+            glContext->doneCurrent();
+#endif
         reportInfo() << "Trying to set up Clarius streaming..." << reportEnd();
         std::string keydir = Config::getKernelBinaryPath();
         // TODO A hack here to get this to work. Fix later
@@ -165,6 +178,10 @@ void ClariusStreamer::execute() {
         if(success != 0)
             throw Exception("Unable to connect to clarius scanner");
         reportInfo() << "Clarius streamer connecting ...." << reportEnd();
+#ifndef WIN32
+        if(glContext != nullptr)
+            glContext->makeCurrent();
+#endif
     }
 
     // Wait here for first frame
