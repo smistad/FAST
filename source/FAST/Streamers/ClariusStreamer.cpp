@@ -3,12 +3,11 @@
 #include <cast/cast.h>
 #include <functional>
 #include <QGLContext>
+#include <FAST/Algorithms/Color/ColorToGrayscale.hpp>
 #ifdef WIN32
 #else
 #include <dlfcn.h>
 #include <FAST/Visualization/Window.hpp>
-#include <FAST/Algorithms/Color/ColorToGrayscale.hpp>
-
 #endif
 
 namespace fast {
