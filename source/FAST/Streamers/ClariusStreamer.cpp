@@ -79,7 +79,7 @@ void ClariusStreamer::loadLibrary() {
             createDirectories(destination);
             downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_12.0.2_windows_" + arch + ".zip", destination, "cast");
         }
-        m_handle = LoadLibrary(path.c_str()));
+        m_handle = LoadLibrary(path.c_str());
     }
     if(!m_handle) {
         std::string msg = GetLastErrorAsString();
