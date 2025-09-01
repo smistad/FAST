@@ -1,16 +1,25 @@
+import subprocess
 import fast
 import pytest
 import sys
 import os
 
 
+def get_ubuntu_version():
+    result = subprocess.run(['cat', '/etc/os-release'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    values = {}
+    for line in result.split('\n'):
+        parts = line.split('=')
+        if len(parts) == 2:
+            values[parts[0]] = parts[1].replace('"', '')
+    return values['ID'], values['VERSION_ID']
+
+
 def test_cast():
     should_fail = False
     if sys.platform == 'linux':
-        import lsb_release
-        version = lsb_release.get_os_release()['RELEASE']
-        id = lsb_release.get_os_release()['ID']
-        if id != 'Ubuntu':
+        id, version = get_ubuntu_version()
+        if id != 'ubuntu':
             return
         major, minor = version.split('.')
         if major not in ('20', '22', '24'):

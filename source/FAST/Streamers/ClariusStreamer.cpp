@@ -108,22 +108,29 @@ void ClariusStreamer::loadLibrary() {
 #else
             // Get ubuntu version
             std::string output;
-            FILE* pipe = popen("lsb_release -d -s", "r"); // Execute command to get description
+            FILE* pipe = popen("cat /etc/os-release", "r"); // Execute command to get description
             if(!pipe)
-                throw Exception("Unable to run lsb_release. Make sure you have it installed.");
+                throw Exception("Unable to run 'cat /etc/os-release'. Are you on ubuntu?");
             char buffer[128];
             while(fgets(buffer, sizeof(buffer), pipe) != nullptr) {
                 output += buffer;
             }
             pclose(pipe); // Close the pipe
-            auto parts = split(output, " ");
-            if(parts.size() < 2)
-                throw Exception("Error reading lsb_release output.");
-            if(parts[0] != "Ubuntu")
+            auto lines = split(output, "\n");
+            if(lines.empty())
+                throw Exception("Error reading os-release file.");
+            std::map<std::string, std::string> values;
+            for(const auto& line : lines) {
+                auto parts = split(line, "=");
+                if(parts.size() == 2) {
+                    values[parts[0]] = replace(parts[1], "\"", "");
+                }
+            }
+            if(values.at("NAME") != "Ubuntu")
                 throw Exception("ClariusStreamer only supports ubuntu linux");
-            auto version = split(parts[1], ".");
+            auto version = split(values.at("VERSION_ID"), ".");
             if(version.size() < 2)
-                throw Exception("Error reading lsb_release output.");
+                throw Exception("Error reading os-release output.");
 
             std::string ubuntuVersion = version[0] + "." + version[1];
 
