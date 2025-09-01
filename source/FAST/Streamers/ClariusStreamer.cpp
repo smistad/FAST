@@ -7,6 +7,7 @@
 #else
 #include <dlfcn.h>
 #include <FAST/Visualization/Window.hpp>
+#include <FAST/Algorithms/Color/ColorToGrayscale.hpp>
 
 #endif
 
@@ -186,8 +187,8 @@ void ClariusStreamer::execute() {
         params.storeDir = keydir.c_str();
         // All callbacks have to be defined, or it will crash
         params.newProcessedImageFn = [](const void* img, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos) {
-            self->getReporter().info() << "Processed image received" << self->getReporter().end();
-            self->newImageFn(img, nfo, npos, pos);
+            self->getReporter().info() << "Processed image received. Current FPS: " << nfo->fps << self->getReporter().end();
+            self->newProcessedImage(img, nfo, npos, pos);
         };
         params.buttonFn = [](CusButton btn, int clicks) {
             self->getReporter().info() << "Button pressed: " << (btn == CusButton::ButtonDown ? "DOWN" : "UP") << self->getReporter().end();
@@ -262,24 +263,17 @@ void ClariusStreamer::execute() {
     waitForFirstFrame();
 }
 
-void ClariusStreamer::newImageFn(const void *img, const _CusProcessedImageInfo *nfo, int npos,
-                                 const _CusPosInfo *pos) {
+void ClariusStreamer::newProcessedImage(const void *img, const _CusProcessedImageInfo *nfo, int npos,
+                                        const _CusPosInfo *pos) {
     if(nfo->bitsPerPixel != 32)
         throw Exception("Expected 32 bits per pixel (4 channels with 8 bits) each in ClariusStreamer, but got " + std::to_string(nfo->bitsPerPixel));
 
     // Copy pixels
-    Image::pointer image;
     const int width = nfo->width;
     const int height = nfo->height;
+    auto image = Image::create(width, height, TYPE_UINT8, 4, img);
     if(mGrayscale) {
-        const auto img2 = static_cast<const uchar*>(img);
-        auto pixels = make_uninitialized_unique<uchar[]>(width * height);
-        for(int i = 0; i < width*height; ++i) {
-            pixels[i] = img2[i * 4 + 0];
-        }
-        image = Image::create(width, height, TYPE_UINT8, 1, std::move(pixels));
-    } else {
-        image = Image::create(width, height, TYPE_UINT8, 4, img);
+        image = ColorToGrayscale::create()->connect(image)->runAndGetOutputData<Image>();
     }
     float spacing = (float)nfo->micronsPerPixel/1000.0f; // convert spacing to millimeters
     image->setSpacing(Vector3f(spacing, spacing, 1));

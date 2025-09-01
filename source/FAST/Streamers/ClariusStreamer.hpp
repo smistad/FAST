@@ -27,9 +27,11 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
     public:
         /**
          * @brief Create instance
-         * @param ipAddress
-         * @param port
-         * @param grayscale
+         * @param ipAddress IP address to scanner
+         * @param port Port to scanner
+         * @param grayscale Converts images to grayscale
+         * @param width Output image width of scanconverted image
+         * @param height Output image height of scanconverted image
          * @return instance
          */
         FAST_CONSTRUCTOR(ClariusStreamer,
@@ -44,7 +46,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         virtual void stop() override;
         ~ClariusStreamer();
         uint getNrOfFrames();
-        void newImageFn(const void* newImage, const _CusProcessedImageInfo* nfo, int npos, const _CusPosInfo* pos);
+        void newProcessedImage(const void* img, const _CusProcessedImageInfo* nfo, int npos, const _CusPosInfo* pos);
 		void toggleFreeze();
 		void increaseDepth();
 		void decreaseDepth();
