@@ -1,16 +1,6 @@
 #include <FAST/Config.hpp>
 #include <FAST/Utility.hpp>
 #include <FAST/DeviceManager.hpp>
-#ifdef FAST_MODULE_VISUALIZATION
-#include <iomanip>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QElapsedTimer>
-#include <QEventLoop>
-#include <QFile>
-#include <QStandardPaths>
-#endif
 #ifdef WIN32
 // For TensorFlow AVX2 check - Taken from https://docs.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=msvc-160
 #include <vector>
@@ -411,74 +401,6 @@ bool InferenceEngineManager::isEngineAvailable(std::string name) {
     loadAll();
     return m_engines.count(name) > 0;
 }
-
-#ifdef FAST_MODULE_VISUALIZATION
-static void downloadAndExtractZipFile(const std::string& URL, const std::string& destination, const std::string& name) {
-    QNetworkAccessManager manager;
-    QNetworkRequest request(QUrl(QString::fromStdString(URL)));
-    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-    auto timer = new QElapsedTimer;
-    timer->start();
-    auto reply = manager.get(request);
-    Progress progress(100);
-    progress.setText("Downloading");
-    progress.setUnit("MB", 1.0/(1024*1024), 0);
-    const int totalWidth = getConsoleWidth();
-    std::string blank;
-    for(int i = 0; i < totalWidth-1; ++i)
-        blank += " ";
-    QObject::connect(reply, &QNetworkReply::downloadProgress, [&](quint64 current, quint64 max) {
-        progress.setMax(max);
-        progress.update(current);
-    });
-    auto tempLocation = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + name.c_str() + ".zip";
-    QFile file(tempLocation);
-    if(!file.open(QIODevice::WriteOnly)) {
-        throw Exception("Could not write to " + tempLocation.toStdString());
-    }
-    QObject::connect(reply, &QNetworkReply::readyRead, [&reply, &file]() {
-        file.write(reply->read(reply->bytesAvailable()));
-    });
-    QObject::connect(&manager, &QNetworkAccessManager::finished, [blank, reply, &file, destination]() {
-        std::cout << "\n";
-        if(reply->error() != QNetworkReply::NoError) {
-            std::cout << "\r" << blank;
-            std::cout << "\rERROR: Download failed! : " << reply->errorString().toStdString() << std::endl;
-            file.close();
-            file.remove();
-            return;
-        }
-        file.close();
-        std::cout << "\r" << blank;
-        std::cout << "\rExtracting zip file...";
-        std::cout.flush();
-        try {
-            extractZipFile(file.fileName().toStdString(), destination);
-        } catch(Exception& e) {
-            std::cout << "\r" << blank;
-            std::cout << "\rERROR: Zip extraction failed!" << std::endl;
-            file.remove();
-            return;
-        }
-
-        file.remove();
-        std::cout << "\r" << blank;
-        std::cout << "\rComplete." << std::endl;
-    });
-
-    auto eventLoop = new QEventLoop(&manager);
-
-    // Make sure to quit the event loop when download is finished
-    QObject::connect(&manager, &QNetworkAccessManager::finished, eventLoop, &QEventLoop::quit);
-
-    // Wait for it to finish
-    eventLoop->exec();
-}
-#else
-static void downloadAndExtractZipFile(const std::string& URL, const std::string& destination) {
-    throw NotImplementedException();
-}
-#endif
 
 
 std::shared_ptr<InferenceEngine> InferenceEngineManager::loadEngine(std::string name) {

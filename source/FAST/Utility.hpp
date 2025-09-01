@@ -353,5 +353,8 @@ class FAST_EXPORT Progress {
         float m_unitScale = 1.0f;
         int m_unitPrecision = -1;
 };
+
+void downloadAndExtractZipFile(const std::string& URL, const std::string& destination, const std::string& name);
+
 } // end namespace fast
 

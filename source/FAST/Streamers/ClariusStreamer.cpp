@@ -57,27 +57,89 @@ ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale
 }
 
 void ClariusStreamer::loadLibrary() {
+#if defined(_M_ARM64) || defined(__aarch64__)
+    const std::string arch = "arm64";
+#else
+    const std::string arch = "x86_64";
+#endif
 
     // Load Clarius Cast library dynamically
     reportInfo() << "Loading clarius cast library" << reportEnd();
 #ifdef WIN32
     SetErrorMode(SEM_FAILCRITICALERRORS); // To avoid diaglog box, when not able to load a DLL
-    m_handle = LoadLibrary("cast.dll");
+    if(fileExists(Config::getLibraryPath() + "cast.dll")) {
+        m_handle = LoadLibrary("cast.dll");
+    } else {
+        std::string path = Config::getKernelBinaryPath() + "/../lib/cast/cast.dll";
+        if(!fileExists(path)) {
+            // Download
+            std::cout << "Clarius Cast was not bundled with this distribution." << std::endl;
+            const std::string destination = Config::getKernelBinaryPath() + "/../lib/cast/";
+            createDirectories(destination);
+            downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_12.0.2_windows_" + arch + ".zip", destination, "cast");
+        }
+        m_handle = LoadLibrary(path.c_str()));
+    }
     if(!m_handle) {
         std::string msg = GetLastErrorAsString();
         throw Exception("Failed to use load Clarius Cast library. Error message: " + msg);
     }
-#elif defined(__APPLE__)
-    m_handle = dlopen("libcast.dylib", RTLD_LAZY);
+#else
+
+#if defined(__APPLE__)
+    std::string ext = "dylib";
+#else
+    std::string ext = "so";
+#endif
+    if(fileExists(Config::getLibraryPath() + "libcast." + ext)) {
+        m_handle = dlopen(("libcast." + ext).c_str(), RTLD_LAZY);
+    } else {
+        std::string path = Config::getKernelBinaryPath() + "/../lib/cast/libcast." + ext;
+        if(!fileExists(path)) {
+            // Download
+            std::cout << "Clarius Cast was not bundled with this distribution." << std::endl;
+            const std::string destination = Config::getKernelBinaryPath() + "/../lib/cast/";
+            createDirectories(destination);
+
+#if defined(__APPLE__)
+            std::cout << "FAST will now download Clarius Cast ... "<< std::endl;
+            downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_12.0.2_macos_" + arch + ".zip", destination, "cast");
+#else
+            // Get ubuntu version
+            std::string output;
+            FILE* pipe = popen("lsb_release -d -s", "r"); // Execute command to get description
+            if(!pipe)
+                throw Exception("Unable to run lsb_release. Make sure you have it installed.");
+            char buffer[128];
+            while(fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+                output += buffer;
+            }
+            pclose(pipe); // Close the pipe
+            auto parts = split(output, " ");
+            if(parts.size() < 2)
+                throw Exception("Error reading lsb_release output.");
+            if(parts[0] != "Ubuntu")
+                throw Exception("ClariusStreamer only supports ubuntu linux");
+            auto version = split(parts[1], ".");
+            if(version.size() < 2)
+                throw Exception("Error reading lsb_release output.");
+
+            std::string ubuntuVersion = version[0] + "." + version[1];
+
+            if((version[0] != "20" && version[0] != "22" && version[0] != "24") || version[1] != "04")
+                throw Exception("Clarius Cast is only available for Ubuntu 20.04, 22.04 and 24.04. You have: " + ubuntuVersion);
+
+            std::cout << "FAST will now download Clarius Cast for Ubuntu " << ubuntuVersion << " ..." << std::endl;
+            downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_12.0.2_ubuntu_" + ubuntuVersion + "_" + arch + ".zip", destination, "cast");
+#endif
+        }
+
+        // Try to load it
+        m_handle = dlopen(path.c_str(), RTLD_LAZY);
+    }
     if(!m_handle) {
         std::string msg = dlerror();
         throw Exception("Failed to use load Clarius Cast library. Error message: " + msg);
-    }
-#else
-    m_handle = dlopen("libcast.so", RTLD_LAZY);
-    if(!m_handle) {
-        std::string msg = dlerror();
-        throw Exception("Failed to use load Clarius Cast library. Note that this only supports Ubuntu 20.04, see https://github.com/clariusdev/cast. Error message: " + msg);
     }
 #endif
     reportInfo() << "Finished loading clarius cast library" << reportEnd();
@@ -164,6 +226,7 @@ void ClariusStreamer::execute() {
         int success = init(&params);
         if(success != 0)
             throw Exception("Unable to initialize clarius cast");
+        m_castInitialized = true;
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
         mStreamIsStarted = true;
@@ -237,13 +300,14 @@ ClariusStreamer::~ClariusStreamer() {
 			
     // Calling destroy in the cast thread causes crash:
     // Calling destroy in generateStream causes block
-    // TODO Check if Cast exist?
-    auto destroy = (int (*)())getFunc("cusCastDestroy");
-    getReporter().info() << "Destroying cast ..." << getReporter().end();
-    int success = destroy();
-    getReporter().info() << "Clarius Destroy done." << getReporter().end();
-    if (success < 0)
-        getReporter().error() << "Unable to destroy clarius cast" << getReporter().end();
+    if(m_castInitialized) {
+        auto destroy = (int (*)())getFunc("cusCastDestroy");
+        getReporter().info() << "Destroying cast ..." << getReporter().end();
+        int success = destroy();
+        getReporter().info() << "Clarius Destroy done." << getReporter().end();
+        if(success < 0)
+            getReporter().error() << "Unable to destroy clarius cast" << getReporter().end();
+    }
 
     reportInfo() << "ClariuStreamer destroyed" << reportEnd();
 }

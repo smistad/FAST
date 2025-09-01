@@ -91,6 +91,8 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 
         int m_width;
         int m_height;
+
+        bool m_castInitialized = false;
 };
 
 }

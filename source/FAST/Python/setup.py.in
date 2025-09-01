@@ -95,6 +95,7 @@ def get_all_windows_dlls():
     for file in os.listdir('fast/bin/'):
         if not file.endswith('.dll'): continue
         if 'tensorflow' in file: continue # Skip TF in pyfast
+        if 'cast.dll' in file: continue # Skip cast in pyfast
         files.append('bin/' + file)
     return files
 
@@ -139,7 +140,6 @@ elif is_apple:
                 'libQt5DBus.5.dylib',
                 'libQt5Xml.5.dylib', # Needed for jkqtplotter
                 'libQt5Svg.5.dylib', # Needed for jkqtplotter
-                'libcast.dylib',
                 'libInferenceEngineONNXRuntime.dylib',
                 'libonnxruntime.dylib',
                 'libInferenceEngineOpenVINO.dylib',
@@ -183,7 +183,6 @@ else:
                 'libFAST.so',
                 'libQt5XcbQpa.so.5',
                 'libQt5MultimediaGstTools.so.5',
-                'libcast.so',
                 # OpenVINO
                 'libInferenceEngineOpenVINO.so',
                 'libopenvino_intel_cpu_plugin.so',
