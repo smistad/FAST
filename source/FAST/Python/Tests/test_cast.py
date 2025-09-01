@@ -26,10 +26,10 @@ def test_cast():
     else:
         streamer = fast.ClariusStreamer.create()
 
-    # Check that files exist
-    name = {'darwin': 'libcast.dylib', 'linux': 'libcast.so', 'windows': 'cast.dll'}
-    assert os.path.exists(fast.Config.getKernelBinaryPath() + '/../lib/cast/LICENSE.txt')
-    assert os.path.exists(fast.Config.getKernelBinaryPath() + '/../lib/cast/' + name[sys.platform])
+        # Check that files exist
+        name = {'darwin': 'libcast.dylib', 'linux': 'libcast.so', 'windows': 'cast.dll'}
+        assert os.path.exists(fast.Config.getKernelBinaryPath() + '/../lib/cast/LICENSE.txt')
+        assert os.path.exists(fast.Config.getKernelBinaryPath() + '/../lib/cast/' + name[sys.platform])
 
-    streamer.run()
+        streamer.run()
 
