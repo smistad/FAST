@@ -6,12 +6,15 @@ import os
 
 
 def get_ubuntu_version():
-    result = subprocess.run(['cat', '/etc/os-release'], stdout=subprocess.PIPE).stdout.decode('utf-8')
-    values = {}
-    for line in result.split('\n'):
-        parts = line.split('=')
-        if len(parts) == 2:
-            values[parts[0]] = parts[1].replace('"', '')
+    if not os.path.exists('/etc/os-release'):
+        raise RuntimeError('Coult not find /etc/os-release file. Are you on Ubuntu?')
+    with open('/etc/os-release', 'r') as file:
+        values = {}
+        for line in file:
+            line = line.strip()
+            parts = line.split('=')
+            if len(parts) == 2:
+                values[parts[0]] = parts[1].replace('"', '')
     return values['ID'], values['VERSION_ID']
 
 
@@ -26,7 +29,6 @@ def test_cast():
             should_fail = True
         if minor != '04':
             should_fail = True
-        print(major, minor)
 
     fast.Reporter.setGlobalReportMethod(fast.Reporter.COUT)
     if should_fail:

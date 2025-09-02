@@ -3,6 +3,7 @@
 #include <cast/cast.h>
 #include <functional>
 #include <QGLContext>
+#include <fstream>
 #include <FAST/Algorithms/Color/ColorToGrayscale.hpp>
 #ifdef WIN32
 #else
@@ -107,24 +108,18 @@ void ClariusStreamer::loadLibrary() {
 #else
             // Get ubuntu version
             std::string output;
-            FILE* pipe = popen("cat /etc/os-release", "r"); // Execute command to get description
-            if(!pipe)
-                throw Exception("Unable to run 'cat /etc/os-release'. Are you on ubuntu?");
-            char buffer[128];
-            while(fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-                output += buffer;
-            }
-            pclose(pipe); // Close the pipe
-            auto lines = split(output, "\n");
-            if(lines.empty())
-                throw Exception("Error reading os-release file.");
+            std::ifstream file("/etc/os-release", std::ios::in);
+            if(!file.is_open())
+                throw Exception("Unable to read /etc/os-release. Are you on ubuntu? Clarius Cast is only supported for Ubuntu");
             std::map<std::string, std::string> values;
-            for(const auto& line : lines) {
+            std::string line;
+            while(std::getline(file, line)) {
                 auto parts = split(line, "=");
                 if(parts.size() == 2) {
                     values[parts[0]] = replace(parts[1], "\"", "");
                 }
             }
+            file.close();
             if(values.at("NAME") != "Ubuntu")
                 throw Exception("ClariusStreamer only supports ubuntu linux");
             auto version = split(values.at("VERSION_ID"), ".");
