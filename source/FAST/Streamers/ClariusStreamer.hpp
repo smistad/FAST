@@ -60,6 +60,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         void setGain(float gain);
         void loadAttributes() override;
         void signalCastStop(std::string stopMessage = "");
+        void signalDisconnect();
         virtual void stopPipeline() override;
         void setOutputSize(int width, int height);
 	protected:
@@ -95,6 +96,10 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         int m_height;
 
         bool m_castInitialized = false;
+
+        std::mutex m_castDisconnectMutex;
+        std::condition_variable m_castDisconnectCV;
+        bool m_castDisconnected = false;
 };
 
 }

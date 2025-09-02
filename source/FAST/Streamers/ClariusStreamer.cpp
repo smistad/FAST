@@ -36,7 +36,6 @@ static std::string GetLastErrorAsString()
 #endif
 
 
-
 ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale, int width, int height) {
     createOutputPort<Image>(0);
     mNrOfFrames = 0;
@@ -204,7 +203,7 @@ void ClariusStreamer::execute() {
             self->getReporter().info() << "Progress: " << progress  << self->getReporter().end();
         };
         params.newSpectralImageFn = [](const void* img, const CusSpectralImageInfo* nfo) {
-           self->getReporter().info() << "Spectral image received" << self->getReporter().end();
+            self->getReporter().info() << "Spectral image received" << self->getReporter().end();
         };
         params.freezeFn = [](int state) {
             self->getReporter().info() << "Freeze " << ((state == 1) ? "ON" : "OFF") << self->getReporter().end();
@@ -233,6 +232,21 @@ void ClariusStreamer::execute() {
 
         mStreamIsStarted = true;
         m_thread = std::make_unique<std::thread>(std::bind(&ClariusStreamer::generateStream, this));
+        // We need a separate thread to reset ClariusStreamer::self which will cause destructor to be called in this thread
+        // Which in turn will call destroy on cast
+        auto thread2 = new std::thread([this]() {
+            // Wait until cast disconnect has finished before call reset on self
+            reportInfo() << "Thread is waiting for cast disconnect" << reportEnd();
+            {
+                std::unique_lock<std::mutex> lock2(m_castDisconnectMutex);
+                while(!m_castDisconnected) {
+                    m_castDisconnectCV.wait(lock2);
+                }
+            }
+            reportInfo() << "Resetting self..." << reportEnd();
+            self.reset();
+            reportInfo() << "Reset done ." << reportEnd();
+        });
 
         auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusConnectFn fn))getFunc("cusCastConnect");
         success = connect(mIPAddress.c_str(), mPort, "research", [](int port, int imuPort, int swMatch) {
@@ -245,15 +259,15 @@ void ClariusStreamer::execute() {
             if(!glContext->isValid())
                 self->getReporter().error() << "Cast GL CONTEXT WAS VALID!" << self->getReporter().end();
 #endif
-			if (port > 0) {
-				self->getReporter().info() << "Clarius connect on UDP port " << port << self->getReporter().end();
-				if (swMatch == CUS_FAILURE) {
-					self->getReporter().warning() << "A software mismatch between Clarius Cast API in FAST and the scanner was detected." << self->getReporter().end();
-				}
-			}
-			else {
+            if (port > 0) {
+                self->getReporter().info() << "Clarius connect on UDP port " << port << self->getReporter().end();
+                if (swMatch == CUS_FAILURE) {
+                    self->getReporter().warning() << "A software mismatch between Clarius Cast API in FAST and the scanner was detected." << self->getReporter().end();
+                }
+            }
+            else {
                 self->signalCastStop("Failed to connect to Clarius device");
-			}
+            }
         });
         if(success != 0)
             throw Exception("Unable to connect to clarius scanner");
@@ -290,32 +304,33 @@ uint ClariusStreamer::getNrOfFrames() {
 }
 
 ClariusStreamer::~ClariusStreamer() {
-    reportInfo() << "Destroying ClariuStreamer ..." << reportEnd();
+    reportInfo() << "Destroying ClariusStreamer ..." << reportEnd();
     stop();
-			
+
     // Calling destroy in the cast thread causes crash:
     // Calling destroy in generateStream causes block
     // How to guarantee that this is not run in cast thread?: run in a separate detached thread..?
+    // This is now solved by spawning another thread called thread2, which calls reset on self
+    // and then the destructor
     if(m_castInitialized) {
-        std::thread* thread = new std::thread([this]() {
-            auto destroy = (int (*)())getFunc("cusCastDestroy");
-            getReporter().info() << "Destroying cast ..." << getReporter().end();
-            int success = destroy();
-            getReporter().info() << "Cast destroy done." << getReporter().end();
-            if(success < 0)
-                getReporter().error() << "Unable to destroy clarius cast" << getReporter().end();
-        });
-        thread->detach();
+        auto destroy = (int (*)())getFunc("cusCastDestroy");
+        getReporter().info() << "Destroying cast ..." << getReporter().end();
+        int success = destroy();
+        getReporter().info() << "Cast destroy done." << getReporter().end();
+        if(success < 0)
+            getReporter().error() << "Unable to destroy clarius cast" << getReporter().end();
     }
 
-    reportInfo() << "ClariuStreamer destroyed" << reportEnd();
+    reportInfo() << "ClariusStreamer destroyed" << reportEnd();
 }
 
 void ClariusStreamer::generateStream() {
     // Use this thread to listen to a stop signal
-    std::unique_lock<std::mutex> lock(m_castStopMutex);
-    while(!m_castStop) {
-        m_castStopCV.wait(lock);
+    {
+        std::unique_lock<std::mutex> lock(m_castStopMutex);
+        while(!m_castStop) {
+            m_castStopCV.wait(lock);
+        }
     }
     stop();
 	stopWithError(m_stopMessage); // This will cause ThreadStopped exception
@@ -331,6 +346,14 @@ void ClariusStreamer::signalCastStop(std::string message) {
     m_castStopCV.notify_all();
 }
 
+void ClariusStreamer::signalDisconnect() {
+    {
+        std::lock_guard<std::mutex> lock(m_castDisconnectMutex);
+        m_castDisconnected = true;
+    }
+    m_castDisconnectCV.notify_all();
+}
+
 void ClariusStreamer::stop() {
     reportInfo() << "In clarius streamer stop()" << reportEnd();
     if(!mStreamIsStarted)
@@ -340,7 +363,7 @@ void ClariusStreamer::stop() {
     auto disconnect = (int (*)(CusReturnFn))getFunc("cusCastDisconnect");
     int success = disconnect([](int code) {
         self->getReporter().info() << "Clarius Disconnect callback with return code: " << ((code == CUS_FAILURE) ? "Failure" : "Success") << self->getReporter().end();
-		self.reset(); // When is it safe to do this?
+        self->signalDisconnect();
     });
     reportInfo() << "Clarius Disconnect done." << reportEnd();
     if(success == 0)
