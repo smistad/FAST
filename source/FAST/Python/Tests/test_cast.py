@@ -42,5 +42,7 @@ def test_cast():
         assert os.path.exists(fast.Config.getKernelBinaryPath() + '/../lib/cast/LICENSE.txt')
         assert os.path.exists(fast.Config.getKernelBinaryPath() + '/../lib/cast/' + name[sys.platform])
 
-        streamer.run()
+        if sys.platform == 'win32' or fast.Config.getVisualization():
+            # Cast causes seg fault if OpenGL/Visualization is not available
+            streamer.run()
 
