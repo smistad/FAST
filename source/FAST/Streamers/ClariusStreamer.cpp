@@ -300,13 +300,17 @@ ClariusStreamer::~ClariusStreamer() {
 			
     // Calling destroy in the cast thread causes crash:
     // Calling destroy in generateStream causes block
+    // How to guarantee that this is not run in cast thread?: run in a separate detached thread..?
     if(m_castInitialized) {
-        auto destroy = (int (*)())getFunc("cusCastDestroy");
-        getReporter().info() << "Destroying cast ..." << getReporter().end();
-        int success = destroy();
-        getReporter().info() << "Clarius Destroy done." << getReporter().end();
-        if(success < 0)
-            getReporter().error() << "Unable to destroy clarius cast" << getReporter().end();
+        std::thread* thread = new std::thread([this]() {
+            auto destroy = (int (*)())getFunc("cusCastDestroy");
+            getReporter().info() << "Destroying cast ..." << getReporter().end();
+            int success = destroy();
+            getReporter().info() << "Cast destroy done." << getReporter().end();
+            if(success < 0)
+                getReporter().error() << "Unable to destroy clarius cast" << getReporter().end();
+        });
+        thread->detach();
     }
 
     reportInfo() << "ClariuStreamer destroyed" << reportEnd();
