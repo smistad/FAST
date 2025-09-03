@@ -123,6 +123,7 @@ void ComputationThread::run() {
                     view->stopPipeline();
                     view->removeAllRenderers();
                 }
+                break;
             }
 		} catch(Exception &e) {
             QString msg = "FAST exception caught: " + QString(e.what());
@@ -158,7 +159,7 @@ void ComputationThread::run() {
     moveToThread(QApplication::instance()->thread());
 
     emit threadFinished();
-    reportInfo() << "Computation thread has finished in run()" << Reporter::end();
+    reportInfo() << "Computation thread has finished in run(): " << std::this_thread::get_id() << Reporter::end();
     {
         std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         mIsRunning = false;

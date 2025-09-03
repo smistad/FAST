@@ -14,4 +14,5 @@ ExternalProject_Add(libjpeg
             ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/libjpeg/src/libjpeg/LibJPEG/9d/include/ ${FAST_EXTERNAL_INSTALL_DIR}/include/
     )
     list(APPEND LIBRARIES libjpeg.lib)
+    list(APPEND FAST_EXTERNAL_DEPENDENCIES libjpeg)
 endif()

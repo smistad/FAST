@@ -153,6 +153,7 @@ if(WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /nologo /MD /EHsc")
   # Removes issues with Eigen complaining that M_LOG2E does not exist
   add_definitions(-D_USE_MATH_DEFINES)
+	add_definitions(-DWIN32)
 endif()
 
 #### Add all subdirs

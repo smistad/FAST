@@ -27,22 +27,26 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
     public:
         /**
          * @brief Create instance
-         * @param ipAddress
-         * @param port
-         * @param grayscale
+         * @param ipAddress IP address to scanner
+         * @param port Port to scanner
+         * @param grayscale Converts images to grayscale
+         * @param width Output image width of scanconverted image
+         * @param height Output image height of scanconverted image
          * @return instance
          */
         FAST_CONSTRUCTOR(ClariusStreamer,
                          std::string, ipAddress, = "192.168.1.1",
                          int, port, = 5828,
-                         bool, grayscale, = true
+                         bool, grayscale, = true,
+                         int, width, = 1024,
+                         int, height, = 1024
         );
         void setConnectionAddress(std::string ipAddress);
         void setConnectionPort(int port);
-        void stop();
+        virtual void stop() override;
         ~ClariusStreamer();
         uint getNrOfFrames();
-        void newImageFn(const void* newImage, const _CusProcessedImageInfo* nfo, int npos, const _CusPosInfo* pos);
+        void newProcessedImage(const void* img, const _CusProcessedImageInfo* nfo, int npos, const _CusPosInfo* pos);
 		void toggleFreeze();
 		void increaseDepth();
 		void decreaseDepth();
@@ -55,9 +59,15 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
          */
         void setGain(float gain);
         void loadAttributes() override;
+        void signalCastStop(std::string stopMessage = "");
+        void signalDisconnect();
+        virtual void stopPipeline() override;
+        void setOutputSize(int width, int height);
+	protected:
+        void generateStream() override;
 	private:
+        void loadLibrary();
         void execute();
-        void generateStream() override {};
         void* getFunc(std::string name);
 
         bool mStreamIsStarted;
@@ -75,6 +85,21 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 #else
         void* m_handle;
 #endif
+        static ClariusStreamer::pointer self;
+
+        std::mutex m_castStopMutex;
+        std::condition_variable m_castStopCV;
+        bool m_castStop = false;
+        std::string m_stopMessage;
+
+        int m_width;
+        int m_height;
+
+        bool m_castInitialized = false;
+
+        std::mutex m_castDisconnectMutex;
+        std::condition_variable m_castDisconnectCV;
+        bool m_castDisconnected = false;
 };
 
 }
