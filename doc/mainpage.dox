@@ -3,7 +3,6 @@
 @image html fast_logo_wide.png
 
 [![GitHub Discussions](https://img.shields.io/github/discussions/smistad/FAST?label=GitHub%20discussions&logo=github)](https://github.com/smistad/FAST/discussions)
-[![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
 [![](https://img.shields.io/static/v1?label=Code%20on&amp;message=GitHub&amp;color=blue&amp;logo=github)](https://github.com/smistad/FAST/)
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](download-stats.html)
 [![](https://img.shields.io/github/license/smistad/FAST)](https://github.com/smistad/FAST/blob/master/LICENSE)
@@ -17,7 +16,7 @@ To start using the framework, check out the [C++ tutorials](@ref cpp-tutorials) 
 
 Learn best by example? Check out all the examples for [C++](@ref cpp-examples) and [Python](@ref python-examples).
 
-Need help? Post your questions on the [Discussions](https://github.com/smistad/FAST/discussions/new?category=q-a) page or use the [Gitter Chat](https://gitter.im/smistad/FAST).
+Need help? Post your questions on the [Discussions](https://github.com/smistad/FAST/discussions) page.
 
 @section features Main features
 
@@ -52,8 +51,11 @@ To setup and build the framework, see the instructions for your operating system
 - [Windows](@ref building-on-windows)
 - [macOS](@ref building-on-mac)
 
-![Surface mesh extracted from a large abdominal CT scan.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Alpha blending ray casting rendering of a thorax CT image.](https://github.com/smistad/FAST/wiki/images/volume_renderer.jpg)
+@image html images/tutorials/mri_ct/alpha_blending_volume_renderer_CT.jpg width=250px;
+@image html images/examples/python/rotating_3D.gif width=300px;
+@image html images/examples/python/real_time_line_plotter.jpg width=550px;
+@image html images/tutorials/wsi/nuclei_segmentation.jpg width=275px;
+@image html images/tutorials/wsi/open_wsi.jpg width=275px;
 
-![Ultrasound image segmentation using neural netwoks.](https://github.com/smistad/FAST/wiki/images/ultrasound_segmentation.jpg)  ![Whole slide microscopy image.](https://github.com/smistad/FAST/wiki/images/wsi.jpg)
 
 */

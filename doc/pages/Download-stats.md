@@ -12,4 +12,8 @@ PyPi (pip) Downloads
 GitHub Downloads
 --------------------
 
-* ![](https://shields.io/github/downloads/smistad/fast/v4.9.0/total)
+* ![](https://shields.io/github/downloads/smistad/fast/v4.12.0/total)
+* ![](https://shields.io/github/downloads/smistad/fast/v4.11.0/total)
+* ![](https://shields.io/github/downloads/smistad/fast/v4.10.0/total)
+* ![](https://shields.io/github/downloads/smistad/fast/v4.9.2/total)
+* ![](https://shields.io/github/downloads/smistad/fast/v4.9.1/total)

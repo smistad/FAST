@@ -6,7 +6,7 @@ Requirements
 **Make sure you have all the necessary requirements before installing FAST**:
 - Ubuntu Linux 18.04 or newer.
 - You need the following packages: 
-  - `sudo apt install libgl1 libopengl0 libopenslide0 libusb-1.0-0 libxcb-xinerama0`
+  - `sudo apt install libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0`
 - OpenCL: To install OpenCL on Linux, download an implementation depending on the CPU/GPU you have:    
     - **NVIDIA** - Install [CUDA](https://developer.nvidia.com/cuda-downloads)  
     - **Intel** - Install the [OpenCL NEO driver](https://github.com/intel/compute-runtime/releases)  
@@ -92,10 +92,6 @@ and the [C++ examples page](@ref cpp-examples).
 Troubleshoot {#troubleshoot-linux}
 ==============
 
-* Python
-  * If you get an error saying something like **ModuleNotFoundError: No module named 'numpy.core._multiarray_umath'** or **ImportError: numpy.core.multiarray failed to import**. Try to completely remove numpy and reinstall:  
-    Run the following command **multiple times**, until it says "Cannot uninstall numpy..": `pip uninstall numpy`
-    Then reinstall numpy: `pip install numpy`
 * C++
   * If the installer fails you can download .tar.xz file instead, and just extract it to anywhere on your drive.
 * If you get an error saying "qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.", you are probably missing some xcb libraries, like xinerama:

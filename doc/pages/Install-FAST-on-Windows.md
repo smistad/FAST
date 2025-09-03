@@ -5,7 +5,6 @@ Requirements
 ======================
 **Make sure you have all the necessary requirements before installing FAST**:
 - OpenCL and OpenGL: These are usually installed along with your graphics driver.
-- Download and install [Microsoft Visual C++ Redistributable 2015-2019 (64bit/x64)](https://aka.ms/vs/16/release/vc_redist.x64.exe).
 
 Some [optional requirements](@ref requirements) are needed for video streaming and GPU neural network inference, these can be installed later. 
 
@@ -85,10 +84,6 @@ Troubleshoot {#troubleshoot}
 
 * If you get an error that says something like **The application can't start because OpenCL.dll is missing from your computer**. You have to install OpenCL. OpenCL should be included with your graphics driver (Intel/NVIDIA/AMD). You can try and search your harddrive for OpenCL.dll; if it is found, make sure its path is included in the PATH environment variable.
 * If you get an error that says something like **The application can't start because VCRUNTIME140_1.dll is missing from your computer**. You have to install the [Microsoft Visual C++ Redistributable 2015-2019 (64bit/x64)](https://aka.ms/vs/16/release/vc_redist.x64.exe).
-* Python
-  * If you get an error saying something like **ModuleNotFoundError: No module named 'numpy.core._multiarray_umath'** or **ImportError: numpy.core.multiarray failed to import**. Try to completely remove numpy and reinstall:  
-    Run the following command **multiple times**, until it says "Cannot uninstall numpy..": `pip uninstall numpy`
-    Then reinstall numpy: `pip install numpy`
 * C++
   * Windows might prompt you with a security warning when running the installer, to proceed you must press "More info" followed by "Run anyway".
   * If the installer fails you can download zip file instead, and just extract it to anywhere on your drive.

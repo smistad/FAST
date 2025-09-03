@@ -13,7 +13,6 @@ Install requirements
 sudo snap install cmake --classic # Use snap to get more recent version of cmake on Ubuntu 18.04
 sudo apt install g++ git patchelf
 sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-sudo apt install libopenslide-dev # Needed for WSI module
 sudo apt install pkgconf libusb-1.0-0-dev # Needed for realsense
 ```
 
@@ -88,8 +87,6 @@ This should display the FAST logo and some FAST+OpenCL information.
 Troubleshoot
 -----------------------
 
-When you run cmake, the system may not find the OpenCL library, and you have to set it manually using cmake (e.g. cmake .. -DOpenCL_LIBRARY=/path/to/libOpenCL.so). The library is usually located in /usr/local/cuda/lib64/ for NVIDIA and /opt/amd-gpupro/lib/x864-linux-gnu/ if you use the AMD GPUPRO driver.
-
 If you get the error saying something like "qfontengine_ft_p.h:56:22: fatal error: ft2build.h: No such file or directory" you have to install the fontconfig library "libfontconfig1-dev".
 
 If you get an error like "ERROR: Feature 'xcb' was enabled, but the pre-condition 'features.thread && features.xkbcommon && libs.xcb' failed." This means you forgot to install the xcb an xkb libraries needed:
@@ -97,7 +94,7 @@ If you get an error like "ERROR: Feature 'xcb' was enabled, but the pre-conditio
 sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev 
 ```
 
-Still stuck? Get help at [![Join the chat on Gitter](https://img.shields.io/gitter/room/smistad/fast?logo=gitter)](https://gitter.im/smistad/FAST)
+Still stuck? Get help at [GitHub discussions](https://github.com/smistad/fast/discussions).
 
 Install
 ----------------------
@@ -122,7 +119,7 @@ Install the python development libraries and some dependencies:
 ```bash
 sudo apt install python3 libpython3-dev python3-pip python3-setuptools
 sudo pip3 install --upgrade pip
-pip3 install numpy==1.19.5 pylddwrap==1.2.0 twine wheel==0.37.1
+pip3 install pylddwrap==1.2.0 twine wheel==0.37.1
 ```
 
 Then configure cmake with Python enabled:
@@ -138,12 +135,22 @@ The wheel will appear in the python/dist folder.
 
 Build the documentation
 -----------------------
-Configure cmake with documentation building enabled:
+Install dependencies:
 ```bash
-cmake .. -DFAST_BUILD_DOCS=ON
+sudo apt install bison flex # Needed by Doxygen
+pip3 install jinja2         # Needed by M.css
+```
+Configure cmake for documentation:
+```bash
+mkdir build-docs
+cd build-docs
+cmake ../doc/ # This will only build the documentation of FAST
+make -j4 documentation
 ```
 
 Then build the documentation target:
 ```bash
 make -j8 documentation
 ```
+
+The documentation will be in the folder build-docs/documentation/html/
