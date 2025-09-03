@@ -2,6 +2,7 @@
 
 [![GitHub Discussions](https://img.shields.io/github/discussions/smistad/FAST?label=GitHub%20discussions&logo=github)](https://github.com/smistad/FAST/discussions)
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://fast-imaging.github.io/download-stats.html)
+[![Documentation](https://img.shields.io/badge/Documentation-Online-blue?logo=googledocs&logoColor=white)](https://fast-imaging.github.io)
 
 FAST is an open-source framework developed by researchers at the Norwegian University of Science and Technology (NTNU) and SINTEF. 
 The main goal of FAST is to make it easier to do high-performance processing, neural network inference, and visualization of medical images utilizing multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL, and neural network inference libraries such as TensorRT, OpenVINO, TensorFlow and ONNX Runtime.
