@@ -110,11 +110,8 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
 
     if (type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
-    	{
-            std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
-            mDataIsBeingWrittenTo = true;
-    	}
-        updateModifiedTimestamp();
+        std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
     }
     if(!mVBOHasData) {
         // VBO has not allocated data: Create VBO
@@ -191,15 +188,43 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Reporter::end();
 
         mVBOHasData = true;
-        mVBODataIsUpToDate = true;
 #else
         throw Exception("Creating mesh with VBO is disabled as FAST module visualization is disabled.");
 #endif
     } else {
         if(!mVBODataIsUpToDate) {
-            // TODO Update data
+            // Update data
+#ifdef FAST_MODULE_VISUALIZATION
+            QGLFunctions *fun = Window::getMainGLContext()->functions();
+            // Coordinates
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mCoordinates.size()*sizeof(float), mCoordinates.data(), GL_STATIC_DRAW);
+            // Normals
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNormals.size()*sizeof(float), mNormals.data(), GL_STATIC_DRAW);
+            // Color
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mColors.size()*sizeof(float), mColors.data(), GL_STATIC_DRAW);
+            // Line EBO
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
+            fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mLines.size()*sizeof(uint), mLines.data(), GL_STATIC_DRAW);
+            // Triangle EBO
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleEBO);
+            fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mTriangles.size()*sizeof(uint), mTriangles.data(), GL_STATIC_DRAW);
+
+#else
+            throw Exception("Creating mesh with VBO is disabled as FAST module visualization is disabled.");
+#endif
+        } else {
         }
     }
+
+    if(type == ACCESS_READ_WRITE) {
+        updateModifiedTimestamp();
+        setAllDataToOutOfDate();
+    }
+
+    mVBODataIsUpToDate = true;
 
     {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
@@ -258,11 +283,8 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
 
     if(type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
-    	{
-    		std::lock_guard<std::mutex> lock(mDataIsBeingWrittenToMutex);
-            mDataIsBeingWrittenTo = true;
-    	}
-        updateModifiedTimestamp();
+        std::lock_guard<std::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
     }
     if(!mHostHasData) {
 #ifdef FAST_MODULE_VISUALIZATION
@@ -336,6 +358,13 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
             throw Exception("Not implemented yet!");
         }
     }
+
+    if(type == ACCESS_READ_WRITE) {
+        updateModifiedTimestamp();
+        setAllDataToOutOfDate();
+    }
+
+    mHostDataIsUpToDate = true;
 
     {
         std::lock_guard<std::mutex> lock(mDataIsBeingAccessedMutex);
