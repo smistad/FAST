@@ -119,6 +119,16 @@ void MeshAccess::addLine(MeshLine l) {
     mLines->push_back(l.getEndpoint2());
 }
 
+void MeshAccess::addVertices(const std::vector<MeshVertex>& vertices) {
+    int startIndex = (int)(mCoordinates->size()/3);
+    mCoordinates->resize(mCoordinates->size() + vertices.size()*3, 0);
+    mColors->resize(mColors->size() + vertices.size()*3, 0);
+    mNormals->resize(mNormals->size() + vertices.size()*3, 0);
+    for(int i = 0; i < vertices.size(); ++i) {
+        setVertex(startIndex + i, vertices[i]);
+    }
+}
+
 } // end namespace fast
 
 

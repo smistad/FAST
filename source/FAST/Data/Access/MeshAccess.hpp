@@ -22,6 +22,7 @@ class FAST_EXPORT  MeshAccess {
         MeshVertex getVertex(uint i);
         void setVertex(uint i, MeshVertex);
         void addVertex(MeshVertex v);
+        void addVertices(const std::vector<MeshVertex>& vertices);
         MeshTriangle getTriangle(uint i);
 		void setTriangle(uint i, MeshTriangle);
 		void addTriangle(MeshTriangle t);
