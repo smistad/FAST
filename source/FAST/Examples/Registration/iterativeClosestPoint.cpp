@@ -49,9 +49,9 @@ int main(int argc, char** argv) {
     std::cout << "Translation:" << icp->getOutputTransformation()->get().translation().transpose() << std::endl;
 
     // Visualize the two point sets
-    auto renderer = VertexRenderer::create(10, Color::Blue(), true)
+    auto renderer = VertexRenderer::create(10, true, 1, Color::Blue(), true)
             ->connect(importerA);
-    auto renderer2 = VertexRenderer::create(5, Color::Green(), true)
+    auto renderer2 = VertexRenderer::create(5, true, 1, Color::Green(), true)
             ->connect(importerB);
 
     auto window = SimpleWindow3D::create()

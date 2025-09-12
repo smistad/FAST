@@ -134,13 +134,13 @@ int main(int argc, char ** argv) {
     cpd->setUniformWeight(uniformWeight);
 
     // Fixed
-    auto renderer = VertexRenderer::create(10.0, Color::Green())
+    auto renderer = VertexRenderer::create(10.0, true, 1, Color::Green())
             ->connect(cloud1);
     // Moving
-    auto renderer2 = VertexRenderer::create(5.0, Color::Blue())
+    auto renderer2 = VertexRenderer::create(5.0, true, 1, Color::Blue())
             ->connect(cloud3);
     // Moving registered
-    auto renderer3 = VertexRenderer::create(5.0, Color::Red())
+    auto renderer3 = VertexRenderer::create(5.0, true, 1, Color::Red())
             ->connect(cpd);
 
     auto window = SimpleWindow3D::create()
