@@ -10,6 +10,18 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
     glEnable(GL_POINT_SPRITE); // Circles created in fragment shader will not work without this
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
+    float sizeToUse = mDefaultPointSize;
+    if(!m_sizeIsInPixels) {
+        // If size is not given in pixels, we have to calculate the size
+        Vector4f bottom_left = (perspectiveMatrix*viewingMatrix).inverse()*Vector4f(-1,-1,0,1);
+        Vector4f top_right = (perspectiveMatrix*viewingMatrix).inverse()*Vector4f(1,1,0,1);
+        double widthMM = top_right.x() - bottom_left.x();
+
+        double pixelSize = widthMM / (double)viewWidth;
+        double sizeInPixels = round(sizeToUse / pixelSize);
+        sizeToUse = (int)std::max(sizeInPixels, (double)m_minSize);
+    }
+
     activateShader();
     setShaderUniform("perspectiveTransform", perspectiveMatrix);
     setShaderUniform("viewTransform", viewingMatrix);
@@ -25,8 +37,8 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
         mVAO[it.first] = VAO_ID;
         glBindVertexArray(VAO_ID);
 
-        Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
-        float pointSize = mDefaultPointSize;
+        auto points = std::static_pointer_cast<Mesh>(it.second);
+        float pointSize = sizeToUse;
         if(mInputSizes.count(it.first) > 0) {
             pointSize = mInputSizes[it.first];
         }
@@ -87,10 +99,13 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
     deactivateShader();
 }
 
-VertexRenderer::VertexRenderer(float size, Color color, bool drawOnTop) {
+VertexRenderer::VertexRenderer(float size, bool sizeIsInPixels, int minSize, Color color, bool drawOnTop) {
     setDefaultSize(size);
     setDefaultColor(color);
     setDefaultDrawOnTop(drawOnTop);
+    m_sizeIsInPixels = sizeIsInPixels;
+    m_minSize = minSize;
+
     createInputPort(0, "Mesh");
 
     createShaderProgram({

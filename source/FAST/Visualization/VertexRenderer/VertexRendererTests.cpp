@@ -20,10 +20,8 @@ TEST_CASE("VertexRenderer on LV surface model", "[fast][VertexRenderer][visual]"
 
 TEST_CASE("VertexRenderer 2D", "[fast][VertexRenderer][visual]") {
 
-    auto importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
-    auto imageRenderer = ImageRenderer::New();
-    imageRenderer->addInputConnection(importer->getOutputPort());
+    auto importer = ImageFileImporter::create(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
+    auto imageRenderer = ImageRenderer::create()->connect(importer);
 
     std::vector<MeshVertex> vertices = {
             MeshVertex(Vector3f(1, 5, 0)),
@@ -32,16 +30,11 @@ TEST_CASE("VertexRenderer 2D", "[fast][VertexRenderer][visual]") {
     };
     auto mesh = Mesh::create(vertices);
 
-    auto renderer = VertexRenderer::New();
-    renderer->addInputData(mesh);
-    renderer->setColor(0, Color::Red());
+    auto renderer = VertexRenderer::create(10, false)->connect(mesh);
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(imageRenderer);
-    window->addRenderer(renderer);
+    auto window = SimpleWindow2D::create()->connect(imageRenderer)->connect(renderer);
     window->setTimeout(500);
-    window->set2DMode();
-    window->start();
+    window->run();
 }
 
 }

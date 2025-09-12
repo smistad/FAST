@@ -18,13 +18,17 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
     public:
         /**
          * @brief Create instance
-         * @param size Vertex point size
-         * @param color
-         * @param drawOnTop
+         * @param size Vertex point size (can be in pixels or millimeters, see sizeIsInPixels parameter)
+         * @param sizeIsInPixels Whether size is given in pixels or millimeters
+         * @param minSize Minimum size in pixels, used when sizeInPixels = false
+         * @param color Override color stored for each vertex
+         * @param drawOnTop Disable depth testing and always draw vertices on top
          * @return instance
          */
         FAST_CONSTRUCTOR(VertexRenderer,
                          float, size, = 10.0f,
+                         bool, sizeIsInPixels, = true,
+                         int, minSize, = 1,
                          Color, color, = Color::Null(),
                          bool, drawOnTop, = false
         );
@@ -43,6 +47,8 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
              int viewHeight);
     private:
         float mDefaultPointSize;
+        bool m_sizeIsInPixels = true;
+        int m_minSize;
         Color mDefaultColor;
         bool mDefaultDrawOnTop;
         std::unordered_map<uint, float> mInputSizes;
