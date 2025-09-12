@@ -37,6 +37,11 @@ class FAST_EXPORT TextWidget : public QWidget {
          * @param value  Value of variable
          */
         void setVariable(std::string name, std::string value);
+        /**
+         * @brief Set multiple variables
+         * @param variables map of name and values of the variables
+         */
+        void setVariables(std::map<std::string, std::string> variables);
         std::string getVariable(std::string name) const;
 
 #ifndef SWIG

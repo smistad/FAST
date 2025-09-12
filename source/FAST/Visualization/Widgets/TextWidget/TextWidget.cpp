@@ -39,6 +39,13 @@ void TextWidget::setVariable(std::string name, std::string value) {
     emit repaintSignal();
 }
 
+void TextWidget::setVariables(std::map<std::string, std::string> variables) {
+    for(const auto& item : variables) {
+        m_variables[item.first] = item.second;
+    }
+    emit repaintSignal();
+}
+
 std::string TextWidget::getVariable(std::string name) const {
     return m_variables.at(name);
 }
