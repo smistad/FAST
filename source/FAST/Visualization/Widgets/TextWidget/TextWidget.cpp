@@ -11,11 +11,13 @@ TextWidget::TextWidget(std::string text, QWidget *parent) : QWidget(parent) {
     auto layout = new QVBoxLayout;
     layout->addWidget(m_label);
     setLayout(layout);
+    // Use QueuedConnection to assure slot is called in main thread
+    connect(this, &TextWidget::repaintSignal, this, &TextWidget::repaintSlot, Qt::QueuedConnection);
 }
 
 void TextWidget::setText(std::string text) {
     m_text = text;
-    update();
+    emit repaintSignal();
 }
 
 std::string TextWidget::getText() const {
@@ -34,11 +36,15 @@ void TextWidget::paintEvent(QPaintEvent *event) {
 
 void TextWidget::setVariable(std::string name, std::string value) {
     m_variables[name] = value;
-    update();
+    emit repaintSignal();
 }
 
 std::string TextWidget::getVariable(std::string name) const {
     return m_variables.at(name);
+}
+
+void TextWidget::repaintSlot() {
+    update();
 }
 
 }
