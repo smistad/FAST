@@ -36,9 +36,15 @@ FAST_SIMPLE_DATA_OBJECT(RegionList, std::vector<Region>)
 class FAST_EXPORT RegionProperties : public ProcessObject {
     FAST_PROCESS_OBJECT(RegionProperties)
     public:
-        FAST_CONSTRUCTOR(RegionProperties);
+        /**
+         * @brief Create instance
+         * @param extractContours Whether to extract contours of each region or not
+         * @return instance
+         */
+        FAST_CONSTRUCTOR(RegionProperties, bool, extractContours, = true);
     protected:
         void execute() override;
+        bool m_extractContours;
 };
 
 }

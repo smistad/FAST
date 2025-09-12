@@ -6,9 +6,10 @@
 
 namespace fast {
 
-RegionProperties::RegionProperties() {
+RegionProperties::RegionProperties(bool extractContours) {
     createInputPort<Image>(0);
     createOutputPort<RegionList>(0);
+    m_extractContours = extractContours;
 }
 
 void RegionProperties::execute() {
@@ -94,92 +95,94 @@ void RegionProperties::execute() {
     }
 
 
-    // TODO do contour tracing for each region if enabled
     // TODO handle holes
-    for(Region& region : regions) {
-        visited.clear();
-        std::vector<MeshVertex> vertices;
-        std::vector<Vector2i> contourPixels;
-        // Start moore neigbhorhood tracing
-        int checkLocationNr = 1;  // The neighbor number of the location we want to check for a new border point
-        Vector2i checkPosition;      // The corresponding absolute array address of checkLocationNr
-        int newCheckLocationNr;   // Variable that holds the neighborhood position we want to check if we find a new border at checkLocationNr
-        Vector2i startPos = region.pixels[0];      // Set start position
-        int counter = 0;       // Counter is used for the jacobi stop criterion
-        int counter2 = 0;       // Counter2 is used to determine if the point we have discovered is one single point
+    if(m_extractContours) {
+        // Do contour tracing for each region if enabled
+        for(Region& region : regions) {
+            visited.clear();
+            std::vector<MeshVertex> vertices;
+            std::vector<Vector2i> contourPixels;
+            // Start moore neigbhorhood tracing
+            int checkLocationNr = 1;  // The neighbor number of the location we want to check for a new border point
+            Vector2i checkPosition;      // The corresponding absolute array address of checkLocationNr
+            int newCheckLocationNr;   // Variable that holds the neighborhood position we want to check if we find a new border at checkLocationNr
+            Vector2i startPos = region.pixels[0];      // Set start position
+            int counter = 0;       // Counter is used for the jacobi stop criterion
+            int counter2 = 0;       // Counter2 is used to determine if the point we have discovered is one single point
 
-        // Defines the neighborhood offset position from current position and the neighborhood
-        // position we want to check next if we find a new border at checkLocationNr
-        Vector3i neighborhood[8] = {
-                {-1, 0, 7},
-                {-1, -1, 7},
-                {0, -1, 1},
-                {1, -1, 1},
-                {1, 0, 3},
-                {1, 1, 3},
-                {0, 1, 5},
-                {-1, 1, 5},
-        };
-        Vector2i pos = startPos;
-        visited.insert(pos.x() + pos.y()*width);
-        // Trace around the neighborhood
-        float perimiter = 0.0f;
-        float avgRadius = 0.0f;
-        while(true)
-        {
-            checkPosition = pos + neighborhood[checkLocationNr-1].head(2);
-            newCheckLocationNr = neighborhood[checkLocationNr-1].z();
-
-            if(checkPosition.x() >= 0 && checkPosition.y() >= 0 && checkPosition.x() < input->getWidth() && checkPosition.y() < input->getHeight() &&
-                pixels[checkPosition.x() + checkPosition.y()*width] == region.label) // Next border point found
+            // Defines the neighborhood offset position from current position and the neighborhood
+            // position we want to check next if we find a new border at checkLocationNr
+            Vector3i neighborhood[8] = {
+                    {-1, 0, 7},
+                    {-1, -1, 7},
+                    {0, -1, 1},
+                    {1, -1, 1},
+                    {1, 0, 3},
+                    {1, 1, 3},
+                    {0, 1, 5},
+                    {-1, 1, 5},
+                    };
+            Vector2i pos = startPos;
+            visited.insert(pos.x() + pos.y()*width);
+            // Trace around the neighborhood
+            float perimiter = 0.0f;
+            float avgRadius = 0.0f;
+            while(true)
             {
-                if(checkPosition == startPos) { // Should we stop?
-                    counter ++;
+                checkPosition = pos + neighborhood[checkLocationNr-1].head(2);
+                newCheckLocationNr = neighborhood[checkLocationNr-1].z();
 
-                    // Stopping criterion (jacob)
-                    if(newCheckLocationNr == 1 || counter >= 3)
+                if(checkPosition.x() >= 0 && checkPosition.y() >= 0 && checkPosition.x() < input->getWidth() && checkPosition.y() < input->getHeight() &&
+                pixels[checkPosition.x() + checkPosition.y()*width] == region.label) // Next border point found
                     {
-                        // Close loop
-                        //inside = true; // Since we are starting the search at were we first started we must set inside to true
-                        break;
-                    }
-                }
+                    if(checkPosition == startPos) { // Should we stop?
+                        counter ++;
 
-                checkLocationNr = newCheckLocationNr; // Update which neighborhood position we should check next
-                pos = checkPosition;
-                counter2 = 0;             // Reset the counter that keeps track of how many neighbors we have visited
-                //borderImage[checkPosition] = BLACK; // Set the border pixel
-                if(visited.count(pos.x() + pos.y()*width) == 0) {
-                    vertices.push_back(MeshVertex(Vector3f(pos.x()*spacing.x(), pos.y()*spacing.y(), 0.0f)));
-                    contourPixels.push_back(pos);
-                    perimiter += (vertices[vertices.size()-2].getPosition() - vertices[vertices.size() - 1].getPosition()).cast<float>().norm();
-                    avgRadius += (vertices[vertices.size()-1].getPosition().head(2) - region.centroid).norm();
-                    visited.insert(pos.x() + pos.y()*width);
-                }
-            } else {
-                // No match
-                // Rotate clockwise in the neighborhood
-                checkLocationNr = 1 + (checkLocationNr % 8);
-                if(counter2 > 8) {
-                    // If counter2 is above 8 we have traced around the neighborhood and
-                    // therefor the border is a single black pixel and we can exit
-                    // Check if we are at start..
-                    if(pos == startPos) {
-                        break;
-                    } else {
-                        counter2 = 0;             // Reset the counter that keeps track of how many neighbors we have visited
-                        break;
+                        // Stopping criterion (jacob)
+                        if(newCheckLocationNr == 1 || counter >= 3)
+                        {
+                            // Close loop
+                            //inside = true; // Since we are starting the search at were we first started we must set inside to true
+                            break;
+                        }
                     }
-                } else {
-                    counter2 ++;
+
+                    checkLocationNr = newCheckLocationNr; // Update which neighborhood position we should check next
+                    pos = checkPosition;
+                    counter2 = 0;             // Reset the counter that keeps track of how many neighbors we have visited
+                    //borderImage[checkPosition] = BLACK; // Set the border pixel
+                    if(visited.count(pos.x() + pos.y()*width) == 0) {
+                        vertices.push_back(MeshVertex(Vector3f(pos.x()*spacing.x(), pos.y()*spacing.y(), 0.0f)));
+                        contourPixels.push_back(pos);
+                        perimiter += (vertices[vertices.size()-2].getPosition() - vertices[vertices.size() - 1].getPosition()).cast<float>().norm();
+                        avgRadius += (vertices[vertices.size()-1].getPosition().head(2) - region.centroid).norm();
+                        visited.insert(pos.x() + pos.y()*width);
+                    }
+                    } else {
+                    // No match
+                    // Rotate clockwise in the neighborhood
+                    checkLocationNr = 1 + (checkLocationNr % 8);
+                    if(counter2 > 8) {
+                        // If counter2 is above 8 we have traced around the neighborhood and
+                        // therefor the border is a single black pixel and we can exit
+                        // Check if we are at start..
+                        if(pos == startPos) {
+                            break;
+                        } else {
+                            counter2 = 0;             // Reset the counter that keeps track of how many neighbors we have visited
+                            break;
+                        }
+                    } else {
+                        counter2 ++;
+                    }
                 }
             }
-        }
 
-        region.contourMesh = Mesh::create(vertices);
-        region.contourPixels = contourPixels;
-        region.perimiterLength = perimiter;
-        region.averageRadius = avgRadius / vertices.size();
+            region.contourMesh = Mesh::create(vertices);
+            region.contourPixels = contourPixels;
+            region.perimiterLength = perimiter;
+            region.averageRadius = avgRadius / vertices.size();
+        }
     }
 
     auto regionList = RegionList::create(regions);
