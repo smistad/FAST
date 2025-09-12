@@ -22,6 +22,7 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
          * @param sizeIsInPixels Whether size is given in pixels or millimeters
          * @param minSize Minimum size in pixels, used when sizeInPixels = false
          * @param color Override color stored for each vertex
+         * @param opacity Opacity of vertices: 1 = no transparency, 0 = fully transparent
          * @param drawOnTop Disable depth testing and always draw vertices on top
          * @return instance
          */
@@ -30,6 +31,7 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
                          bool, sizeIsInPixels, = true,
                          int, minSize, = 1,
                          Color, color, = Color::Null(),
+                         float, opacity, = 1.0f,
                          bool, drawOnTop, = false
         );
         uint addInputConnection(DataChannel::pointer port) override;
@@ -42,11 +44,13 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
         void setDrawOnTop(uint inputNr, bool drawOnTop);
         void setColor(uint inputNr, Color color);
         void setSize(uint inputNr, float size);
+        void setOpacity(float opacity);
         void
         draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D, int viewWidth,
              int viewHeight);
     private:
         float mDefaultPointSize;
+        float m_opacity;
         bool m_sizeIsInPixels = true;
         int m_minSize;
         Color mDefaultColor;

@@ -85,7 +85,13 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
             useGlobalColor = true;
         }
         setShaderUniform("useGlobalColor", useGlobalColor);
+        setShaderUniform("opacity", m_opacity);
         setShaderUniform("globalColor", color.asVector());
+
+        if(m_opacity < 1.0f) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
 
         glDrawArrays(GL_POINTS, 0, points->getNrOfVertices());
 
@@ -94,17 +100,21 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
 
         if(drawOnTop)
             glEnable(GL_DEPTH_TEST);
+        if(m_opacity < 1.0f) {
+            glDisable(GL_BLEND);
+        }
     }
 
     deactivateShader();
 }
 
-VertexRenderer::VertexRenderer(float size, bool sizeIsInPixels, int minSize, Color color, bool drawOnTop) {
+VertexRenderer::VertexRenderer(float size, bool sizeIsInPixels, int minSize, Color color, float opacity, bool drawOnTop) {
     setDefaultSize(size);
     setDefaultColor(color);
     setDefaultDrawOnTop(drawOnTop);
     m_sizeIsInPixels = sizeIsInPixels;
     m_minSize = minSize;
+    setOpacity(opacity);
 
     createInputPort(0, "Mesh");
 
@@ -162,6 +172,12 @@ void VertexRenderer::setColor(uint inputNr, Color color) {
 
 void VertexRenderer::setSize(uint inputNr, float size) {
     mInputSizes[inputNr] = size;
+}
+
+void VertexRenderer::setOpacity(float opacity) {
+    if(opacity < 0 || opacity > 1)
+        throw Exception("Opacity given to VertexRenderer has to be with [0, 1]");
+    m_opacity = opacity;
 }
 
 } // end namespace fast

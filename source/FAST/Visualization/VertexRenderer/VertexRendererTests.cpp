@@ -30,7 +30,8 @@ TEST_CASE("VertexRenderer 2D", "[fast][VertexRenderer][visual]") {
     };
     auto mesh = Mesh::create(vertices);
 
-    auto renderer = VertexRenderer::create(10, false)->connect(mesh);
+    auto renderer = VertexRenderer::create(10, false, 1)->connect(mesh);
+    renderer->setOpacity(0.5);
 
     auto window = SimpleWindow2D::create()->connect(imageRenderer)->connect(renderer);
     window->setTimeout(500);
