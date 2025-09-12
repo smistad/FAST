@@ -52,6 +52,12 @@ To setup and build the framework, see the instructions for your operating system
 * [macOS](https://fast-imaging.github.io/building-on-mac.html)
 
 
-![Surface mesh extracted from a large abdominal CT scan.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Alpha blending ray casting rendering of a thorax CT image.](https://github.com/smistad/FAST/wiki/images/volume_renderer.jpg)
+[<img src="https://fast-imaging.github.io/alpha_blending_volume_renderer_CT.jpg" height="300">](https://fast-imaging.github.io/python-tutorial-mri-ct.html#autotoc_md116)
+[<img src="https://fast-imaging.github.io/rotating_3D.gif" height="300">](https://fast-imaging.github.io/create_rotating_3D_gif_8py-example.html)
 
-![Ultrasound image segmentation using neural netwoks.](https://github.com/smistad/FAST/wiki/images/ultrasound_segmentation.jpg)  ![Whole slide microscopy image.](https://github.com/smistad/FAST/wiki/images/wsi.jpg)
+[<img src="https://fast-imaging.github.io/real_time_line_plotter.jpg" width="570">](https://fast-imaging.github.io/real_time_line_plotter_8py-example.html)
+
+[<img src="https://fast-imaging.github.io/nuclei_segmentation.jpg" height="300">](https://fast-imaging.github.io/python-tutorial-wsi.html#autotoc_md172)
+[<img src="https://fast-imaging.github.io/open_wsi.jpg" height="300">](https://fast-imaging.github.io/load_and_display_wsi_8py-example.html)
+
+
