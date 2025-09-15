@@ -4,6 +4,11 @@
 
 using namespace fast;
 
+TEST_CASE("Data hub download", "[fast][DataHub]")  {
+    auto hub = DataHub();
+    auto download = hub.download("brain-mri-t1");
+}
+
 /*
 TEST_CASE("Data hub", "[fast][DataHub]") {
     auto hub = DataHub();

@@ -70,7 +70,12 @@ static QJsonDocument getJSONFromURL(const std::string& url) {
     return result;
 }
 
-void DataHub::downloadTextFile(const std::string& url, const std::string& destination, const std::string& name, int fileNr) {
+void DataHub::downloadTextFile(const Item& item, const std::string& destination, const std::string& name, int fileNr) {
+    auto url = item.downloadURL;
+    const int totalWidth = getConsoleWidth();
+    std::string blank;
+    for(int i = 0; i < totalWidth-1; ++i)
+        blank += " ";
     emit progress(fileNr, 0);
     QEventLoop eventLoop;
 
@@ -86,13 +91,20 @@ void DataHub::downloadTextFile(const std::string& url, const std::string& destin
 
     reply->deleteLater();
     QJsonDocument result;
-    if (reply->error() == QNetworkReply::NoError) {
+    if(reply->error() == QNetworkReply::NoError) {
         auto status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
         result = QJsonDocument::fromJson(reply->readAll());
         std::ofstream file(join(destination, "pipeline.fpl"), std::ofstream::out);
         file << result["text"].toString().toStdString();
         file.close();
         emit progress(fileNr, 100);
+        try {
+            createMetadataFile(item, destination);
+        } catch(Exception &e) {
+            std::cout << "\r" << blank;
+            std::cout << "\rERROR: Creating METADATA file failed!" << std::endl;
+            return;
+        }
     } else if (reply->error() == QNetworkReply::ContentNotFoundError) {
         throw Exception("FAST DataHub item " + name + " not found. Please check spelling.");
     } else {
@@ -101,7 +113,28 @@ void DataHub::downloadTextFile(const std::string& url, const std::string& destin
     }
 }
 
-void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::string& destination, const std::string& name, int fileNr) {
+void DataHub::createMetadataFile(const Item& item, const std::string& folder) {
+    std::ofstream licenseFile(join(folder, "LICENSE.txt"));
+    if(!licenseFile.is_open()) {
+        throw Exception("Error creating license file");
+    }
+    licenseFile << "Authors: " << item.author << "\n";
+    licenseFile << "Copyright: " << item.copyright << "\n\n";
+    licenseFile << item.licenseCustom << "\n\n";
+    licenseFile << "License: " << item.license << "\n\n";
+    licenseFile << "License URL: " << item.licenseURL << "\n";
+    licenseFile.close();
+
+    std::ofstream file(join(folder, "METADATA.json"));
+    if(!file.is_open()) {
+        throw Exception("Error creating METADATA file");
+    }
+    file << QJsonDocument(item.toJSON()).toJson(QJsonDocument::Indented).toStdString();
+    file.close();
+}
+
+void DataHub::downloadAndExtractZipFile(const Item& item, const std::string& destination, const std::string& name, int fileNr) {
+    auto URL = item.downloadURL;
     QNetworkAccessManager manager;
     QNetworkRequest request(QUrl(QString::fromStdString(URL)));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
@@ -149,7 +182,7 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
     QObject::connect(reply, &QNetworkReply::readyRead, [&reply, &file]() {
         file.write(reply->read(reply->bytesAvailable()));
     });
-    QObject::connect(&manager, &QNetworkAccessManager::finished, [blank, reply, &file, destination]() {
+    QObject::connect(&manager, &QNetworkAccessManager::finished, [this, item, blank, reply, &file, destination]() {
         if(reply->error() != QNetworkReply::NoError) {
             std::cout << "\r" << blank;
             std::cout << "\rERROR: Download failed! : " << reply->errorString().toStdString() << std::endl;
@@ -168,6 +201,13 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
         }
 
         file.remove();
+        try {
+            createMetadataFile(item, destination);
+        } catch(Exception &e) {
+            std::cout << "\r" << blank;
+            std::cout << "\rERROR: Creating METADATA file failed!" << std::endl;
+            return;
+        }
 		std::cout << "\r" << blank;
         std::cout << "\rComplete." << std::endl;
     });
@@ -181,83 +221,96 @@ void DataHub::downloadAndExtractZipFile(const std::string& URL, const std::strin
     eventLoop->exec();
 }
 
-DataHub::Item DataHub::Item::fromJSON(QJsonObject json) {
-    DataHub::Item itemObject;
-    itemObject.id = json["id"].toString().toStdString();
-    itemObject.name = json["name"].toString().toStdString();
-    itemObject.type = json["type"].toString().toStdString();
-    itemObject.author = json["author"].toString().toStdString();
-    itemObject.downloads = json["downloads"].toInt();
-    itemObject.copyright = json["copyright"].toString().toStdString();
-    itemObject.description = json["description"].toString().toStdString();
-    itemObject.license = json["license_name"].toString().toStdString();
-    itemObject.licenseCustom = json["license_custom"].toString().toStdString();
-    itemObject.licenseURL = json["license_url"].toString().toStdString();
-    itemObject.thumbnailURL = json["thumbnail_url"].toString().toStdString();
-    itemObject.downloadURL = json["download_url"].toString().toStdString();
-    itemObject.minFASTVersion = json["min_fast_version"].toString().toStdString();
-    itemObject.maxFASTVersion = json["max_fast_version"].toString().toStdString();
+DataHub::Item::Item(QJsonObject json) {
+    m_json = json;
+    id = json["id"].toString().toStdString();
+    name = json["name"].toString().toStdString();
+    type = json["type"].toString().toStdString();
+    author = json["author"].toString().toStdString();
+    downloads = json["downloads"].toInt();
+    copyright = json["copyright"].toString().toStdString();
+    description = json["description"].toString().toStdString();
+    license = json["license_name"].toString().toStdString();
+    licenseCustom = json["license_custom"].toString().toStdString();
+    licenseURL = json["license_url"].toString().toStdString();
+    thumbnailURL = json["thumbnail_url"].toString().toStdString();
+    downloadURL = json["download_url"].toString().toStdString();
+    minFASTVersion = json["min_fast_version"].toString().toStdString();
+    maxFASTVersion = json["max_fast_version"].toString().toStdString();
     for(auto jsonItem2 : json["needs"].toArray()) {
-        itemObject.needs.push_back(fromJSON(jsonItem2.toObject()));
+        needs.push_back(Item(jsonItem2.toObject()));
     }
-    return itemObject;
 }
 
-    std::set<std::string> DataHub::Item::getAllAuthors() {
-        std::set<std::string> result;
-        std::stack<Item> items;
-        items.push(*this);
-        while(!items.empty()) {
-            auto item = items.top();
-            items.pop();
-            result.insert(item.author);
-            for(auto item2 : item.needs) {
-                items.push(item2);
-            }
+std::set<std::string> DataHub::Item::getAllAuthors() {
+    std::set<std::string> result;
+    std::stack<Item> items;
+    items.push(*this);
+    while(!items.empty()) {
+        auto item = items.top();
+        items.pop();
+        result.insert(item.author);
+        for(auto item2 : item.needs) {
+            items.push(item2);
         }
-        return result;
+    }
+    return result;
+}
+
+std::set<std::string> DataHub::Item::getAllCopyrights() {
+    std::set<std::string> result;
+    std::stack<Item> items;
+    items.push(*this);
+    while(!items.empty()) {
+        auto item = items.top();
+        items.pop();
+        result.insert(item.copyright);
+        for(auto item2 : item.needs) {
+            items.push(item2);
+        }
+    }
+    return result;
+}
+
+std::map<std::string, std::string> DataHub::Item::getAllLicences() {
+    std::map<std::string, std::string> result;
+    std::stack<Item> items;
+    items.push(*this);
+    while(!items.empty()) {
+        auto item = items.top();
+        items.pop();
+        if(item.type != "pipeline") // Exclude licences for pipelines
+            result[item.license] = item.licenseURL;
+        for(auto item2 : item.needs) {
+            items.push(item2);
+        }
+    }
+    return result;
+}
+
+DataHub::Item DataHub::Item::fromJSONFile(const std::string &pathToJSONFile) {
+    QFile file(pathToJSONFile.c_str());
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        throw Exception("Could not open JSON file");
     }
 
-    std::set<std::string> DataHub::Item::getAllCopyrights() {
-        std::set<std::string> result;
-        std::stack<Item> items;
-        items.push(*this);
-        while(!items.empty()) {
-            auto item = items.top();
-            items.pop();
-            result.insert(item.copyright);
-            for(auto item2 : item.needs) {
-                items.push(item2);
-            }
-        }
-        return result;
-    }
+    QByteArray jsonData = file.readAll();
+    file.close();
+    return Item(QJsonDocument::fromJson(jsonData).object());
+}
 
-    std::map<std::string, std::string> DataHub::Item::getAllLicences() {
-        std::map<std::string, std::string> result;
-        std::stack<Item> items;
-        items.push(*this);
-        while(!items.empty()) {
-            auto item = items.top();
-            items.pop();
-            if(item.type != "pipeline") // Exclude licences for pipelines
-                result[item.license] = item.licenseURL;
-            for(auto item2 : item.needs) {
-                items.push(item2);
-            }
-        }
-        return result;
-    }
+QJsonObject DataHub::Item::toJSON() const {
+    return m_json;
+}
 
-    std::vector<DataHub::Item> DataHub::getItems(std::string tag) {
+std::vector<DataHub::Item> DataHub::getItems(std::string tag) {
     std::vector<DataHub::Item> items;
     auto json = getJSONFromURL(m_URL + "api/list/" + tag);
     //std::cout << json.toJson().toStdString() << std::endl;
 
     for(auto item : json["items"].toArray()) {
-        DataHub::Item itemObject = DataHub::Item::fromJSON(item.toObject());
+        DataHub::Item itemObject = DataHub::Item(item.toObject());
 
-        // TODO license info
         items.push_back(itemObject);
     }
 
@@ -296,21 +349,16 @@ static bool checkMaxVersion(std::string version, std::string maxVersion) {
 }
 
 DataHub::Download DataHub::download(std::string itemID, bool force) {
-    DataHub::Download download;
-    QJsonDocument json;
-    try {
-        json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
-    } catch(Exception &e) {
-        throw e;
-    }
+    auto item = getItem(itemID);
 
+    DataHub::Download download;
     std::stack<DataHub::Item> toDownload;
-    toDownload.push(Item::fromJSON(json.object()));
+    toDownload.push(item);
     int counter = 0;
     while(!toDownload.empty()) {
         auto itemObject = toDownload.top();
         toDownload.pop();
-        for(auto needs : itemObject.needs) {
+        for(const auto& needs : itemObject.needs) {
             toDownload.push(needs);
         }
         auto folder = join(m_storageDirectory, itemObject.id);
@@ -318,7 +366,7 @@ DataHub::Download DataHub::download(std::string itemID, bool force) {
         download.items.push_back(itemObject.name);
         download.paths.push_back(folder);
         createDirectories(folder);
-        if(!getDirectoryList(folder, true, true).empty()) {
+        if(!force && fileExists(join(folder, "METADATA.json"))) {
             // Do not download if already exists
             std::cout << downloadName << " has already been downloaded from FAST Data Hub" << std::endl;
             continue;
@@ -343,17 +391,16 @@ DataHub::Download DataHub::download(std::string itemID, bool force) {
             }
         }
         if(itemObject.type == "pipeline") {
-            downloadTextFile(itemObject.downloadURL, folder, downloadName, counter);
+            downloadTextFile(itemObject, folder, downloadName, counter);
         } else {
             std::cout << "License: " << itemObject.license << std::endl;
             std::cout << "Copyright: " << itemObject.copyright << " - " << itemObject.author << std::endl;
             if(!itemObject.licenseCustom.empty()) {
                 std::cout << "Additional license information: " << itemObject.licenseCustom << std::endl;
             }
-            downloadAndExtractZipFile(itemObject.downloadURL, folder, downloadName, counter);
+            downloadAndExtractZipFile(itemObject, folder, downloadName, counter);
         }
         ++counter;
-        // TODO download license
     }
 
     emit finished();
@@ -362,26 +409,26 @@ DataHub::Download DataHub::download(std::string itemID, bool force) {
 }
 
 bool DataHub::isDownloaded(std::string itemID) {
-    QJsonDocument json;
-    try {
-        json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
-    } catch(Exception &e) {
-        throw e;
+    auto path = join(m_storageDirectory, itemID, "METADATA.json");
+    if(!fileExists(path)) {
+        return false;
     }
 
+    // Check dependencies recursively
+    auto item = Item::fromJSONFile(path);
     bool isDownloaded = true;
 
     std::stack<DataHub::Item> toDownload;
-    toDownload.push(Item::fromJSON(json.object()));
+    toDownload.push(item);
     while(!toDownload.empty()) {
         auto itemObject = toDownload.top();
         toDownload.pop();
-        for(auto needs : itemObject.needs) {
+        for(const auto& needs : itemObject.needs) {
             toDownload.push(needs);
         }
-        auto folder = join(m_storageDirectory, itemObject.id);
+        auto filename = join(m_storageDirectory, itemObject.id, "METADATA.json");
         try {
-            if(getDirectoryList(folder, true, true).empty()) {
+            if(!fileExists(filename)) {
                 isDownloaded = false;
                 break;
             }
@@ -395,14 +442,19 @@ bool DataHub::isDownloaded(std::string itemID) {
 }
 
 DataHub::Item DataHub::getItem(std::string itemID) {
-    QJsonDocument json;
-    try {
-        json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
-    } catch(Exception &e) {
-        throw e;
+    auto filename = join(m_storageDirectory, itemID, "METADATA.json");
+    if(!fileExists(filename)) {
+        QJsonDocument json;
+        try {
+            json = getJSONFromURL(m_URL + "api/items/get/" + itemID);
+        } catch(Exception &e) {
+            throw e;
+        }
+        return Item(json.object());
+    } else {
+        return Item::fromJSONFile(filename);
     }
 
-    return DataHub::Item::fromJSON(json.object());
 }
 
 std::string DataHub::getStorageDirectory() const {

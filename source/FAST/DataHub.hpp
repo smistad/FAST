@@ -7,7 +7,6 @@
 #include <FASTExport.hpp>
 #include <QObject>
 #include <QWidget>
-
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QListWidget>
@@ -17,11 +16,17 @@
 #include <iostream>
 #include <QApplication>
 #include <QScreen>
+#include <QJsonObject>
 
 #ifdef SWIG
 // Swig and python doesn't understand nested classes, this fixes this:
 %feature("flatnested");
 %ignore fast::DataHub::Item::fromJSON;
+// Solve issues with no default constructor:
+%ignore std::vector<fast::DataHub::Item>::vector(size_type);
+%ignore std::vector<fast::DataHub::Item>::resize;
+%ignore std::vector<fast::DataHub::Item>::pop;
+%template(DataHubItems) std::vector<fast::DataHub::Item>;
 #endif
 namespace fast {
 
@@ -64,10 +69,21 @@ class FAST_EXPORT DataHub : public QObject {
                 uint64_t downloads;
                 std::vector<DataHub::Item> needs;
                 /**
-                 * @brief Convert this item to JSON string
-                 * @return JSON string
+                 * Create Item from JSON
+                 * @param json
                  */
-                static Item fromJSON(QJsonObject);
+                explicit Item(QJsonObject json);
+                /**
+                 * Create Item from JSON file
+                 * @param pathToJSONFile
+                 * @return
+                 */
+                static Item fromJSONFile(const std::string& pathToJSONFile);
+                /**
+                 * Return Item as JSON
+                 * @return
+                 */
+                QJsonObject toJSON() const;
                 /**
                  * @brief Get all authors of this item and dependencies
                  * @return authors
@@ -83,6 +99,9 @@ class FAST_EXPORT DataHub : public QObject {
                  * @return licenses
                  */
                 std::map<std::string, std::string> getAllLicences();
+            private:
+                QJsonObject m_json;
+
         };
         /**
          * @brief Download results from DataHub
@@ -140,8 +159,9 @@ class FAST_EXPORT DataHub : public QObject {
     private:
         std::string m_URL;
         std::string m_storageDirectory;
-        void downloadTextFile(const std::string& url, const std::string& destination, const std::string& name, int fileNr);
-        void downloadAndExtractZipFile(const std::string& URL, const std::string& destination, const std::string& name, int fileNr);
+        void downloadTextFile(const Item& item, const std::string& destination, const std::string& name, int fileNr);
+        void downloadAndExtractZipFile(const Item& item, const std::string& destination, const std::string& name, int fileNr);
+        void createMetadataFile(const Item& item, const std::string& path);
 };
 
 
