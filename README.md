@@ -1,4 +1,4 @@
-![](https://github.com/smistad/FAST/wiki/images/fast_logo.png)
+![](doc/images/fast_logo_wide_background.png)
 
 [![GitHub Discussions](https://img.shields.io/github/discussions/smistad/FAST?label=GitHub%20discussions&logo=github)](https://github.com/smistad/FAST/discussions)
 [![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://fast-imaging.github.io/download-stats.html)
