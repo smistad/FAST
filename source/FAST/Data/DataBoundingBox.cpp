@@ -53,18 +53,18 @@ MatrixXf DataBoundingBox::getCorners() const {
 }
 
 
-void DataBoundingBox::initialize(std::vector<Vector3f> coordinates) {
-    if(coordinates.size() == 0) {
-        createCorners(Vector3f::Zero(), Vector3f::Ones());
+void DataBoundingBox::initialize(const std::vector<Vector3f>& coordinates) {
+    if(coordinates.empty()) {
+        createCorners(Vector3f::Zero(), Vector3f::Zero());
         mIsInitialized = true;
         return;
     }
     // Find min and max of all the coordinates
     Vector3f minimum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
     Vector3f maximum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
-    for(uint i = 1; i < coordinates.size(); i++) {
+    for(int i = 1; i < coordinates.size(); ++i) {
         Vector3f coordinate = coordinates[i];
-        for(uint j = 0; j < 3; j++) {
+        for(int j = 0; j < 3; ++j) {
             if(coordinate[j] < minimum[j]) {
                 minimum[j] = coordinate[j];
             }
@@ -80,7 +80,7 @@ void DataBoundingBox::initialize(std::vector<Vector3f> coordinates) {
     mIsInitialized = true;
 }
 
-DataBoundingBox::DataBoundingBox(std::vector<Vector3f> coordinates) {
+DataBoundingBox::DataBoundingBox(const std::vector<Vector3f>& coordinates) {
 	initialize(coordinates);
 }
 
@@ -117,6 +117,42 @@ std::ostream &operator<<(std::ostream &os, DataBoundingBox &object) {
 
 bool DataBoundingBox::isInitialized() const {
     return mIsInitialized;
+}
+
+void DataBoundingBox::update(const std::vector<Vector3f>& coordinates) {
+    if(coordinates.empty())
+        return;
+    // Find min and max of all the coordinates
+    Vector3f minimum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
+    Vector3f maximum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
+    // Update with bounding box
+    for(int i = 0; i < 8; ++i) {
+        Vector3f coordinate = mCorners.row(i);
+        for(int j = 0; j < 3; ++j) {
+            if(coordinate[j] < minimum[j]) {
+                minimum[j] = coordinate[j];
+            }
+            if(coordinate[j] > maximum[j]) {
+                maximum[j] = coordinate[j];
+            }
+        }
+    }
+    // Update with new coordinates
+    for(int i = 1; i < coordinates.size(); ++i) {
+        Vector3f coordinate = coordinates[i];
+        for(int j = 0; j < 3; ++j) {
+            if(coordinate[j] < minimum[j]) {
+                minimum[j] = coordinate[j];
+            }
+            if(coordinate[j] > maximum[j]) {
+                maximum[j] = coordinate[j];
+            }
+        }
+    }
+
+    // Make new bounding box
+    Vector3f size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), maximum.z()-minimum.z());
+    createCorners(minimum, size);
 }
 
 } // end namespace fast

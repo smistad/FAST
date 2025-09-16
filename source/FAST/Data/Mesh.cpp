@@ -21,7 +21,7 @@ Mesh::Mesh(
         freeAll();
     }
     if(vertices.empty()) {
-        mBoundingBox = DataBoundingBox(Vector3f(1,1,1));
+        mBoundingBox = DataBoundingBox(Vector3f(0,0,0));
         mIsInitialized = true;
         mNrOfVertices = 0;
         mNrOfLines = 0;
@@ -90,7 +90,7 @@ Mesh::Mesh(
         // Delete old data
         freeAll();
     }
-    mBoundingBox = DataBoundingBox(Vector3f(1,1,1));
+    mBoundingBox = DataBoundingBox(Vector3f(0,0,0));
     mIsInitialized = true;
     mNrOfVertices = nrOfVertices;
     mNrOfLines = nrOfLines;
