@@ -27,7 +27,7 @@ MeshAccess::~MeshAccess() {
 	release();
 }
 
-void MeshAccess::setVertex(uint i, MeshVertex vertex) {
+void MeshAccess::setVertex(uint i, MeshVertex vertex, bool updateBoundingBox) {
     Vector3f pos = vertex.getPosition();
     (*mCoordinates)[i*3] = pos[0];
     (*mCoordinates)[i*3+1] = pos[1];
@@ -40,6 +40,11 @@ void MeshAccess::setVertex(uint i, MeshVertex vertex) {
     (*mColors)[i*3] = color.getRedValue();
     (*mColors)[i*3+1] = color.getGreenValue();
     (*mColors)[i*3+2] = color.getBlueValue();
+    if(updateBoundingBox) {
+        auto box = mMesh->getBoundingBox();
+        box.update({vertex.getPosition()});
+        mMesh->setBoundingBox(box);
+    }
 }
 
 MeshVertex MeshAccess::getVertex(uint i) {
@@ -124,9 +129,14 @@ void MeshAccess::addVertices(const std::vector<MeshVertex>& vertices) {
     mCoordinates->resize(mCoordinates->size() + vertices.size()*3, 0);
     mColors->resize(mColors->size() + vertices.size()*3, 0);
     mNormals->resize(mNormals->size() + vertices.size()*3, 0);
+    std::vector<Vector3f> coords;
     for(int i = 0; i < vertices.size(); ++i) {
-        setVertex(startIndex + i, vertices[i]);
+        setVertex(startIndex + i, vertices[i], false);
+        coords.push_back(vertices[i].getPosition());
     }
+    auto box = mMesh->getBoundingBox();
+    box.update(coords);
+    mMesh->setBoundingBox(box);
 }
 
 } // end namespace fast
