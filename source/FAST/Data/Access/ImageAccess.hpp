@@ -5,6 +5,10 @@ namespace fast {
 
 class Image;
 
+/**
+ * @brief CPU access to Image data
+ * @ingroup access
+ */
 class FAST_EXPORT  ImageAccess {
     public:
         ImageAccess(void* data, std::shared_ptr<Image> image);

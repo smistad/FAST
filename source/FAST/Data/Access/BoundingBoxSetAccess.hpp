@@ -17,6 +17,10 @@ namespace fast {
 class BoundingBox;
 class BoundingBoxSet;
 
+/**
+ * @brief CPU access to BoundingBoxSet
+ * @ingroup access
+ */
 class FAST_EXPORT BoundingBoxSetAccess {
 	public:
 		BoundingBoxSetAccess(

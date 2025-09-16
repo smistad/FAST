@@ -8,6 +8,10 @@ namespace fast {
 
 class Image;
 
+/**
+ * @brief OpenGL texture access to Image
+ * @ingroup access
+ */
 class FAST_EXPORT OpenGLTextureAccess {
     public:
         uint get() const;

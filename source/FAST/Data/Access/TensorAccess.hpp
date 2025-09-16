@@ -12,6 +12,10 @@ using TensorData = Eigen::TensorMap<Eigen::Tensor<float, NumDimensions, Eigen::R
 
 class Tensor;
 
+/**
+ * @brief CPU access to Tensor
+ * @ingroup access
+ */
 class FAST_EXPORT TensorAccess {
     public:
         typedef std::unique_ptr<TensorAccess> pointer;

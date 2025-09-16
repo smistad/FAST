@@ -58,6 +58,10 @@ public:
 #endif
 };
 
+/**
+ * @brief CPU access to ImagePyramid
+ * @ingroup access
+ */
 class FAST_EXPORT ImagePyramidAccess : Object {
 public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;

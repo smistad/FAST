@@ -9,6 +9,11 @@ namespace fast {
 
 class Mesh;
 
+/**
+ * @brief CPU access to Mesh data
+ * @sa Mesh
+ * @ingroup access
+ */
 class FAST_EXPORT  MeshAccess {
     public:
         MeshAccess(
@@ -19,8 +24,18 @@ class FAST_EXPORT  MeshAccess {
             std::vector<uint>* mTriangles,
             std::shared_ptr<Mesh> mesh
 		);
+        /**
+         * @brief Get vertex at position i
+         * @param i index
+         */
         MeshVertex getVertex(uint i);
-        void setVertex(uint i, MeshVertex);
+        /**
+         * @brief Set vertex at given index
+         * @param i index
+         * @param vertex Vertex
+         * @param updateBoundingBox Whether to update the Mesh bounding box or not
+         */
+        void setVertex(uint i, MeshVertex vertex, bool updateBoundingBox = true);
         void addVertex(MeshVertex v);
         void addVertices(const std::vector<MeshVertex>& vertices);
         MeshTriangle getTriangle(uint i);

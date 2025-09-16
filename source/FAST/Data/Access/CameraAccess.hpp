@@ -1,11 +1,13 @@
-#ifndef CAMERA_ACCESS_HPP_
-#define CAMERA_ACCESS_HPP_
-
+#pragma once
 
 #include "FAST/Data/DataTypes.hpp"
 
 namespace fast {
 
+/**
+ * @brief CPU access to Camera
+ * @ingroup access
+ */
 class FAST_EXPORT  CameraAccess {
     public:
         CameraAccess(Vector3f* position, Vector3f* upVector, Vector3f* target);
@@ -24,5 +26,3 @@ class FAST_EXPORT  CameraAccess {
 };
 
 }
-
-#endif

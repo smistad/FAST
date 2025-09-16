@@ -1,5 +1,4 @@
-#ifndef OPENCLBUFFERACCESS_HPP_
-#define OPENCLBUFFERACCESS_HPP_
+#pragma once
 
 #include "FAST/OpenCL.hpp"
 #include "FAST/Object.hpp"
@@ -10,6 +9,10 @@ namespace fast {
 class OpenCLDevice;
 class DataObject;
 
+/**
+ * @brief OpenCL buffer access to Image
+ * @ingroup access
+ */
 class FAST_EXPORT OpenCLBufferAccess {
     public:
         cl::Buffer* get() const;
@@ -26,5 +29,3 @@ class FAST_EXPORT OpenCLBufferAccess {
 };
 
 } // end namespace fast
-
-#endif

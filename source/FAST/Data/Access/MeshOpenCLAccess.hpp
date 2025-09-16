@@ -1,5 +1,4 @@
-#ifndef MESH_OPENCL_ACCESS_HPP_
-#define MESH_OPENCL_ACCESS_HPP_
+#pragma once
 
 #include "FAST/OpenCL.hpp"
 #include "FAST/Object.hpp"
@@ -9,6 +8,10 @@ namespace fast {
 
 class Mesh;
 
+/**
+ * @brief OpenCL buffer access to Mesh
+ * @ingroup access
+ */
 class FAST_EXPORT  MeshOpenCLAccess {
 public:
     typedef std::unique_ptr<MeshOpenCLAccess> pointer;
@@ -29,5 +32,3 @@ private:
 };
 
 }
-
-#endif

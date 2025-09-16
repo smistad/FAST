@@ -1,5 +1,4 @@
-#ifndef VERTEXBUFFEROBJECTACCESS_HPP_
-#define VERTEXBUFFEROBJECTACCESS_HPP_
+#pragma once
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
@@ -18,6 +17,10 @@ namespace fast {
 
 class Mesh;
 
+/**
+ * @brief Vertex Buffer Object (VBO) access to Mesh
+ * @ingroup access
+ */
 class FAST_EXPORT VertexBufferObjectAccess {
     public:
         GLuint* getCoordinateVBO() const;
@@ -50,7 +53,3 @@ class FAST_EXPORT VertexBufferObjectAccess {
 };
 
 } // end namespace fast
-
-
-
-#endif /* VERTEXBUFFEROBJECTACCESS_HPP_ */

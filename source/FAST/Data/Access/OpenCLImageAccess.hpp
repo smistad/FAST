@@ -1,5 +1,4 @@
-#ifndef OPENCLIMAGEACCESS_HPP_
-#define OPENCLIMAGEACCESS_HPP_
+#pragma once
 
 #include "FAST/OpenCL.hpp"
 #include "Access.hpp"
@@ -11,6 +10,10 @@ namespace fast {
 class Image;
 class OpenCLDevice;
 
+/**
+ * @brief OpenCL image access to Image
+ * @ingroup access
+ */
 class FAST_EXPORT  OpenCLImageAccess {
     public:
         cl::Image* get() const;
@@ -32,6 +35,3 @@ class FAST_EXPORT  OpenCLImageAccess {
 
 } // end namespace fast
 
-
-
-#endif /* OPENCLIMAGEACCESS3D_HPP_ */
