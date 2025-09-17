@@ -101,6 +101,7 @@ public:
     std::shared_ptr<Image> getPatchAsImageForMagnification(float magnification, float offsetX, float offsetY, int width, int height, bool convertToRGB = true);
 	void release();
 	~ImagePyramidAccess();
+	void setJPEGTables(uint32_t tableCount, void* tableData);
 private:
     std::unique_ptr<uchar[]> getPatchDataChar(int level, int x, int y, int width, int height);
 	std::shared_ptr<ImagePyramid> m_image;
@@ -119,6 +120,9 @@ private:
     uint32_t writeTileToTIFFNeuralNetwork(int level, int x, int y, std::shared_ptr<Image> image);
     int readTileFromTIFF(void* data, int x, int y, int level);
     void propagatePatch(std::shared_ptr<Image> patch, int level, int x, int y);
+
+    uint32_t m_JPEGTablesCount = 0;
+    void* m_JPEGTablesData = nullptr;
 };
 
 template <class T>

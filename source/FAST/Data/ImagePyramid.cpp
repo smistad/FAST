@@ -322,7 +322,10 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat);
+    auto access =  std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat);
+    if(m_JPEGTablesCount > 0)
+        access->setJPEGTables(m_JPEGTablesCount, m_JPEGTablesData);
+    return access;
 }
 
 void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {
@@ -436,6 +439,20 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
                 if(res != 1)
                     throw Exception("Unable to get JPEG quality from TIFF");
                 m_compressionQuality = quality;
+            }
+            {
+                // Check if there is JPEG table data stored in the TIFF
+                // If so we use this table for all tiles
+                uint32_t tablesCount = 0;
+                void *tableData;
+                int res = TIFFGetField(m_tiffHandle, TIFFTAG_JPEGTABLES, &tablesCount, &tableData);
+                if(res == 1) {
+                    reportInfo() << "Got JPEG tables data from the TIFF file with size: " << tablesCount << reportEnd();
+                    m_JPEGTablesCount = tablesCount;
+                    // Have to copy the table
+                    m_JPEGTablesData = new uchar[tablesCount];
+                    std::memcpy(m_JPEGTablesData, tableData, sizeof(uchar)*tablesCount);
+                }
             }
             break;
         case COMPRESSION_JXL:

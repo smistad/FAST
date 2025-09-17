@@ -546,7 +546,7 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
 
-            JPEGCompression jpeg;
+            JPEGCompression jpeg(m_JPEGTablesCount, m_JPEGTablesData);
             int width, height;
             jpeg.decompress((uchar*)buffer.get(), bytesRead, &width, &height, (uchar*)data);
         } else if(m_compressionFormat == ImageCompression::JPEGXL) {
@@ -578,6 +578,11 @@ void ImagePyramidAccess::setBlankPatch(int level, int x, int y) {
     m_initializedPatchList.insert(std::to_string(level) + "-" + std::to_string(tile_id));
 
     // TODO Propagate or not?
+}
+
+void ImagePyramidAccess::setJPEGTables(uint32_t tableCount, void *tableData) {
+    m_JPEGTablesCount = tableCount;
+    m_JPEGTablesData = tableData;
 }
 
 

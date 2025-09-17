@@ -18,6 +18,12 @@ void* JPEGCompression::decompress(uchar* compressedData, std::size_t bytes, int*
     cinfo.err = jpeg_std_error(&jerr);
     try {
         jpeg_create_decompress(&cinfo);
+        if(m_tableCount > 0) {
+            jpeg_mem_src(&cinfo, (const uchar*)m_tableData, m_tableCount);
+            if(jpeg_read_header(&cinfo, FALSE) != JPEG_HEADER_TABLES_ONLY) {
+                throw Exception("Error setting JPEG tables");
+            }
+        }
         jpeg_mem_src(&cinfo, compressedData, bytes);
         int ret = jpeg_read_header(&cinfo, TRUE);
         if(ret != JPEG_HEADER_OK) {
@@ -83,8 +89,9 @@ void JPEGCompression::compress(void *data, int width, int height, std::vector<ui
     free(resultBuffer);
     jpeg_destroy_compress(&cinfo);
 }
-JPEGCompression::JPEGCompression() {
-
+JPEGCompression::JPEGCompression(uint32_t tableCount, void* tableData) {
+    m_tableCount = tableCount;
+    m_tableData = tableData;
 }
 
 } // End namespace

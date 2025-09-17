@@ -11,7 +11,7 @@ namespace fast {
  */
 class JPEGCompression {
 public:
-    JPEGCompression();
+    explicit JPEGCompression(uint32_t JPEGTableCount = 0, void* tableData = nullptr);
     void compress(void* data, int width, int height, std::vector<uint8_t>* compressedData, int quality = 90);
     /**
      * @brief Decompress
@@ -24,5 +24,8 @@ public:
      */
     void* decompress(uchar* compressedData, std::size_t bytes, int* widthOut, int* heightOut, uchar* outputBuffer = nullptr);
 
+private:
+    uint32_t m_tableCount = 0;
+    const void* m_tableData = nullptr;
 };
 }

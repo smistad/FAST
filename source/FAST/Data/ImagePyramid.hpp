@@ -139,6 +139,9 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         float m_decompressionOutputScaleFactor = 1.0f;
 
         float m_magnification = -1.0f;
+
+        uint32_t m_JPEGTablesCount = 0;
+        void* m_JPEGTablesData = nullptr;
 };
 
 }

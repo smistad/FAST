@@ -127,7 +127,8 @@ void WholeSlideImageImporter::execute() {
             lf.find(".ome.tiff") != std::string::npos ||
             lf.find(".ome.tif") != std::string::npos ||
             lf.find(".ome.btf") != std::string::npos ||
-            lf.find(".tiff") != std::string::npos
+            lf.find(".tiff") != std::string::npos ||
+            lf.find(".tif") != std::string::npos
             ) {
         // OpenSlide doesn't support reading OME-TIFF, use FAST and lbitiff instead.
         // Also FAST supports more TIFF compression formats, thus use FAST and libtiff for regular TIFF files as well.

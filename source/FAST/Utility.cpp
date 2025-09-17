@@ -1269,7 +1269,13 @@ void Progress::update(uint64_t current) {
         if(!m_unit.empty()) {
             ss << " " << round(m_current*m_unitScale, m_unitPrecision) << m_unit << " / " << round(m_max*m_unitScale, m_unitPrecision) << m_unit;
         }
-        ss << " | ETA " << ETA << " mins";
+        if(ETA > 60) {
+            ss << " | ETA " << round(ETA / 60.0f, 1) << " hours";
+        } else if(ETA > 1) {
+            ss << " | ETA " << round(ETA) << " mins";
+        } else {
+            ss << " | ETA " << std::floor(ETA * 60.0f) << " seconds";
+        }
         std::string startString = m_text + (m_text.empty() ? "" : " ") + "[";
         const int totalWidth = getConsoleWidth();
         const int progressbarWidth = totalWidth - ss.str().size() - startString.size() - 1; // have to leave last line open to avoid jumping to next line (windows)
