@@ -192,17 +192,19 @@ void TissueSegmentation::runNeuralNetwork(SpatialDataObject::pointer image) {
 
         auto stitcher = PatchStitcher::create()->connect(segmentation);
 
+        // Run until finished
+        /*
         auto output = stitcher->runAndGetOutputData<SpatialDataObject>();
         do {
             output = stitcher->runAndGetOutputData<SpatialDataObject>();
         } while(!output->isLastFrame());
-        // Run until finished
-        //auto finish = RunUntilFinished::create()->connect(stitcher);
-        //auto output = finish->runAndGetOutputData<Image>();
+         */
+        auto finish = RunUntilFinished::create()->connect(stitcher);
+        auto output = finish->runAndGetOutputData<Image>();
         addOutputData(0, output);
     } else if(auto patch = std::dynamic_pointer_cast<Image>(image)) {
         // If patch is smaller then input size of neural network; run as is
-        if(patch->getWidth() < width || patch->getHeight() < height) {
+        if(patch->getWidth() <= width || patch->getHeight() <= height) {
             segmentation->connect(patch);
             auto output = segmentation->runAndGetOutputData<Image>();
             addOutputData(0, output);
@@ -213,13 +215,15 @@ void TissueSegmentation::runNeuralNetwork(SpatialDataObject::pointer image) {
 
             auto stitcher = PatchStitcher::create()->connect(segmentation);
 
-            auto output = stitcher->runAndGetOutputData<SpatialDataObject>();
+            // Run until finished
+            /*
+            SpatialDataObject::pointer output;
             do {
                 output = stitcher->runAndGetOutputData<SpatialDataObject>();
             } while(!output->isLastFrame());
-            // Run until finished
-            //auto finish = RunUntilFinished::create()->connect(stitcher);
-            //auto output = finish->runAndGetOutputData<Image>();
+            */
+            auto finish = RunUntilFinished::create()->connect(stitcher);
+            auto output = finish->runAndGetOutputData<SpatialDataObject>();
             addOutputData(0, output);
         }
     } else {

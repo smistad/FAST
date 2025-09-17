@@ -311,6 +311,7 @@ void PatchGenerator::generateStream() {
             previousPatch->setFrameData("streaming", "yes"); // Since we are not propagating frame data, we have to set this
             try {
                 addOutputData(0, previousPatch, false, false);
+                frameAdded();
             } catch(ThreadStopped &e) {
 
             }
