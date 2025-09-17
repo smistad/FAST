@@ -153,11 +153,13 @@ void PatchGenerator::generateStream() {
                     auto access = m_inputImagePyramid->getAccess(ACCESS_READ);
                     if(patchWidth < overlapInPixelsX*2 || patchHeight < overlapInPixelsY*2)
                         continue;
+                    mRuntimeManager->startRegularTimer("getPatchAsImage");
                     auto patch = access->getPatchAsImage(level,
                                                          patchOffsetX < 0 ? 0 : patchOffsetX, // if there is overlap, we will have negative offset at edges
                                                          patchOffsetY < 0 ? 0 : patchOffsetY,
                                                          patchWidth + (patchOffsetX < 0 ? patchOffsetX : 0), // We have to reduce width and height if negative offset
                                                          patchHeight + (patchOffsetY < 0 ? patchOffsetY : 0));
+                    mRuntimeManager->stopRegularTimer("getPatchAsImage");
 
                     // If patch does not have correct size, pad it
                     int paddingValue = m_paddingValue;

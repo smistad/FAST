@@ -51,6 +51,9 @@ void ImageToBatchGenerator::generateStream() {
         imageList.push_back(image);
         if(imageList.size() == m_maxBatchSize || lastFrame) {
             auto batch = Batch::create(imageList);
+            if(image->hasFrameData("progress")) {
+                batch->setFrameData("progress", image->getFrameData("progress"));
+            }
             if(lastFrame)
                 batch->setLastFrame(getNameOfClass());
             try {
