@@ -42,7 +42,7 @@ void VTKMeshFileImporter::processLines(std::ifstream& file, std::string& line) {
 
         MeshLine line(std::stoi(tokens[1]), std::stoi(tokens[2]));
 
-        mLines.push_back(line);
+        mLines.emplace_back(line);
     }
 }
 
@@ -73,7 +73,7 @@ void VTKMeshFileImporter::processTriangles(std::ifstream& file, std::string& lin
                 std::stoi(tokens[3])
         );
 
-        mTriangles.push_back(triangle);
+        mTriangles.emplace_back(triangle);
     }
 }
 
@@ -162,13 +162,12 @@ void VTKMeshFileImporter::processPoints(std::ifstream& file, std::string& line) 
             v(0) = std::stof(tokens[i]);
             v(1) = std::stof(tokens[i+1]);
             v(2) = std::stof(tokens[i+2]);
-            mVertices.push_back(MeshVertex(v));
+            mVertices.emplace_back(MeshVertex(v));
         }
     }
 }
 
 void VTKMeshFileImporter::execute() {
-    getReporter().setReportMethod(Reporter::COUT);
     if(m_filename == "")
         throw Exception("No filename given to the VTKMeshFileImporter");
 
@@ -182,7 +181,7 @@ void VTKMeshFileImporter::execute() {
     getline(file, line);
     while(!file.eof()) {
         trim(line);
-        if(line.size() == 0 || line[0] == '#') {
+        if(line.empty() || line[0] == '#') {
             // Skip empty lines and comments
             getline(file, line);
             continue;
@@ -196,7 +195,7 @@ void VTKMeshFileImporter::execute() {
         }
     }
 
-    if(mVertices.size() == 0) {
+    if(mVertices.empty()) {
         throw Exception("No points found in file " + m_filename);
     }
 
