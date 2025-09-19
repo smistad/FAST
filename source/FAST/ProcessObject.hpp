@@ -172,7 +172,7 @@ class FAST_EXPORT  ProcessObject : public AttributeObject {
          */
         bool hasReceivedLastFrameFlag() const;
 
-        // Without this, PythonProcessObject will cause crash on windows
+        // Without this, PythonProcessObject will cause crash on windows on connect
         virtual ~ProcessObject();
     protected:
         ProcessObject();
