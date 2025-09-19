@@ -171,6 +171,9 @@ class FAST_EXPORT  ProcessObject : public AttributeObject {
          * @return
          */
         bool hasReceivedLastFrameFlag() const;
+
+        // Without this, PythonProcessObject will cause crash on windows
+        virtual ~ProcessObject();
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
