@@ -1242,8 +1242,12 @@ int getConsoleWidth() {
     return columns;
 #else
         struct winsize w;
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        int res = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        if(res < 0)
+            return 80;
         if(w.ws_col == 0)
+            return 80;
+        if(w.ws_col > 512)
             return 80;
         return w.ws_col;
 #endif
