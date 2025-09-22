@@ -1543,6 +1543,13 @@ OpenGLTextureAccess::pointer Image::getOpenGLTextureAccess(accessType type, Open
                 std::vector<cl::Memory> v;
                 v.push_back(imageGL);
                 device->getCommandQueue().enqueueAcquireGLObjects(&v);
+#ifdef WIN32
+                // This hack fixes a strange bug on some windows machines with the NVIDIA CL platform
+                // where without this finish statement, the program just hangs after the next line
+                if(device->getPlatformVendor() == PLATFORM_VENDOR_NVIDIA) {
+                    device->getCommandQueue().finish();
+                }
+#endif
                 device->getCommandQueue().enqueueCopyImage(*access->get(), imageGL, createOrigoRegion(), createOrigoRegion(), createRegion(getSize()));
                 device->getCommandQueue().enqueueReleaseGLObjects(&v);
                 doCPUtransfer = false;
