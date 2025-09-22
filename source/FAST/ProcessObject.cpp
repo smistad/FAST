@@ -474,8 +474,4 @@ bool ProcessObject::hasReceivedLastFrameFlag() const {
     return lastFrame;
 }
 
-ProcessObject::~ProcessObject() {
-
-}
-
 } // namespace fast
