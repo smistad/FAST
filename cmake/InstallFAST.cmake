@@ -11,6 +11,7 @@ if(WIN32)
 		)
 		set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION fast/bin)
 		set(CMAKE_INSTALL_OPENMP_LIBRARIES ON)
+		set(CMAKE_INSTALL_SYSTEM_RUNTIME_COMPONENT fast)
 		include(InstallRequiredSystemLibraries) # Install vcruntime dlls
 else()
 		install(TARGETS FAST
