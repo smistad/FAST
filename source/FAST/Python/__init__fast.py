@@ -5,13 +5,13 @@ if threading.current_thread() != threading.main_thread():
 
 # Check that PySide2 is not included before fast
 import sys
-if 'fast' not in sys.modules and 'PySide2.QtCore' in sys.modules:
-    raise RuntimeError('You have to import fast before PySide2!\n\n'
-                       'Import FAST before PySide2 in the following way:\n'
-                       'if platform.system() != \'Windows\':\n'
-                       '    import PySide2.QtSvg # Must import this before fast due to conflicting symbols\n'
-                       'import fast # Must import FAST before rest of pyside2\n'
-                       'from PySide2.QtWidgets import *')
+#if 'fast' not in sys.modules and 'PySide2.QtCore' in sys.modules:
+#    raise RuntimeError('You have to import fast before PySide2!\n\n'
+#                       'Import FAST before PySide2 in the following way:\n'
+#                       'if platform.system() != \'Windows\':\n'
+#                       '    import PySide2.QtSvg # Must import this before fast due to conflicting symbols\n'
+#                       'import fast # Must import FAST before rest of pyside2\n'
+#                       'from PySide2.QtWidgets import *')
 
 import os
 is_windows = sys.platform.startswith('win')
