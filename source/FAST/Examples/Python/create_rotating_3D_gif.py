@@ -13,6 +13,7 @@ import math
 iterations = 28 # Number of frames in GIF
 size = 384 # Output size
 
+
 class Rotate(fast.PythonProcessObject):
     def __init__(self, iterations):
         super().__init__()
@@ -27,12 +28,12 @@ class Rotate(fast.PythonProcessObject):
         spacing = input.getSpacing()
         transform = fast.Transform.create()
         # Rotate volume the right way first
-        transform.addRotation(3.14/2, np.array([1, 0, 0], dtype=np.float32))
-        transform.addRotation(3.14, np.array([0, 1, 0], dtype=np.float32))
+        transform.addRotation(3.14/2, [1, 0, 0])
+        transform.addRotation(3.14, [0, 1, 0])
         # Do the rotation:
-        transform.addRotation(self.angle, np.array([0, 0, 1], dtype=np.float32))
+        transform.addRotation(self.angle, [0, 0, 1])
         # To rotate around the center, we have to move to volume so its center is at origo:
-        transform.addTranslation(np.array([-input.getWidth()*spacing[0,0]/2, -input.getHeight()*spacing[1,0]/2, -input.getDepth()*spacing[2,0]/2], dtype=np.float32))
+        transform.addTranslation([-input.getWidth()*spacing[0]/2, -input.getHeight()*spacing[1]/2, -input.getDepth()*spacing[2]/2])
         input.setTransform(transform)
 
         self.angle += 2*math.pi/iterations # Increment angle to have it rotate over time
