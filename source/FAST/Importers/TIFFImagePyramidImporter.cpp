@@ -31,11 +31,12 @@ void TIFFImagePyramidImporter::execute() {
     bool isOMETiff = false;
     TIFFSetDirectory(tiff, 0);
     // Read description to check if image is OME-TIFF
-    char * description;
-    int result = TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &description);
+    char * descriptionChar;
+    int result = TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &descriptionChar);
+    std::string description;
     if(result == 1) { // Must check if tag exists
-        std::string str = description;
-        if(str.find("xml") != std::string::npos && str.find("OME") != std::string::npos) {
+        description = descriptionChar;
+        if(description.find("xml") != std::string::npos && description.find("OME") != std::string::npos) {
             reportInfo() << "TIFF file seems to be an OME-TIFF, reading it as such.." << reportEnd();
             isOMETiff = true;
         }
@@ -99,8 +100,10 @@ void TIFFImagePyramidImporter::execute() {
         std::string str = description;
         magnification = 0.0f;
         while(std::regex_search(str, match, pattern)) {
-            if(std::stof(match[1]) > magnification) { // Get largest magnification
-                magnification = std::stof(match[1]);
+            if(match.size() >= 2) {
+                if(std::stof(match[1]) > magnification) { // Get largest magnification
+                    magnification = std::stof(match[1]);
+                }
             }
             str = match.suffix();
         }
