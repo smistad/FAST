@@ -109,6 +109,7 @@ void PatchGenerator::generateStream() {
             const int patchesX = std::ceil((float) levelWidth / (float) (patchWidthWithoutOverlap*resampleFactor));
             const int patchesY = std::ceil((float) levelHeight / (float) (patchHeightWithoutOverlap*resampleFactor));
 
+            auto access = m_inputImagePyramid->getAccess(ACCESS_READ);
             for(int patchY = 0; patchY < patchesY; ++patchY) {
                 for(int patchX = 0; patchX < patchesX; ++patchX) {
                     mRuntimeManager->startRegularTimer("create patch");
@@ -150,7 +151,6 @@ void PatchGenerator::generateStream() {
                         }
                     }
                     reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
-                    auto access = m_inputImagePyramid->getAccess(ACCESS_READ);
                     if(patchWidth < overlapInPixelsX*2 || patchHeight < overlapInPixelsY*2)
                         continue;
                     mRuntimeManager->startRegularTimer("getPatchAsImage");
@@ -160,6 +160,7 @@ void PatchGenerator::generateStream() {
                                                          patchWidth + (patchOffsetX < 0 ? patchOffsetX : 0), // We have to reduce width and height if negative offset
                                                          patchHeight + (patchOffsetY < 0 ? patchOffsetY : 0));
                     mRuntimeManager->stopRegularTimer("getPatchAsImage");
+                    access->getAllRuntimes()->printAll();
 
                     // If patch does not have correct size, pad it
                     int paddingValue = m_paddingValue;

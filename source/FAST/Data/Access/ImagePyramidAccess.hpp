@@ -62,7 +62,7 @@ public:
  * @brief CPU access to ImagePyramid
  * @ingroup access
  */
-class FAST_EXPORT ImagePyramidAccess : Object {
+class FAST_EXPORT ImagePyramidAccess : public Object {
 public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
 	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat);
