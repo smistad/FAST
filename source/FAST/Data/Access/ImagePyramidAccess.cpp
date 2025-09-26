@@ -83,7 +83,8 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
             // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
             int bytesRead = readTileFromTIFF((void *) data.get(), x, y, level);
         } else if(width <= tileWidth && height <= tileHeight &&
-                (x - std::floor(x/tileWidth)*tileWidth) < tileWidth && (y - std::floor(y/tileHeight)*tileHeight) < tileHeight
+                (x - (x/tileWidth)*tileWidth) + width < tileWidth &&
+                (y - (y/tileHeight)*tileHeight) + height < tileHeight
                 ) {
             // We only need to read 1 tile
             mRuntimeManager->startRegularTimer("simple");
@@ -95,8 +96,9 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
             }
             // Remove extra
             mRuntimeManager->startRegularTimer("Crop tile");
-            const int offsetX = x - (int)std::floor(x/tileWidth)*tileWidth;
-            const int offsetY = y - (int)std::floor(y/tileHeight)*tileHeight;
+            const int offsetX = x - (x/tileWidth)*tileWidth;
+            const int offsetY = y - (y/tileHeight)*tileHeight;
+
             // Skip inner loop for most common cases
             if(bytesPerPixel == 3) {
                 for(int dy = 0; dy < height; ++dy) {
@@ -163,8 +165,8 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
                     if(bytesPerPixel == 3) {
                         for(int cy = 0; cy < tileHeight; ++cy) {
                             for(int cx = 0; cx < tileWidth; ++cx) {
-                                const int index1 = (tileX + cx + (tileY + cy)*fullTileBufferWidth)*bytesPerPixel;
-                                const int index2 = (cx + cy*tileWidth)*bytesPerPixel;
+                                const int index1 = (tileX + cx + (tileY + cy)*fullTileBufferWidth)*3;
+                                const int index2 = (cx + cy*tileWidth)*3;
                                 fullTileBuffer[index1] = tileData[index2];
                                 fullTileBuffer[index1 + 1] = tileData[index2 + 1];
                                 fullTileBuffer[index1 + 2] = tileData[index2 + 2];
