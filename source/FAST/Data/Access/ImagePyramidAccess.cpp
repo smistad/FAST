@@ -36,6 +36,7 @@ ImagePyramidAccess::ImagePyramidAccess(
     m_fileHandle = fileHandle;
     m_tiffHandle = tiffHandle;
     m_compressionFormat = compressionFormat;
+    enableRuntimeMeasurements();
 }
 
 void ImagePyramidAccess::release() {
@@ -44,6 +45,7 @@ void ImagePyramidAccess::release() {
 
 ImagePyramidAccess::~ImagePyramidAccess() {
 	release();
+    mRuntimeManager->printAll();
 }
 
 std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, int y, int width, int height) {
@@ -88,6 +90,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
                 int bytesRead = readTileFromTIFF((void *) tileData.get(), x, y, level);
             }
             // Remove extra
+            mRuntimeManager->startRegularTimer("Crop tile");
             for(int dy = 0; dy < height; ++dy) {
                 for(int dx = 0; dx < width; ++dx) {
                     for(int channel = 0; channel < channels; ++channel) {
@@ -95,6 +98,7 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
                     }
                 }
             }
+            mRuntimeManager->stopRegularTimer("Crop tile");
         } else {
             // Create buffer to contain all tiles
             int totalTilesX = std::ceil((float)width / tileWidth);
@@ -544,11 +548,15 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
         if(m_compressionFormat == ImageCompression::JPEG /*&& m_image->isOMETIFF()*/) {
             // Use libjpeg for decompression, as ome-tiff files doesn't seem to like tiff's internal jpeg
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
+            mRuntimeManager->startRegularTimer("TIFFReadRawTile");
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
+            mRuntimeManager->stopRegularTimer("TIFFReadRawTile");
 
+            mRuntimeManager->startRegularTimer("JPEG decompression");
             JPEGCompression jpeg(m_JPEGTablesCount, m_JPEGTablesData);
             int width, height;
             jpeg.decompress((uchar*)buffer.get(), bytesRead, &width, &height, (uchar*)data);
+            mRuntimeManager->stopRegularTimer("JPEG decompression");
         } else if(m_compressionFormat == ImageCompression::JPEGXL) {
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);

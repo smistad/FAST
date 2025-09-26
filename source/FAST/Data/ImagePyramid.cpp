@@ -437,7 +437,7 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
                 int quality = -1;
                 int res = TIFFGetField(m_tiffHandle, TIFFTAG_JPEGQUALITY, &quality);
                 if(res != 1)
-                    throw Exception("Unable to get JPEG quality from TIFF");
+                    reportInfo() << "Unable to get JPEG quality from TIFF" << reportEnd();
                 m_compressionQuality = quality;
             }
             {

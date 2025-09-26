@@ -15,8 +15,25 @@ namespace fast {
  *
  * @sa RuntimeMeasurement
  */
-class FAST_EXPORT  RuntimeMeasurementsManager : public Object {
-	FAST_OBJECT(RuntimeMeasurementsManager)
+class FAST_EXPORT RuntimeMeasurementsManager {
+public:
+	typedef std::shared_ptr<RuntimeMeasurementsManager> pointer;
+	static std::shared_ptr<RuntimeMeasurementsManager> New() {
+		std::shared_ptr<RuntimeMeasurementsManager> smartPtr(new RuntimeMeasurementsManager());
+		smartPtr->setPtr(smartPtr);
+
+		return smartPtr;
+	}
+	virtual std::string getNameOfClass() const {
+		return std::string("RuntimeMeasurementsManager");
+	};
+	static std::string getStaticNameOfClass() {
+	return std::string("RuntimeMeasurementsManager");
+	};
+	private:
+	void setPtr(RuntimeMeasurementsManager::pointer ptr) {
+	mPtr = ptr;
+	}
 public:
     void setWarmupRounds(int rounds);
 	int getWarmupRounds() const;
@@ -49,6 +66,7 @@ private:
 	std::map<std::string, unsigned int> numberings;
 	std::map<std::string, cl::Event> startEvents;
 	std::map<std::string, std::chrono::system_clock::time_point> startTimes;
+	std::weak_ptr<RuntimeMeasurementsManager> mPtr;
 };
 
 } //namespace fast

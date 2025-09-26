@@ -12,7 +12,6 @@ namespace fast {
 
 ProcessObject::ProcessObject() : mIsModified(false) {
     mDevices[0] = DeviceManager::getInstance()->getDefaultDevice();
-    mRuntimeManager = RuntimeMeasurementsManager::New();
 }
 
 static bool isStreamer(ProcessObject* po) {
@@ -255,26 +254,6 @@ void ProcessObject::validateOutputPortExists(uint portID) {
         throw Exception(getNameOfClass() + " has no output port with ID " + std::to_string(portID));
 }
 
-void ProcessObject::enableRuntimeMeasurements() {
-    mRuntimeManager->enable();
-}
-
-void ProcessObject::disableRuntimeMeasurements() {
-    mRuntimeManager->disable();
-}
-
-RuntimeMeasurement::pointer ProcessObject::getRuntime() {
-    return mRuntimeManager->getTiming("execute");
-}
-
-RuntimeMeasurement::pointer ProcessObject::getRuntime(std::string name) {
-    return mRuntimeManager->getTiming(name);
-}
-
-RuntimeMeasurementsManager::pointer ProcessObject::getAllRuntimes() {
-    return mRuntimeManager;
-}
-
 void ProcessObject::postExecute() {
     /*
     // TODO Release input data if they are marked as "release after execute"
@@ -435,10 +414,6 @@ std::shared_ptr<ProcessObject> ProcessObject::connect(uint inputPortID, std::sha
 
 int ProcessObject::getLastExecuteToken() const {
     return m_lastExecuteToken;
-}
-
-RuntimeMeasurementsManager::pointer ProcessObject::getRuntimeManager() {
-    return getAllRuntimes();
 }
 
 void ProcessObject::setExecuteOnLastFrameOnly(bool executeOnLastFrameOnly) {

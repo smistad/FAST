@@ -5,6 +5,8 @@
 #include "FAST/Exception.hpp"
 #include "FAST/Reporter.hpp"
 #include "FASTVersion.hpp"
+#include "RuntimeMeasurement.hpp"
+#include "RuntimeMeasurementManager.hpp"
 #include "FAST/Attribute.hpp"
 #include <unordered_map>
 #include <memory>
@@ -280,6 +282,8 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
  */
 namespace fast {
 
+class RuntimeMeasurementManager;
+
 /**
  * @defgroup widgets Widgets
  * Graphical user interface widgets which can be added to windows.
@@ -299,12 +303,23 @@ class FAST_EXPORT  Object {
             return "Object";
         }
         Reporter& getReporter();
+
+        // Runtime stuff
+        RuntimeMeasurement::pointer getRuntime();
+        RuntimeMeasurement::pointer getRuntime(std::string name);
+        RuntimeMeasurementsManager::pointer getAllRuntimes();
+        RuntimeMeasurementsManager::pointer getRuntimeManager();
+        void enableRuntimeMeasurements();
+        void disableRuntimeMeasurements();
+
     protected:
         Reporter& reportError();
         Reporter& reportWarning();
         Reporter& reportInfo();
         ReporterEnd reportEnd() const;
         std::weak_ptr<Object> mPtr;
+
+        RuntimeMeasurementsManager::pointer mRuntimeManager;
     private:
         Reporter mReporter;
 

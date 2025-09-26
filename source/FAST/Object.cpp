@@ -92,6 +92,7 @@ Object::Object() {
         std::cout << "\033[0m" << std::flush; // Reset
 #endif
     });
+    mRuntimeManager = RuntimeMeasurementsManager::New();
 }
 
 Reporter& Object::reportError() {
@@ -271,6 +272,30 @@ std::vector<std::string> AttributeObject::getStringListAttribute(std::string id)
 
 std::unordered_map<std::string, std::shared_ptr<Attribute>> AttributeObject::getAttributes() {
     return mAttributes;
+}
+
+void Object::enableRuntimeMeasurements() {
+    mRuntimeManager->enable();
+}
+
+void Object::disableRuntimeMeasurements() {
+    mRuntimeManager->disable();
+}
+
+RuntimeMeasurement::pointer Object::getRuntime() {
+    return mRuntimeManager->getTiming("execute");
+}
+
+RuntimeMeasurement::pointer Object::getRuntime(std::string name) {
+    return mRuntimeManager->getTiming(name);
+}
+
+RuntimeMeasurementsManager::pointer Object::getAllRuntimes() {
+    return mRuntimeManager;
+}
+
+RuntimeMeasurementsManager::pointer Object::getRuntimeManager() {
+    return getAllRuntimes();
 }
 
 } // end namespace fast

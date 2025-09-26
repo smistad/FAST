@@ -6,12 +6,9 @@
 #include <vector>
 #include "FAST/Object.hpp"
 #include "FAST/Data/DataObject.hpp"
-#include "RuntimeMeasurement.hpp"
-#include "RuntimeMeasurementManager.hpp"
 #include "FAST/ExecutionDevice.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Config.hpp"
-#include "FAST/Attribute.hpp"
 #include "FAST/DataChannels/DataChannel.hpp"
 #include <FAST/DataStream.hpp>
 
@@ -79,14 +76,6 @@ class FAST_EXPORT  ProcessObject : public AttributeObject {
          */
         void update(int executeToken = -1);
         typedef std::shared_ptr<ProcessObject> pointer;
-
-        // Runtime stuff
-        RuntimeMeasurement::pointer getRuntime();
-        RuntimeMeasurement::pointer getRuntime(std::string name);
-        RuntimeMeasurementsManager::pointer getAllRuntimes();
-        RuntimeMeasurementsManager::pointer getRuntimeManager();
-        void enableRuntimeMeasurements();
-        void disableRuntimeMeasurements();
 
         // Device stuff
         void setMainDevice(ExecutionDevice::pointer device);
@@ -200,9 +189,6 @@ class FAST_EXPORT  ProcessObject : public AttributeObject {
         bool hasNewInputData(uint portID);
 
         virtual void waitToFinish() {};
-
-
-        RuntimeMeasurementsManager::pointer mRuntimeManager;
 
         void createOpenCLProgram(std::string sourceFilename, std::string name = "");
         cl::Program getOpenCLProgram(

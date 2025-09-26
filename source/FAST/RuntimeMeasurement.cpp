@@ -5,6 +5,7 @@
 #include <cmath>
 #include <numeric>
 #include <algorithm>
+#include <FAST/Exception.hpp>
 
 namespace fast {
 
