@@ -62,10 +62,14 @@ public:
  * @brief CPU access to ImagePyramid
  * @ingroup access
  */
+#ifdef SWIG
+class FAST_EXPORT ImagePyramidAccess {
+#else
 class FAST_EXPORT ImagePyramidAccess : public Object {
+#endif
 public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
-	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat);
+	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat, bool useCache = false, int cacheLimit = -1);
 	/**
 	 * @brief Write a patch to the pyramid
 	 * @param level
@@ -85,6 +89,8 @@ public:
 	bool isPatchInitialized(int level, int x, int y);
 	template <class T>
 	std::unique_ptr<T[]> getPatchData(int level, int x, int y, int width, int height);
+    template <class T>
+    std::shared_ptr<T[]> getPatchDataCached(int level, int x, int y, int width, int height);
 	std::shared_ptr<Image> getLevelAsImage(int level);
 	std::shared_ptr<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height, bool convertToRGB = true);
 	std::shared_ptr<Image> getPatchAsImage(int level, int patchIdX, int patchIdY, bool convertToRGB = true);
@@ -100,7 +106,7 @@ public:
 	 */
     std::shared_ptr<Image> getPatchAsImageForMagnification(float magnification, float offsetX, float offsetY, int width, int height, bool convertToRGB = true);
 	void release();
-	~ImagePyramidAccess();
+	~ImagePyramidAccess() override;
 	void setJPEGTables(uint32_t tableCount, void* tableData);
 private:
     std::unique_ptr<uchar[]> getPatchDataChar(int level, int x, int y, int width, int height);
@@ -123,6 +129,14 @@ private:
 
     uint32_t m_JPEGTablesCount = 0;
     void* m_JPEGTablesData = nullptr;
+
+    // Optional tile cache
+    std::unordered_map<uint32_t, std::unique_ptr<char[]>> m_tileCache;
+    std::deque<uint32_t> m_tileCacheQueue;
+    std::unordered_map<uint32_t, int> m_tileCacheCounter;
+    uint64_t m_tileCacheSize;
+    uint64_t m_tileCacheSizeLimit;
+    bool m_useTileCache;
 };
 
 template <class T>

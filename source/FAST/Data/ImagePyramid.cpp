@@ -301,7 +301,7 @@ int ImagePyramid::getNrOfChannels() const {
     return m_channels;
 }
 
-ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
+ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type, bool useTileCache, int tileCacheSize) {
     if(!m_initialized)
         throw Exception("ImagePyramid has not been initialized.");
 
@@ -322,7 +322,7 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    auto access =  std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat);
+    auto access =  std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat, useTileCache, tileCacheSize);
     if(m_JPEGTablesCount > 0)
         access->setJPEGTables(m_JPEGTablesCount, m_JPEGTablesData);
     return access;
