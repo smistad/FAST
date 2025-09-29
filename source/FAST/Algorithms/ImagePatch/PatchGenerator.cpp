@@ -110,9 +110,18 @@ void PatchGenerator::generateStream() {
             const int patchesY = std::ceil((float) levelHeight / (float) (patchHeightWithoutOverlap*resampleFactor));
 
             bool useTileCache = true;
-            if((int)round(m_width*resampleFactor) == m_inputImagePyramid->getLevelTileWidth(level) && (int)round(m_height*resampleFactor) == m_inputImagePyramid->getLevelTileHeight(level))
-                useTileCache = false; // TODO validate this, what are the conditions for this
-            auto access = m_inputImagePyramid->getAccess(ACCESS_READ, useTileCache);
+            int tileCacheSize = -1;
+            // No need to use tile cache if we are only going to get each tile exactly 1 time
+            // This happens when the request patch size is the same as the tile size of the data
+            if((int)round(m_width*resampleFactor) == m_inputImagePyramid->getLevelTileWidth(level) && (int)round(m_height*resampleFactor) == m_inputImagePyramid->getLevelTileHeight(level)) {
+                useTileCache = false;
+            } else {
+                useTileCache = true;
+                int rowsPerPatch = std::ceil((float)m_inputImagePyramid->getLevelTileHeight(level) / m_height*resampleFactor);
+                tileCacheSize = patchesX*rowsPerPatch;
+                reportInfo() << "PatchGenerator is using a tile cache with size limit of " << tileCacheSize << reportEnd();
+            }
+            auto access = m_inputImagePyramid->getAccess(ACCESS_READ, useTileCache, tileCacheSize);
             for(int patchY = 0; patchY < patchesY; ++patchY) {
                 for(int patchX = 0; patchX < patchesX; ++patchX) {
                     mRuntimeManager->startRegularTimer("create patch");

@@ -40,7 +40,6 @@ ImagePyramidAccess::ImagePyramidAccess(
     m_compressionFormat = compressionFormat;
     m_useTileCache = useCache;
     m_tileCacheSizeLimit = cacheLimit;
-    enableRuntimeMeasurements();
 }
 
 void ImagePyramidAccess::release() {
@@ -49,7 +48,6 @@ void ImagePyramidAccess::release() {
 
 ImagePyramidAccess::~ImagePyramidAccess() {
 	release();
-    mRuntimeManager->printAll();
 }
 
 std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, int y, int width, int height) {
@@ -586,6 +584,27 @@ bool ImagePyramidAccess::isPatchInitialized(int level, int x, int y) {
     return m_initializedPatchList.count(std::to_string(level) + "-" + std::to_string(tile)) > 0;
 }
 
+void ImagePyramidAccess::addTileToQueue(const std::string& id) {
+    if(m_tileCacheCounter.count(id) == 0) {
+        m_tileCacheCounter[id] = 1;
+    } else {
+        m_tileCacheCounter[id] += 1;
+    }
+    m_tileCacheQueue.push_back(id);
+
+    if(m_tileCacheSizeLimit > 0) { // Tile cache is limited
+        while(m_tileCache.size() >= m_tileCacheSizeLimit) {
+            auto item = m_tileCacheQueue.front();
+            m_tileCacheQueue.pop_front();
+            m_tileCacheCounter[item] -= 1;
+            if(m_tileCacheCounter[item] <= 0) {
+                m_tileCache.erase(item);
+                m_tileCacheCounter.erase(item);
+            }
+        }
+    }
+}
+
 int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
     const auto tileWidth = m_image->getLevelTileWidth(level);
     const auto tileHeight = m_image->getLevelTileHeight(level);
@@ -593,10 +612,12 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
     const int bytesPerPixel = getSizeOfDataType(m_image->getDataType(), channels);
     TIFFSetDirectory(m_tiffHandle, level);
     const uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    auto id = std::to_string(level) + "_" + std::to_string(tile_id);
     if(m_useTileCache) {
-        if(m_tileCache.count(tile_id) > 0) {
-            std::memcpy(data, m_tileCache[tile_id].get(), tileWidth*tileHeight*bytesPerPixel);
-            //std::cout << "cache hit" << std::endl;
+        if(m_tileCache.count(id) > 0) {
+            // Cache hit
+            std::memcpy(data, m_tileCache[id].get(), tileWidth*tileHeight*bytesPerPixel);
+            addTileToQueue(id);
             return 0;
         }
     }
@@ -643,12 +664,6 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
             int width, height;
             jpeg.decompress((uchar*)buffer.get(), bytesRead, &width, &height, (uchar*)data);
             mRuntimeManager->stopRegularTimer("JPEG decompression");
-            if(m_useTileCache) {
-                auto data2 = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
-                std::memcpy(data2.get(), data, tileWidth*tileHeight*channels);
-                m_tileCache[tile_id] = std::move(data2);
-                //std::cout << "cache size: " << m_tileCache.size() << std::endl;
-            }
         } else if(m_compressionFormat == ImageCompression::JPEGXL) {
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
@@ -658,6 +673,12 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
             jxl.decompress((uchar*)buffer.get(), bytesRead, &width, &height, (uchar*)data);
         } else {
             bytesRead = TIFFReadTile(m_tiffHandle, data, x, y, 0, 0);
+        }
+        if(m_useTileCache) {
+            auto data2 = make_uninitialized_unique<char[]>(tileWidth*tileHeight*bytesPerPixel);
+            std::memcpy(data2.get(), data, tileWidth*tileHeight*bytesPerPixel);
+            m_tileCache[id] = std::move(data2);
+            addTileToQueue(id);
         }
         return bytesRead;
     }

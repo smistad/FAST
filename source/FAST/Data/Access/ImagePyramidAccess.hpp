@@ -131,10 +131,10 @@ private:
     void* m_JPEGTablesData = nullptr;
 
     // Optional tile cache
-    std::unordered_map<uint32_t, std::unique_ptr<char[]>> m_tileCache;
-    std::deque<uint32_t> m_tileCacheQueue;
-    std::unordered_map<uint32_t, int> m_tileCacheCounter;
-    uint64_t m_tileCacheSize;
+    void addTileToQueue(const std::string& id);
+    std::unordered_map<std::string, std::unique_ptr<char[]>> m_tileCache;
+    std::deque<std::string> m_tileCacheQueue;
+    std::unordered_map<std::string, int> m_tileCacheCounter;
     uint64_t m_tileCacheSizeLimit;
     bool m_useTileCache;
 };
