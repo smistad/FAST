@@ -602,7 +602,7 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
     if(m_useTileCache) {
         if(m_tileCache.count(id) > 0) {
             // Cache hit
-            std::memcpy(data, m_tileCache[id].get(), tileWidth*tileHeight*bytesPerPixel);
+            std::memcpy(data, m_tileCache.at(id).get(), tileWidth*tileHeight*bytesPerPixel);
             addTileToQueue(id);
             return 0;
         }
@@ -663,7 +663,7 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
         if(m_useTileCache) {
             auto data2 = make_uninitialized_unique<char[]>(tileWidth*tileHeight*bytesPerPixel);
             std::memcpy(data2.get(), data, tileWidth*tileHeight*bytesPerPixel);
-            m_tileCache[id] = std::move(data2);
+            m_tileCache.insert({id, std::move(data2)});
             addTileToQueue(id);
         }
         return bytesRead;

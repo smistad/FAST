@@ -143,7 +143,7 @@ private:
 
     // Optional tile cache
     void addTileToQueue(const std::string& id);
-    std::unordered_map<std::string, std::unique_ptr<char[]>> m_tileCache;
+    std::unordered_map<std::string, std::shared_ptr<char[]>> m_tileCache; // Should ideally be a unique_ptr here, but MSVC can't handle that
     std::deque<std::string> m_tileCacheQueue;
     std::unordered_map<std::string, int> m_tileCacheCounter;
     uint64_t m_tileCacheSizeLimit;
