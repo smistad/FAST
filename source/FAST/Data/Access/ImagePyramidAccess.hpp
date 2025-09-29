@@ -14,10 +14,10 @@ class Image;
 class ImagePyramid;
 class NeuralNetwork;
 
-
 /**
  * @brief Image compression types for ImagePyramids
  *
+ * @sa ImagePyramid
  * @ingroup wsi
  */
 enum class ImageCompression {
@@ -31,31 +31,20 @@ enum class ImageCompression {
     DEFLATE, // Zlib lossless
 };
 
-class FAST_EXPORT ImagePyramidPatch {
-public:
-	std::unique_ptr<uchar[]> data;
-	int width;
-	int height;
-	int offsetX;
-	int offsetY;
-};
-
+/**
+ * @brief Object for metadata of an ImagePyramid level
+ * @sa ImagePyramid
+ * @ingroup wsi
+ */
 class FAST_EXPORT ImagePyramidLevel {
 public:
 	int width;
 	int height;
-	int tileWidth = 256;
-	int tileHeight = 256;
+	int tileWidth = 1024;
+	int tileHeight = 1024;
 	int tilesX;
     int tilesY;
-	bool memoryMapped;
-	uint8_t* data;
 	uint64_t offset = 0; // subifd offset used by OME-TIFF
-#ifdef WIN32
-	void* fileHandle;
-#else
-	int fileHandle;
-#endif
 };
 
 /**
@@ -89,10 +78,32 @@ public:
 	bool isPatchInitialized(int level, int x, int y);
 	template <class T>
 	std::unique_ptr<T[]> getPatchData(int level, int x, int y, int width, int height);
-    template <class T>
-    std::shared_ptr<T[]> getPatchDataCached(int level, int x, int y, int width, int height);
+	/**
+	 * @brief Get a specific level in an ImagePyramid as an Image object.
+	 * If requesting a level with a width or height higher than 16384 pixels this will throw an exception.
+	 * @param level
+	 * @return
+	 */
 	std::shared_ptr<Image> getLevelAsImage(int level);
+	/**
+	 * @brief Extract a patch from the image pyramid and return it as an Image
+	 * @param level Level to extract patch from
+	 * @param offsetX X offset
+	 * @param offsetY Y offset
+	 * @param width Width of patch
+	 * @param height Height of patch
+	 * @param convertToRGB convert to RGB when using OpenSlide, since it will return BGRA data
+	 * @return Patch as Image
+	 */
 	std::shared_ptr<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height, bool convertToRGB = true);
+	/**
+	 * @brief Extract a tile from the Image Pyramid
+	 * @param level Level to extract tile from
+	 * @param patchIdX Tile X id
+	 * @param patchIdY  Tile Y id
+	 * @param convertToRGB convert to RGB when using OpenSlide, since it will return BGRA data
+	 * @return Tile as Image
+	 */
 	std::shared_ptr<Image> getPatchAsImage(int level, int patchIdX, int patchIdY, bool convertToRGB = true);
 	/**
 	 * @brief Get patch as Image at a specific magnification
@@ -101,7 +112,7 @@ public:
 	 * @param offsetY Physical offset y position of patch
 	 * @param width Width of patch in pixels
 	 * @param height Height of patch in pixels
-	 * @param convertToRGB Convert from BGR to RGB if needed
+	 * @param convertToRGB convert to RGB when using OpenSlide, since it will return BGRA data
 	 * @return patch as Image object
 	 */
     std::shared_ptr<Image> getPatchAsImageForMagnification(float magnification, float offsetX, float offsetY, int width, int height, bool convertToRGB = true);

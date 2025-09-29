@@ -263,35 +263,20 @@ void ImagePyramid::free(ExecutionDevice::pointer device) {
 }
 
 void ImagePyramid::freeAll() {
+    m_levels.clear();
     if(m_fileHandle != nullptr) {
-        m_levels.clear();
         openslide_close(m_fileHandle);
     } else if(m_tiffHandle != nullptr) {
-        m_levels.clear();
         TIFFClose(m_tiffHandle);
         if(m_tempFile) {
             // If this is a temp file created by FAST. Delete it.
             std::remove(m_tiffPath.c_str());
         }
-    } else {
-		for(auto& item : m_levels) {
-			if(item.memoryMapped) {
-#ifdef WIN32
-				UnmapViewOfFile(item.data);
-				CloseHandle(item.fileHandle);
-#else
-				munmap(item.data, item.width*item.height*m_channels);
-				close(item.fileHandle);
-#endif
-			} else {
-				delete[] item.data;
-			}
-		}
-        m_levels.clear();
     }
 
 	m_initialized = false;
 	m_fileHandle = nullptr;
+	m_tiffHandle = nullptr;
 }
 
 ImagePyramid::~ImagePyramid() {

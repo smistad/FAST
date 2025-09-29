@@ -2,12 +2,6 @@
 #include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp>
 #include <FAST/Utility.hpp>
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <openslide.h>
-#else
-#include <openslide/openslide.h>
-#endif
-#include <tiffio.h>
 #include <FAST/Data/Image.hpp>
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
 #include <FAST/Algorithms/NeuralNetwork/TensorToImage.hpp>
@@ -15,6 +9,8 @@
 #include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include <FAST/Algorithms/Compression/JPEGXLCompression.hpp>
 #include <FAST/Algorithms/Compression/JPEGCompression.hpp>
+#include <openslide/openslide.h>
+#include <tiffio.h>
 
 namespace fast {
 
@@ -225,15 +221,6 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
     } else if(m_fileHandle != nullptr) {
         int scale = (float)m_image->getFullWidth()/levelWidth;
         openslide_read_region(m_fileHandle, (uint32_t*)data.get(), x * scale, y * scale, level, width, height);
-    } else {
-        auto levelData = m_levels[level];
-        for(int cy = y; cy < std::min(y + height, levelHeight); ++cy) {
-            for(int cx = x; cx < std::min(x + width, levelWidth); ++cx) {
-                for(int channel = 0; channel < channels; ++channel) {
-                    data[(cx - x + (cy - y) * width)*channels + channel] = levelData.data[(cx + cy * levelWidth)*channels + channel];
-                }
-            }
-        }
     }
 
     return data;
@@ -351,18 +338,17 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     int tilesY = m_image->getLevelTilesY(level);
     int levelTileWidth = m_image->getLevelTileWidth(level);
     int levelTileHeight = m_image->getLevelTileHeight(level);
-    ImagePyramidPatch tile;
-    tile.offsetX = tileX * levelTileWidth;
-    tile.offsetY = tileY * levelTileHeight;
+    int offsetX = tileX * levelTileWidth;
+    int offsetY = tileY * levelTileHeight;
 
-    tile.width = levelTileWidth;
+    int width = levelTileWidth;
     if(tileX == tilesX - 1)
-        tile.width = levelWidth - tile.offsetX;
-    tile.height = levelTileHeight;
+        width = levelWidth - offsetX;
+    int height = levelTileHeight;
     if(tileY == tilesY - 1)
-        tile.height = levelHeight - tile.offsetY;
+        height = levelHeight - offsetY;
 
-    return getPatchAsImage(level, tile.offsetX, tile.offsetY, tile.width, tile.height, convertToRGB);
+    return getPatchAsImage(level, offsetX, offsetY, width, height, convertToRGB);
 }
 
 uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *data, int width, int height, int channels) {
