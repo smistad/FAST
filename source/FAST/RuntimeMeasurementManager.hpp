@@ -3,7 +3,7 @@
 #include <string>
 #include <map>
 #include <FAST/OpenCL.hpp>
-#include "RuntimeMeasurement.hpp"
+#include <FAST/RuntimeMeasurement.hpp>
 #include <chrono>
 #include <memory>
 

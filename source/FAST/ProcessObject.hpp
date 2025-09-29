@@ -1,21 +1,20 @@
 #pragma once
 
-#include "FAST/Utility.hpp"
+#include <FAST/Utility.hpp>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include "FAST/Object.hpp"
-#include "FAST/Data/DataObject.hpp"
-#include "FAST/ExecutionDevice.hpp"
-#include "FAST/DeviceManager.hpp"
-#include "FAST/Config.hpp"
-#include "FAST/DataChannels/DataChannel.hpp"
+#include <FAST/Object.hpp>
+#include <FAST/Data/DataObject.hpp>
+#include <FAST/ExecutionDevice.hpp>
+#include <FAST/DeviceManager.hpp>
+#include <FAST/Config.hpp>
+#include <FAST/DataChannels/DataChannel.hpp>
 #include <FAST/DataStream.hpp>
 
 namespace fast {
 
 class OpenCLProgram;
-class ProcessObject;
 
 /**
  * @defgroup segmentation Segmentation

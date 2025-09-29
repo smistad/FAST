@@ -2,12 +2,12 @@
 
 #define NOMINMAX // Removes windows min and max macros
 #define _USE_MATH_DEFINES
-#include "FAST/Exception.hpp"
-#include "FAST/Reporter.hpp"
+#include <FAST/Exception.hpp>
+#include <FAST/Reporter.hpp>
 #include "FASTVersion.hpp"
-#include "RuntimeMeasurement.hpp"
-#include "RuntimeMeasurementManager.hpp"
-#include "FAST/Attribute.hpp"
+#include <FAST/RuntimeMeasurement.hpp>
+#include <FAST/RuntimeMeasurementManager.hpp>
+#include <FAST/Attribute.hpp>
 #include <unordered_map>
 #include <memory>
 
@@ -281,8 +281,6 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
  *  @brief FAST namespace - All FAST code lives in this namespace.
  */
 namespace fast {
-
-class RuntimeMeasurementManager;
 
 /**
  * @defgroup widgets Widgets
