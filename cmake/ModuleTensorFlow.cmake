@@ -6,7 +6,7 @@ if(FAST_MODULE_TensorFlow)
     if(WIN32)
         fast_download_dependency(tensorflow
                 2.4.0
-                ff6b590025dd7b9a736987ff082ef0af20fe4f91a9b3fe846d25828d806a094b
+                391eb42064c585ae03a746d5d13535d9660336f21906303c0b8f8c4f3af50cca
         )
         set(TensorFlow_LIBRARIES tensorflow_cc.lib)
     elseif(APPLE)
