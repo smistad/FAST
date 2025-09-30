@@ -263,35 +263,20 @@ void ImagePyramid::free(ExecutionDevice::pointer device) {
 }
 
 void ImagePyramid::freeAll() {
+    m_levels.clear();
     if(m_fileHandle != nullptr) {
-        m_levels.clear();
         openslide_close(m_fileHandle);
     } else if(m_tiffHandle != nullptr) {
-        m_levels.clear();
         TIFFClose(m_tiffHandle);
         if(m_tempFile) {
             // If this is a temp file created by FAST. Delete it.
             std::remove(m_tiffPath.c_str());
         }
-    } else {
-		for(auto& item : m_levels) {
-			if(item.memoryMapped) {
-#ifdef WIN32
-				UnmapViewOfFile(item.data);
-				CloseHandle(item.fileHandle);
-#else
-				munmap(item.data, item.width*item.height*m_channels);
-				close(item.fileHandle);
-#endif
-			} else {
-				delete[] item.data;
-			}
-		}
-        m_levels.clear();
     }
 
 	m_initialized = false;
 	m_fileHandle = nullptr;
+	m_tiffHandle = nullptr;
 }
 
 ImagePyramid::~ImagePyramid() {
@@ -301,7 +286,7 @@ int ImagePyramid::getNrOfChannels() const {
     return m_channels;
 }
 
-ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
+ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type, bool useTileCache, int tileCacheSize) {
     if(!m_initialized)
         throw Exception("ImagePyramid has not been initialized.");
 
@@ -322,7 +307,7 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    auto access =  std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat);
+    auto access =  std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, m_tiffHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE, m_initializedPatchList, m_readMutex, m_compressionFormat, useTileCache, tileCacheSize);
     if(m_JPEGTablesCount > 0)
         access->setJPEGTables(m_JPEGTablesCount, m_JPEGTablesData);
     return access;
@@ -437,7 +422,7 @@ ImagePyramid::ImagePyramid(TIFF *fileHandle, std::vector<ImagePyramidLevel> leve
                 int quality = -1;
                 int res = TIFFGetField(m_tiffHandle, TIFFTAG_JPEGQUALITY, &quality);
                 if(res != 1)
-                    throw Exception("Unable to get JPEG quality from TIFF");
+                    reportInfo() << "Unable to get JPEG quality from TIFF" << reportEnd();
                 m_compressionQuality = quality;
             }
             {

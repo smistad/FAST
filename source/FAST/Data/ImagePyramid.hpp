@@ -80,7 +80,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         std::string getTIFFPath() const;
         void setSpacing(Vector3f spacing);
         Vector3f getSpacing() const;
-        ImagePyramidAccess::pointer getAccess(accessType type);
+        ImagePyramidAccess::pointer getAccess(accessType type, bool useTileCache = false, int tileCacheSize = -1);
         std::unordered_set<std::string> getDirtyPatches();
         bool isDirtyPatch(const std::string& tileID);
         bool isOMETIFF() const;

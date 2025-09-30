@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 #include <deque>
-#include "FAST/Object.hpp"
+#include <FASTExport.hpp>
 
 namespace fast {
 /**
@@ -15,7 +15,7 @@ namespace fast {
  * All measurements are in milliseconds
  *
  */
-class FAST_EXPORT  RuntimeMeasurement : public Object {
+class FAST_EXPORT RuntimeMeasurement {
 public:
 	typedef std::shared_ptr<RuntimeMeasurement> pointer;
 	RuntimeMeasurement(std::string name, int warmupRounds = 0, int maximumSamples = -1);
@@ -28,7 +28,7 @@ public:
 	double getStdDeviation() const;
 	std::string print() const;
 	void reset();
-	~RuntimeMeasurement() override = default;
+	~RuntimeMeasurement() = default;
 private:
 	RuntimeMeasurement();
 

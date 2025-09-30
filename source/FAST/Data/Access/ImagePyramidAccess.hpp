@@ -14,10 +14,10 @@ class Image;
 class ImagePyramid;
 class NeuralNetwork;
 
-
 /**
  * @brief Image compression types for ImagePyramids
  *
+ * @sa ImagePyramid
  * @ingroup wsi
  */
 enum class ImageCompression {
@@ -31,41 +31,34 @@ enum class ImageCompression {
     DEFLATE, // Zlib lossless
 };
 
-class FAST_EXPORT ImagePyramidPatch {
-public:
-	std::unique_ptr<uchar[]> data;
-	int width;
-	int height;
-	int offsetX;
-	int offsetY;
-};
-
+/**
+ * @brief Object for metadata of an ImagePyramid level
+ * @sa ImagePyramid
+ * @ingroup wsi
+ */
 class FAST_EXPORT ImagePyramidLevel {
 public:
 	int width;
 	int height;
-	int tileWidth = 256;
-	int tileHeight = 256;
+	int tileWidth = 1024;
+	int tileHeight = 1024;
 	int tilesX;
     int tilesY;
-	bool memoryMapped;
-	uint8_t* data;
 	uint64_t offset = 0; // subifd offset used by OME-TIFF
-#ifdef WIN32
-	void* fileHandle;
-#else
-	int fileHandle;
-#endif
 };
 
 /**
  * @brief CPU access to ImagePyramid
  * @ingroup access
  */
-class FAST_EXPORT ImagePyramidAccess : Object {
+#ifdef SWIG
+class FAST_EXPORT ImagePyramidAccess {
+#else
+class FAST_EXPORT ImagePyramidAccess : public Object {
+#endif
 public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
-	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat);
+	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, TIFF* tiffHandle, std::shared_ptr<ImagePyramid> imagePyramid, bool writeAccess, std::unordered_set<std::string>& initializedPatchList, std::mutex& readMutex, ImageCompression compressionFormat, bool useCache = false, int cacheLimit = -1);
 	/**
 	 * @brief Write a patch to the pyramid
 	 * @param level
@@ -85,8 +78,32 @@ public:
 	bool isPatchInitialized(int level, int x, int y);
 	template <class T>
 	std::unique_ptr<T[]> getPatchData(int level, int x, int y, int width, int height);
+	/**
+	 * @brief Get a specific level in an ImagePyramid as an Image object.
+	 * If requesting a level with a width or height higher than 16384 pixels this will throw an exception.
+	 * @param level
+	 * @return
+	 */
 	std::shared_ptr<Image> getLevelAsImage(int level);
+	/**
+	 * @brief Extract a patch from the image pyramid and return it as an Image
+	 * @param level Level to extract patch from
+	 * @param offsetX X offset
+	 * @param offsetY Y offset
+	 * @param width Width of patch
+	 * @param height Height of patch
+	 * @param convertToRGB convert to RGB when using OpenSlide, since it will return BGRA data
+	 * @return Patch as Image
+	 */
 	std::shared_ptr<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height, bool convertToRGB = true);
+	/**
+	 * @brief Extract a tile from the Image Pyramid
+	 * @param level Level to extract tile from
+	 * @param patchIdX Tile X id
+	 * @param patchIdY  Tile Y id
+	 * @param convertToRGB convert to RGB when using OpenSlide, since it will return BGRA data
+	 * @return Tile as Image
+	 */
 	std::shared_ptr<Image> getPatchAsImage(int level, int patchIdX, int patchIdY, bool convertToRGB = true);
 	/**
 	 * @brief Get patch as Image at a specific magnification
@@ -95,12 +112,12 @@ public:
 	 * @param offsetY Physical offset y position of patch
 	 * @param width Width of patch in pixels
 	 * @param height Height of patch in pixels
-	 * @param convertToRGB Convert from BGR to RGB if needed
+	 * @param convertToRGB convert to RGB when using OpenSlide, since it will return BGRA data
 	 * @return patch as Image object
 	 */
     std::shared_ptr<Image> getPatchAsImageForMagnification(float magnification, float offsetX, float offsetY, int width, int height, bool convertToRGB = true);
 	void release();
-	~ImagePyramidAccess();
+	~ImagePyramidAccess() override;
 	void setJPEGTables(uint32_t tableCount, void* tableData);
 private:
     std::unique_ptr<uchar[]> getPatchDataChar(int level, int x, int y, int width, int height);
@@ -123,6 +140,14 @@ private:
 
     uint32_t m_JPEGTablesCount = 0;
     void* m_JPEGTablesData = nullptr;
+
+    // Optional tile cache
+    void addTileToQueue(const std::string& id);
+    std::unordered_map<std::string, std::shared_ptr<char[]>> m_tileCache; // Should ideally be a unique_ptr here, but MSVC can't handle that
+    std::deque<std::string> m_tileCacheQueue;
+    std::unordered_map<std::string, int> m_tileCacheCounter;
+    uint64_t m_tileCacheSizeLimit;
+    bool m_useTileCache;
 };
 
 template <class T>

@@ -2,12 +2,6 @@
 #include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp>
 #include <FAST/Utility.hpp>
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <openslide.h>
-#else
-#include <openslide/openslide.h>
-#endif
-#include <tiffio.h>
 #include <FAST/Data/Image.hpp>
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
 #include <FAST/Algorithms/NeuralNetwork/TensorToImage.hpp>
@@ -15,6 +9,8 @@
 #include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include <FAST/Algorithms/Compression/JPEGXLCompression.hpp>
 #include <FAST/Algorithms/Compression/JPEGCompression.hpp>
+#include <openslide/openslide.h>
+#include <tiffio.h>
 
 namespace fast {
 
@@ -26,7 +22,9 @@ ImagePyramidAccess::ImagePyramidAccess(
         bool write,
         std::unordered_set<std::string>& initializedPatchList,
         std::mutex& readMutex,
-        ImageCompression compressionFormat
+        ImageCompression compressionFormat,
+        bool useCache,
+        int cacheLimit
         ) : m_initializedPatchList(initializedPatchList), m_readMutex(readMutex) {
 	if(levels.size() == 0)
 		throw Exception("Image pyramid has no levels");
@@ -36,6 +34,8 @@ ImagePyramidAccess::ImagePyramidAccess(
     m_fileHandle = fileHandle;
     m_tiffHandle = tiffHandle;
     m_compressionFormat = compressionFormat;
+    m_useTileCache = useCache;
+    m_tileCacheSizeLimit = cacheLimit;
 }
 
 void ImagePyramidAccess::release() {
@@ -80,7 +80,12 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
         if(width == tileWidth && height == tileHeight && x % tileWidth == 0 && y % tileHeight == 0) {
             // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
             int bytesRead = readTileFromTIFF((void *) data.get(), x, y, level);
-        } else if(width <= tileWidth && height <= tileHeight && x % tileWidth == 0 && y % tileHeight == 0) {
+        } else if(width <= tileWidth && height <= tileHeight &&
+                (x - (x/tileWidth)*tileWidth) + width <= tileWidth &&
+                (y - (y/tileHeight)*tileHeight) + height <= tileHeight
+                ) {
+            // We only need to read 1 tile
+            mRuntimeManager->startRegularTimer("simple");
             auto tileData = std::make_unique<uchar[]>(tileWidth*tileHeight*bytesPerPixel);
             {
                 // From TIFFReadTile documentation: Return the data for the tile containing the specified coordinates.
@@ -88,19 +93,51 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
                 int bytesRead = readTileFromTIFF((void *) tileData.get(), x, y, level);
             }
             // Remove extra
-            for(int dy = 0; dy < height; ++dy) {
-                for(int dx = 0; dx < width; ++dx) {
-                    for(int channel = 0; channel < channels; ++channel) {
-                        data[(dx + dy*width)*channels + channel] = tileData[(dx + dy*tileWidth)*channels + channel];
+            mRuntimeManager->startRegularTimer("Crop tile");
+            const int offsetX = x - (x/tileWidth)*tileWidth;
+            const int offsetY = y - (y/tileHeight)*tileHeight;
+
+            // Skip inner loop for most common cases
+            if(bytesPerPixel == 3) {
+                for(int dy = 0; dy < height; ++dy) {
+                    for(int dx = 0; dx < width; ++dx) {
+                        const int index = (dx + dy*width)*3;
+                        const int index2 = (offsetX + dx + (offsetY + dy)*tileWidth)*3;
+                        data[index] = tileData[index2];
+                        data[index + 1] = tileData[index2 + 1];
+                        data[index + 2] = tileData[index2 + 2];
+                    }
+                }
+            } else if(bytesPerPixel == 1) {
+                for(int dy = 0; dy < height; ++dy) {
+                    for(int dx = 0; dx < width; ++dx) {
+                        data[dx + dy*width] = tileData[offsetX + dx + (offsetY + dy)*tileWidth];
+                    }
+                }
+            } else {
+                for(int dy = 0; dy < height; ++dy) {
+                    for(int dx = 0; dx < width; ++dx) {
+                        for(int byte = 0; byte < bytesPerPixel; ++byte) {
+                            data[(dx + dy*width)*bytesPerPixel + byte] = tileData[(offsetX + dx + (offsetY + dy)*tileWidth)*bytesPerPixel + byte];
+                        }
                     }
                 }
             }
+            mRuntimeManager->stopRegularTimer("Crop tile");
+            mRuntimeManager->stopRegularTimer("simple");
         } else {
+            mRuntimeManager->startRegularTimer("full");
             // Create buffer to contain all tiles
             int totalTilesX = std::ceil((float)width / tileWidth);
             int totalTilesY = std::ceil((float)height / tileHeight);
-            if(x % tileWidth != 0) totalTilesX += 1;
-            if(y % tileHeight != 0) totalTilesY += 1;
+
+            // TODO check if this is correct
+            // Check if requested patch does not align with tiling:
+            const int startX = (int)std::floor(x/tileWidth)*tileWidth;
+            const int startY = (int)std::floor(y/tileHeight)*tileHeight;
+            if(startX + totalTilesX*tileWidth < x + width) totalTilesX += 1;
+            if(startY + totalTilesY*tileHeight < y + height) totalTilesY += 1;
+
             const int targetNumberOfTiles = totalTilesX*totalTilesY;
             auto fullTileBuffer = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*targetNumberOfTiles*bytesPerPixel);
             // Does the buffer need to be initialized/padded?
@@ -115,17 +152,36 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
             const int firstTileX = x / tileWidth;
             const int firstTileY = y / tileHeight;
             const int fullTileBufferWidth = totalTilesX*tileWidth;
-            for(int i = 0; i < totalTilesX; ++i) {
-                for(int j = 0; j < totalTilesY; ++j) {
+            for(int j = 0; j < totalTilesY; ++j) {
+                for(int i = 0; i < totalTilesX; ++i) {
                     auto tileData = make_uninitialized_unique<uchar[]>(tileWidth*tileHeight*bytesPerPixel);
-                    int tileX = i*tileWidth;
-                    int tileY = j*tileHeight;
+                    const int tileX = i*tileWidth;
+                    const int tileY = j*tileHeight;
                     int bytesRead = readTileFromTIFF((void *) tileData.get(), firstTileX*tileWidth+tileX, firstTileY*tileHeight+tileY, level);
                     // Stitch tile into full buffer
-                    for(int cy = 0; cy < tileHeight; ++cy) {
-                        for(int cx = 0; cx < tileWidth; ++cx) {
-                            for(int byte = 0; byte < bytesPerPixel; ++byte) {
-                                fullTileBuffer[(tileX + cx + (tileY + cy)*fullTileBufferWidth)*bytesPerPixel + byte] = tileData[(cx + cy*tileWidth)*bytesPerPixel + byte];
+                    // Optimize for 3 and 1 channel char
+                    if(bytesPerPixel == 3) {
+                        for(int cy = 0; cy < tileHeight; ++cy) {
+                            for(int cx = 0; cx < tileWidth; ++cx) {
+                                const int index1 = (tileX + cx + (tileY + cy)*fullTileBufferWidth)*3;
+                                const int index2 = (cx + cy*tileWidth)*3;
+                                fullTileBuffer[index1] = tileData[index2];
+                                fullTileBuffer[index1 + 1] = tileData[index2 + 1];
+                                fullTileBuffer[index1 + 2] = tileData[index2 + 2];
+                            }
+                        }
+                    } else if(bytesPerPixel == 1) {
+                        for(int cy = 0; cy < tileHeight; ++cy) {
+                            for(int cx = 0; cx < tileWidth; ++cx) {
+                                fullTileBuffer[(tileX + cx + (tileY + cy)*fullTileBufferWidth)] = tileData[(cx + cy*tileWidth)];
+                            }
+                        }
+                    } else {
+                        for(int cy = 0; cy < tileHeight; ++cy) {
+                            for(int cx = 0; cx < tileWidth; ++cx) {
+                                for(int byte = 0; byte < bytesPerPixel; ++byte) {
+                                    fullTileBuffer[(tileX + cx + (tileY + cy)*fullTileBufferWidth)*bytesPerPixel + byte] = tileData[(cx + cy*tileWidth)*bytesPerPixel + byte];
+                                }
                             }
                         }
                     }
@@ -134,26 +190,37 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchDataChar(int level, int x, 
             // Crop the full buffer to data[]
             const int offsetX = x - firstTileX*tileWidth;
             const int offsetY = y - firstTileY*tileHeight;
-            for(int cy = offsetY; cy < offsetY + height; ++cy) {
-                for(int cx = offsetX; cx < offsetX + width; ++cx) {
-                    for(int byte = 0; byte < bytesPerPixel; ++byte) {
-                        data[(cx - offsetX + (cy - offsetY) * width)*bytesPerPixel + byte] = fullTileBuffer[(cx + cy * fullTileBufferWidth)*bytesPerPixel + byte];
+            // Optimize for 3 and 1 channel char
+            if(bytesPerPixel == 3) {
+                for(int cy = offsetY; cy < offsetY + height; ++cy) {
+                    for(int cx = offsetX; cx < offsetX + width; ++cx) {
+                        const int index1 = (cx - offsetX + (cy - offsetY) * width)*bytesPerPixel;
+                        const int index2 = (cx + cy * fullTileBufferWidth)*bytesPerPixel;
+                        data[index1] = fullTileBuffer[index2];
+                        data[index1 + 1] = fullTileBuffer[index2 + 1];
+                        data[index1 + 2] = fullTileBuffer[index2 + 2];
+                    }
+                }
+            } else if(bytesPerPixel == 1) {
+                for(int cy = offsetY; cy < offsetY + height; ++cy) {
+                    for(int cx = offsetX; cx < offsetX + width; ++cx) {
+                        data[(cx - offsetX + (cy - offsetY) * width)] = fullTileBuffer[(cx + cy * fullTileBufferWidth)];
+                    }
+                }
+            } else {
+                for(int cy = offsetY; cy < offsetY + height; ++cy) {
+                    for(int cx = offsetX; cx < offsetX + width; ++cx) {
+                        for(int byte = 0; byte < bytesPerPixel; ++byte) {
+                            data[(cx - offsetX + (cy - offsetY) * width)*bytesPerPixel + byte] = fullTileBuffer[(cx + cy * fullTileBufferWidth)*bytesPerPixel + byte];
+                        }
                     }
                 }
             }
+            mRuntimeManager->stopRegularTimer("full");
         }
     } else if(m_fileHandle != nullptr) {
         int scale = (float)m_image->getFullWidth()/levelWidth;
         openslide_read_region(m_fileHandle, (uint32_t*)data.get(), x * scale, y * scale, level, width, height);
-    } else {
-        auto levelData = m_levels[level];
-        for(int cy = y; cy < std::min(y + height, levelHeight); ++cy) {
-            for(int cx = x; cx < std::min(x + width, levelWidth); ++cx) {
-                for(int channel = 0; channel < channels; ++channel) {
-                    data[(cx - x + (cy - y) * width)*channels + channel] = levelData.data[(cx + cy * levelWidth)*channels + channel];
-                }
-            }
-        }
     }
 
     return data;
@@ -271,18 +338,17 @@ std::shared_ptr<Image> ImagePyramidAccess::getPatchAsImage(int level, int tileX,
     int tilesY = m_image->getLevelTilesY(level);
     int levelTileWidth = m_image->getLevelTileWidth(level);
     int levelTileHeight = m_image->getLevelTileHeight(level);
-    ImagePyramidPatch tile;
-    tile.offsetX = tileX * levelTileWidth;
-    tile.offsetY = tileY * levelTileHeight;
+    int offsetX = tileX * levelTileWidth;
+    int offsetY = tileY * levelTileHeight;
 
-    tile.width = levelTileWidth;
+    int width = levelTileWidth;
     if(tileX == tilesX - 1)
-        tile.width = levelWidth - tile.offsetX;
-    tile.height = levelTileHeight;
+        width = levelWidth - offsetX;
+    int height = levelTileHeight;
     if(tileY == tilesY - 1)
-        tile.height = levelHeight - tile.offsetY;
+        height = levelHeight - offsetY;
 
-    return getPatchAsImage(level, tile.offsetX, tile.offsetY, tile.width, tile.height, convertToRGB);
+    return getPatchAsImage(level, offsetX, offsetY, width, height, convertToRGB);
 }
 
 uint32_t ImagePyramidAccess::writeTileToTIFF(int level, int x, int y, uchar *data, int width, int height, int channels) {
@@ -504,12 +570,43 @@ bool ImagePyramidAccess::isPatchInitialized(int level, int x, int y) {
     return m_initializedPatchList.count(std::to_string(level) + "-" + std::to_string(tile)) > 0;
 }
 
+void ImagePyramidAccess::addTileToQueue(const std::string& id) {
+    if(m_tileCacheCounter.count(id) == 0) {
+        m_tileCacheCounter[id] = 1;
+    } else {
+        m_tileCacheCounter[id] += 1;
+    }
+    m_tileCacheQueue.push_back(id);
+
+    if(m_tileCacheSizeLimit > 0) { // Tile cache is limited
+        while(m_tileCache.size() >= m_tileCacheSizeLimit) {
+            auto item = m_tileCacheQueue.front();
+            m_tileCacheQueue.pop_front();
+            m_tileCacheCounter[item] -= 1;
+            if(m_tileCacheCounter[item] <= 0) {
+                m_tileCache.erase(item);
+                m_tileCacheCounter.erase(item);
+            }
+        }
+    }
+}
+
 int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
     const auto tileWidth = m_image->getLevelTileWidth(level);
     const auto tileHeight = m_image->getLevelTileHeight(level);
     const auto channels = m_image->getNrOfChannels();
+    const int bytesPerPixel = getSizeOfDataType(m_image->getDataType(), channels);
     TIFFSetDirectory(m_tiffHandle, level);
     const uint32_t tile_id = TIFFComputeTile(m_tiffHandle, x, y, 0, 0);
+    auto id = std::to_string(level) + "_" + std::to_string(tile_id);
+    if(m_useTileCache) {
+        if(m_tileCache.count(id) > 0) {
+            // Cache hit
+            std::memcpy(data, m_tileCache.at(id).get(), tileWidth*tileHeight*bytesPerPixel);
+            addTileToQueue(id);
+            return 0;
+        }
+    }
     if(TIFFGetStrileByteCount(m_tiffHandle, tile_id) == 0) { // Blank patch
         if(channels == 1) {
             std::memset(data, 0, tileWidth*tileHeight*channels);
@@ -544,11 +641,15 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
         if(m_compressionFormat == ImageCompression::JPEG /*&& m_image->isOMETIFF()*/) {
             // Use libjpeg for decompression, as ome-tiff files doesn't seem to like tiff's internal jpeg
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
+            mRuntimeManager->startRegularTimer("TIFFReadRawTile");
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
+            mRuntimeManager->stopRegularTimer("TIFFReadRawTile");
 
+            mRuntimeManager->startRegularTimer("JPEG decompression");
             JPEGCompression jpeg(m_JPEGTablesCount, m_JPEGTablesData);
             int width, height;
             jpeg.decompress((uchar*)buffer.get(), bytesRead, &width, &height, (uchar*)data);
+            mRuntimeManager->stopRegularTimer("JPEG decompression");
         } else if(m_compressionFormat == ImageCompression::JPEGXL) {
             auto buffer = make_uninitialized_unique<char[]>(tileWidth*tileHeight*channels);
             bytesRead = TIFFReadRawTile(m_tiffHandle, tile_id, buffer.get(), tileWidth*tileHeight*channels);
@@ -558,6 +659,12 @@ int ImagePyramidAccess::readTileFromTIFF(void *data, int x, int y, int level) {
             jxl.decompress((uchar*)buffer.get(), bytesRead, &width, &height, (uchar*)data);
         } else {
             bytesRead = TIFFReadTile(m_tiffHandle, data, x, y, 0, 0);
+        }
+        if(m_useTileCache) {
+            auto data2 = make_uninitialized_unique<char[]>(tileWidth*tileHeight*bytesPerPixel);
+            std::memcpy(data2.get(), data, tileWidth*tileHeight*bytesPerPixel);
+            m_tileCache.insert({id, std::move(data2)});
+            addTileToQueue(id);
         }
         return bytesRead;
     }

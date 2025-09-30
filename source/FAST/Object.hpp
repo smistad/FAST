@@ -2,10 +2,12 @@
 
 #define NOMINMAX // Removes windows min and max macros
 #define _USE_MATH_DEFINES
-#include "FAST/Exception.hpp"
-#include "FAST/Reporter.hpp"
+#include <FAST/Exception.hpp>
+#include <FAST/Reporter.hpp>
 #include "FASTVersion.hpp"
-#include "FAST/Attribute.hpp"
+#include <FAST/RuntimeMeasurement.hpp>
+#include <FAST/RuntimeMeasurementManager.hpp>
+#include <FAST/Attribute.hpp>
 #include <unordered_map>
 #include <memory>
 
@@ -299,12 +301,23 @@ class FAST_EXPORT  Object {
             return "Object";
         }
         Reporter& getReporter();
+
+        // Runtime stuff
+        RuntimeMeasurement::pointer getRuntime();
+        RuntimeMeasurement::pointer getRuntime(std::string name);
+        RuntimeMeasurementsManager::pointer getAllRuntimes();
+        RuntimeMeasurementsManager::pointer getRuntimeManager();
+        void enableRuntimeMeasurements();
+        void disableRuntimeMeasurements();
+
     protected:
         Reporter& reportError();
         Reporter& reportWarning();
         Reporter& reportInfo();
         ReporterEnd reportEnd() const;
         std::weak_ptr<Object> mPtr;
+
+        RuntimeMeasurementsManager::pointer mRuntimeManager;
     private:
         Reporter mReporter;
 

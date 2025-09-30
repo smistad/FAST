@@ -17,6 +17,8 @@ import $module
 
 %{
 
+#include <FAST/RuntimeMeasurement.hpp>
+#include <FAST/RuntimeMeasurementManager.hpp>
 #include <FAST/Object.hpp>
 #include <FAST/ProcessObject.hpp>
 #include <FAST/Reporter.hpp>
@@ -154,14 +156,14 @@ public
 %unique_ptr(fast::OpenGLTextureAccess)
 
 // Shared_ptr declerations
+%shared_ptr(fast::RuntimeMeasurement)
+%shared_ptr(fast::RuntimeMeasurementsManager)
 %shared_ptr(fast::Object)
 %shared_ptr(fast::AttributeObject)
 %shared_ptr(fast::DataChannel)
 %shared_ptr(fast::ExecutionDevice)
 %shared_ptr(fast::Host)
 %shared_ptr(fast::OpenCLDevice)
-%shared_ptr(fast::RuntimeMeasurement)
-%shared_ptr(fast::RuntimeMeasurementsManager)
 %shared_ptr(fast::DataObject)
 %shared_ptr(fast::Transform)
 %shared_ptr(fast::SpatialDataObject)
@@ -362,14 +364,14 @@ void _freePointer(std::size_t pointer, fast::DataType type) {
 %}
 
 // Interface includes
+%include <FAST/RuntimeMeasurement.hpp>
+%include <FAST/RuntimeMeasurementManager.hpp>
 %include <FAST/Reporter.hpp>
 %include <FAST/Object.hpp>
 %include <FAST/Data/DataObject.hpp>
 %include <FAST/DataChannels/DataChannel.hpp>
 %include <FAST/DeviceCriteria.hpp>
 %include <FAST/DataChannels/DataChannel.hpp>
-%include <FAST/RuntimeMeasurement.hpp>
-%include <FAST/RuntimeMeasurementManager.hpp>
 %include <FAST/ExecutionDevice.hpp>
 %include <FAST/Attribute.hpp>
 %include <FAST/ProcessObject.hpp>
