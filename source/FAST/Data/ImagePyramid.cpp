@@ -62,6 +62,10 @@ ImagePyramid::ImagePyramid(int width, int height, int channels, int patchWidth, 
         sprintf(str.get(), fmt, ap);
         Reporter::warning() << "TIFF warning: " << module << ": " << str.get() << Reporter::end();
     });
+#ifdef WIN32
+    // Since FAST is handling JPEG without the help TIFF, we do this to avoid an annoying warning:
+    TIFFRegisterCODEC(COMPRESSION_JPEG, "JPEG", [](TIFF*, int)->int { return 1; });
+#endif
     m_tiffHandle = TIFFOpen(m_tiffPath.c_str(), "w8"); // 8 == Bigtiff (64 bit)
     auto tiff = m_tiffHandle;
     m_counter += 1;

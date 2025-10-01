@@ -67,6 +67,10 @@ void TIFFImagePyramidExporter::execute() {
         samplesPerPixel = 1;
     }
 
+#ifdef WIN32
+    // Since FAST is handling JPEG without the help TIFF, we do this to avoid an annoying warning:
+    TIFFRegisterCODEC(COMPRESSION_JPEG, "JPEG", [](TIFF*, int)->int { return 1; });
+#endif
     auto tiff = TIFFOpen(m_filename.c_str(), "w8");
     if(tiff == nullptr) {
         throw Exception("Unable to open file " + m_filename + " in TIFFImagePyramidExporter");
