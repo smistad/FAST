@@ -95,7 +95,7 @@ jobs:
       shell: powershell
       run: |
         $TENSORRT_DOWNLOAD_URL = "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/zip/TensorRT-8.6.1.6.Windows10.x86_64.cuda-11.8.zip"
-        $TENSORRT_LOCAL = "tensorrt.zip"
+        $TENSORRT_LOCAL = "${{github.workspace}}/tensorrt.zip"
         Write-Output "Downloading TensorRT from: $($TENSORRT_DOWNLOAD_URL)"
         Invoke-WebRequest $TENSORRT_DOWNLOAD_URL -OutFile $TENSORRT_LOCAL | Out-Null
         if(Test-Path -Path $TENSORRT_LOCAL){
@@ -104,9 +104,10 @@ jobs:
             Write-Output "Error: Failed to download $($TENSORRT_LOCAL) from $($TENSORRT_DOWNLOAD_URL)"
             exit 1
         }
-        Expand-Archive -Path ${{github.workspace}}/tensorrt.zip -DestinationPath ${{github.workspace}}/trt/
+        Expand-Archive -Path $TENSORRT_LOCAL -DestinationPath ${{github.workspace}}/trt/
+
         $CUDNN_DOWNLOAD_URL = "https://developer.nvidia.com/compute/cudnn/secure/8.6.0/local_installers/11.8/cudnn-windows-x86_64-8.6.0.163_cuda11-archive.zip"
-        $CUDNN_LOCAL = "cudnn.zip"
+        $CUDNN_LOCAL = "${{github.workspace}}/cudnn.zip"
         Write-Output "Downloading cudnn from: $($CUDNN_DOWNLOAD_URL)"
         Invoke-WebRequest $CUDNN_DOWNLOAD_URL -OutFile $CUDNN_LOCAL | Out-Null
         if(Test-Path -Path $CUDNN_LOCAL){
@@ -115,7 +116,7 @@ jobs:
             Write-Output "Error: Failed to download $($CUDNN_LOCAL) from $($CUDNN_DOWNLOAD_URL)"
             exit 1
         }
-        Expand-Archive -Path ${{github.workspace}}/cudnn.zip -DestinationPath ${{github.workspace}}/cudnn/
+        Expand-Archive -Path $CUDNN_LOCAL -DestinationPath ${{github.workspace}}/cudnn/
         cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.6.0.163_cuda11-archive/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
         cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.6.0.163_cuda11-archive/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
         cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.6.0.163_cuda11-archive/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
