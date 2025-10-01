@@ -80,6 +80,7 @@ jobs:
             Write-Output "Error: CUDA installer reported error. $($LASTEXITCODE)"
             exit 1
         }
+        Remove-Item .\"$($CUDA_REPO_PKG_LOCAL)"
 
         # Store the CUDA_PATH in the environment for the current session, to be forwarded in the action.
         $CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v$($CUDA_MAJOR).$($CUDA_MINOR)"
@@ -105,6 +106,7 @@ jobs:
             exit 1
         }
         Expand-Archive -Path $TENSORRT_LOCAL -DestinationPath ${{github.workspace}}/trt/
+        Remove-Item $TENSORRT_LOCAL
 
         $CUDNN_DOWNLOAD_URL = "https://developer.nvidia.com/compute/cudnn/secure/8.6.0/local_installers/11.8/cudnn-windows-x86_64-8.6.0.163_cuda11-archive.zip"
         $CUDNN_LOCAL = "${{github.workspace}}/cudnn.zip"
@@ -117,6 +119,7 @@ jobs:
             exit 1
         }
         Expand-Archive -Path $CUDNN_LOCAL -DestinationPath ${{github.workspace}}/cudnn/
+        Remove-Item $CUDNN_LOCAL
         cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.6.0.163_cuda11-archive/bin/*.dll "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/bin/"
         cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.6.0.163_cuda11-archive/include/cudnn*.h "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/include/"
         cp ${{github.workspace}}/cudnn/cudnn-windows-x86_64-8.6.0.163_cuda11-archive/lib/cudnn*.lib "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0/lib/x64/"
