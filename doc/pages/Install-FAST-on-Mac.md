@@ -57,9 +57,8 @@ and the [Python examples page](@ref python-examples).
 @m_class{m-block m-warning}
 
 @par Running FAST on a remote server
-If you want to run FAST on a remote server <b>AND</b> visualize you need to use VirtualGL.
-Plain X forwarding (ssh -X) most likely will not work.
-[See this page for more info on how to use VirtualGL](@ref fast-remote-server).
+If you want to run FAST on a remote server <b>AND</b> visualize
+you need Xvfb or VirtualGL, [see this page for information on how to do this](@ref fast-remote-server).
 
 C++ {#cpp-mac}
 ==============
