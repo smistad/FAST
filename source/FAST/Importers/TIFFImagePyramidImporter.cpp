@@ -20,6 +20,10 @@ void TIFFImagePyramidImporter::execute() {
         if(strstr.find("tag ignored") == std::string::npos) // ignore warnings about incorrect tag
             Reporter::warning() << "TIFF: " << module << ": " << str.get() << Reporter::end();
     });
+#ifdef WIN32
+    // Since FAST is handling JPEG without the help TIFF, we do this to avoid an annoying warning:
+    TIFFRegisterCODEC(COMPRESSION_JPEG, "JPEG", [](TIFF*, int)->int { return 1; });
+#endif
     TIFF* tiff = TIFFOpen(m_filename.c_str(), "rm");
     if(tiff == nullptr) {
         throw Exception("Failed to open file " + m_filename);

@@ -5,6 +5,11 @@ if(WIN32)
         51aec03201152d99ca9c6a561b3c28e0e1c1043d9488c9bd7b590b03412347e0
         jxl.lib jxl_threads.lib
     )
+    fast_download_dependency(libjpeg-turbo
+        3.1.2
+        eb899ea3f5d839c8e38fbf050080b6967c89f387ea007edd4908ebe67fe935e8
+        jpeg.lib
+    )
 elseif(APPLE)
     if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
         fast_download_dependency(jpegxl
