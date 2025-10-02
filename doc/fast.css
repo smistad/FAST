@@ -19,3 +19,10 @@ li {
 img {
     object-fit: contain;
 }
+
+@media (max-width: 400px) {
+    #m-navbar-brand {
+        font-size: 1rem !important;
+    }
+}
+
