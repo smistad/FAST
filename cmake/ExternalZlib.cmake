@@ -22,8 +22,8 @@ else()
 endif()
 else()
 	fast_download_dependency(zlib
-			1.2.9
-			72d5aa4d2e12266858ff668ad9e0d44e707a42112008f566777f9bea1a792274
+			2.2.5
+			a4d79e28a925ca87a633a227d6dc948fce061e01da766985805db57a6cbea574
 			libz.so
-			)
+	)
 endif()
