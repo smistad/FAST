@@ -25,7 +25,7 @@ LINKS_NAVBAR2 = [
         ('Build FAST on Mac OS X', 'building-on-mac'),
         ('Optional build modules', 'build-modules'),
     ]),
-    ("<a href=\"https://datahub.eriksmistad.no/\">Data</a>", []),
-    ("<a href=\"https://github.com/smistad/FAST/\">GitHub</a>", [])
+    ("<a href=\"https://fast-datahub.sintef.no/\">Data</a>", []),
+    ("<a href=\"https://github.com/FAST-Imaging/FAST/\">GitHub</a>", [])
 ]
 
