@@ -2,10 +2,10 @@
 
 if(WIN32)
 	fast_download_dependency(zlib
-			1.2.9
-			bf6971104e98a8ac64c8b172f01508e95b7e4fd81e427511b5531dd1b6376b29
+			2.2.5
+			96bd4a4561fef098f4df6ada87743e2cb43b40f34dc26406464d32e94d0c58ec
 			zlib.lib
-			)
+	)
 elseif(APPLE)
 if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
 	fast_download_dependency(zlib
