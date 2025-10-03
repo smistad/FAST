@@ -3,7 +3,7 @@
 if(WIN32)
 	fast_download_dependency(zlib
 			2.2.5
-			96bd4a4561fef098f4df6ada87743e2cb43b40f34dc26406464d32e94d0c58ec
+			479f98b34a5571b9272d4d7dcba92ac95b285e438a19f08700d0202933c01ff9
 			zlib.lib
 	)
 elseif(APPLE)
