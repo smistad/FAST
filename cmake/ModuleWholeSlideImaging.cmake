@@ -12,15 +12,12 @@ if(FAST_MODULE_WholeSlideImaging)
         )
     elseif(APPLE)
         include(cmake/ExternalOpenSlide.cmake)
-
         fast_download_dependency(tiff
                 4.3.0
                 afc79045f37ee5a3a76912efb345935a7f8d7bf2ed30a19c38bd0816c551c3e7
                 tiff.dylib
         )
-        find_package(JPEG REQUIRED)
-
-        list(APPEND LIBRARIES ${TIFF_LIBRARIES} ${JPEG_LIBRARIES} libopenslide.dylib)
+        list(APPEND LIBRARIES ${TIFF_LIBRARIES} libopenslide.dylib)
         list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openslide/)
     else()
         fast_download_dependency(tiff
