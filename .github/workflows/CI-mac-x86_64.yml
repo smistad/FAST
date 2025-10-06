@@ -21,9 +21,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        brew reinstall zlib
-        brew reinstall libtiff
-        brew install pcre
+        brew install pcre # Needed by SWIG
 
     - name: Setup pyenv
       env:
@@ -122,10 +120,6 @@ jobs:
         python-version: ['3.6', '3.10', '3.x']
     runs-on: macos-13
     steps:
-      - name: Install dependencies
-        run: |
-          brew reinstall zlib
-          brew reinstall libtiff
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
@@ -160,10 +154,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          brew reinstall zlib
-          brew reinstall libtiff
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
