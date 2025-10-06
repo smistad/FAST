@@ -16,7 +16,7 @@ if(FAST_MODULE_WholeSlideImaging)
         fast_download_dependency(tiff
                 4.3.0
                 afc79045f37ee5a3a76912efb345935a7f8d7bf2ed30a19c38bd0816c551c3e7
-                tiff.lib
+                tiff.dylib
         )
         find_package(JPEG REQUIRED)
 
