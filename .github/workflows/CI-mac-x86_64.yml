@@ -23,6 +23,7 @@ jobs:
       run: |
         brew reinstall zlib
         brew reinstall libtiff
+        brew install pcre
 
     - name: Setup pyenv
       env:
