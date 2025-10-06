@@ -15,8 +15,8 @@ if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
 			)
 else()
 	fast_download_dependency(zlib
-			1.2.9
-			74f790268fe20c564345e404f5836df9e24d1a603075adf4581cf58a85cc4dba
+			2.2.5
+			d6c4d5cd35a31dffcf1d562810c89140ca0a41abdd6935a5240469bd51dd33fd
 			libz.dylib
 			)
 endif()
