@@ -9,8 +9,8 @@ if(WIN32)
 elseif(APPLE)
 if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
 	fast_download_dependency(zlib
-			1.2.9
-			bf91823e4782458629b816c01fdf1f013d5767d977d6a35cc2fff1072082a33a
+			2.2.5
+			326e2c8fa0b4be60dee13c241927a0fe2605e1a8d7c33f3c53af1d7ef2b0b090
 			libz.dylib
 			)
 else()
