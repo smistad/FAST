@@ -13,6 +13,8 @@
 
 namespace fast {
 
+static const std::string CAST_VERSION = "12.2.0";
+
 #ifdef WIN32
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
 static std::string GetLastErrorAsString()
@@ -56,7 +58,27 @@ ClariusStreamer::ClariusStreamer(std::string ipAddress, int port, bool grayscale
     loadLibrary();
 }
 
-void ClariusStreamer::loadLibrary() {
+static void createVersionFile() {
+    std::ofstream file(Config::getKernelBinaryPath() + "/../lib/cast/VERSION");
+    if(!file.is_open())
+        throw Exception("Unable to write version file in ClariusStreamer");
+    file << CAST_VERSION;
+    file.close();
+}
+
+static bool checkVersionFile() {
+    std::ifstream file(Config::getKernelBinaryPath() + "/../lib/cast/VERSION");
+    bool result = false;
+    if(file.is_open()) {
+        std::string line;
+        std::getline(file, line);
+        result = line == CAST_VERSION;
+    }
+    file.close();
+    return result;
+}
+
+    void ClariusStreamer::loadLibrary() {
 #if defined(_M_ARM64) || defined(__aarch64__)
     const std::string arch = "arm64";
 #else
@@ -71,12 +93,12 @@ void ClariusStreamer::loadLibrary() {
         m_handle = LoadLibrary("cast.dll");
     } else {
         std::string path = Config::getKernelBinaryPath() + "/../lib/cast/cast.dll";
-        if(!fileExists(path)) {
+        if(!fileExists(path) || !checkVersionFile()) {
             // Download
             std::cout << "Clarius Cast was not bundled with this distribution." << std::endl;
             const std::string destination = Config::getKernelBinaryPath() + "/../lib/cast/";
             createDirectories(destination);
-            downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_12.0.2_windows_" + arch + ".zip", destination, "cast");
+            downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_" + CAST_VERSION + "_windows_" + arch + ".zip", destination, "cast");
         }
         m_handle = LoadLibrary(path.c_str());
     }
@@ -95,15 +117,15 @@ void ClariusStreamer::loadLibrary() {
         m_handle = dlopen(("libcast." + ext).c_str(), RTLD_LAZY);
     } else {
         std::string path = Config::getKernelBinaryPath() + "/../lib/cast/libcast." + ext;
-        if(!fileExists(path)) {
+        if(!fileExists(path) || !checkVersionFile()) {
             // Download
-            std::cout << "Clarius Cast was not bundled with this distribution." << std::endl;
+            std::cout << "Clarius Cast " << CAST_VERSION << " was not bundled with this distribution." << std::endl;
             const std::string destination = Config::getKernelBinaryPath() + "/../lib/cast/";
             createDirectories(destination);
 
 #if defined(__APPLE__)
             std::cout << "FAST will now download Clarius Cast ... "<< std::endl;
-            downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_12.0.2_macos_" + arch + ".zip", destination, "cast");
+            downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_" + CAST_VERSION + "_macos_" + arch + ".zip", destination, "cast");
 #else
             // Get ubuntu version
             std::string output;
@@ -131,7 +153,7 @@ void ClariusStreamer::loadLibrary() {
                 throw Exception("Clarius Cast is only available for Ubuntu 20.04, 22.04 and 24.04. You have: " + ubuntuVersion);
 
             std::cout << "FAST will now download Clarius Cast for Ubuntu " << ubuntuVersion << " ..." << std::endl;
-            downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_12.0.2_ubuntu_" + ubuntuVersion + "_" + arch + ".zip", destination, "cast");
+            downloadAndExtractZipFile("https://github.com/FAST-Imaging/FAST-dependencies/releases/download/v4.0.0/cast_" + CAST_VERSION + "_ubuntu_" + ubuntuVersion + "_" + arch + ".zip", destination, "cast");
 #endif
         }
 
@@ -211,19 +233,31 @@ void ClariusStreamer::execute() {
         params.width = m_width;
         params.height = m_height;
         params.errorFn = [](const char* msg) {
-            // Ignore OpenGL error which has the following message:
-            std::string find = "Failed to make context current";
-            std::string find2 = "Failed to make no context current";
+            // Ignore the following error messages
+            std::vector<std::string> errorsToIgnore = {
+                    "Failed to make context current",
+                    "Failed to make offscreen context",
+                    "software revisions are different"
+            };
             std::string msg2 = msg;
-            if(msg2.size() > find2.size()) {
-                if(msg2.substr(0, find.size()) == find || msg2.substr(0, find2.size()) == find2)
+            for(const auto& find : errorsToIgnore) {
+                if(msg2.size() > find.size() && msg2.substr(0, find.size()) == find)
                     return;
             }
 
+            self->getReporter().error() << msg2 << self->getReporter().end();
             self->signalCastStop(msg2);
         };
-
-        auto init = (int (*)(const CusInitParams* params))getFunc("cusCastInit");
+#ifndef WIN32
+        // For some reason we need to create a GL context here
+        auto widget = new QGLWidget;
+        static QGLContext* glContext = new QGLContext(View::getGLFormat(), widget);
+        glContext->create(Window::getSecondaryGLContext());
+        glContext->makeCurrent();
+        if(!glContext->isValid())
+            self->getReporter().error() << "Cast GL CONTEXT WAS INVALID!" << self->getReporter().end();
+#endif
+        auto init = (int (*)(const CusInitParams* params))getFunc("castInit");
         int success = init(&params);
         if(success != 0)
             throw Exception("Unable to initialize clarius cast");
@@ -248,24 +282,17 @@ void ClariusStreamer::execute() {
             reportInfo() << "Reset done ." << reportEnd();
         });
 
-        auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusConnectFn fn))getFunc("cusCastConnect");
-        success = connect(mIPAddress.c_str(), mPort, "research", [](int port, int imuPort, int swMatch) {
 #ifndef WIN32
-            // For some reason we need to create a GL context here
-            auto widget = new QGLWidget;
-            QGLContext* glContext = new QGLContext(View::getGLFormat(), widget);
-            glContext->create(Window::getSecondaryGLContext());
-            glContext->makeCurrent();
-            if(!glContext->isValid())
-                self->getReporter().error() << "Cast GL CONTEXT WAS VALID!" << self->getReporter().end();
+        glContext->doneCurrent();
 #endif
-            if (port > 0) {
+        auto connect = (int (*)(const char* ipAddress, unsigned int port, const char* cert, CusConnectFn fn))getFunc("castConnect");
+        success = connect(mIPAddress.c_str(), mPort, "research", [](int port, int imuPort, int swMatch) {
+            if(port > 0) {
                 self->getReporter().info() << "Clarius connect on UDP port " << port << self->getReporter().end();
-                if (swMatch == CUS_FAILURE) {
+                if(swMatch == CUS_FAILURE) {
                     self->getReporter().warning() << "A software mismatch between Clarius Cast API in FAST and the scanner was detected." << self->getReporter().end();
                 }
-            }
-            else {
+            } else {
                 self->signalCastStop("Failed to connect to Clarius device");
             }
         });
@@ -313,7 +340,7 @@ ClariusStreamer::~ClariusStreamer() {
     // This is now solved by spawning another thread called thread2, which calls reset on self
     // and then the destructor
     if(m_castInitialized) {
-        auto destroy = (int (*)())getFunc("cusCastDestroy");
+        auto destroy = (int (*)())getFunc("castDestroy");
         getReporter().info() << "Destroying cast ..." << getReporter().end();
         int success = destroy();
         getReporter().info() << "Cast destroy done." << getReporter().end();
@@ -360,7 +387,7 @@ void ClariusStreamer::stop() {
         return;
     reportInfo() << "Stopping clarius streamer.." << reportEnd();
     mStreamIsStarted = false;
-    auto disconnect = (int (*)(CusReturnFn))getFunc("cusCastDisconnect");
+    auto disconnect = (int (*)(CusReturnFn))getFunc("castDisconnect");
     int success = disconnect([](int code) {
         self->getReporter().info() << "Clarius Disconnect callback with return code: " << ((code == CUS_FAILURE) ? "Failure" : "Success") << self->getReporter().end();
         self->signalDisconnect();
@@ -388,31 +415,31 @@ void ClariusStreamer::setConnectionPort(int port) {
 }
 
 void ClariusStreamer::toggleFreeze() {
-    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("castUserFunction");
     if(userFunc(Freeze, 0.0, nullptr) < 0)
         reportError() << "Error toggling freeze" << reportEnd();
 }
 
 void ClariusStreamer::increaseDepth() {
-    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("castUserFunction");
 	if(userFunc(DepthInc, 0.0, nullptr) < 0)
         reportError() << "Error increasing depth" << reportEnd();
 }
 
 void ClariusStreamer::decreaseDepth() {
-    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("castUserFunction");
 	if(userFunc(DepthDec, 0.0, nullptr) < 0)
         reportError() << "Error decreasing depth" << reportEnd();
 }
 
 void ClariusStreamer::setDepth(float depth) {
-    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("castUserFunction");
 	if(userFunc(SetDepth, depth, nullptr) < 0)
         reportError() << "Error setting depth to " << depth << reportEnd();
 }
 
 void ClariusStreamer::setGain(float gain) {
-    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("cusCastUserFunction");
+    auto userFunc = (int (*)(CusUserFunction cmd, double val, CusReturnFn fn))getFunc("castUserFunction");
 	if(userFunc(SetGain, gain, nullptr) < 0)
         reportError() << "Error setting gain to " << gain << reportEnd();
 }

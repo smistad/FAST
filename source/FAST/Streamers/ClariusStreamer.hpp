@@ -100,6 +100,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         std::mutex m_castDisconnectMutex;
         std::condition_variable m_castDisconnectCV;
         bool m_castDisconnected = false;
+
 };
 
 }
