@@ -1,7 +1,7 @@
 ![](https://raw.githubusercontent.com/smistad/FAST/refs/heads/master/doc/images/fast_logo_wide_background.png)
 
 [![GitHub Discussions](https://img.shields.io/github/discussions/smistad/FAST?label=GitHub%20discussions&logo=github)](https://github.com/smistad/FAST/discussions)
-[![Pip Downloads](https://img.shields.io/pypi/dm/pyfast?label=pip%20downloads&logo=python)](https://fast-imaging.github.io/download-stats.html)
+[![Pip Downloads](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/badges/last_month.svg)](https://fast-imaging.github.io/download-stats.html)
 [![Documentation](https://img.shields.io/badge/Documentation-Online-blue?logo=googledocs&logoColor=white)](https://fast-imaging.github.io)
 
 FAST is an open-source framework developed by researchers at the Norwegian University of Science and Technology (NTNU) and SINTEF. 

@@ -4,9 +4,9 @@ Download Statistics {#download-stats}
 PyPi (pip) Downloads
 --------------------
 
-![](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/plots/2025.png)
-![](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/plots/2025-OS.png)
-![](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/plots/2025-python-version.png)
+![](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/plots/2025.svg)
+![](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/plots/2025-OS.svg)
+![](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/plots/2025-python-version.svg)
 
 GitHub Downloads
 --------------------
