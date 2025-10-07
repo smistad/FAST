@@ -7,7 +7,7 @@ if(FAST_MODULE_WholeSlideImaging)
         list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openslide/)
         fast_download_dependency(tiff
                 4.3.0
-                ee1d3157ee59d6e05cfad1c5ce7867ed0c4005693c67540397c99110c76db77c
+                873569ee85ba8dcd3cc4225d93fabf0ad588e71db444cb1cad91d991f6a635ec
                 tiff.lib
         )
     elseif(APPLE)
