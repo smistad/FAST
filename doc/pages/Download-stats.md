@@ -4,10 +4,9 @@ Download Statistics {#download-stats}
 PyPi (pip) Downloads
 --------------------
 
-* ![](https://shields.io/pypi/dd/pyfast)
-* ![](https://shields.io/pypi/dw/pyfast)
-* ![](https://shields.io/pypi/dm/pyfast)
-
+![](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/plots/2025.png)
+![](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/plots/2025-OS.png)
+![](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/plots/2025-python-version.png)
 
 GitHub Downloads
 --------------------
