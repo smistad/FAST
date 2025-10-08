@@ -5,10 +5,6 @@ Requirements
 ==================
 **Make sure you have all the necessary requirements before installing FAST**:
 - macOS 10.13 or newer.
-- Install [homebrew](https://brew.sh/) if you don't already have it. Then, install the following packages using homebrew:  
-```bash
-brew install libomp
-```
 
 Some [optional requirements](@ref requirements) are needed for video streaming, these can be installed later. 
 
