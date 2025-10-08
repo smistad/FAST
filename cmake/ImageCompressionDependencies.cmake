@@ -26,7 +26,7 @@ elseif(APPLE)
     endif()
     fast_download_dependency(libjpeg-turbo
         3.1.2
-        754ab0d5b0b88a24397d8f27b8b8b0cc3c4e1d82c7f7a3f4721f633118e6eb38
+        d2e0a6a77d9476538f3baf51974f5dc5a2edd4dc6484ff264c19df1708b20541
         libjpeg.dylib
     )
 else()
