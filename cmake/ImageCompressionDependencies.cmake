@@ -24,6 +24,11 @@ elseif(APPLE)
             jxl.dylib jxl_threads.dylib
         )
     endif()
+    fast_download_dependency(libjpeg-turbo
+        3.1.2
+        d2e0a6a77d9476538f3baf51974f5dc5a2edd4dc6484ff264c19df1708b20541
+        libjpeg.dylib
+    )
 else()
     fast_download_dependency(jpegxl
         0.11.0

@@ -21,12 +21,8 @@ jobs:
     
     - name: Install dependencies
       run: |
-        brew reinstall zlib
-        brew reinstall libtiff
-        brew install pcre libomp
-        # Install a specific version of libomp (14.0.6) since newer versions fail with cmake
-        #curl https://raw.githubusercontent.com/Homebrew/homebrew-core/c87d6a0c8360c4684e3375ce6c4576214acdd71b/Formula/libomp.rb > $(find $(brew --repository) -name libomp.rb) && brew reinstall libomp
-    
+        brew install pcre # Needed by SWIG
+
     - name: Setup pyenv
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -124,11 +120,6 @@ jobs:
         python-version: ['3.6', '3.10', '3.x']
     runs-on: macos-13
     steps:
-      - name: Install dependencies
-        run: |
-          brew reinstall zlib
-          brew reinstall libtiff
-          brew install libomp
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
@@ -163,11 +154,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          brew reinstall zlib
-          brew reinstall libtiff
-          brew install libomp
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
