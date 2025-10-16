@@ -59,9 +59,6 @@ void ImageInverter::execute() {
                 cl::NDRange(size.x(), size.y()),
                 cl::NullRange
         );
-        std::cout << "doing inverter" << std::endl;
-        queue.finish();
-        std::cout << "inverter done" << std::endl;
     }
     addOutputData(0, output);
 }
