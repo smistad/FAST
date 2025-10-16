@@ -1,7 +1,8 @@
-![](https://raw.githubusercontent.com/smistad/FAST/refs/heads/master/doc/images/fast_logo_wide_background.png)
+![](https://raw.githubusercontent.com/FAST-Imaging/FAST/refs/heads/master/doc/images/fast_logo_wide_background.png)
 
 [![GitHub Discussions](https://img.shields.io/github/discussions/smistad/FAST?label=GitHub%20discussions&logo=github)](https://github.com/smistad/FAST/discussions)
 [![Pip Downloads](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/badges/last_month.svg)](https://fast-imaging.github.io/download-stats.html)
+[![GitHub Downloads](https://raw.githubusercontent.com/FAST-Imaging/github-statistics/refs/heads/main/badges/total.svg)](https://fast-imaging.github.io/download-stats.html)
 [![Documentation](https://img.shields.io/badge/Documentation-Online-blue?logo=googledocs&logoColor=white)](https://fast-imaging.github.io)
 
 FAST is an open-source framework developed by researchers at the Norwegian University of Science and Technology (NTNU) and SINTEF. 
@@ -16,7 +17,7 @@ Learn best by example? Check out all the examples for [C++](https://fast-imaging
 
 For more examples and documentation, go to [fast-imaging.github.io](https://fast-imaging.github.io).
 
-Need help? Post your questions on the [Discussions](https://github.com/smistad/FAST/discussions/) page.
+Need help? Post your questions on the [Discussions](https://github.com/FAST-Imaging/FAST/discussions/) page.
 
 ### Main features
 
