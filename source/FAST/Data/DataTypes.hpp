@@ -75,4 +75,9 @@ FAST_EXPORT float getDefaultIntensityWindow(DataType type);
 
 FAST_EXPORT void deleteArray(void * data, DataType type);
 
-} // end namespace
+enum class PixelConnectivity {
+    Closests, // in 2D: 4-connectivity, in 3D: 6-connectivity
+    All, // in 2D: 8-connectivity, in 3D 26-connectivity
+};
+
+}; // end namespace

@@ -25,12 +25,14 @@ class FAST_EXPORT SeededRegionGrowing : public ProcessObject {
          * @param intensityMinimum Minimum intensity to accept voxel as part of segmentation.
          * @param intensityMaximum Maximum intensity to accept voxel as part of segmentation.
          * @param seedPoints List of seed points in pixel space. If 2D, z component is not used.
+         * @param connectivity Which connectivity to use when growing
          * @return instance
          */
         FAST_CONSTRUCTOR(SeededRegionGrowing,
                          float, intensityMinimum,,
                          float, intensityMaximum,,
-                         std::vector<Vector3i>, seedPoints,
+                         std::vector<Vector3i>, seedPoints,,
+                         PixelConnectivity, connectivity, = PixelConnectivity::Closests
         )
         void setIntensityRange(float min, float max);
         void addSeedPoint(uint x, uint y);
@@ -51,6 +53,7 @@ class FAST_EXPORT SeededRegionGrowing : public ProcessObject {
         cl::Kernel mKernel;
         unsigned char mDimensionCLCodeCompiledFor;
         DataType mTypeCLCodeCompiledFor;
+        PixelConnectivity m_pixelConnectivity = PixelConnectivity::All;
 
 };
 

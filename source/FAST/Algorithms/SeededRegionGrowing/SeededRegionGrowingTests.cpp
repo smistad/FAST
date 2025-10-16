@@ -14,11 +14,9 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         importer->setFilename(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_0.mhd");
         importer->setMainDevice(devices[i]);
 
-        SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
-        algorithm->setInputConnection(importer->getOutputPort());
-        algorithm->addSeedPoint(50,50);
-        algorithm->addSeedPoint(100,100);
-        algorithm->setIntensityRange(26,255);
+        std::vector<Vector3i> seedPoints = {{50, 50, 0}, {100, 100, 0}};
+        auto algorithm = SeededRegionGrowing::create(26, 255, seedPoints, PixelConnectivity::All);
+        algorithm->connect(importer);
         algorithm->setMainDevice(devices[i]);
         auto port = algorithm->getOutputPort();
         algorithm->update();
@@ -47,10 +45,9 @@ TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
         importer->setMainDevice(devices[i]);
 
-        SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
-        algorithm->setInputConnection(importer->getOutputPort());
-        algorithm->addSeedPoint(100,100,100);
-        algorithm->setIntensityRange(50, 255);
+        std::vector<Vector3i> seedPoints = {{100, 100, 100}};
+        auto algorithm = SeededRegionGrowing::create(50, 255, seedPoints, PixelConnectivity::Closests);
+        algorithm->connect(importer);
         algorithm->setMainDevice(devices[i]);
         auto port = algorithm->getOutputPort();
         algorithm->update();
@@ -73,10 +70,9 @@ TEST_CASE("3D Seeded region growing on Host", "[fast][SeededRegionGrowing]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
 
-    SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
-    algorithm->setInputConnection(importer->getOutputPort());
-    algorithm->addSeedPoint(100,100,100);
-    algorithm->setIntensityRange(50, 255);
+    std::vector<Vector3i> seedPoints = {{100, 100, 100}};
+    auto algorithm = SeededRegionGrowing::create(50, 255, seedPoints, PixelConnectivity::Closests);
+    algorithm->connect(importer);
     algorithm->setMainDevice(Host::getInstance());
     auto port = algorithm->getOutputPort();
     algorithm->update();

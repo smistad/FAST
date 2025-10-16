@@ -16,18 +16,40 @@ __kernel void seededRegionGrowing(
         __global char* segmentation,
         __global char* stopGrowing,
         __private float min,
-        __private float max
+        __private float max,
+        __private int connectivity
         ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     const uint linearPos = pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1);
 
-    const int4 offsets[6] = {
-        {0,0,1,0},
-        {0,1,0,0},
-        {1,0,0,0},
-        {0,0,-1,0},
-        {0,-1,0,0},
-        {-1,0,0,0},
+    const int4 offsets[26] = {
+      {-1, 0, 0, 0},
+      {0, -1, 0, 0},
+      {0, 0, -1, 0},
+      {0, 0, 1, 0},
+      {0, 1, 0, 0},
+      {1, 0, 0, 0},
+
+      {-1, -1, -1, 0},
+      {-1, -1, 0, 0},
+      {-1, -1, 1, 0},
+      {-1, 0, -1, 0},
+      {-1, 0, 1, 0},
+      {-1, 1, -1, 0},
+      {-1, 1, 0, 0},
+      {-1, 1, 1, 0},
+      {0, -1, -1, 0},
+      {0, -1, 1, 0},
+      {0, 1, -1, 0},
+      {0, 1, 1, 0},
+      {1, -1, -1, 0},
+      {1, -1, 0, 0},
+      {1, -1, 1, 0},
+      {1, 0, -1, 0},
+      {1, 0, 1, 0},
+      {1, 1, -1, 0},
+      {1, 1, 0, 0},
+      {1, 1, 1, 0}
     };
     
     if(segmentation[linearPos] == 2) { // pixel is in queue
@@ -35,7 +57,7 @@ __kernel void seededRegionGrowing(
         if(intensity >= min && intensity <= max) {
             segmentation[linearPos] = 1; // add pixel to segmentation
             // Add neighbor pixels to queue
-            for(int i = 0; i < 6; i++) {
+            for(int i = 0; i < connectivity; i++) {
                 // Out of bounds check. TODO something more efficient
                 int4 neighborPos = pos + offsets[i];
                 if(neighborPos.x < 0 || neighborPos.y < 0 || neighborPos.z < 0 || 

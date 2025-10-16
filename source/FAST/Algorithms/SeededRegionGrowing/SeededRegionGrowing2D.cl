@@ -14,7 +14,8 @@ __kernel void seededRegionGrowing(
         __global char* segmentation,
         __global char* stopGrowing,
         __private float min,
-        __private float max
+        __private float max,
+        __private int connectivity
         ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
     const uint linearPos = pos.x + pos.y*get_global_size(0);
@@ -23,9 +24,9 @@ __kernel void seededRegionGrowing(
     int2 offset[8] = {
             {1,0},
             {0,1},
-            {1,1},
             {-1,0},
             {0,-1},
+            {1,1},
             {-1,-1},
             {-1,1},
             {1,-1}
@@ -36,7 +37,7 @@ __kernel void seededRegionGrowing(
         if(intensity >= min && intensity <= max) {
             segmentation[linearPos] = 1; // add pixel to segmentation
             // Add neighbor pixels to queue
-            for(int i = 0; i < 8; i++) {
+            for(int i = 0; i < connectivity; i++) {
                 // Out of bounds check
                 int2 neighborPos = pos + offset[i];
                 if(neighborPos.x < 0 || neighborPos.y < 0 || 
