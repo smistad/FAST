@@ -57,6 +57,11 @@ class OpenCLProgram;
  */
 
 /**
+ * @defgroup draw Drawing
+ * Objects for drawing circles, splines etc. on images.
+ */
+
+/**
  * @brief Abstract base class for all process objects
  */
 class FAST_EXPORT  ProcessObject : public AttributeObject {
