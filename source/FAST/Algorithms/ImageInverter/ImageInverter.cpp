@@ -7,7 +7,8 @@ namespace fast {
 ImageInverter::ImageInverter() {
     createInputPort(0);
     createOutputPort(0);
-    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageInverter/ImageInverter.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageInverter/ImageInverter2D.cl", "2D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageInverter/ImageInverter3D.cl", "3D");
 }
 
 void ImageInverter::execute() {
@@ -22,24 +23,46 @@ void ImageInverter::execute() {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
 
-    std::string buildOptions = "-DDATA_TYPE=" + getCTypeAsString(output->getDataType());
-    cl::Program program = getOpenCLProgram(device, "", buildOptions);
-    cl::Kernel kernel(program, "invert3D");
+    if(input->getDimensions() == 3) {
+        std::string buildOptions = "-DDATA_TYPE=" + getCTypeAsString(output->getDataType());
+        cl::Program program = getOpenCLProgram(device, "3D", buildOptions);
+        cl::Kernel kernel(program, "invert3D");
 
-    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-    OpenCLBufferAccess::pointer access2 = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-    kernel.setArg(0, *access->get3DImage());
-    kernel.setArg(1, *access2->get());
-    kernel.setArg(2, min);
-    kernel.setArg(3, max);
-    kernel.setArg(4, output->getNrOfChannels());
+        auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
+        auto access2 = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        kernel.setArg(0, *access->get3DImage());
+        kernel.setArg(1, *access2->get());
+        kernel.setArg(2, min);
+        kernel.setArg(3, max);
+        kernel.setArg(4, output->getNrOfChannels());
 
-    queue.enqueueNDRangeKernel(
-            kernel,
-            cl::NullRange,
-            cl::NDRange(size.x(), size.y(), size.z()),
-            cl::NullRange
-    );
+        queue.enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(size.x(), size.y(), size.z()),
+                cl::NullRange
+        );
+    } else {
+        cl::Program program = getOpenCLProgram(device, "2D");
+        cl::Kernel kernel(program, "invert2D");
+
+        auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
+        auto access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        kernel.setArg(0, *access->get2DImage());
+        kernel.setArg(1, *access2->get2DImage());
+        kernel.setArg(2, min);
+        kernel.setArg(3, max);
+
+        queue.enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(size.x(), size.y()),
+                cl::NullRange
+        );
+        std::cout << "doing inverter" << std::endl;
+        queue.finish();
+        std::cout << "inverter done" << std::endl;
+    }
     addOutputData(0, output);
 }
 
