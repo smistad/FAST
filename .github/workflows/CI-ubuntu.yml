@@ -54,6 +54,11 @@ jobs:
           sudo pip3 install --upgrade pip
           pip3 install pylddwrap==1.2.0 wheel==0.37.1
 
+          echo "===========> Free some space"
+          
+          sudo apt clean
+          sudo apt autoremove
+
           echo "===========> Install CUDA and TensorRT"
           
           wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
