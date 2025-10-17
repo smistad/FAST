@@ -681,10 +681,12 @@ __kernel void traverseHP(
             );
 
         const float value0 = READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y, point0.z, 0)).x;
+        const float value1 = READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z, 0)).x;
         float diff = native_divide(
-            isolevel-value0,
-            READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z, 0)).x - value0);
+            isolevel - value0,
+             value1 - value0);
 
+        diff = clamp(diff, 0.0f, 1.0f); // TODO Should not be needed
 
         // OpenCL on Mac is missing the mix function for some reason
 #ifdef MAC_HACK
