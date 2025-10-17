@@ -1146,7 +1146,7 @@ std::string getModifiedDate(std::string filename) {
         GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite);
         FileTimeToSystemTime(&ftWrite, &sysTime);
         char* buffer = new char[255];
-        sprintf(buffer, "%d%d%d%d%d", sysTime.wYear, sysTime.wMonth, sysTime.wDay, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
+        sprintf(buffer, "%hu%hu%hu%hu%hu%hu", sysTime.wYear, sysTime.wMonth, sysTime.wDay, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
         timeStr = buffer;
         delete[] buffer;
     #else
