@@ -35,4 +35,9 @@ else()
         a9bdb10ceddceb57892e9f6526cd8f62ad4a469e9f6941a687f8af6eb425b172
         libjxl.so libjxl_threads.so
     )
+    fast_download_dependency(libjpeg-turbo
+        3.1.2
+        f5cbd019be83f481ae08cb6e21009a18ef43899a43c08de7037ec3f2aa4e94e0
+        libjpeg.so
+    )
 endif()
