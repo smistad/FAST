@@ -23,13 +23,13 @@ jobs:
     - name: Free Disk Space (Ubuntu)
       uses: jlumbroso/free-disk-space@main
       with:
-        tool-cache: true
+        tool-cache: false
         android: true
-        dotnet: true
-        haskell: true
+        dotnet: false
+        haskell: false
         large-packages: false
         docker-images: false
-        swap-storage: true
+        swap-storage: false
         
     - name: Checkout
       uses: actions/checkout@v4
