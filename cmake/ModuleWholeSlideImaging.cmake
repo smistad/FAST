@@ -31,7 +31,7 @@ if(FAST_MODULE_WholeSlideImaging)
     else()
         fast_download_dependency(tiff
                 4.3.0
-                625dea4a6bf6460801e4d375348de135a8824f7bb675e1cd41bfaf0038cbf2ab
+                08e058ee7dec3788a9b973407d2ec042e63b76b8592f1e1d147609e22833c008
                 libtiff.so
         )
         fast_download_dependency(openslide
