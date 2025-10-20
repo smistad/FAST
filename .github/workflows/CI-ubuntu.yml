@@ -217,7 +217,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt install libpocl2 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0
+          sudo apt install libpocl2 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 libglib2.0-0
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
@@ -262,7 +262,7 @@ jobs:
           run: |
             # Install dependencies
             apt-get update
-            DEBIAN_FRONTEND=noninteractive apt install -y libpocl2 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 libxkbcommon0 python3 python3-pip
+            DEBIAN_FRONTEND=noninteractive apt install -y libpocl2 xvfb libgl1 libopengl0 libusb-1.0-0 libxcb-xinerama0 libxkbcommon0 python3 python3-pip libglib2.0-0
             python3 -c "import sys; print(sys.version)"
             # Install wheel
             cd ${{github.workspace}}
