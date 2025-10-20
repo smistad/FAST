@@ -6,6 +6,9 @@ namespace fast {
 DrawCircle::DrawCircle(std::vector<Vector2f> centroids, std::vector<float> radii, float value, Color color, bool fill,
                        bool controlPointsInPixels) {
 
+    if(centroids.empty() || radii.empty())
+        throw Exception("Centroid coordinates or radii can't be empty given to DrawCircle");
+
     if(radii.size() > 1 && centroids.size() != radii.size())
         throw Exception("Size of centroids and radii must be equal given to DrawCircle");
 
