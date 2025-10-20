@@ -12,7 +12,7 @@ if(FAST_MODULE_WholeSlideImaging)
         )
     elseif(APPLE)
         include(cmake/ExternalOpenSlide.cmake)
-        list(APPEND LIBRARIES ${TIFF_LIBRARIES} libopenslide.dylib)
+        list(APPEND LIBRARIES libopenslide.dylib)
         list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/openslide/)
         if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
             fast_download_dependency(tiff
@@ -36,7 +36,7 @@ if(FAST_MODULE_WholeSlideImaging)
         )
         fast_download_dependency(openslide
                 4.0.0
-                56061467151fe2d9c807e4c868a41b23e06952f8d8926ffb917f06875d14198f
+                367d8ec527358a293a71830d88fa467c7eef04a928afc8ce89db254b1ef9e004
                 libopenslide.so
         )
     endif()
