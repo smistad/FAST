@@ -78,7 +78,7 @@ else()
     set(CPACK_PROJECT_CONFIG_FILE ${CMAKE_SOURCE_DIR}/cmake/PackageConfig.txt)
 
     # Add debian package dependencies
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libopenslide0,libusb-1.0-0")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libusb-1.0-0")
 
     # Select components to avoid some cmake leftovers from built dependencies
     set(CPACK_COMPONENTS_ALL fast fast_headers fast_examples fast_tests)
