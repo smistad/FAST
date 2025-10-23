@@ -58,7 +58,7 @@ jobs:
           sudo apt-get install kitware-archive-keyring
           sudo apt install -y cmake
           sudo apt install -y g++ patchelf
-          sudo apt install -y libxcb1 libxcb-glx0 libxcb-image0 libxcb-icccm4 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shm0 libxcb-sync1 libxcb-xfixes0 libxcb-shape0 libx11-xcb1 libglu1-mesa-dev libxrender1 libxi6 libxkbcommon0 libxkbcommon-x11-0
+          sudo apt install -y libx11-dev
           sudo apt install -y pkgconf libusb-1.0-0-dev # Needed for realsense
           sudo apt install -y python3 libpython3-dev python3-pip python3-setuptools
           sudo pip3 install --upgrade pip
