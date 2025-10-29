@@ -584,11 +584,11 @@ int ImagePyramid::getCompressionQuality() const {
     return m_compressionQuality;
 }
 
-float ImagePyramid::getMagnification() const {
+float ImagePyramid::getMagnification(bool estimateFromSpacingIfUnknown) const {
     if(m_magnification <= 0) {
         // Try to guess magnification from spacing if available
         Vector3f spacing = getSpacing();
-        if(spacing != Vector3f::Ones()) {
+        if(spacing != Vector3f::Ones() && estimateFromSpacingIfUnknown) {
             // For this calculation we assume the following:
             /*
             * 1 micron = 0.001 millimeters

@@ -101,7 +101,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         std::shared_ptr<NeuralNetwork> getDecompressionModel() const;
         float getDecompressionOutputScaleFactor() const;
         DataType getDataType() const;
-        float getMagnification() const;
+        float getMagnification(bool estimateFromSpacingIfUnknown = false) const;
         void setMagnification(float magnification);
     private:
         ImagePyramid();

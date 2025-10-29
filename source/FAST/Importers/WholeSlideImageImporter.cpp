@@ -43,6 +43,8 @@ void WholeSlideImageImporter::readWithOpenSlide(std::string filename) {
     std::vector<ImagePyramidLevel> levelList;
     int levels = openslide_get_level_count(file);
     reportInfo() << "WSI has " << levels << " levels" << reportEnd();
+    if(levels <= 0)
+        throw Exception("Something went wrong when trying to open the WSI with OpenSlide");
 
     // Find out how many levels to skip
     for(int level = 0; level < levels; ++level) {
