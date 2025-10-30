@@ -4,6 +4,7 @@
 #include <FAST/Visualization/Window.hpp>
 #include <FAST/Importers/ImageImporter.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
+#include <FAST/Tools/CommandLineParser.hpp>
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QTextEdit>
@@ -108,46 +109,44 @@ std::string doCheck() {
 class SystemCheckWindow : public Window {
     FAST_OBJECT(SystemCheckWindow)
 public:
-    SystemCheckWindow() {
-        setTitle("FAST " + getVersion() + " System Check");
-        auto message = doCheck();
-
-        auto importer = ImageImporter::New();
-        importer->setFilename(Config::getDocumentationPath() + "/images/FAST_logo_square.png");
-        importer->setGrayscale(false);
-
-        // Set up GUI
-        auto layout = new QVBoxLayout();
-        setCenterLayout(layout);
-
-        auto renderer = ImageRenderer::New();
-        renderer->setInputConnection(importer->getOutputPort());
-
-        auto view = createView();
-        view->set2DMode();
-        view->addRenderer(renderer);
-        view->setFixedHeight((float)mHeight/2);
-        layout->addWidget(view);
-
-        auto textField = new QTextEdit;
-        textField->setText(message.c_str());
-        textField->setReadOnly(true);
-        layout->addWidget(textField);
-    }
+    FAST_CONSTRUCTOR(SystemCheckWindow)
 };
+SystemCheckWindow::SystemCheckWindow() {
+    setTitle("FAST " + getVersion() + " System Check");
+    auto message = doCheck();
 
-int main(int argc, char**argv) {
+    auto importer = ImageImporter::create(Config::getDocumentationPath() + "/images/FAST_logo_square.png", false);
 
-    if(Config::getVisualization()) {
-        auto window = SystemCheckWindow::New();
-        window->start();
+    // Set up GUI
+    auto layout = new QVBoxLayout();
+    setCenterLayout(layout);
+
+    auto renderer = ImageRenderer::create()->connect(importer);
+
+    auto view = createView();
+    view->set2DMode();
+    view->addRenderer(renderer);
+    view->setFixedHeight((float)mHeight/2);
+    layout->addWidget(view);
+
+    auto textField = new QTextEdit;
+    textField->setText(message.c_str());
+    textField->setReadOnly(true);
+    layout->addWidget(textField);
+}
+
+int main(int argc, char** argv) {
+    CommandLineParser parser("FAST System Check");
+    parser.addOption("no-gui", "Disable GUI, and show information on command line interface instead");
+    parser.parse(argc, argv);
+
+    if(Config::getVisualization() && !parser.getOption("no-gui")) {
+        SystemCheckWindow::create()->run();
     } else {
         std::cout << doCheck() << std::endl;
 
         // Pipeline check
-        auto importer = ImageImporter::New();
-        importer->setFilename(Config::getDocumentationPath() + "/images/FAST_logo_square.png");
-        importer->setGrayscale(false);
+        auto importer = ImageImporter::create(Config::getDocumentationPath() + "/images/FAST_logo_square.png", false);
         auto image = importer->updateAndGetOutputData<Image>();
     }
 
