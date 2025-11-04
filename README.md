@@ -9,7 +9,7 @@ FAST is an open-source framework developed by researchers at the Norwegian Unive
 The main goal of FAST is to make it easier to do high-performance processing, neural network inference, and visualization of medical images utilizing multi-core CPUs and GPUs. To achieve this, FAST use modern C++, OpenCL and OpenGL, and neural network inference libraries such as TensorRT, OpenVINO, TensorFlow and ONNX Runtime.
 
 ### Get started
-See installation instructions for [Windows](https://fast-imaging.github.io/install-windows.html), [Ubuntu Linux](https://fast-imaging.github.io/install-ubuntu-linux.html) and [macOS](https://fast-imaging.github.io/install-mac.html).
+See installation instructions for [Windows](https://fast-imaging.github.io/install-windows.html), [Ubuntu Linux](https://fast-imaging.github.io/install-ubuntu-linux.html), [macOS](https://fast-imaging.github.io/install-mac.html) and [Docker containers](https://fast-imaging.github.io/fast-containers.html).
 
 To start using the framework, check out the [C++ tutorials](https://fast-imaging.github.io/cpp-tutorials.html) or the [Python tutorials](https://fast-imaging.github.io/python-tutorials.html).
 
