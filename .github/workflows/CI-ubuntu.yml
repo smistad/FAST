@@ -337,6 +337,7 @@ jobs:
           virtualenv -p python3 venv
           source venv/bin/activate
           pip3 install pytest numpy
+          pip3 install torch --index-url https://download.pytorch.org/whl/cpu
           pip3 install ${{github.workspace}}/download/pyfast-*.whl
       - name: Cache test data
         id: cache-test-dataset

@@ -307,6 +307,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           python -m pip install pytest numpy
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           pytest source/FAST/ -v
 
 # Seg faults for some reason:

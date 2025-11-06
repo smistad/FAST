@@ -440,10 +440,57 @@ static void* _intToVoidPointer(std::size_t intPointer) {
     }
 
   @staticmethod
+  def createFromTensor(tensor):
+    if not hasattr(tensor, '__array_interface__'):
+      # Check if torch tensor
+      try:
+          import torch
+          if isinstance(tensor, torch.Tensor):
+              # Move tensor to cpu if needed
+              tensor = tensor.cpu()
+              shape = tensor.shape
+
+              is_2d = True
+              has_channels = False
+              if len(shape) == 3 and shape[0] <= 4:
+                  has_channels = True
+              elif len(shape) == 3 and shape[0] > 4:
+                  is_2d = False
+              elif len(shape) >= 5:
+                  raise ValueError('Input to image cannot have shape with more than 4 dimensions')
+              elif len(shape) > 3:
+                  is_2d = False
+                  has_channels = True
+              elif len(shape) < 2:
+                  raise ValueError('Input to image must have a shape with at least 2 dimensions')
+
+              if has_channels: # Torch is channel first, have to convert to channel last
+                if is_2d:
+                    tensor = tensor.permute((1, 2, 0))
+                else:
+                    tensor = tensor.permute((1, 2, 3, 0))
+              if not tensor.is_contiguous():
+                tensor = tensor.clone(memory_format=torch.contiguous_format)
+              tensor = tensor.__array__()
+      except ImportError:
+          pass
+
+    return Image.createFromArray(tensor)
+
+  @staticmethod
   def createFromArray(ndarray):
     """Create a FAST image from a N-D array (e.g. numpy ndarray)"""
     if not hasattr(ndarray, '__array_interface__'):
-        raise ValueError('Input to Image createFromArray() must have the array_interface property')
+        try:
+          import torch
+          if isinstance(ndarray, torch.Tensor):
+            raise ValueError('Input to given to Image.createFromArray() was a torch.Tensor, not an array. Use Image.createFromTensor instead.')
+        except ImportError:
+          pass
+        if hasattr(ndarray, '__array__'):
+            ndarray = ndarray.__array__()
+        else:
+            raise ValueError('Input to Image createFromArray() must have the array_interface property or the __array__() method.')
     # Make sure it is C contiguous first
     mem = memoryview(ndarray)
     import copy
@@ -512,10 +559,40 @@ static float* _intToFloatPointer(std::size_t intPointer) {
     }
 
   @staticmethod
+  def createFromTensor(tensor, convertToChannelsLast:bool=False):
+     if not hasattr(tensor, '__array_interface__'):
+         # Check if torch tensor
+         try:
+             import torch
+             if isinstance(tensor, torch.Tensor):
+                 # Move tensor to cpu if needed
+                 tensor = tensor.cpu()
+                 shape = tensor.shape
+                 # TODO should we always permute here to get channel last?
+                 if convertToChannelsLast:
+                     tensor = tensor.permute(list(range(1, len(shape))) + [0,])
+                 if not tensor.is_contiguous():
+                     tensor = tensor.clone(memory_format=torch.contiguous_format)
+                 tensor = tensor.__array__()
+         except ImportError:
+            pass
+
+     return Tensor.createFromArray(tensor)
+
+  @staticmethod
   def createFromArray(ndarray):
     """Create a FAST Tensor from a N-D array (e.g. numpy ndarray)"""
     if not hasattr(ndarray, '__array_interface__'):
-        raise ValueError('Input to Tensor createFromArray() must have the array_interface property')
+        try:
+          import torch
+          if isinstance(ndarray, torch.Tensor):
+            raise ValueError('Input to given to Tensor.createFromArray() was a torch.Tensor, not an array. Use Tensor.createFromTensor instead.')
+        except ImportError:
+          pass
+        if hasattr(ndarray, '__array__'):
+            ndarray = ndarray.__array__()
+        else:
+            raise ValueError('Input to Tensor createFromArray() must have the array_interface property or the __array__() method.')
 
     # Make sure it is C contiguous, convert if needed
     mem = memoryview(ndarray)

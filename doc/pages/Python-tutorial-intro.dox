@@ -199,6 +199,35 @@ numpy_image = np.asarray(image)
 fast_image = fast.Image.createFromArray(numpy_image)
 ```
 
+### Create FAST image from PyTorch tensor
+
+Use the fast.Image.createFromTensor method to convert a PyTorch tensor to a FAST Image:
+```py
+import fast
+import torchvision
+
+# Read image with torchvision to a torch.Tensor:
+image_tensor = torchvision.io.read_image(fast.Config.getDocumentationPath() + 'images/FAST_logo_square.png')
+
+# Convert torch Tensor to fast Image using createFromTensor:
+fast_image = fast.Image.createFromTensor(image_tensor)
+```
+
+### Convert FAST Image to PyTorch tensor
+
+Use numpy asarray method to convert a FAST image to a PyTorch tensor:
+```py
+import fast
+import torch
+import numpy as np
+
+# Import an image to FAST
+importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+fast_image = importer.runAndGetOutputData()
+
+tensor = torch.tensor(np.asarray(fast_image))
+```
+
 ### Visualize FAST image with Matplotlib
 
 ```py

@@ -171,6 +171,7 @@ jobs:
           python -m venv venv # Get error if not using virtual environment for some reason
           source venv/bin/activate
           python -m pip install ${{github.workspace}}/download/pyfast-*.whl numpy pytest
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: Cache test data
         id: cache-test-dataset
         uses: actions/cache@v4
