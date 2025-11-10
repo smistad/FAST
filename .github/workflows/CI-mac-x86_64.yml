@@ -187,5 +187,5 @@ jobs:
         run: |
           cd ${{github.workspace}}
           source venv/bin/activate
-          pytest source/FAST/ -v -k 'not torch'
+          pytest source/FAST/ -v
 
