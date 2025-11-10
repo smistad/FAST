@@ -630,6 +630,7 @@ static float* _intToFloatPointer(std::size_t intPointer) {
 
 // Include some python code
 %pythoncode "@PROJECT_SOURCE_DIR@/source/FAST/Python/DataStream.py"
+%pythoncode "@PROJECT_SOURCE_DIR@/source/FAST/Python/Shortcuts.py"
 
 %extend fast::ProcessObject {
 %pythoncode %{
