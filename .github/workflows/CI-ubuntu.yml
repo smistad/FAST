@@ -352,11 +352,8 @@ jobs:
           source venv/bin/activate
           python -c "import fast;fast.downloadTestDataIfNotExists()"
       - name: Run tests
-        env:
-          DISPLAY: ':1'
         run: |
-          #Xvfb "$DISPLAY" -screen 0 1024x768x24 &
           cd ${{github.workspace}}/tmp/
           source venv/bin/activate
-          pytest ../source/FAST/ -v
+          xvfb-run pytest ../source/FAST/ -v
 
