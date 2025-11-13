@@ -49,7 +49,7 @@ void DicomMultiFrameStreamer::load() {
     }
     m_fileFormat = std::make_shared<DcmFileFormat>();
     OFCondition status = m_fileFormat->loadFile(m_filename.c_str());
-    if(!status.good()) {
+    if(status.good()) {
         m_dataset = m_fileFormat->getDataset();
     } else {
         throw Exception("Unable to read dicom dataset");
