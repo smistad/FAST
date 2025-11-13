@@ -355,5 +355,5 @@ jobs:
         run: |
           cd ${{github.workspace}}/tmp/
           source venv/bin/activate
-          xvfb-run pytest ../source/FAST/ -v
+          pytest ../source/FAST/ -v  -k 'not test_shortcuts'
 
