@@ -35,7 +35,7 @@ Here is how you can ask the user to select a single image file using the showFil
 @code{.py}
 import fast
 filename = fast.showFileDialog()
-importer = fast.ImageFileImporter.create(filename)
+importer = fast.ImageFileImporter(filename)
 fast.display2D(importer)
 @endcode
 
@@ -58,13 +58,13 @@ def openFile(x):
     global renderer, window
     filename = fast.showFileDialog()
     if filename:
-        importer = fast.ImageFileImporter.create(filename)
+        importer = fast.ImageFileImporter(filename)
         renderer.connect(importer).run()
         window.resetViews()
 
 openButton = fast.ButtonWidget('Select image', False, fast.ButtonCallback(openFile))
-renderer = fast.ImageRenderer.create()
-window = fast.SimpleWindow2D.create()\
+renderer = fast.ImageRenderer()
+window = fast.SimpleWindow2D()\
     .connect(renderer)\
     .connect(openButton)
 window.run()
@@ -89,15 +89,15 @@ def openFile(x):
     filename = fast.showFileDialog()
     if filename:
         title.setVariable('filename', filename)
-        importer = fast.ImageFileImporter.create(filename)
+        importer = fast.ImageFileImporter(filename)
         renderer.connect(importer).run()
         window.resetViews()
 
 title = fast.TextWidget('<h1>Image Viewer</h1>{filename}')
 title.setVariable('filename', '')
 openButton = fast.ButtonWidget('Select image', False, fast.ButtonCallback(openFile))
-renderer = fast.ImageRenderer.create()
-window = fast.SimpleWindow2D.create()\
+renderer = fast.ImageRenderer()
+window = fast.SimpleWindow2D()\
     .connect(renderer)\
     .connect(title, fast.WidgetPosition_TOP)\
     .connect(openButton, fast.WidgetPosition_BOTTOM)
@@ -112,19 +112,19 @@ by disabling the renderer:
 @code{.py}
 import fast
 
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
-nlm = fast.NonLocalMeans.create(
+nlm = fast.NonLocalMeans(
         filterSize=3, # Increasing this makes it slower
         searchSize=11, # Increasing this makes it slower
         smoothingAmount=0.2,
         inputMultiplicationWeight=0.5,
 ).connect(importer)
 
-renderer = fast.ImageRenderer.create()\
+renderer = fast.ImageRenderer()\
     .connect(importer)
 
-rendererNLM = fast.ImageRenderer.create()\
+rendererNLM = fast.ImageRenderer()\
     .connect(nlm)
 
 sliderWidget = fast.SliderWidget('Smoothing', 0.2, 0.05, 0.8, 0.05, fast.SliderCallback(lambda x: nlm.setSmoothingAmount(x)))
@@ -132,7 +132,7 @@ filterWidget = fast.SliderWidget('Filter size', 3, 3, 19, 2, fast.SliderCallback
 searchWidget = fast.SliderWidget('Search size', 11, 3, 19, 2, fast.SliderCallback(lambda x: nlm.setSearchSize(int(x))))
 inputWidget = fast.SliderWidget('Input multiplication weight', 0.5, 0.0, 1.0, 0.05, fast.SliderCallback(lambda x: nlm.setInputMultiplicationWeight(x)))
 toggleButton = fast.ButtonWidget('Toggle ON/OFF', True, fast.ButtonCallback(lambda x: rendererNLM.setDisabled(x)))
-fast.SimpleWindow2D.create()\
+fast.SimpleWindow2D()\
     .connect(renderer)\
     .connect(rendererNLM)\
     .connect([sliderWidget, filterWidget, searchWidget, inputWidget, toggleButton], fast.WidgetPosition_RIGHT)\
@@ -147,7 +147,7 @@ Input text
 Use the InputTextWidget to enable users to write and provide some text to your program:
 @code{.py}
 import fast
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/US-2D.jpg')
+importer = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/US-2D.jpg')
 input = fast.InputTextWidget()
 button = fast.ButtonWidget('Done', False, fast.ButtonCallback(lambda x: fast.showMessage('You wrote: ' + input.getText())))
 fast.display2D(importer, widgets=[input, button])
@@ -156,7 +156,7 @@ fast.display2D(importer, widgets=[input, button])
 For multiline input text, set singleLine=False in constructor of InputTextWidget:
 @code{.py}
 import fast
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/US-2D.jpg')
+importer = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/US-2D.jpg')
 input = fast.InputTextWidget(singleLine=False)
 button = fast.ButtonWidget('Done', False, fast.ButtonCallback(lambda x: fast.showMessage('You wrote: ' + input.getText())))
 fast.display2D(importer, widgets=[input, button])
@@ -172,7 +172,7 @@ If no placeholder text is specified, option 0 is initially selected, unless you 
 
 @code{.py}
 import fast
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/US-2D.jpg')
+importer = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/US-2D.jpg')
 options = fast.OptionsWidget(['Option 1', 'Option 2', 'Option 3'], 'Cool options:', 'Select an option ...', callback=fast.OptionsCallback(lambda i, x: fast.showMessage('You selected: ' + x)))
 fast.display2D(importer, widgets=[options])
 @endcode
@@ -216,7 +216,7 @@ Give the RandomAccessStreamer as input to the PlaybackWidget constructor and con
 import fast
 
 # Specify path to where the images are stored, use a # to represent the frame index
-streamer = fast.ImageFileStreamer.create(
+streamer = fast.ImageFileStreamer(
     fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_#.mhd',
     framerate=20, # Specify framerate to stream data in
 )
@@ -235,7 +235,7 @@ You can customize the appearance of your GUI using [Qt Style Sheets (QSS)](https
 
 Here is an example on how to change the appearance of your TextWidget and ButtonWidget:
 @code{.py}
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/US-2D.jpg')
+importer = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/US-2D.jpg')
 text = fast.TextWidget('Hello!')
 button = fast.ButtonWidget('This is a button', True, fast.ButtonCallback(lambda x: print('Button was pressed!')))
 window = fast.display2D(image=importer, returnWindow=True, widgets=[text, button], bgcolor=fast.Color.Black())
