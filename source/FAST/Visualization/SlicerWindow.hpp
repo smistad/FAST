@@ -108,7 +108,11 @@ class FAST_EXPORT SlicerWindow : public Window {
     int getBorderRadius() const;
     void loadAttributes() override;
 protected:
+    bool m_grid = false;
+    SlicerWindow(Color bgcolor, uint width, uint height, bool grid);
     void createLayout();
+    void init(Color bgcolor, uint width, uint height);
+    QLayout* m_mainLayout;
 
     std::map<PlaneType, std::vector<SegmentationRenderer::pointer>> m_segmentationRenderers;
     ImageRenderer::pointer m_imageRenderers[3];

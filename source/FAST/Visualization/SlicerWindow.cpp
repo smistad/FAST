@@ -3,7 +3,7 @@
 
 namespace fast {
 
-SlicerWindow::SlicerWindow(Color bgcolor, uint width, uint height) {
+void SlicerWindow::init(Color bgcolor, uint width, uint height) {
     for(int i = 0; i < 3; i++) {
         auto view = createView();
         view->set2DMode();
@@ -23,12 +23,22 @@ SlicerWindow::SlicerWindow(Color bgcolor, uint width, uint height) {
         setHeight(512*windowScaling);
     }
 
-    createLayout();
-
     createFloatAttribute("opacity", "Segmentation Opacity", "", m_opacity);
     createFloatAttribute("border-opacity", "Segmentation border opacity", "", m_borderOpacity);
     createIntegerAttribute("border-radius", "Segmentation border radius", "", m_borderRadius);
     createStringAttribute("label-colors", "Label color", "Label color set as <label1> <color1> <label2> <color2>", "");
+}
+
+SlicerWindow::SlicerWindow(Color bgcolor, uint width, uint height) {
+    init(bgcolor, width, height);
+    createLayout();
+}
+
+
+SlicerWindow::SlicerWindow(Color bgcolor, uint width, uint height, bool grid) {
+    m_grid = grid;
+    init(bgcolor, width, height);
+    createLayout();
 }
 
 std::shared_ptr<SlicerWindow> SlicerWindow::connectImage(std::shared_ptr<ProcessObject> processObject, float level, float window, uint outputPortID) {
@@ -132,13 +142,24 @@ std::shared_ptr<SlicerWindow> SlicerWindow::connectSegmentation(std::shared_ptr<
 
 void SlicerWindow::createLayout() {
     // Add new layout
-    auto topLayout = new QVBoxLayout;
-    auto mainLayout = new QHBoxLayout;
-    topLayout->addLayout(mainLayout);
+    if(m_grid) {
+        m_mainLayout = new QGridLayout();
+    } else {
+        m_mainLayout = new QHBoxLayout();
+    }
+    std::map<int, std::pair<int, int>> gridPositions = {
+            {0, {0, 0}},
+            {1, {1, 0}},
+            {2, {1, 1}},
+    };
     for(int i = 0; i < 3; ++i) {
         auto view = getView(i);
-        auto layout = new QVBoxLayout;
-        mainLayout->addLayout(layout);
+        auto layout = new QVBoxLayout();
+        if(m_grid) {
+            ((QGridLayout*)m_mainLayout)->addLayout(layout, gridPositions[i].first, gridPositions[i].second);
+        } else {
+            ((QHBoxLayout*)m_mainLayout)->addLayout(layout);
+        }
         layout->addWidget(view);
         m_sliderWidgets[i] = new QSlider;
         m_sliderWidgets[i]->setOrientation(Qt::Horizontal);
@@ -173,6 +194,9 @@ void SlicerWindow::createLayout() {
         }
     });
     windowLayout->addWidget(m_windowSlider);
+
+    auto topLayout = new QVBoxLayout;
+    topLayout->addLayout(m_mainLayout);
     topLayout->addLayout(levelLayout);
     topLayout->addLayout(windowLayout);
     topLayout->setContentsMargins(10, 10, 10, 10);
