@@ -8,6 +8,7 @@
 
 using namespace fast;
 
+/*
 TEST_CASE("Table widget", "[fast][TableWidget][visual]") {
     Window::initializeQtApp(); // TODO is there a better way to do this?
     TableData data = {
@@ -18,7 +19,9 @@ TEST_CASE("Table widget", "[fast][TableWidget][visual]") {
     auto widget = new TableWidget(data);
     widget->show(true);
     widget->close();
+    // TODO auto close
 }
+*/
 
 TEST_CASE("Table widget in Window", "[fast][TableWidget][visual]") {
     auto importer = ImageFileImporter::create(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
@@ -42,6 +45,6 @@ TEST_CASE("Table widget in Window", "[fast][TableWidget][visual]") {
     auto window = SimpleWindow2D::create()
             ->connect(renderer)
             ->connect(widget);
-    //window->setTimeout(2000);
+    window->setTimeout(1000);
     window->run();
 }
