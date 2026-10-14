@@ -22,30 +22,41 @@ We will start by importing an ultrasound image from disk stored in the metaimage
 
 ```py
 import fast
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 ```
 
-This code will create an ImageFileImporter process object and
-set the filename of the ultrasound image to load.
+This code will create an ImageFileImporter process object and set the filename of the ultrasound image to load.
 This importer can load images stored in many different formats such as MHD, Dicom, JPEG, PNG, BMP.
-Config::getTestDataPath simply returns the path to where the test data
-you downloaded earlier is located.
+Config::getTestDataPath simply returns the path to where the test data you downloaded earlier is located.
+Note that this code only creates the importer object, it has not loaded the image yet.
 To execute the ImageFileImporter, and thereby loading the image, you can do the following:
 
 ```py
-image = importer.runAndGetOutputData()
+image = importer.run().getOutput()
+print("An image was imported with size: ", image.getWidth(), image.getHeight())
+```
+
+Calling run() and getOutput() can be omitted by just using the call operator () of the importer object:
+```py
+image = importer()
+print("An image was imported with size: ", image.getWidth(), image.getHeight())
+```
+
+This can then be reduced to a one line operation (note the () at the end):
+```py
+import fast
+image = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')()
 print("An image was imported with size: ", image.getWidth(), image.getHeight())
 ```
 
 Display the image data
 -----------------------------
 To display the image data, we need two things: a Window and a Renderer.
-For this example, we will use the ImageRenderer which is used to display images,
-and the SimpleWindow in 2D mode.
+For this example, we will use the ImageRenderer which is used to display images, and the SimpleWindow in 2D mode.
 The renderer is connected to the importer using the connect method:
 
 @code{.py}
-renderer = fast.ImageRenderer.create().connect(importer)
+renderer = fast.ImageRenderer().connect(importer)
 @endcode
 
 This will form an execution pipeline, so that executing the renderer will
@@ -55,14 +66,13 @@ Our entire example should now look like this:
 
 @code{.py}
 import fast
-importer = fast.ImageFileImporter\
-    .create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
 # Set up a renderer and connect it to the importer
-renderer = fast.ImageRenderer.create().connect(importer)
+renderer = fast.ImageRenderer().connect(importer)
 
 # Create a window, add the renderer and start the computation/rendering loop.
-fast.SimpleWindow2D.create().connect(renderer).run()
+fast.SimpleWindow2D().connect(renderer).run()
 @endcode
 
 You should now see this image:
@@ -88,17 +98,16 @@ de-noising ultrasound images.
 
 @code{.py}
 import fast
-importer = fast.ImageFileImporter\
-    .create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
 # Set up the NonLocalMeans processing step and connect it to the importer
-nlm = fast.NonLocalMeans.create().connect(importer)
+nlm = fast.NonLocalMeans().connect(importer)
 
 # Set up a renderer and connect it to the NLM filter
-renderer = fast.ImageRenderer.create().connect(nlm)
+renderer = fast.ImageRenderer().connect(nlm)
 
 # Create a window, add the renderer and start the computation/rendering loop.
-fast.SimpleWindow2D.create()\
+fast.SimpleWindow2D()\
     .connect(renderer)\
     .run()
 @endcode
@@ -114,55 +123,77 @@ therefore we will use the DualViewWindow instead. We also need an additional Ima
 Putting this all together, it should look like this:
 @code{.py}
 import fast
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
+importer = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
 
 # Set up the NonLocalMeans processing step and connect it to the importer
-nlm = fast.NonLocalMeans.create().connect(importer)
+nlm = fast.NonLocalMeans().connect(importer)
 
 # Set a renderer and connect it to importer
-renderer = fast.ImageRenderer.create().connect(importer)
+renderer = fast.ImageRenderer().connect(importer)
 
 # Set a renderer and connect it to the NonLocalMeans filter
-filterRenderer = fast.ImageRenderer.create().connect(nlm)
+filterRenderer = fast.ImageRenderer().connect(nlm)
 
 # Create a dual view window, add the renderers and start the computation/rendering loop.
-window = fast.DualViewWindow2D.create()\
+fast.DualViewWindow2D()\
     .connectLeft(renderer)\
-    .connectRight(filterRenderer)
-window.run()
+    .connectRight(filterRenderer)\
+    .run()
 @endcode
 
 The result should look like this:
 @image html images/tutorials/left_ventricle_nlm_dual_view.jpg
 
+
 Data streaming
 -----------------------------
-So far we have only processed a single image, but now we are going to
-process a stream of images. FAST can stream images from disk, videos,
-cameras and even from ultrasound scanners.
-First, we are going to try streaming from disk. To do this, simply
-replace the ImageFileImporter with an ImageFileStreamer in the previous code example:
+It might seem cumbersome and counterintuitive to create a processing pipeline with connect() before actually executing the code with run().
+However, this has one major advantage which is that the initialization and execution steps are separated.
+A processing step may have a high initialization cost. Such initialization may for instance be creating some lookup table, compiling kernels, loading something from disk etc.
+When we want to process many data elements, we only want to perform this initialization once.
+Thus, efficient processing of data streams becomes very easy with FAST.
+
+For example, to process an ultrasound recording, instead of just one single image, the only thing you need to
+change in the previous example, is to replace the ImageFileImporter with an ImageFileStreamer:
 
 @code{.py}
-importer = fast.ImageFileStreamer.create(
+import fast
+
+# Stream image frames of an ultrasound recording, this will create its own thread
+importer = fast.ImageFileStreamer(
     fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd',
     loop=True,
     framerate=10,
 )
+
+nlm = fast.NonLocalMeans().connect(importer)
+
+renderer = fast.ImageRenderer().connect(nlm)
+
+# Setup window; this will start a processing loop in its own thread,
+# and start a rendering/GUI loop in the main thread.
+fast.SimpleWindow2D()\
+    .connect(renderer)\
+    .run()
 @endcode
 
-Compile and run the application, and you should now see an entire ultrasound recording being played back to you on screen.
+This will process an entire ultrasound recording through the same pipeline as before, without the need to create a loop or manually updating the visualization.
+FAST creates a processing loop which runs in its own thread.
+Rendering and GUI logic happens in a separate thread.
+This is all setup by FAST in the Window objects.
+In addition, most streamers in FAST, create their own thread for streaming the data.
+Thus processing, visualization and data loading all happen in parallel in their own threads.
 
 @par Streamers
     If you want to try streaming from your web camera, try out the CameraStreamer.
     If you want to try streaming from a video check out the MovieStreamer, but this requires you to install video codecs.
 
-If you want to iterate through a stream of data manually, you this with a simply loop as follows:
+If you want to iterate through a stream of data manually, you can do this with a simple loop as follows:
 @code{.py}
 import fast
-streamer = fast.ImageFileStreamer.create(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
+streamer = fast.ImageFileStreamer(fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd')
 
-nlm = fast.NonLocalMeans.create().connect(streamer)
+nlm = fast.NonLocalMeans().connect(streamer)
 
 # Iterate through all frames in data stream
 frameNr = 0
@@ -184,19 +215,19 @@ using an ImageRenderer:
 @code{.py}
 import fast
 
-streamer = fast.ImageFileStreamer.create(
+streamer = fast.ImageFileStreamer(
     fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd',
     loop=True,
     framerate=10
 )
-segmentation = fast.BinaryThresholding.create(100).connect(streamer)
+segmentation = fast.BinaryThresholding(100).connect(streamer)
 
 # Create an image renderer and a segmentation renderer
-imageRenderer = fast.ImageRenderer.create().connect(streamer)
-segmentationRenderer = fast.SegmentationRenderer.create().connect(segmentation)
+imageRenderer = fast.ImageRenderer().connect(streamer)
+segmentationRenderer = fast.SegmentationRenderer().connect(segmentation)
 
 # Connect renderers to window and run the whole pipeline
-fast.SimpleWindow2D.create(bgcolor=fast.Color.Black())\
+fast.SimpleWindow2D(bgcolor=fast.Color.Black())\
     .connect([imageRenderer, segmentationRenderer])\
     .run()
 @endcode
@@ -207,12 +238,12 @@ The example below is equivalent to the one above, but with only 1 line of code f
 @code{.py}
 import fast
 
-streamer = fast.ImageFileStreamer.create(
+streamer = fast.ImageFileStreamer(
     fast.Config.getTestDataPath() + '/US/Heart/ApicalFourChamber/US-2D_#.mhd',
     loop=True,
     framerate=10
 )
-segmentation = fast.BinaryThresholding.create(100).connect(streamer)
+segmentation = fast.BinaryThresholding(100).connect(streamer)
 
 # Reduce boilerplate code with setting up renderers and window by using the display2D function:
 fast.display2D(streamer, segmentation, bgcolor=fast.Color.Black())
@@ -230,8 +261,7 @@ import fast
 import numpy as np
 
 # Import an image to FAST
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
-fast_image = importer.runAndGetOutputData()
+fast_image = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')()
 
 # Convert the FAST image to a NumPy ndarray
 numpy_image = np.asarray(fast_image)
@@ -267,17 +297,18 @@ fast_image = fast.Image.createFromTensor(image_tensor)
 
 ### Convert FAST Image to PyTorch tensor
 
-Use numpy asarray method to convert a FAST image to a PyTorch tensor:
+Use numpy asarray method to convert a FAST image to a PyTorch tensor.
+Note that FAST uses 'channel last' image dimension ordering, while PyTorch uses 'channel first' image dimension ordering.
+Therefore you need to permute the image tensor.
 ```py
 import fast
 import torch
 import numpy as np
 
 # Import an image to FAST
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
-fast_image = importer.runAndGetOutputData()
+fast_image = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')()
 
-tensor = torch.tensor(np.asarray(fast_image))
+tensor = torch.tensor(np.asarray(fast_image)).permute(2, 0, 1)
 ```
 
 ### Visualize FAST image with Matplotlib
@@ -287,8 +318,7 @@ import fast
 import matplotlib.pyplot as plt
 import numpy as np
 
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')
-fast_image = importer.runAndGetOutputData()
+fast_image = fast.ImageFileImporter(fast.Config.getTestDataPath() + 'US/Heart/ApicalFourChamber/US-2D_0.mhd')()
 numpy_image = np.asarray(fast_image)
 
 plt.imshow(numpy_image[..., 0], cmap='gray')
@@ -309,8 +339,7 @@ cv_image = cv2.imread(fast.Config.getTestDataPath() + "US/US-2D.jpg")
 fast_image = fast.Image.createFromArray(cv_image)
 
 # Visualize with FAST
-renderer = fast.ImageRenderer.create().connect(fast_image)
-fast.SimpleWindow2D.create().connect(renderer).run()
+fast.display2D(fast_image)
 ```
 
 ### Create OpenCV image from a FAST image
@@ -324,8 +353,7 @@ import cv2
 import numpy as np
 
 # Import image with FAST
-importer = fast.ImageFileImporter.create(fast.Config.getTestDataPath() + "US/US-2D.jpg")
-fast_image = importer.runAndGetOutputData()
+fast_image = fast.ImageFileImporter(fast.Config.getTestDataPath() + "US/US-2D.jpg")()
 
 # Convert FAST image to a NumPy array/OpenCV image
 cv_image = np.asarray(fast_image)
@@ -351,13 +379,26 @@ FAST provides a high-level interface for using OpenCL in process objects in Pyth
 Exporting data
 ---------------------
 To save data in a given file format, you can use any of the [FAST Exporters](@ref exporters).
-For instance to save an image as a jpeg file you can use the ImageFileExporter:
+For instance to save an image as a jpeg file you can use the ImageFileExporter.
+ImageFileExporter will recognize the filename extension, e.g. '.jpg', and select the correct exporting routine.
 
 @code{.py}
-fast.ImageFileExporter.create('filename.jpg').connect(image).run()
+fast.ImageFileExporter('filename.jpg').connect(image).run()
 @endcode
 
-ImageFileExporter will recognize the filename extension, e.g. '.jpg', and select the correct exporting routine.
+This can further simplified by replacing connect() and run() with the call operator () like so:
+
+@code{.py}
+fast.ImageFileExporter('filename.jpg')(image)
+@endcode
+
+Differences between using FAST in C++ and Python
+-------------------------------------------
+Note that the API documentation on this page is generated from the C++ code and there are some differences to be aware of.
+While in C++ the FAST process and data objects have to be created using the static create() methods, in Python you
+can create the these objects with what looks like the constructor (although it is actually the call operator of a metaclass, which then calls the create() method).
+Thus with pyFAST `SomeObject.create(parameter=value)` and `SomeObject(parameter=value)` are equivalent.
+For these objects in the documentation you will only see the create() and not the constructor/call operator definitions, but the arguments are generally the same and can be used interchangeably.
 
 Next steps
 ---------------------

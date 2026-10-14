@@ -1,7 +1,7 @@
 ![](https://raw.githubusercontent.com/FAST-Imaging/FAST/refs/heads/master/doc/images/fast_logo_wide_background.png)
 
 [![GitHub Discussions](https://img.shields.io/github/discussions/FAST-Imaging/FAST?label=GitHub%20discussions&logo=github)](https://github.com/FAST-Imaging/FAST/discussions)
-[![Pip Downloads](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/badges/last_month.svg)](https://fast-imaging.github.io/download-stats.html)
+[![Pip Downloads](https://raw.githubusercontent.com/FAST-Imaging/pip-download-statistics/refs/heads/main/badges/all_time.svg)](https://fast-imaging.github.io/download-stats.html)
 [![GitHub Downloads](https://raw.githubusercontent.com/FAST-Imaging/github-statistics/refs/heads/main/badges/total.svg)](https://fast-imaging.github.io/download-stats.html)
 [![Documentation](https://img.shields.io/badge/Documentation-Online-blue?logo=googledocs&logoColor=white)](https://fast-imaging.github.io)
 

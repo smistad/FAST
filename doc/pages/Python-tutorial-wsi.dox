@@ -31,13 +31,12 @@ in the test dataset.
 @code{.py}
 import fast
 
-importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
+importer = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
-renderer = fast.ImagePyramidRenderer.create()\
+renderer = fast.ImagePyramidRenderer()\
     .connect(importer)
 
-fast.SimpleWindow2D.create()\
+fast.SimpleWindow2D()\
     .connect(renderer)\
     .run()
 @endcode
@@ -47,8 +46,7 @@ To reduce boilerplate code, you can use the [display2D](@ref shortcuts) function
 @code{.py}
 import fast
 
-importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
+importer = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
 fast.display2D(imagePyramid=importer)
 @endcode
@@ -65,10 +63,9 @@ a TissueSegmentation algorithm for this purpose:
 @code{.py}
 import fast
 
-importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
+importer = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
-tissueSegmentation = fast.TissueSegmentation.create()\
+tissueSegmentation = fast.TissueSegmentation()\
     .connect(importer)
 
 fast.display2D(imagePyramid=importer, segmentation=tissueSegmentation)
@@ -86,9 +83,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Run importer and get data
-imagePyramid = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")\
-    .runAndGetOutputData()
+imagePyramid = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")()
 
 # Extract specific patch at highest resolution
 access = imagePyramid.getAccess(fast.ACCESS_READ)
@@ -120,9 +115,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Run importer and get data
-imagePyramid = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")\
-    .runAndGetOutputData()
+imagePyramid = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")()
 
 # Extract specific level as FAST image
 image = imagePyramid.getAccess(fast.ACCESS_READ).getLevelAsImage(level=2)
@@ -152,15 +145,14 @@ using matplotlib:
 import fast
 import matplotlib.pyplot as plt
 
-importer = fast.WholeSlideImageImporter.create(
-    fast.Config.getTestDataPath() + 'WSI/CMU-1.svs')
+importer = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + 'WSI/CMU-1.svs')
 
 # Do tissue segmentation to select patches from tissue only
-tissueSegmentation = fast.TissueSegmentation.create()\
+tissueSegmentation = fast.TissueSegmentation()\
     .connect(importer)
 
 # You can specify level (0, 1, ..) or magnification (40, 20, 10, ..)
-patchGenerator = fast.PatchGenerator.create(512, 512, level=0)\
+patchGenerator = fast.PatchGenerator(512, 512, level=0)\
     .connect(0, importer)\
     .connect(1, tissueSegmentation)
 
@@ -188,7 +180,7 @@ bad results at the borders of the patches. This can be dealt with using a certai
 of **patch overlap** in the PatchGenerator.
 For example, here 10% overlap is applied on all sides of the patch:
 @code{.py}
-fast.PatchGenerator.create(512, 512, level=0, overlap=0.1)
+fast.PatchGenerator(512, 512, level=0, overlap=0.1)
 @endcode
 This means that 512*10% ~= 51 pixels on all sides of this patch are pixels from the neighbor patches.
 Overlap results in more patches, and thus slower processing of the entire image.
@@ -208,26 +200,25 @@ import fast
 # Download a nuclei segmentation model from the DataHub
 model = fast.DataHub().download('nuclei-segmentation-model')
 
-importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
+importer = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
-tissueSegmentation = fast.TissueSegmentation.create()\
+tissueSegmentation = fast.TissueSegmentation()\
     .connect(importer)
 
 # Generate 256x256 patches at 20X magnification with 10% overlap
-generator = fast.PatchGenerator.create(
+generator = fast.PatchGenerator(
         256, 256,
         magnification=20,
         overlapPercent=0.1
     ).connect(importer)\
     .connect(1, tissueSegmentation)
 
-segmentation = fast.SegmentationNetwork.create(
+segmentation = fast.SegmentationNetwork(
         model.paths[0] + '/high_res_nuclei_unet.onnx',
         scaleFactor=1./255.
     ).connect(generator)
 
-stitcher = fast.PatchStitcher.create()\
+stitcher = fast.PatchStitcher()\
     .connect(segmentation)
 
 # Display the stitched segmentation results on top of the WSI
@@ -251,37 +242,36 @@ import fast
 # Download a nuclei segmentation model from the DataHub
 model = fast.DataHub().download('nuclei-segmentation-model')
 
-importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
+importer = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
-tissueSegmentation = fast.TissueSegmentation.create()\
+tissueSegmentation = fast.TissueSegmentation()\
     .connect(importer)
 
 # Generate 256x256 patches at 20X magnification
 # Reduced overlap to speed up the processing time of this example
-generator = fast.PatchGenerator.create(
+generator = fast.PatchGenerator(
         256, 256,
         magnification=20,
         overlapPercent=0
     ).connect(importer)\
     .connect(1, tissueSegmentation)
 
-segmentation = fast.SegmentationNetwork.create(
+segmentation = fast.SegmentationNetwork(
         model.paths[0] + '/high_res_nuclei_unet.onnx',
         scaleFactor=1./255.
     ).connect(generator)
 
-stitcher = fast.PatchStitcher.create()\
+stitcher = fast.PatchStitcher()\
     .connect(segmentation)
 
 # We need to wait until all patches have been processed and stitched
 # before exporting the segmentation. The RunUntilFinished process object
 # will do this for us
-finished = fast.RunUntilFinished.create()\
+finished = fast.RunUntilFinished()\
     .connect(stitcher)
 
 # Finally we export the stitched image pyramid to TIFF
-exporter = fast.TIFFImagePyramidExporter.create('segmented-nuclei.tiff')\
+fast.TIFFImagePyramidExporter('segmented-nuclei.tiff')
     .connect(finished)\
     .run()
 @endcode
@@ -290,7 +280,7 @@ You can then use the TIFFImagePyramidImporter to load the stored segmentation ba
 @code{.py}
 import fast
 
-importer = fast.TIFFImagePyramidImporter.create('segmented-nuclei.tiff')
+importer = fast.TIFFImagePyramidImporter('segmented-nuclei.tiff')
 
 fast.display2D(segmentation=importer)
 @endcode
@@ -304,11 +294,10 @@ using the ImagePyramidPatchExporter:
 @code{.py}
 import fast
 
-importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
+importer = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
 # Store patches from level 2
-exporter = fast.ImagePyramidPatchExporter.create('/home/smistad/wsi-export-folder/', 2, 512, 512)\
+exporter = fast.ImagePyramidPatchExporter('wsi-export-folder/', 2, 512, 512)\
     .connect(importer)\
     .run()
 @endcode
@@ -319,14 +308,13 @@ You can also do this manually using the PatchGenerator which gives you some more
 @code{.py}
 import fast
 
-importer = fast.WholeSlideImageImporter\
-    .create(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
+importer = fast.WholeSlideImageImporter(fast.Config.getTestDataPath() + "/WSI/CMU-1.svs")
 
 # Do tissue segmentation to select patches from tissue only
-tissueSegmentation = fast.TissueSegmentation.create()\
+tissueSegmentation = fast.TissueSegmentation()\
     .connect(importer)
 
-patchGenerator = fast.PatchGenerator.create(512, 512, level=2)\
+patchGenerator = fast.PatchGenerator(512, 512, level=2)\
     .connect(0, importer)\
     .connect(1, tissueSegmentation)
 
@@ -344,7 +332,7 @@ for i, patch in enumerate(fast.DataStream(patchGenerator)):
     # y_pos = int(patch.getFrameData("patchid-y")) * (patch_height - patch_overlap_y * 2) + patch_overlap_y
     # patch_name = f"patch_{total_width}_{total_height}_{level}_{x_pos}_{y_pos}_{x_spacing}_{y_spacing}.jpg"
     
-    fast.ImageExporter.create(patch_name)\
+    fast.ImageExporter(patch_name)\
         .connect(patch)\
         .run()
 @endcode
@@ -354,7 +342,7 @@ You can also import image pyramids stored as a set of PNG/JPEGs, but this is ver
 @code{.py}
 import fast
 
-importer = fast.ImagePyramidPatchImporter.create('wsi-export-folder/')
+importer = fast.ImagePyramidPatchImporter('wsi-export-folder/')
 
 fast.display2D(imagePyramid=importer)
 @endcode
@@ -370,11 +358,10 @@ independently. The example below demonstrated this process object and displays 6
 import fast
 import matplotlib.pyplot as plt
 
-importer = fast.WholeSlideImageImporter\
-    .create('TMA.tiff')
+importer = fast.WholeSlideImageImporter('TMA.tiff')
 
 # Extract tissue cores at image pyramid level 1
-extractor = fast.TissueMicroArrayExtractor.create(level=1)\
+extractor = fast.TissueMicroArrayExtractor(level=1)\
     .connect(importer)
 
 for i, core in enumerate(fast.DataStream(extractor)):
