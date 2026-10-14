@@ -72,12 +72,27 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getLevelTilesY(int level);
         float getLevelScale(int level);
         /**
-         * @brief Get level for a given magnification if it exists
+         * @brief Get level for a given magnification if it exists.
+         * Throws exception if a level for this magnification does not exist in the pyramid.
          * @param magnification Magnification amount (e.g. 40, 20, 10 etc.)
          * @return level
          */
         int getLevelForMagnification(float magnification);
-        std::pair<int, float> getClosestLevelForMagnification(float magnification, float percentageSlack = 0.1f);
+        /**
+         * @brief Get the closest level for a specific magnification.
+         *
+         * Throws exception if image pyramid magnification is unknown.
+         * If level with this magnification does not exist in the pyramid, the closest level with a higher magnification
+         * is selected, and the resample factor is the magnification of this level divided by the target magnification.
+         * E.g. if you have an image pyramid at 40X magnification, and only levels corresponding to 40X and 10X.
+         * The closest level for 20X will be level 0, with a resample factor of 2.0, because to create 20X patches
+         * of size WxH, you have to get a patch of size resampleFactor*W x resampleFactor*H from level 0,
+         * and then resize to WxH.
+         *
+         * @param magnification
+         * @return pair of closest level and resampel factor
+         */
+        std::pair<int, float> getClosestLevelForMagnification(float magnification);
         int getFullWidth();
         int getFullHeight();
         int getWidth() const;
@@ -119,7 +134,19 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         std::shared_ptr<NeuralNetwork> getDecompressionModel() const;
         float getDecompressionOutputScaleFactor() const;
         DataType getDataType() const;
-        float getMagnification(bool estimateFromSpacingIfUnknown = false) const;
+        /**
+         * @brief Get magnification metadata
+         * Returns the magnification used to create the image pyramid if available.
+         * Throws exception if it is unknown.
+         * The magnification can also be set manually with ImagePyramid::setMagnification()
+         *
+         * @return magnification, e.g. 20
+         */
+        float getMagnification() const;
+        /**
+         * @brief Set magnification metadata
+         * @param magnification
+         */
         void setMagnification(float magnification);
     private:
         ImagePyramid();

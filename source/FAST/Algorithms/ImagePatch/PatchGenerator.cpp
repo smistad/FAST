@@ -83,7 +83,7 @@ void PatchGenerator::generateStream() {
             float resampleFactor = 1.0f;
             if(m_magnification > 0) {
                 try {
-                    std::tie(level, resampleFactor) = m_inputImagePyramid->getClosestLevelForMagnification(m_magnification, 0.1);
+                    std::tie(level, resampleFactor) = m_inputImagePyramid->getClosestLevelForMagnification(m_magnification);
                     if(resampleFactor != 1.0f)
                         reportWarning() << "Requested magnification " << m_magnification << " does not exist in a level of the image pyramid. " <<
                                         "Will now try to sample from a lower level and resize. This may increase runtime." << reportEnd();

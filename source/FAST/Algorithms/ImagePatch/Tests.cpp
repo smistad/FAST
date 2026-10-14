@@ -20,7 +20,7 @@ using namespace fast;
 
 TEST_CASE("Patch generator for WSI", "[fast][wsi][PatchGenerator]") {
     auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
-    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+    auto wsi = importer->run()->getOutput<ImagePyramid>();
 
     const int level = 2;
     const int width = 512;
@@ -43,7 +43,7 @@ TEST_CASE("Patch generator for WSI", "[fast][wsi][PatchGenerator]") {
 
 TEST_CASE("Patch generator on 2D image", "[fast][PatchGenerator]") {
     auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/US/US-2D.jpg");
-    auto image = importer->runAndGetOutputData<Image>();
+    auto image = importer->run()->getOutput<Image>();
 
     const int width = 33;
     const int height = 33;
@@ -64,9 +64,9 @@ TEST_CASE("Patch generator on 2D image", "[fast][PatchGenerator]") {
 
 TEST_CASE("Patch generator with no patches", "[fast][PatchGenerator]") {
     auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
-    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+    auto wsi = importer->run()->getOutput<ImagePyramid>();
 
-    auto segmentation = TissueSegmentation::create(true)->connect(wsi)->runAndGetOutputData<Image>();
+    auto segmentation = TissueSegmentation::create(true)->connect(wsi)->run()->getOutput<Image>();
     segmentation->fill(0); // Empty segmentation will mean no patches
     const int width = 256;
     const int height = 256;
@@ -87,7 +87,7 @@ TEST_CASE("Patch generator with no patches", "[fast][PatchGenerator]") {
 
 TEST_CASE("Patch generator throws exception in thread", "[fast][PatchGenerator]") {
     auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
-    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+    auto wsi = importer->run()->getOutput<ImagePyramid>();
 
     auto segmentation = Image::create(512, 512, TYPE_UINT8, 1);
     segmentation->fill(0); // Empty segmentation will mean no patches
@@ -110,7 +110,7 @@ TEST_CASE("Patch generator throws exception in thread", "[fast][PatchGenerator]"
 
 TEST_CASE("Patch generator on 3D image", "[fast][PatchGenerator]") {
     auto importer = ImageFileImporter::create(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
-    auto image = importer->runAndGetOutputData<Image>();
+    auto image = importer->run()->getOutput<Image>();
 
     const int width = 300;
     const int height = 300;
@@ -173,7 +173,7 @@ TEST_CASE("Patch generator and stitcher for volumes", "[fast][volume][patchgener
 TEST_CASE("Patch generator and stitcher for WSI", "[fast][wsi][PatchStitcher][visual]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/WSI/CMU-1.svs");
-    auto pyramid = importer->runAndGetOutputData<ImagePyramid>();
+    auto pyramid = importer->run()->getOutput<ImagePyramid>();
     auto level2Image = pyramid->getAccess(ACCESS_READ)->getLevelAsImage(2);
 
     auto generator = PatchGenerator::New();
@@ -221,7 +221,7 @@ TEST_CASE("Patch generator, sticher and image to batch generator for WSI", "[fas
 /*
 TEST_CASE("Patch generator for WSI wrong magnification", "[fast][wsi][PatchGenerator]") {
     auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
-    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+    auto wsi = importer->run()->getOutput<ImagePyramid>();
 
     auto generator = PatchGenerator::create(512, 512, 1, 0, 40)
             ->connect(wsi);
@@ -237,7 +237,7 @@ TEST_CASE("Patch generator for WSI at specific magnification 2.5x", "[fast][wsi]
     // 1 -> 5X
     // 2 -> 1.25X
     // Thus to get 2.5X, it should extract patches of size (512x2,512x2) at level 1, and then resie them to (512,512)
-    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+    auto wsi = importer->run()->getOutput<ImagePyramid>();
 
     int width = 512;
     int height = 512;
@@ -257,7 +257,7 @@ TEST_CASE("Patch generator for WSI at specific magnification 2.5x", "[fast][wsi]
 
 TEST_CASE("Patch generator for WSI at specific magnification 1.25x", "[fast][wsi][PatchGenerator]") {
     auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
-    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+    auto wsi = importer->run()->getOutput<ImagePyramid>();
 
     int width = 512;
     int height = 512;
@@ -278,7 +278,7 @@ TEST_CASE("Patch generator for WSI at specific magnification 1.25x", "[fast][wsi
 
 TEST_CASE("Patch generator and stitcher at given magnification") {
     auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
-    auto wsi = importer->runAndGetOutputData<ImagePyramid>();
+    auto wsi = importer->run()->getOutput<ImagePyramid>();
 
     // This pyramid has:
     // 0 -> 20X
@@ -293,7 +293,7 @@ TEST_CASE("Patch generator and stitcher at given magnification") {
 
     auto stitcher = PatchStitcher::create(false, true)->connect(generator);
     auto finished = RunUntilFinished::create()->connect(stitcher);
-    auto image = finished->runAndGetOutputData<ImagePyramid>();
+    auto image = finished->run()->getOutput<ImagePyramid>();
     // New image should be roughly half the size of level 1
     CHECK(image->getFullWidth() == fast::round(wsi->getLevelWidth(1)/2.00401));
     CHECK(image->getFullHeight() == fast::round(wsi->getLevelHeight(1)/2.00401));
@@ -326,7 +326,7 @@ TEST_CASE("PatchGenerator and PatchStitcher on ImagePyramid with overlap", "[fas
     auto stitcher = PatchStitcher::create(false, true)->connect(generator);
 
     auto finish = RunUntilFinished::create()->connect(stitcher);
-    auto newPyramid = finish->runAndGetOutputData<ImagePyramid>();
+    auto newPyramid = finish->run()->getOutput<ImagePyramid>();
     std::cout << newPyramid->getLevelTileWidth(0) << " " << newPyramid->getLevelTileHeight(0) << std::endl;
 
     auto pyramidImage1 = pyramid->getAccess(ACCESS_READ)->getLevelAsImage(0);
@@ -374,7 +374,7 @@ TEST_CASE("PatchGenerator and PatchStitcher on Image with overlap", "[fast][wsi]
     auto stitcher = PatchStitcher::create(false, false)->connect(generator);
 
     auto finish = RunUntilFinished::create()->connect(stitcher);
-    auto newImage = finish->runAndGetOutputData<Image>();
+    auto newImage = finish->run()->getOutput<Image>();
 
     int max = 0;
     {

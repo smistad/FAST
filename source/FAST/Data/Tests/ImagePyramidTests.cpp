@@ -18,7 +18,14 @@ TEST_CASE("Convert image pyramid to JPEG XL compression", "[fast][ImagePyramid][
     int tilesX = std::ceil(imagePyramid->getLevelWidth(level) / targetTileSize);
     int tilesY = std::ceil(imagePyramid->getLevelHeight(level) / targetTileSize);
 
-    auto newImagePyramid = ImagePyramid::create(tilesX*targetTileSize, tilesY*targetTileSize, 3, targetTileSize, targetTileSize, ImageCompression::JPEGXL);
+    auto newImagePyramid = ImagePyramid::create(
+            tilesX*targetTileSize,
+            tilesY*targetTileSize,
+            3,
+            targetTileSize,
+            targetTileSize,
+            ImageCompression::JPEGXL
+    );
 
     {
         auto accessRead = imagePyramid->getAccess(ACCESS_READ);
@@ -88,25 +95,49 @@ TEST_CASE("getLevelForMagnification()", "[fast][ImagePyramid]") {
 }
 
 TEST_CASE("getClosestLevelForMagnification()", "[fast][ImagePyramid]") {
+    // This pyramid is 20X, and have levels for 5X and 1.25X
     auto importer = WholeSlideImageImporter::create(Config::getTestDataPath() + "/WSI/CMU-1.svs");
-    auto image = importer->runAndGetOutputData<ImagePyramid>();
+    auto image = importer->run()->getOutput<ImagePyramid>();
     {
         auto [level, resampleFactor] = image->getClosestLevelForMagnification(20);
         CHECK(level == 0);
         CHECK(resampleFactor == 1.0f);
     }
-    /*
+    {
+        auto [level, resampleFactor] = image->getClosestLevelForMagnification(15);
+        CHECK(level == 0);
+        CHECK(resampleFactor == Approx(1.33333f));
+    }
     {
         auto [level, resampleFactor] = image->getClosestLevelForMagnification(10);
         CHECK(level == 0);
         CHECK(resampleFactor == 2.0f);
     }
     {
+        auto [level, resampleFactor] = image->getClosestLevelForMagnification(5);
+        CHECK(level == 1);
+        CHECK(resampleFactor == 1.0f);
+    }
+    {
         auto [level, resampleFactor] = image->getClosestLevelForMagnification(2.5);
         CHECK(level == 1);
         CHECK(resampleFactor == 2.0f);
     }
-     */
+    {
+        auto [level, resampleFactor] = image->getClosestLevelForMagnification(1.25);
+        CHECK(level == 2);
+        CHECK(resampleFactor == 1.0f);
+    }
+    {
+        auto [level, resampleFactor] = image->getClosestLevelForMagnification(1);
+        CHECK(level == 2);
+        CHECK(resampleFactor == 1.25f);
+    }
+    {
+        auto [level, resampleFactor] = image->getClosestLevelForMagnification(0.625);
+        CHECK(level == 2);
+        CHECK(resampleFactor == 2.0f);
+    }
 }
 
 TEST_CASE("Create image pyramid with default levels", "[fast][ImagePyramid]") {
